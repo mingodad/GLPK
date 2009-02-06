@@ -37,12 +37,16 @@ struct csa
       /* integer optimizer control parameters */
       glp_tran *tran;
       /* model translator workspace */
+      glp_graph *graph;
+      /* network problem object */
       int format;
       /* problem file format: */
 #define FMT_MPS_DECK    1  /* fixed MPS */
 #define FMT_MPS_FILE    2  /* free MPS */
 #define FMT_CPLEX_LP    3  /* CPLEX LP */
 #define FMT_MATHPROG    4  /* MathProg */
+#define FMT_MIN_COST    5  /* DIMACS min-cost flow */
+#define FMT_MAX_FLOW    6  /* DIMACS maximum flow */
       const char *in_file;
       /* name of input problem file */
 #define DATA_MAX 10
@@ -131,6 +135,10 @@ static void print_help(const char *my_name)
          "r --math only);\n");
       xprintf("                     by default the output is sent to te"
          "rminal\n");
+      xprintf("   --mincost         read min-cost flow problem in DIMAC"
+         "S format\n");
+      xprintf("   --maxflow         read maximum flow problem in DIMACS"
+         " format\n");
       xprintf("   --simplex         use simplex method (default)\n");
       xprintf("   --interior        use interior point method (LP only)"
          "\n");
@@ -316,6 +324,10 @@ static int parse_cmdline(struct csa *csa, int argc, const char *argv[])
             }
             csa->out_dpy = argv[k];
          }
+         else if (p("--mincost"))
+            csa->format = FMT_MIN_COST;
+         else if (p("--maxflow"))
+            csa->format = FMT_MAX_FLOW;
          else if (p("--simplex"))
             csa->solution = SOL_BASIC;
          else if (p("--interior"))
@@ -601,6 +613,9 @@ static int parse_cmdline(struct csa *csa, int argc, const char *argv[])
       return 0;
 }
 
+typedef struct { double rhs, pi; } v_data;
+typedef struct { double low, cap, cost, x; } a_data;
+
 int glp_main(int argc, const char *argv[])
 {     /* stand-alone LP/MIP solver */
       struct csa _csa, *csa = &_csa;
@@ -614,6 +629,7 @@ int glp_main(int argc, const char *argv[])
       glp_init_iocp(&csa->iocp);
       csa->iocp.presolve = GLP_ON;
       csa->tran = NULL;
+      csa->graph = NULL;
       csa->format = FMT_MPS_FILE;
       csa->in_file = NULL;
       csa->ndf = 0;
@@ -717,6 +733,35 @@ err2:    {  xprintf("MathProg model processing error\n");
          if (glp_mpl_generate(csa->tran, csa->out_dpy)) goto err2;
          /* build the problem instance from the model */
          glp_mpl_build_prob(csa->tran, csa->prob);
+      }
+      else if (csa->format == FMT_MIN_COST)
+      {  csa->graph = glp_create_graph(sizeof(v_data), sizeof(a_data));
+         ret = glp_read_mincost(csa->graph, offsetof(v_data, rhs),
+            offsetof(a_data, low), offsetof(a_data, cap),
+            offsetof(a_data, cost), csa->in_file);
+         if (ret != 0)
+         {  xprintf("DIMACS file processing error\n");
+            ret = EXIT_FAILURE;
+            goto done;
+         }
+         glp_mincost_lp(csa->prob, csa->graph, GLP_ON,
+            offsetof(v_data, rhs), offsetof(a_data, low),
+            offsetof(a_data, cap), offsetof(a_data, cost));
+         glp_set_prob_name(csa->prob, csa->in_file);
+      }
+      else if (csa->format == FMT_MAX_FLOW)
+      {  int s, t;
+         csa->graph = glp_create_graph(sizeof(v_data), sizeof(a_data));
+         ret = glp_read_maxflow(csa->graph, &s, &t,
+            offsetof(a_data, cap), csa->in_file);
+         if (ret != 0)
+         {  xprintf("DIMACS file processing error\n");
+            ret = EXIT_FAILURE;
+            goto done;
+         }
+         glp_maxflow_lp(csa->prob, csa->graph, GLP_ON, s, t,
+            offsetof(a_data, cap));
+         glp_set_prob_name(csa->prob, csa->in_file);
       }
       else
          xassert(csa != csa);
@@ -948,12 +993,15 @@ skip: /* postsolve the model, if necessary */
       /* all seems to be ok */
       ret = EXIT_SUCCESS;
       /*--------------------------------------------------------------*/
-done: /* delete the problem object */
+done: /* delete the LP/MIP problem object */
       if (csa->prob != NULL)
          glp_delete_prob(csa->prob);
       /* free the translator workspace, if necessary */
       if (csa->tran != NULL)
          glp_mpl_free_wksp(csa->tran);
+      /* delete the network problem object, if necessary */
+      if (csa->graph != NULL)
+         glp_delete_graph(csa->graph);
       xassert(gmp_pool_count() == 0);
       gmp_free_mem();
       /* close log file, if necessary */

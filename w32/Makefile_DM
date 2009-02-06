@@ -22,6 +22,7 @@ OBJSET = \
 ..\src\glpapi17.obj \
 ..\src\glpapi18.obj \
 ..\src\glpapi19.obj \
+..\src\glpapi20.obj \
 ..\src\glpavl.obj \
 ..\src\glpbfd.obj \
 ..\src\glpbfx.obj \
@@ -85,6 +86,8 @@ OBJSET = \
 ..\src\glpnet03.obj \
 ..\src\glpnet04.obj \
 ..\src\glpnet05.obj \
+..\src\glpnet06.obj \
+..\src\glpnet07.obj \
 ..\src\glppds.obj \
 ..\src\glpqmd.obj \
 ..\src\glprgr.obj \

@@ -15,6 +15,7 @@ food.mod       Food manufacture model
 food2.mod      Food manufacture model
 gap.mod        Generalized assignment problem
 graph.mod      Graph visualization
+hashi.mod      A solver for the Japanese number-puzzle Hashiwokakero
 huge.mod       Arithmetic mean of a large number of integers
 jssp.mod       Job-shop scheduling problem
 magic.mod      Magic square
@@ -28,8 +29,10 @@ mvcp.mod       Minimum vertex cover problem
 pbn.mod        Paint-by-numbers puzzle
 plan.mod       A simple LP problem
 prod.mod       A multiperiod production model
+qfit.mod       Quadratic curve fitting solution
 queens.mod     A classic combinatorial optimization problem
 sat.mod        Satisfiability problem
+shikaku.mod    A solver for the logic puzzle Shikaku
 spp.mod        Shortest path problem
 stigler.mod    Original Stigler's 1939 diet problem
 sudoku.mod     Number placement puzzle
@@ -38,4 +41,5 @@ todd.mod       A class of hard instances of 0-1 knapsack problems
 train.mod      A model of railroad passenger car allocation
 transp.mod     A transportation problem
 tsp.mod        Traveling salesman problem
+yacfs.mod      Yet another curve fitting solution
 zebra.mod      Who owns the zebra?

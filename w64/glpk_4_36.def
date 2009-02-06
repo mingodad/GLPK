@@ -1,5 +1,5 @@
-LIBRARY glpk_4_35
-VERSION 4.35
+LIBRARY glpk_4_36
+VERSION 4.36
 DESCRIPTION "GNU Linear Programming Kit"
 EXPORTS
 ;; from glpapi01 ;;
@@ -170,8 +170,12 @@ EXPORTS
  glp_erase_graph
  glp_set_graph_name
 ;; from glpapi19 ;;
+ glp_maxflow_ffalg
  glp_maxflow_lp
  glp_mincost_lp
+ glp_mincost_okalg
+;; from glpapi20 ;;
+ glp_weak_comp
 ;; from glpavl ;;
  _glp_avl_create_tree
  _glp_avl_delete_node
@@ -289,7 +293,6 @@ EXPORTS
  _glp_ios_preprocess_node
 ;; from glpios03 ;;
  _glp_ios_driver
- branch_on
 ;; from glpios04 ;;
  _glp_ios_check_vec
  _glp_ios_clean_vec
@@ -893,6 +896,10 @@ EXPORTS
  glp_gridgen
 ;; from glpnet05 ;;
  glp_rmfgen
+;; from glpnet06 ;;
+ _glp_okalg
+;; from glpnet07 ;;
+ _glp_ffalg
 ;; from glppds ;;
  _glp_pds_close_file
  _glp_pds_error

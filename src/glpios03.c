@@ -723,7 +723,7 @@ static void branch_mostf(glp_tree *tree)
 *  2 - both branches have no feasible solution and have been pruned;
 *      subproblem selection is needed. */
 
-int branch_on(glp_tree *tree)
+static int branch_on(glp_tree *tree)
 {     glp_prob *mip = tree->mip;
       int n = mip->n;
       int j = tree->br_var;

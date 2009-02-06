@@ -609,7 +609,7 @@ void *db_iodbc_open(TABDCA *dca, int mode)
    }
    /* set AUTOCOMMIT on*/
    ret = dl_SQLSetConnectAttr(sql->hdbc, SQL_ATTR_AUTOCOMMIT,
-      (SQLPOINTER)SQL_AUTOCOMMIT_ON, SQL_NTS);
+      (SQLPOINTER)SQL_AUTOCOMMIT_ON, 0);
    /* allocate a statement handle */
    ret = dl_SQLAllocHandle(SQL_HANDLE_STMT, sql->hdbc, &(sql->hstmt));
 

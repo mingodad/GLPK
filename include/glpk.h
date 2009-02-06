@@ -30,7 +30,7 @@ extern "C" {
 
 /* library version numbers: */
 #define GLP_MAJOR_VERSION  4
-#define GLP_MINOR_VERSION  35
+#define GLP_MINOR_VERSION  36
 
 #ifndef _GLP_PROB
 #define _GLP_PROB
@@ -148,12 +148,7 @@ typedef struct { double _opaque_tree; } glp_tree;
 
 typedef struct
 {     /* integer optimizer control parameters */
-      int msg_lev;            /* message level: */
-#define GLP_MSG_OFF        0  /* no output */
-#define GLP_MSG_ERR        1  /* warning and error messages only */
-#define GLP_MSG_ON         2  /* normal output */
-#define GLP_MSG_ALL        3  /* full output */
-#define GLP_MSG_DBG        4  /* debug output */
+      int msg_lev;            /* message level (see glp_smcp) */
       int br_tech;            /* branching technique: */
 #define GLP_BR_FFV         1  /* first fractional variable */
 #define GLP_BR_LFV         2  /* last fractional variable */
@@ -246,6 +241,8 @@ typedef struct
 #define GLP_ENOFEAS     0x0F  /* no primal/dual feasible solution */
 #define GLP_ENOCVG      0x10  /* no convergence */
 #define GLP_EINSTAB     0x11  /* numerical instability */
+#define GLP_EDATA       0x12  /* invalid data */
+#define GLP_ERANGE      0x13  /* result out of range */
 
 /* MPS file format: */
 #define GLP_MPS_DECK       1  /* fixed (ancient) */
@@ -790,9 +787,17 @@ void glp_mincost_lp(glp_prob *lp, glp_graph *G, int names, int v_rhs,
       int a_low, int a_cap, int a_cost);
 /* convert minimum cost flow problem to LP */
 
+int glp_mincost_okalg(glp_graph *G, int v_rhs, int a_low, int a_cap,
+      int a_cost, double *sol, int a_x, int v_pi);
+/* find minimum-cost flow with out-of-kilter algorithm */
+
 void glp_maxflow_lp(glp_prob *lp, glp_graph *G, int names, int s,
       int t, int a_cap);
 /* convert maximum flow problem to LP */
+
+int glp_maxflow_ffalg(glp_graph *G, int s, int t, int a_cap,
+      double *sol, int a_x, int v_cut);
+/* find maximal flow with Ford-Fulkerson algorithm */
 
 int glp_read_mincost(glp_graph *G, int v_rhs, int a_low, int a_cap,
       int a_cost, const char *fname);
@@ -821,6 +826,9 @@ int glp_gridgen(glp_graph *G, int v_rhs, int a_cap, int a_cost,
 int glp_rmfgen(glp_graph *G, int *s, int *t, int a_cap,
       const int parm[1+5]);
 /* Goldfarb's maximum flow problem generator */
+
+int glp_weak_comp(glp_graph *G, int v_num);
+/* find all weakly connected components of graph */
 
 /**********************************************************************/
 

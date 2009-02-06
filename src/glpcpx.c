@@ -1010,15 +1010,23 @@ int write_cpxlp(glp_prob *lp, const char *fname)
       /* determine the number of rows and columns */
       nrows = lpx_get_num_rows(lp);
       ncols = lpx_get_num_cols(lp);
+#if 0 /* 01/II-2009 */
       /* the problem should contain at least one row and one column */
       if (!(nrows > 0 && ncols > 0))
          xerror("glp_write_lp: problem has no rows/columns\n");
+#endif
       /* write problem name */
       {  const char *name = lpx_get_prob_name(lp);
          if (name == NULL) name = "Unknown";
          fprintf(fp, "\\* Problem: %s *\\\n", name);
          fprintf(fp, "\n");
       }
+#if 1 /* 01/II-2009 */
+      if (!(nrows > 0 && ncols > 0))
+      {  fprintf(fp, "\\* WARNING: PROBLEM HAS NO ROWS/COLUMNS *\\\n");
+         goto skip;
+      }
+#endif
       /* allocate working arrays */
       ind = xcalloc(1+ncols, sizeof(int));
       val = xcalloc(1+ncols, sizeof(double));
@@ -1162,7 +1170,7 @@ more:    if (!flag)
             fprintf(fp, " %s\n", col_name(lp, j, cname));
          }
       }
-      /* write the end keyword */
+skip: /* write the end keyword */
       fprintf(fp, "\n");
       fprintf(fp, "End\n");
       /* close the output text file */

@@ -34,6 +34,17 @@ int mc13d(int n, const int icn[], const int ip[], const int lenr[],
       int ior[], int ib[], int lowl[], int numb[], int prev[]);
 /* permutations to block triangular form */
 
+#define okalg _glp_okalg
+int okalg(int nv, int na, const int tail[], const int head[],
+      const int low[], const int cap[], const int cost[], int x[],
+      int pi[]);
+/* out-of-kilter algorithm */
+
+#define ffalg _glp_ffalg
+void ffalg(int nv, int na, const int tail[], const int head[],
+      int s, int t, const int cap[], int x[], char cut[]);
+/* Ford-Fulkerson algorithm */
+
 #endif
 
 /* eof */

@@ -383,7 +383,7 @@ int glp_write_mincost(glp_graph *G, int v_rhs, int a_low, int a_cap,
             if (a_cap >= 0)
                memcpy(&cap, (char *)a->data + a_cap, sizeof(double));
             else
-               cap = DBL_MAX;
+               cap = 1.0;
             if (a_cost >= 0)
                memcpy(&cost, (char *)a->data + a_cost, sizeof(double));
             else
@@ -588,7 +588,7 @@ int glp_write_maxflow(glp_graph *G, int s, int t, int a_cap,
          {  if (a_cap >= 0)
                memcpy(&cap, (char *)a->data + a_cap, sizeof(double));
             else
-               cap = DBL_MAX;
+               cap = 1.0;
             xfprintf(fp, "a %d %d %.*g\n",
                a->tail->i, a->head->i, DBL_DIG, cap), count++;
          }

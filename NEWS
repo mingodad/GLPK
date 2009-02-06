@@ -1,3 +1,37 @@
+GLPK 4.36 (release date: Feb 06, 2009)
+
+        The following new API routines were added to the package:
+
+        glp_mincost_okalg     find minimum-cost flow with out-of-kilter
+                              algorithm
+        glp_maxflow_ffalg     find maximal flow with Ford-Fulkerson
+                              algorithm
+
+        For detailed description of these new routines and related data
+        structures see chapter "Graph and Network API Routines" in a new
+        edition of the reference manual included in the distribution.
+
+        The following two new command-line options were added to the
+        solver glpsol:
+
+        --mincost             read min-cost flow data in DIMACS format
+        --maxflow             read maximum flow data in DIMACS format
+
+        Duplicate symbols in the header glpk.h were removed to allow
+        using swig.
+        Thanks to Kelly Westbrooks <kellywestbrooks@yahoo.com> and
+        Nigel Galloway <nigel_galloway@operamail.com> for suggestion.
+
+        A minor defect was fixed in the routine glp_write_lp.
+        Thanks to Sebastien Briais <sbriais@free.fr> for bug report.
+
+        A minor bug was fixed in the SQL module.
+        Thanks to Xypron <xypron.glpk@gmx.de> for patch.
+
+        Some new example models in the GNU MathProg modeling language
+        were added. Thanks to Sebastian Nowozin <nowozin@gmail.com> and
+        Nigel Galloway <nigel_galloway@operamail.com> for contribution.
+
 GLPK 4.35 (release date: Jan 09, 2009)
 
         The following new API routines were added to the package:

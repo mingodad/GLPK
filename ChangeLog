@@ -1,3 +1,43 @@
+Fri Feb 06 12:00:00 2009 Andrew Makhorin <mao@mai2.rcnet.ru>
+
+        * GLPK 4.36 (21:0:21) has been released
+
+        * glpnet06.c, glpnet07.c, glpapi19.c
+        The following new API routines were added:
+        glp_mincost_okalg     find minimum-cost flow with out-of-kilter
+                              algorithm
+        glp_maxflow_ffalg     find maximal flow with Ford-Fulkerson
+                              algorithm
+
+        * glpsol.c
+        Two new command-line options were added:
+        --mincost             read min-cost flow data in DIMACS format
+        --maxflow             read maximum flow data in DIMACS format
+
+        * doc/glpk.*
+        New edition of the reference manual was included.
+
+        * glpk.h
+        Duplicate symbols were removed to allow using swig.
+        Thanks to Kelly Westbrooks <kellywestbrooks@yahoo.com> and
+        Nigel Galloway <nigel_galloway@operamail.com> for suggestion.
+
+        * glpcpx.c
+        A minor defect was fixed in the routine glp_write_lp.
+        Thanks to Sebastien Briais <sbriais@free.fr> for bug report.
+
+        * glpsql.c
+        A minor bug was fixed. Thanks to Xypron <xypron.glpk@gmx.de>
+        for patch.
+
+        * examples/hashi.mod, examples/shikaku.mod
+        Two example models in MathProg were added. Thanks to Sebastian
+        Nowozin <nowozin@gmail.com> for contribution.
+
+        * examples/qfit.mod, examples/yacfs.mod
+        Two example models in MathProg were added. Thanks to Nigel
+        Galloway <nigel_galloway@operamail.com> for contribution.
+
 Fri Jan 09 12:00:00 2009 Andrew Makhorin <mao@mai2.rcnet.ru>
 
         * GLPK 4.35 (20:0:20) has been released

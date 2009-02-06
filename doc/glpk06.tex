@@ -668,24 +668,25 @@ specifies the minimum cost flow problem instance.
 
 The parameter \verb|v_rhs| specifies an offset of the field of type
 \verb|double| in the vertex data block, which contains $b_i$, the
-supply/demand value. If \verb|v_rhs| $<0$, it is assumed that $b_i=0$,
-i.e. the node is transshipment.
+supply/demand value. If \verb|v_rhs| $<0$, it is assumed that $b_i=0$
+for all nodes.
 
 The parameter \verb|a_low| specifies an offset of the field of type
 \verb|double| in the arc data block, which contains $l_{ij}$, the lower
 bound to the arc flow. If \verb|a_low| $<0$, it is assumed that
-$l_{ij}=0$, i.e. the arc flow is non-negative.
+$l_{ij}=0$ for all arcs.
 
 The parameter \verb|a_cap| specifies an offset of the field of type
 \verb|double| in the arc data block, which contains $u_{ij}$, the upper
-bound to the arc flow (the arc capacity). If \verb|a_cap| $<0$ or the
-upper bound is spacified as \verb|DBL_MAX|, it is assumed that
-$u_{ij}=\infty$, i.e. the arc is uncapacitated.
+bound to the arc flow (the arc capacity). If the upper bound is
+specified as \verb|DBL_MAX|, it is assumed that $u_{ij}=\infty$, i.e.
+the arc is uncapacitated. If \verb|a_cap| $<0$, it is assumed that
+$u_{ij}=1$ for all arcs.
 
 The parameter \verb|a_cost| specifies an offset of the field of type
 \verb|double| in the arc data block, which contains $c_{ij}$, the
 per-unit cost of the arc flow. If \verb|a_cost| $<0$, it is assumed that
-$c_{ij}=0$.
+$c_{ij}=0$ for all arcs.
 
 The character string \verb|fname| specifies a name of the text file to
 be written out. (If the file name ends with suffix `\verb|.gz|', the
@@ -727,24 +728,25 @@ symbolic names to the LP problem object components. If the flag is
 
 The parameter \verb|v_rhs| specifies an offset of the field of type
 \verb|double| in the vertex data block, which contains $b_i$, the
-supply/demand value. If \verb|v_rhs| $<0$, it is assumed that $b_i=0$,
-i.e. the node is transshipment.
+supply/demand value. If \verb|v_rhs| $<0$, it is assumed that $b_i=0$
+for all nodes.
 
 The parameter \verb|a_low| specifies an offset of the field of type
 \verb|double| in the arc data block, which contains $l_{ij}$, the lower
 bound to the arc flow. If \verb|a_low| $<0$, it is assumed that
-$l_{ij}=0$, i.e. the arc flow is non-negative.
+$l_{ij}=0$ for all arcs.
 
 The parameter \verb|a_cap| specifies an offset of the field of type
 \verb|double| in the arc data block, which contains $u_{ij}$, the upper
-bound to the arc flow (the arc capacity). If \verb|a_cap| $<0$ or the
-upper bound is spacified as \verb|DBL_MAX|, it is assumed that
-$u_{ij}=\infty$, i.e. the arc is uncapacitated.
+bound to the arc flow (the arc capacity). If the upper bound is
+specified as \verb|DBL_MAX|, it is assumed that $u_{ij}=\infty$, i.e.
+the arc is uncapacitated. If \verb|a_cap| $<0$, it is assumed that
+$u_{ij}=1$ for all arcs.
 
 The parameter \verb|a_cost| specifies an offset of the field of type
 \verb|double| in the arc data block, which contains $c_{ij}$, the
 per-unit cost of the arc flow. If \verb|a_cost| $<0$, it is assumed that
-$c_{ij}=0$.
+$c_{ij}=0$ for all arcs.
 
 \subsubsection*{Example}
 
@@ -780,8 +782,9 @@ int main(void)
 }
 \end{verbatim}
 
-If `\verb|sample.min|' is the example data file from the previous
-subsection, the output file `\verb|mincost.lp|' may look like follows:
+If `\verb|sample.min|' is the example data file from the subsection
+describing the routine \verb|glp_read_mincost|, file `\verb|mincost.lp|'
+may look like follows:
 
 \begin{verbatim}
 Minimize
@@ -817,6 +820,212 @@ Bounds
 
 End
 \end{verbatim}
+
+\subsection{glp\_mincost\_okalg---solve minimum cost flow problem with
+out-of-kilter algorithm}
+
+\subsubsection*{Synopsis}
+
+\begin{verbatim}
+int glp_mincost_okalg(glp_graph *G, int v_rhs, int a_low,
+      int a_cap, int a_cost, double *sol, int a_x, int v_pi);
+\end{verbatim}
+
+\subsubsection*{Description}
+
+The routine \verb|glp_mincost_okalg| finds optimal solution to the
+minimum cost flow problem with the out-of-kilter
+algorithm.\footnote{GLPK implementation of the out-of-kilter algorithm
+is based on the following book: L.~R.~Ford,~Jr., and D.~R.~Fulkerson,
+``Flows in Networks,'' The RAND Corp., Report R-375-PR (August 1962),
+Chap. III ``Minimal Cost Flow Problems,'' pp.~113-26.} Note that this
+routine requires all the problem data to be integer-valued.
+
+The parameter \verb|G| is a graph (network) program object which
+specifies the minimum cost flow problem instance to be solved.
+
+The parameter \verb|v_rhs| specifies an offset of the field of type
+\verb|double| in the vertex data block, which contains $b_i$, the
+supply/demand value. This value must be integer in the range
+[$-$\verb|INT_MAX|, $+$\verb|INT_MAX|]. If \verb|v_rhs| $<0$, it is
+assumed that $b_i=0$ for all nodes.
+
+The parameter \verb|a_low| specifies an offset of the field of type
+\verb|double| in the arc data block, which contains $l_{ij}$, the lower
+bound to the arc flow. This bound must be integer in the range
+[$0$, \verb|INT_MAX|]. If \verb|a_low| $<0$, it is assumed that
+$l_{ij}=0$ for all arcs.
+
+The parameter \verb|a_cap| specifies an offset of the field of type
+\verb|double| in the arc data block, which contains $u_{ij}$, the upper
+bound to the arc flow (the arc capacity). This bound must be integer in
+the range [$l_{ij}$, \verb|INT_MAX|]. If \verb|a_cap| $<0$, it is
+assumed that $u_{ij}=1$ for all arcs.
+
+The parameter \verb|a_cost| specifies an offset of the field of type
+\verb|double| in the arc data block, which contains $c_{ij}$, the
+per-unit cost of the arc flow. This value must be integer in the range
+[$-$\verb|INT_MAX|, $+$\verb|INT_MAX|]. If \verb|a_cost| $<0$, it is
+assumed that $c_{ij}=0$ for all arcs.
+
+The parameter \verb|sol| specifies a location, to which the routine
+stores the objective value (that is, the total cost) found. If
+\verb|sol| is NULL, the objective value is not stored.
+
+The parameter \verb|a_x| specifies an offset of the field of type
+\verb|double| in the arc data block, to which the routine stores
+$x_{ij}$, the arc flow found. If \verb|a_x| $<0$, the arc flow value is
+not stored.
+
+The parameter \verb|v_pi| specifies an offset of the field of type
+\verb|double| in the vertex data block, to which the routine stores
+$\pi_i$, the node potential, which is the Lagrange multiplier for the
+corresponding flow conservation equality constraint (see (2) in
+Subsection ``Background''). If necessary, the application program may
+use the node potentials to compute $\lambda_{ij}$, reduced costs of the
+arc flows $x_{ij}$, which are the Lagrange multipliers for the arc flow
+bound constraints (see (3) ibid.), using the following formula:
+$$\lambda_{ij}=c_{ij}-(\pi_i-\pi_j),$$
+where $c_{ij}$ is the per-unit cost for arc $(i,j)$.
+
+Note that all solution components (the objective value, arc flows, and
+node potentials) computed by the routine are always integer-valued.
+
+\subsubsection*{Returns}
+
+\def\arraystretch{1}
+
+\begin{tabular}{@{}p{25mm}p{97.3mm}@{}}
+0 & Optimal solution found.\\
+\verb|GLP_ENOPFS| & No (primal) feasible solution exists.\\
+\verb|GLP_EDATA| & Unable to start the search, because some problem
+data are either not integer-valued or out of range. This code is also
+returned if the total supply, which is the sum of $b_i$ over all source
+nodes (nodes with $b_i>0$), exceeds \verb|INT_MAX|.\\
+\end{tabular}
+
+\noindent
+\begin{tabular}{@{}p{25mm}p{97.3mm}@{}}
+\verb|GLP_ERANGE| & The search was prematurely terminated because of
+integer overflow.\\
+\verb|GLP_EFAIL| & An error has been detected in the program logic.
+(If this code is returned for your problem instance, please report to
+\verb|<bug-glpk@gnu.org>|.)\\
+\end{tabular}
+
+\subsubsection*{Comments}
+
+By design the out-of-kilter algorithm is applicable only to networks,
+where $b_i=0$ for {\it all} nodes, i.e. actually this algorithm finds a
+minimal cost {\it circulation}. Due to this requirement the routine
+\verb|glp_mincost_okalg| converts the original network to a network
+suitable for the out-of-kilter algorithm in the following
+way:\footnote{The conversion is performed internally and does not change
+the original network program object passed to the routine.}
+
+1) it adds two auxiliary nodes $s$ and $t$;
+
+2) for each original node $i$ with $b_i>0$ the routine adds auxiliary
+supply arc $(s\rightarrow i)$, flow $x_{si}$ through which is costless
+($c_{si}=0$) and fixed to $+b_i$ ($l_{si}=u_{si}=+b_i$);
+
+3) for each original node $i$ with $b_i<0$ the routine adds auxiliary
+demand arc $(i\rightarrow t)$, flow $x_{it}$ through which is costless
+($c_{it}=0$) and fixed to $-b_i$ ($l_{it}=u_{it}=-b_i$);
+
+4) finally, the routine adds auxiliary feedback arc $(t\rightarrow s)$,
+flow $x_{ts}$ through which is also costless ($c_{ts}=0$) and fixed to
+$F$ ($l_{ts}=u_{ts}=F$), where $\displaystyle F=\sum_{b_i>0}b_i$ is the
+total supply.
+
+\subsubsection*{Example}
+
+The example program below reads the minimum cost problem instance in
+DIMACS format from file `\verb|sample.min|', solves it by using the
+routine \verb|glp_mincost_okalg|, and writes the solution found to the
+standard output.
+
+\newpage
+
+\begin{verbatim}
+#include <stddef.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <glpk.h>
+
+typedef struct { double rhs, pi; } v_data;
+typedef struct { double low, cap, cost, x; } a_data;
+
+#define node(v) ((v_data *)((v)->data))
+#define arc(a)  ((a_data *)((a)->data))
+
+int main(void)
+{     glp_graph *G;
+      glp_vertex *v, *w;
+      glp_arc *a;
+      int i, ret;
+      double sol;
+      G = glp_create_graph(sizeof(v_data), sizeof(a_data));
+      glp_read_mincost(G, offsetof(v_data, rhs),
+         offsetof(a_data, low), offsetof(a_data, cap),
+         offsetof(a_data, cost), "sample.min");
+      ret = glp_mincost_okalg(G, offsetof(v_data, rhs),
+         offsetof(a_data, low), offsetof(a_data, cap),
+         offsetof(a_data, cost), &sol, offsetof(a_data, x),
+         offsetof(v_data, pi));
+      printf("ret = %d; sol = %5g\n", ret, sol);
+      for (i = 1; i <= G->nv; i++)
+      {  v = G->v[i];
+         printf("node %d:    pi = %5g\n", i, node(v)->pi);
+         for (a = v->out; a != NULL; a = a->t_next)
+         {  w = a->head;
+            printf("arc  %d->%d: x  = %5g; lambda = %5g\n",
+               v->i, w->i, arc(a)->x,
+               arc(a)->cost - (node(v)->pi - node(w)->pi));
+         }
+      }
+      glp_delete_graph(G);
+      return 0;
+}
+\end{verbatim}
+
+\newpage
+
+If `\verb|sample.min|' is the example data file from the subsection
+describing the routine \verb|glp_read_mincost|, the output may look like
+follows:
+
+\begin{verbatim}
+Reading min-cost flow problem data from `sample.min'...
+Flow network has 9 nodes and 14 arcs
+24 lines were read
+ret = 0; sol =   213
+node 1:    pi =   -12
+arc  1->4: x  =    13; lambda =     0
+arc  1->2: x  =     7; lambda =     0
+node 2:    pi =   -12
+arc  2->4: x  =     0; lambda =     3
+arc  2->3: x  =     7; lambda =     0
+node 3:    pi =   -14
+arc  3->8: x  =     5; lambda =     0
+arc  3->5: x  =     2; lambda =     3
+node 4:    pi =   -12
+arc  4->5: x  =    13; lambda =     0
+node 5:    pi =   -12
+arc  5->7: x  =     4; lambda =    -1
+arc  5->6: x  =    11; lambda =     0
+arc  5->2: x  =     0; lambda =     1
+node 6:    pi =   -17
+arc  6->8: x  =     4; lambda =     3
+arc  6->7: x  =     7; lambda =    -3
+node 7:    pi =   -20
+arc  7->9: x  =    11; lambda =     0
+node 8:    pi =   -14
+arc  8->9: x  =     9; lambda =     0
+node 9:    pi =   -23
+\end{verbatim}
+
+\newpage
 
 \subsection{glp\_netgen---Klingman's network problem generator}
 
@@ -870,6 +1079,9 @@ generated:
 \verb|parm[7] |&\verb|mincst|&minimum cost for arcs\\
 \verb|parm[8] |&\verb|maxcst|&maximum cost for arcs\\
 \verb|parm[9] |&\verb|itsup |&total supply\\
+\end{tabular}
+
+\begin{tabular}{@{}lll@{}}
 \verb|parm[10]|&\verb|ntsorc|&number of transshipment source nodes\\
 \verb|parm[11]|&\verb|ntsink|&number of transshipment sink nodes\\
 \verb|parm[12]|&\verb|iphic |&percentage of skeleton arcs to be given
@@ -949,9 +1161,6 @@ generated:
 be\\&slightly different to make the network a grid)\\
 \verb|parm[4] |&grid width\\
 \verb|parm[5] |&number of sources\\
-\end{tabular}
-
-\begin{tabular}{@{}ll@{}}
 \verb|parm[6] |&number of sinks\\
 \verb|parm[7] |&average degree\\
 \verb|parm[8] |&total flow\\
@@ -1310,9 +1519,10 @@ The parameter \verb|t| specifies the ordinal number of the sink node.
 
 The parameter \verb|a_cap| specifies an offset of the field of type
 \verb|double| in the arc data block, which contains $u_{ij}$, the upper
-bound to the arc flow (the arc capacity). If \verb|a_cap| $<0$ or the
-upper bound is spacified as \verb|DBL_MAX|, it is assumed that
-$u_{ij}=\infty$, i.e. the arc is uncapacitated.
+bound to the arc flow (the arc capacity). If the upper bound is
+specified as \verb|DBL_MAX|, it is assumed that $u_{ij}=\infty$, i.e.
+the arc is uncapacitated. If \verb|a_cap| $<0$, it is assumed that
+$u_{ij}=1$ for all arcs.
 
 The character string \verb|fname| specifies a name of the text file to
 be written out. (If the file name ends with suffix `\verb|.gz|', the
@@ -1356,9 +1566,10 @@ The parameter \verb|t| specifies the ordinal number of the sink node.
 
 The parameter \verb|a_cap| specifies an offset of the field of type
 \verb|double| in the arc data block, which contains $u_{ij}$, the upper
-bound to the arc flow (the arc capacity). If \verb|a_cap| $<0$ or the
-upper bound is spacified as \verb|DBL_MAX|, it is assumed that
-$u_{ij}=\infty$, i.e. the arc is uncapacitated.
+bound to the arc flow (the arc capacity). If the upper bound is
+specified as \verb|DBL_MAX|, it is assumed that $u_{ij}=\infty$, i.e.
+the arc is uncapacitated. If \verb|a_cap| $<0$, it is assumed that
+$u_{ij}=1$ for all arcs.
 
 \subsubsection*{Example}
 
@@ -1423,6 +1634,143 @@ Bounds
  0 <= x(8,9) <= 20
 
 End
+\end{verbatim}
+
+\newpage
+
+\subsection{glp\_maxflow\_ffalg---solve maximum flow problem with
+Ford-Fulkerson algorithm}
+
+\subsubsection*{Synopsis}
+
+\begin{verbatim}
+int glp_maxflow_ffalg(glp_graph *G, int s, int t, int a_cap,
+      double *sol, int a_x, int v_cut);
+\end{verbatim}
+
+\subsubsection*{Description}
+
+The routine \verb|glp_mincost_ffalg| finds optimal solution to the
+maximum flow problem with the Ford-Fulkerson algorithm.\footnote{GLPK
+implementation of the Ford-Fulkerson algorithm is based on the following
+book: L.~R.~Ford,~Jr., and D.~R.~Fulkerson, ``Flows in Networks,'' The
+RAND Corp., Report\linebreak R-375-PR (August 1962), Chap. I
+``Static Maximal Flow,'' pp.~30-33.} Note that this routine requires all
+the problem data to be integer-valued.
+
+The parameter \verb|G| is a graph (network) program object which
+specifies the maximum flow problem instance to be solved.
+
+The parameter $s$ specifies the ordinal number of the source node.
+
+The parameter $t$ specifies the ordinal number of the sink node.
+
+The parameter \verb|a_cap| specifies an offset of the field of type
+\verb|double| in the arc data block, which contains $u_{ij}$, the upper
+bound to the arc flow (the arc capacity). This bound must be integer in
+the range [0, \verb|INT_MAX|]. If \verb|a_cap| $<0$, it is assumed that
+$u_{ij}=1$ for all arcs.
+
+The parameter \verb|sol| specifies a location, to which the routine
+stores the objective value (that is, the total flow from $s$ to $t$)
+found. If \verb|sol| is NULL, the objective value is not stored.
+
+The parameter \verb|a_x| specifies an offset of the field of type
+\verb|double| in the arc data block, to which the routine stores
+$x_{ij}$, the arc flow found. If \verb|a_x| $<0$, the arc flow values
+are not stored.
+
+The parameter \verb|v_cut| specifies an offset of the field of type
+\verb|int| in the vertex data block, to which the routine stores node
+flags corresponding to the optimal solution found: if the node flag is
+1, the node is labelled, and if the node flag is 0, the node is
+unlabelled. The calling program may use these node flags to determine
+the {\it minimal cut}, which is a subset of arcs whose one endpoint is
+labelled and other is not. If \verb|v_cut| $<0$, the node flags are not
+stored.
+
+Note that all solution components (the objective value and arc flows)
+computed by the routine are always integer-valued.
+
+\newpage
+
+\subsubsection*{Returns}
+
+\def\arraystretch{1}
+
+\begin{tabular}{@{}p{25mm}p{97.3mm}@{}}
+0 & Optimal solution found.\\
+\verb|GLP_EDATA| & Unable to start the search, because some problem
+data are either not integer-valued or out of range.\\
+\end{tabular}
+
+\subsubsection*{Example}
+
+The example program shown below reads the maximum flow problem instance
+in DIMACS format from file `\verb|sample.max|', solves it using the
+routine \verb|glp_maxflow_ffalg|, and write the solution found to the
+standard output.
+
+\begin{verbatim}
+#include <stddef.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <glpk.h>
+
+typedef struct { int cut; } v_data;
+typedef struct { double cap, x; } a_data;
+
+#define node(v) ((v_data *)((v)->data))
+#define arc(a)  ((a_data *)((a)->data))
+
+int main(void)
+{     glp_graph *G;
+      glp_vertex *v, *w;
+      glp_arc *a;
+      int i, s, t, ret;
+      double sol;
+      G = glp_create_graph(sizeof(v_data), sizeof(a_data));
+      glp_read_maxflow(G, &s, &t, offsetof(a_data, cap),
+         "sample.max");
+      ret = glp_maxflow_ffalg(G, s, t, offsetof(a_data, cap),
+         &sol, offsetof(a_data, x), offsetof(v_data, cut));
+      printf("ret = %d; sol = %5g\n", ret, sol);
+      for (i = 1; i <= G->nv; i++)
+      {  v = G->v[i];
+         for (a = v->out; a != NULL; a = a->t_next)
+         {  w = a->head;
+            printf("x[%d->%d] = %5g (%d)\n", v->i, w->i,
+               arc(a)->x, node(v)->cut ^ node(w)->cut);
+         }
+      }
+      glp_delete_graph(G);
+      return 0;
+}
+\end{verbatim}
+
+If `\verb|sample.max|' is the example data file from the subsection
+describing the routine \verb|glp_read_maxflow|, the output may look like
+follows:
+
+\begin{verbatim}
+Reading maximum flow problem data from `sample.max'...
+Flow network has 9 nodes and 14 arcs
+24 lines were read
+ret = 0; sol =    29
+x[1->4] =    19 (0)
+x[1->2] =    10 (0)
+x[2->4] =     0 (0)
+x[2->3] =    10 (1)
+x[3->8] =    10 (0)
+x[3->5] =     0 (1)
+x[4->5] =    19 (0)
+x[5->7] =     4 (1)
+x[5->6] =    15 (0)
+x[5->2] =     0 (0)
+x[6->8] =     8 (1)
+x[6->7] =     7 (1)
+x[7->9] =    11 (0)
+x[8->9] =    18 (0)
 \end{verbatim}
 
 \newpage
