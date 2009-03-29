@@ -1,4 +1,4 @@
-/* glpapi15.c (reading/writing data in CPLEX LP format) */
+/* glpapi15.c (reading/writing data in MPS format) */
 
 /***********************************************************************
 *  This code is part of GLPK (GNU Linear Programming Kit).
@@ -22,21 +22,27 @@
 ***********************************************************************/
 
 #include "glpapi.h"
-#include "glpcpx.h"
+#include "glpmps.h"
 
 /***********************************************************************
 *  NAME
 *
-*  glp_read_lp - read problem data in CPLEX LP format
+*  glp_read_mps - read problem data in MPS format
 *
 *  SYNOPSIS
 *
-*  int glp_read_lp(glp_prob *lp, const void *parm, const char *fname);
+*  int glp_read_mps(glp_prob *lp, int fmt, const void *parm,
+*     const char *fname);
 *
 *  DESCRIPTION
 *
-*  The routine glp_read_lp reads problem data in CPLEX LP format from
-*  a text file.
+*  The routine glp_read_mps reads problem data in MPS format from a
+*  text file.
+*
+*  The parameter fmt specifies the version of MPS format:
+*
+*  GLP_MPS_DECK   fixed (ancient) MPS format;
+*  GLP_MPS_FILE   free (modern) MPS format.
 *
 *  The parameter parm is reserved for use in the future and must be
 *  specified as NULL.
@@ -49,28 +55,49 @@
 *
 *  RETURNS
 *
-*  If the operation was successful, the routine glp_read_lp returns
+*  If the operation was successful, the routine glp_read_mps returns
 *  zero. Otherwise, it prints an error message and returns non-zero. */
 
-int glp_read_lp(glp_prob *lp, const void *parm, const char *fname)
-{     if (parm != NULL)
-         xerror("glp_read_lp: parm = %p; invalid parameter\n", parm);
-      return read_cpxlp(lp, fname);
+int glp_read_mps(glp_prob *lp, int fmt, const void *parm,
+      const char *fname)
+{     /* read problem data in MPS format */
+      int ret;
+      if (!(fmt == GLP_MPS_DECK || fmt == GLP_MPS_FILE))
+         xerror("glp_read_mps: fmt = %d; invalid parameter\n", fmt);
+      if (parm != NULL)
+         xerror("glp_read_mps: parm = %p; invalid parameter\n", parm);
+      switch (fmt)
+      {  case GLP_MPS_DECK:
+            ret = read_mps(lp, fname);
+            break;
+         case GLP_MPS_FILE:
+            ret = read_freemps(lp, fname);
+            break;
+         default:
+            xassert(fmt != fmt);
+      }
+      return ret;
 }
 
 /***********************************************************************
 *  NAME
 *
-*  glp_write_lp - write problem data in CPLEX LP format
+*  glp_write_mps - write problem data in MPS format
 *
 *  SYNOPSIS
 *
-*  int glp_write_lp(glp_prob *lp, const void *parm, const char *fname);
+*  int glp_write_mps(glp_prob *lp, int fmt, const void *parm,
+*     const char *fname);
 *
 *  DESCRIPTION
 *
-*  The routine glp_write_lp writes problem data in MPS format to a text
-*  file.
+*  The routine glp_write_mps writes problem data in MPS format to a
+*  text file.
+*
+*  The parameter fmt specifies the version of MPS format:
+*
+*  GLP_MPS_DECK   fixed (ancient) MPS format;
+*  GLP_MPS_FILE   free (modern) MPS format.
 *
 *  The parameter parm is reserved for use in the future and must be
 *  specified as NULL.
@@ -80,13 +107,28 @@ int glp_read_lp(glp_prob *lp, const void *parm, const char *fname)
 *
 *  RETURNS
 *
-*  If the operation was successful, the routine glp_write_lp returns
+*  If the operation was successful, the routine glp_write_mps returns
 *  zero. Otherwise, it prints an error message and returns non-zero. */
 
-int glp_write_lp(glp_prob *lp, const void *parm, const char *fname)
-{     if (parm != NULL)
-         xerror("glp_write_lp: parm = %p; invalid parameter\n", parm);
-      return write_cpxlp(lp, fname);
+int glp_write_mps(glp_prob *lp, int fmt, const void *parm,
+      const char *fname)
+{     /* write problem data in MPS format */
+      int ret;
+      if (!(fmt == GLP_MPS_DECK || fmt == GLP_MPS_FILE))
+         xerror("glp_write_mps: fmt = %d; invalid parameter\n", fmt);
+      if (parm != NULL)
+         xerror("glp_write_mps: parm = %p; invalid parameter\n", parm);
+      switch (fmt)
+      {  case GLP_MPS_DECK:
+            ret = write_mps(lp, fname);
+            break;
+         case GLP_MPS_FILE:
+            ret = write_freemps(lp, fname);
+            break;
+         default:
+            xassert(fmt != fmt);
+      }
+      return ret;
 }
 
 /* eof */

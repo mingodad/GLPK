@@ -417,6 +417,10 @@ struct LPXCPS
       /* relative MIP gap tolerance */
 };
 
+void _glp_check_kkt(glp_prob *P, int sol, int cond, double *ae_max,
+      int *ae_ind, double *re_max, int *re_ind);
+/* check feasibility and optimality conditions */
+
 #define lpx_order_matrix _glp_1px_order_matrix
 void lpx_order_matrix(LPX *lp);
 /* order rows and columns of the constraint matrix */

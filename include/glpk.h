@@ -30,7 +30,7 @@ extern "C" {
 
 /* library version numbers: */
 #define GLP_MAJOR_VERSION  4
-#define GLP_MINOR_VERSION  36
+#define GLP_MINOR_VERSION  37
 
 #ifndef _GLP_PROB
 #define _GLP_PROB
@@ -80,9 +80,6 @@ typedef struct { double _opaque_prob; } glp_prob;
 #define GLP_NOFEAS         4  /* no feasible solution exists */
 #define GLP_OPT            5  /* solution is optimal */
 #define GLP_UNBND          6  /* solution is unbounded */
-
-typedef struct { int lo, hi; } glp_long;
-/* long integer data type */
 
 #ifndef _GLP_BFCP
 #define _GLP_BFCP
@@ -165,7 +162,7 @@ typedef struct
       int tm_lim;             /* mip.tm_lim (milliseconds) */
       int out_frq;            /* mip.out_frq (milliseconds) */
       int out_dly;            /* mip.out_dly (milliseconds) */
-      void (*cb_func)(glp_tree *tree, void *info);
+      void (*cb_func)(glp_tree *T, void *info);
                               /* mip.cb_func */
       void *cb_info;          /* mip.cb_info */
       int cb_size;            /* mip.cb_size */
@@ -180,10 +177,8 @@ typedef struct
       int clq_cuts;           /* clique cuts    (GLP_ON/GLP_OFF) */
       int presolve;           /* enable/disable using MIP presolver */
       int binarize;           /* try to binarize integer variables */
+      int fp_heur;            /* feasibility pump heuristic */
       double foo_bar[30];     /* (reserved) */
-#if 1 /* not yet available */
-      char *fn_sol;           /* file name to write solution found */
-#endif
 } glp_iocp;
 
 typedef struct
@@ -244,6 +239,13 @@ typedef struct
 #define GLP_EDATA       0x12  /* invalid data */
 #define GLP_ERANGE      0x13  /* result out of range */
 
+/* condition indicator: */
+#define GLP_KKT_PE         1  /* primal equalities */
+#define GLP_KKT_PB         2  /* primal bounds */
+#define GLP_KKT_DE         3  /* dual equalities */
+#define GLP_KKT_DB         4  /* dual bounds */
+#define GLP_KKT_CS         5  /* complementary slackness */
+
 /* MPS file format: */
 #define GLP_MPS_DECK       1  /* fixed (ancient) */
 #define GLP_MPS_FILE       2  /* free (modern) */
@@ -257,417 +259,398 @@ typedef struct { double _opaque_tran; } glp_tran;
 glp_prob *glp_create_prob(void);
 /* create problem object */
 
-void glp_set_prob_name(glp_prob *lp, const char *name);
+void glp_set_prob_name(glp_prob *P, const char *name);
 /* assign (change) problem name */
 
-void glp_set_obj_name(glp_prob *lp, const char *name);
+void glp_set_obj_name(glp_prob *P, const char *name);
 /* assign (change) objective function name */
 
-void glp_set_obj_dir(glp_prob *lp, int dir);
+void glp_set_obj_dir(glp_prob *P, int dir);
 /* set (change) optimization direction flag */
 
-int glp_add_rows(glp_prob *lp, int nrs);
+int glp_add_rows(glp_prob *P, int nrs);
 /* add new rows to problem object */
 
-int glp_add_cols(glp_prob *lp, int ncs);
+int glp_add_cols(glp_prob *P, int ncs);
 /* add new columns to problem object */
 
-void glp_set_row_name(glp_prob *lp, int i, const char *name);
+void glp_set_row_name(glp_prob *P, int i, const char *name);
 /* assign (change) row name */
 
-void glp_set_col_name(glp_prob *lp, int j, const char *name);
+void glp_set_col_name(glp_prob *P, int j, const char *name);
 /* assign (change) column name */
 
-void glp_set_row_bnds(glp_prob *lp, int i, int type, double lb,
+void glp_set_row_bnds(glp_prob *P, int i, int type, double lb,
       double ub);
 /* set (change) row bounds */
 
-void glp_set_col_bnds(glp_prob *lp, int j, int type, double lb,
+void glp_set_col_bnds(glp_prob *P, int j, int type, double lb,
       double ub);
 /* set (change) column bounds */
 
-void glp_set_obj_coef(glp_prob *lp, int j, double coef);
+void glp_set_obj_coef(glp_prob *P, int j, double coef);
 /* set (change) obj. coefficient or constant term */
 
-void glp_set_mat_row(glp_prob *lp, int i, int len, const int ind[],
+void glp_set_mat_row(glp_prob *P, int i, int len, const int ind[],
       const double val[]);
 /* set (replace) row of the constraint matrix */
 
-void glp_set_mat_col(glp_prob *lp, int j, int len, const int ind[],
+void glp_set_mat_col(glp_prob *P, int j, int len, const int ind[],
       const double val[]);
 /* set (replace) column of the constraint matrix */
 
-void glp_load_matrix(glp_prob *lp, int ne, const int ia[],
+void glp_load_matrix(glp_prob *P, int ne, const int ia[],
       const int ja[], const double ar[]);
 /* load (replace) the whole constraint matrix */
 
-void glp_del_rows(glp_prob *lp, int nrs, const int num[]);
+void glp_del_rows(glp_prob *P, int nrs, const int num[]);
 /* delete specified rows from problem object */
 
-void glp_del_cols(glp_prob *lp, int ncs, const int num[]);
+void glp_del_cols(glp_prob *P, int ncs, const int num[]);
 /* delete specified columns from problem object */
 
 void glp_copy_prob(glp_prob *dest, glp_prob *prob, int names);
 /* copy problem object content */
 
-void glp_erase_prob(glp_prob *lp);
+void glp_erase_prob(glp_prob *P);
 /* erase problem object content */
 
-void glp_delete_prob(glp_prob *lp);
+void glp_delete_prob(glp_prob *P);
 /* delete problem object */
 
-const char *glp_get_prob_name(glp_prob *lp);
+const char *glp_get_prob_name(glp_prob *P);
 /* retrieve problem name */
 
-const char *glp_get_obj_name(glp_prob *lp);
+const char *glp_get_obj_name(glp_prob *P);
 /* retrieve objective function name */
 
-int glp_get_obj_dir(glp_prob *lp);
+int glp_get_obj_dir(glp_prob *P);
 /* retrieve optimization direction flag */
 
-int glp_get_num_rows(glp_prob *lp);
+int glp_get_num_rows(glp_prob *P);
 /* retrieve number of rows */
 
-int glp_get_num_cols(glp_prob *lp);
+int glp_get_num_cols(glp_prob *P);
 /* retrieve number of columns */
 
-const char *glp_get_row_name(glp_prob *lp, int i);
+const char *glp_get_row_name(glp_prob *P, int i);
 /* retrieve row name */
 
-const char *glp_get_col_name(glp_prob *lp, int j);
+const char *glp_get_col_name(glp_prob *P, int j);
 /* retrieve column name */
 
-int glp_get_row_type(glp_prob *lp, int i);
+int glp_get_row_type(glp_prob *P, int i);
 /* retrieve row type */
 
-double glp_get_row_lb(glp_prob *lp, int i);
+double glp_get_row_lb(glp_prob *P, int i);
 /* retrieve row lower bound */
 
-double glp_get_row_ub(glp_prob *lp, int i);
+double glp_get_row_ub(glp_prob *P, int i);
 /* retrieve row upper bound */
 
-int glp_get_col_type(glp_prob *lp, int j);
+int glp_get_col_type(glp_prob *P, int j);
 /* retrieve column type */
 
-double glp_get_col_lb(glp_prob *lp, int j);
+double glp_get_col_lb(glp_prob *P, int j);
 /* retrieve column lower bound */
 
-double glp_get_col_ub(glp_prob *lp, int j);
+double glp_get_col_ub(glp_prob *P, int j);
 /* retrieve column upper bound */
 
-double glp_get_obj_coef(glp_prob *lp, int j);
+double glp_get_obj_coef(glp_prob *P, int j);
 /* retrieve obj. coefficient or constant term */
 
-int glp_get_num_nz(glp_prob *lp);
+int glp_get_num_nz(glp_prob *P);
 /* retrieve number of constraint coefficients */
 
-int glp_get_mat_row(glp_prob *lp, int i, int ind[], double val[]);
+int glp_get_mat_row(glp_prob *P, int i, int ind[], double val[]);
 /* retrieve row of the constraint matrix */
 
-int glp_get_mat_col(glp_prob *lp, int j, int ind[], double val[]);
+int glp_get_mat_col(glp_prob *P, int j, int ind[], double val[]);
 /* retrieve column of the constraint matrix */
 
-void glp_create_index(glp_prob *lp);
+void glp_create_index(glp_prob *P);
 /* create the name index */
 
-int glp_find_row(glp_prob *lp, const char *name);
+int glp_find_row(glp_prob *P, const char *name);
 /* find row by its name */
 
-int glp_find_col(glp_prob *lp, const char *name);
+int glp_find_col(glp_prob *P, const char *name);
 /* find column by its name */
 
-void glp_delete_index(glp_prob *lp);
+void glp_delete_index(glp_prob *P);
 /* delete the name index */
 
-void glp_set_rii(glp_prob *lp, int i, double rii);
+void glp_set_rii(glp_prob *P, int i, double rii);
 /* set (change) row scale factor */
 
-void glp_set_sjj(glp_prob *lp, int j, double sjj);
+void glp_set_sjj(glp_prob *P, int j, double sjj);
 /* set (change) column scale factor */
 
-double glp_get_rii(glp_prob *lp, int i);
+double glp_get_rii(glp_prob *P, int i);
 /* retrieve row scale factor */
 
-double glp_get_sjj(glp_prob *lp, int j);
+double glp_get_sjj(glp_prob *P, int j);
 /* retrieve column scale factor */
 
-void glp_scale_prob(glp_prob *lp, int flags);
+void glp_scale_prob(glp_prob *P, int flags);
 /* scale problem data */
 
-void glp_unscale_prob(glp_prob *lp);
+void glp_unscale_prob(glp_prob *P);
 /* unscale problem data */
 
-void glp_set_row_stat(glp_prob *lp, int i, int stat);
+void glp_set_row_stat(glp_prob *P, int i, int stat);
 /* set (change) row status */
 
-void glp_set_col_stat(glp_prob *lp, int j, int stat);
+void glp_set_col_stat(glp_prob *P, int j, int stat);
 /* set (change) column status */
 
-void glp_std_basis(glp_prob *lp);
+void glp_std_basis(glp_prob *P);
 /* construct standard initial LP basis */
 
-void glp_adv_basis(glp_prob *lp, int flags);
+void glp_adv_basis(glp_prob *P, int flags);
 /* construct advanced initial LP basis */
 
-void glp_cpx_basis(glp_prob *lp);
+void glp_cpx_basis(glp_prob *P);
 /* construct Bixby's initial LP basis */
 
-int glp_simplex(glp_prob *lp, const glp_smcp *parm);
+int glp_simplex(glp_prob *P, const glp_smcp *parm);
 /* solve LP problem with the simplex method */
 
-int glp_exact(glp_prob *lp, const glp_smcp *parm);
+int glp_exact(glp_prob *P, const glp_smcp *parm);
 /* solve LP problem in exact arithmetic */
 
 void glp_init_smcp(glp_smcp *parm);
 /* initialize simplex method control parameters */
 
-int glp_get_status(glp_prob *lp);
+int glp_get_status(glp_prob *P);
 /* retrieve generic status of basic solution */
 
-int glp_get_prim_stat(glp_prob *lp);
+int glp_get_prim_stat(glp_prob *P);
 /* retrieve status of primal basic solution */
 
-int glp_get_dual_stat(glp_prob *lp);
+int glp_get_dual_stat(glp_prob *P);
 /* retrieve status of dual basic solution */
 
-double glp_get_obj_val(glp_prob *lp);
+double glp_get_obj_val(glp_prob *P);
 /* retrieve objective value (basic solution) */
 
-int glp_get_row_stat(glp_prob *lp, int i);
+int glp_get_row_stat(glp_prob *P, int i);
 /* retrieve row status */
 
-double glp_get_row_prim(glp_prob *lp, int i);
+double glp_get_row_prim(glp_prob *P, int i);
 /* retrieve row primal value (basic solution) */
 
-double glp_get_row_dual(glp_prob *lp, int i);
+double glp_get_row_dual(glp_prob *P, int i);
 /* retrieve row dual value (basic solution) */
 
-int glp_get_col_stat(glp_prob *lp, int j);
+int glp_get_col_stat(glp_prob *P, int j);
 /* retrieve column status */
 
-double glp_get_col_prim(glp_prob *lp, int j);
+double glp_get_col_prim(glp_prob *P, int j);
 /* retrieve column primal value (basic solution) */
 
-double glp_get_col_dual(glp_prob *lp, int j);
+double glp_get_col_dual(glp_prob *P, int j);
 /* retrieve column dual value (basic solution) */
 
-int glp_get_unbnd_ray(glp_prob *lp);
+int glp_get_unbnd_ray(glp_prob *P);
 /* determine variable causing unboundedness */
 
-int glp_interior(glp_prob *lp, const void *parm);
+int glp_interior(glp_prob *P, const void *parm);
 /* solve LP problem with the interior-point method */
 
-int glp_ipt_status(glp_prob *lp);
+int glp_ipt_status(glp_prob *P);
 /* retrieve status of interior-point solution */
 
-double glp_ipt_obj_val(glp_prob *lp);
+double glp_ipt_obj_val(glp_prob *P);
 /* retrieve objective value (interior point) */
 
-double glp_ipt_row_prim(glp_prob *lp, int i);
+double glp_ipt_row_prim(glp_prob *P, int i);
 /* retrieve row primal value (interior point) */
 
-double glp_ipt_row_dual(glp_prob *lp, int i);
+double glp_ipt_row_dual(glp_prob *P, int i);
 /* retrieve row dual value (interior point) */
 
-double glp_ipt_col_prim(glp_prob *lp, int j);
+double glp_ipt_col_prim(glp_prob *P, int j);
 /* retrieve column primal value (interior point) */
 
-double glp_ipt_col_dual(glp_prob *lp, int j);
+double glp_ipt_col_dual(glp_prob *P, int j);
 /* retrieve column dual value (interior point) */
 
-void glp_set_col_kind(glp_prob *mip, int j, int kind);
+void glp_set_col_kind(glp_prob *P, int j, int kind);
 /* set (change) column kind */
 
-int glp_get_col_kind(glp_prob *mip, int j);
+int glp_get_col_kind(glp_prob *P, int j);
 /* retrieve column kind */
 
-int glp_get_num_int(glp_prob *mip);
+int glp_get_num_int(glp_prob *P);
 /* retrieve number of integer columns */
 
-int glp_get_num_bin(glp_prob *mip);
+int glp_get_num_bin(glp_prob *P);
 /* retrieve number of binary columns */
 
-int glp_intopt(glp_prob *mip, const glp_iocp *parm);
+int glp_intopt(glp_prob *P, const glp_iocp *parm);
 /* solve MIP problem with the branch-and-bound method */
 
 void glp_init_iocp(glp_iocp *parm);
 /* initialize integer optimizer control parameters */
 
-int glp_mip_status(glp_prob *mip);
+int glp_mip_status(glp_prob *P);
 /* retrieve status of MIP solution */
 
-double glp_mip_obj_val(glp_prob *mip);
+double glp_mip_obj_val(glp_prob *P);
 /* retrieve objective value (MIP solution) */
 
-double glp_mip_row_val(glp_prob *mip, int i);
+double glp_mip_row_val(glp_prob *P, int i);
 /* retrieve row value (MIP solution) */
 
-double glp_mip_col_val(glp_prob *mip, int j);
+double glp_mip_col_val(glp_prob *P, int j);
 /* retrieve column value (MIP solution) */
 
-int glp_read_sol(glp_prob *lp, const char *fname);
+int glp_print_sol(glp_prob *P, const char *fname);
+/* write basic solution in printable format */
+
+int glp_read_sol(glp_prob *P, const char *fname);
 /* read basic solution from text file */
 
-int glp_write_sol(glp_prob *lp, const char *fname);
+int glp_write_sol(glp_prob *P, const char *fname);
 /* write basic solution to text file */
 
-int glp_read_ipt(glp_prob *lp, const char *fname);
+int glp_print_ipt(glp_prob *P, const char *fname);
+/* write interior-point solution in printable format */
+
+int glp_read_ipt(glp_prob *P, const char *fname);
 /* read interior-point solution from text file */
 
-int glp_write_ipt(glp_prob *lp, const char *fname);
+int glp_write_ipt(glp_prob *P, const char *fname);
 /* write interior-point solution to text file */
 
-int glp_read_mip(glp_prob *mip, const char *fname);
+int glp_print_mip(glp_prob *P, const char *fname);
+/* write MIP solution in printable format */
+
+int glp_read_mip(glp_prob *P, const char *fname);
 /* read MIP solution from text file */
 
-int glp_write_mip(glp_prob *mip, const char *fname);
+int glp_write_mip(glp_prob *P, const char *fname);
 /* write MIP solution to text file */
 
-int glp_bf_exists(glp_prob *lp);
+int glp_bf_exists(glp_prob *P);
 /* check if the basis factorization exists */
 
-int glp_factorize(glp_prob *lp);
+int glp_factorize(glp_prob *P);
 /* compute the basis factorization */
 
-int glp_bf_updated(glp_prob *lp);
+int glp_bf_updated(glp_prob *P);
 /* check if the basis factorization has been updated */
 
-void glp_get_bfcp(glp_prob *lp, glp_bfcp *parm);
+void glp_get_bfcp(glp_prob *P, glp_bfcp *parm);
 /* retrieve basis factorization control parameters */
 
-void glp_set_bfcp(glp_prob *lp, const glp_bfcp *parm);
+void glp_set_bfcp(glp_prob *P, const glp_bfcp *parm);
 /* change basis factorization control parameters */
 
-int glp_get_bhead(glp_prob *lp, int k);
+int glp_get_bhead(glp_prob *P, int k);
 /* retrieve the basis header information */
 
-int glp_get_row_bind(glp_prob *lp, int i);
+int glp_get_row_bind(glp_prob *P, int i);
 /* retrieve row index in the basis header */
 
-int glp_get_col_bind(glp_prob *lp, int j);
+int glp_get_col_bind(glp_prob *P, int j);
 /* retrieve column index in the basis header */
 
-void glp_ftran(glp_prob *lp, double x[]);
+void glp_ftran(glp_prob *P, double x[]);
 /* perform forward transformation (solve system B*x = b) */
 
-void glp_btran(glp_prob *lp, double x[]);
+void glp_btran(glp_prob *P, double x[]);
 /* perform backward transformation (solve system B'*x = b) */
 
-int glp_eval_tab_row(glp_prob *lp, int k, int ind[], double val[]);
+int glp_eval_tab_row(glp_prob *P, int k, int ind[], double val[]);
 /* compute row of the simplex tableau */
 
-int glp_eval_tab_col(glp_prob *lp, int k, int ind[], double val[]);
+int glp_eval_tab_col(glp_prob *P, int k, int ind[], double val[]);
 /* compute column of the simplex tableau */
 
-int glp_ios_reason(glp_tree *tree);
+int glp_ios_reason(glp_tree *T);
 /* determine reason for calling the callback routine */
 
-glp_prob *glp_ios_get_prob(glp_tree *tree);
+glp_prob *glp_ios_get_prob(glp_tree *T);
 /* access the problem object */
 
-void glp_ios_tree_size(glp_tree *tree, int *a_cnt, int *n_cnt,
+void glp_ios_tree_size(glp_tree *T, int *a_cnt, int *n_cnt,
       int *t_cnt);
 /* determine size of the branch-and-bound tree */
 
-int glp_ios_curr_node(glp_tree *tree);
+int glp_ios_curr_node(glp_tree *T);
 /* determine current active subproblem */
 
-int glp_ios_next_node(glp_tree *tree, int p);
+int glp_ios_next_node(glp_tree *T, int p);
 /* determine next active subproblem */
 
-int glp_ios_prev_node(glp_tree *tree, int p);
+int glp_ios_prev_node(glp_tree *T, int p);
 /* determine previous active subproblem */
 
-int glp_ios_up_node(glp_tree *tree, int p);
+int glp_ios_up_node(glp_tree *T, int p);
 /* determine parent subproblem */
 
-int glp_ios_node_level(glp_tree *tree, int p);
+int glp_ios_node_level(glp_tree *T, int p);
 /* determine subproblem level */
 
-double glp_ios_node_bound(glp_tree *tree, int p);
+double glp_ios_node_bound(glp_tree *T, int p);
 /* determine subproblem local bound */
 
-int glp_ios_best_node(glp_tree *tree);
+int glp_ios_best_node(glp_tree *T);
 /* find active subproblem with best local bound */
 
-double glp_ios_mip_gap(glp_tree *tree);
+double glp_ios_mip_gap(glp_tree *T);
 /* compute relative MIP gap */
 
-void *glp_ios_node_data(glp_tree *tree, int p);
+void *glp_ios_node_data(glp_tree *T, int p);
 /* access subproblem application-specific data */
 
-void glp_ios_row_attr(glp_tree *tree, int i, glp_attr *attr);
+void glp_ios_row_attr(glp_tree *T, int i, glp_attr *attr);
 /* retrieve additional row attributes */
 
-int glp_ios_pool_size(glp_tree *tree);
+int glp_ios_pool_size(glp_tree *T);
 /* determine current size of the cut pool */
 
-int glp_ios_add_row(glp_tree *tree,
+int glp_ios_add_row(glp_tree *T,
       const char *name, int klass, int flags, int len, const int ind[],
       const double val[], int type, double rhs);
 /* add row (constraint) to the cut pool */
 
-void glp_ios_del_row(glp_tree *tree, int i);
+void glp_ios_del_row(glp_tree *T, int i);
 /* remove row (constraint) from the cut pool */
 
-void glp_ios_clear_pool(glp_tree *tree);
+void glp_ios_clear_pool(glp_tree *T);
 /* remove all rows (constraints) from the cut pool */
 
-int glp_ios_can_branch(glp_tree *tree, int j);
+int glp_ios_can_branch(glp_tree *T, int j);
 /* check if can branch upon specified variable */
 
-void glp_ios_branch_upon(glp_tree *tree, int j, int sel);
+void glp_ios_branch_upon(glp_tree *T, int j, int sel);
 /* choose variable to branch upon */
 
-void glp_ios_select_node(glp_tree *tree, int p);
+void glp_ios_select_node(glp_tree *T, int p);
 /* select subproblem to continue the search */
 
-int glp_ios_heur_sol(glp_tree *tree, const double x[]);
+int glp_ios_heur_sol(glp_tree *T, const double x[]);
 /* provide solution found by heuristic */
 
-void glp_ios_terminate(glp_tree *tree);
+void glp_ios_terminate(glp_tree *T);
 /* terminate the solution process */
 
-const char *glp_version(void);
-/* determine library version */
-
-void glp_term_out(int flag);
-/* enable/disable terminal output */
-
-void glp_term_hook(int (*func)(void *info, const char *s), void *info);
-/* install hook to intercept terminal output */
-
-void *glp_malloc(int size);
-/* allocate memory block */
-
-void *glp_calloc(int n, int size);
-/* allocate memory block */
-
-void glp_free(void *ptr);
-/* free memory block */
-
-void glp_mem_usage(int *count, int *cpeak, glp_long *total,
-      glp_long *tpeak);
-/* get memory usage information */
-
-void glp_mem_limit(int limit);
-/* set memory usage limit */
-
-void glp_free_env(void);
-/* free GLPK library environment */
-
-int glp_read_mps(glp_prob *lp, int fmt, const void *parm,
+int glp_read_mps(glp_prob *P, int fmt, const void *parm,
       const char *fname);
 /* read problem data in MPS format */
 
-int glp_write_mps(glp_prob *lp, int fmt, const void *parm,
+int glp_write_mps(glp_prob *P, int fmt, const void *parm,
       const char *fname);
 /* write problem data in MPS format */
 
-int glp_read_lp(glp_prob *lp, const void *parm, const char *fname);
+int glp_read_lp(glp_prob *P, const void *parm, const char *fname);
 /* read problem data in CPLEX LP format */
 
-int glp_write_lp(glp_prob *lp, const void *parm, const char *fname);
+int glp_write_lp(glp_prob *P, const void *parm, const char *fname);
 /* write problem data in CPLEX LP format */
 
 glp_tran *glp_mpl_alloc_wksp(void);
@@ -783,7 +766,13 @@ void glp_erase_graph(glp_graph *G, int v_size, int a_size);
 void glp_delete_graph(glp_graph *G);
 /* delete graph */
 
-void glp_mincost_lp(glp_prob *lp, glp_graph *G, int names, int v_rhs,
+int glp_read_graph(glp_graph *G, const char *fname);
+/* read graph from plain text file */
+
+int glp_write_graph(glp_graph *G, const char *fname);
+/* write graph to plain text file */
+
+void glp_mincost_lp(glp_prob *P, glp_graph *G, int names, int v_rhs,
       int a_low, int a_cap, int a_cost);
 /* convert minimum cost flow problem to LP */
 
@@ -791,7 +780,7 @@ int glp_mincost_okalg(glp_graph *G, int v_rhs, int a_low, int a_cap,
       int a_cost, double *sol, int a_x, int v_pi);
 /* find minimum-cost flow with out-of-kilter algorithm */
 
-void glp_maxflow_lp(glp_prob *lp, glp_graph *G, int names, int s,
+void glp_maxflow_lp(glp_prob *P, glp_graph *G, int names, int s,
       int t, int a_cap);
 /* convert maximum flow problem to LP */
 
@@ -829,6 +818,62 @@ int glp_rmfgen(glp_graph *G, int *s, int *t, int a_cap,
 
 int glp_weak_comp(glp_graph *G, int v_num);
 /* find all weakly connected components of graph */
+
+int glp_strong_comp(glp_graph *G, int v_num);
+/* find all strongly connected components of graph */
+
+/**********************************************************************/
+
+typedef struct { int lo, hi; } glp_long;
+/* long integer data type */
+
+const char *glp_version(void);
+/* determine library version */
+
+void glp_printf(const char *fmt, ...);
+/* write formatted output to terminal */
+
+void glp_term_out(int flag);
+/* enable/disable terminal output */
+
+void glp_term_hook(int (*func)(void *info, const char *s), void *info);
+/* install hook to intercept terminal output */
+
+void *glp_malloc(int size);
+/* allocate memory block */
+
+void *glp_calloc(int n, int size);
+/* allocate memory block */
+
+void glp_free(void *ptr);
+/* free memory block */
+
+void glp_mem_usage(int *count, int *cpeak, glp_long *total,
+      glp_long *tpeak);
+/* get memory usage information */
+
+void glp_mem_limit(int limit);
+/* set memory usage limit */
+
+void glp_free_env(void);
+/* free GLPK library environment */
+
+#ifndef _GLP_DATA
+#define _GLP_DATA
+typedef struct { double _opaque_data; } _glp_data;
+/* plain data set */
+#endif
+
+_glp_data *_glp_sds_open(const char *fname);
+void _glp_sds_jump(_glp_data *data, void *jump);
+void _glp_sds_error(_glp_data *data, const char *fmt, ...);
+void _glp_sds_warning(_glp_data *data, const char *fmt, ...);
+int _glp_sds_int(_glp_data *data);
+double _glp_sds_num(_glp_data *data);
+const char *_glp_sds_item(_glp_data *data);
+const char *_glp_sds_text(_glp_data *data);
+int _glp_sds_line(_glp_data *data);
+void _glp_sds_close(_glp_data *data);
 
 /**********************************************************************/
 

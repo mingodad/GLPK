@@ -1,3 +1,41 @@
+GLPK 4.37 (release date: Mar 29, 2009)
+
+        The 0-1 Feasibility Pump heuristic was included in the GLPK
+        integer optimizer glp_intopt. On API level the heuristic can be
+        enabled by setting the parameter fp_heur in glp_iocp to GLP_ON.
+        This feature is also available in the solver glpsol through
+        command-line option '--fpump'. For more details please see the
+        reference manual included in the distribution.
+
+        The following new API routines were added:
+
+        glp_print_sol         write basic solution in printable format
+        glp_print_ipt         write interior-point solution in printable
+                              format
+        glp_print_mip         write MIP solution in printable format
+        glp_read_graph        read (di)graph from plain text file
+        glp_write_graph       write (di)graph to plain text file
+        glp_weak_comp         find all weakly connected components
+        glp_strong_comp       find all strongly connected components
+
+        The following API routines are deprecated: lpx_print_sol,
+        lpx_print_ips, lpx_print_mip, lpx_print_prob (the latter is
+        equivalent to glp_write_lp).
+
+        A bug was fixed in the interior-point solver (glp_interior) to
+        correctly compute dual solution components when the problem is
+        scaled.
+
+        The files configure.ac and Makefile.am were changed:
+        (a) to allow using autoreconf/autoheader;
+        (b) to allow building the package in a directory other than its
+            source directory.
+        Thanks to Marco Atzeri <marco_atzeri@yahoo.it> for bug report.
+
+        An example model in the GNU MathProg language was added.
+        Thanks to Larry D'Agostino <Larry.D'Agostino@gmacrescap.com> for
+        contribution.
+
 GLPK 4.36 (release date: Feb 06, 2009)
 
         The following new API routines were added to the package:

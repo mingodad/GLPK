@@ -1,4 +1,4 @@
-/* glpapi18.c (graph and network routines) */
+/* glpapi18.c (basic graph and network routines) */
 
 /***********************************************************************
 *  This code is part of GLPK (GNU Linear Programming Kit).
@@ -288,6 +288,113 @@ void glp_delete_graph(glp_graph *G)
 {     delete_graph(G);
       xfree(G);
       return;
+}
+
+/***********************************************************************
+*  NAME
+*
+*  glp_read_graph - read graph from plain text file
+*
+*  SYNOPSIS
+*
+*  int glp_read_graph(glp_graph *G, const char *fname);
+*
+*  DESCRIPTION
+*
+*  The routine glp_read_graph reads a graph from a plain text file.
+*
+*  RETURNS
+*
+*  If the operation was successful, the routine returns zero. Otherwise
+*  it prints an error message and returns non-zero. */
+
+int glp_read_graph(glp_graph *G, const char *fname)
+{     _glp_data *data;
+      jmp_buf jump;
+      int nv, na, i, j, k, ret;
+      glp_erase_graph(G, G->v_size, G->a_size);
+      xprintf("Reading graph from `%s'...\n", fname);
+      data = _glp_sds_open(fname);
+      if (data == NULL)
+      {  ret = 1;
+         goto done;
+      }
+      if (setjmp(jump))
+      {  ret = 1;
+         goto done;
+      }
+      _glp_sds_jump(data, jump);
+      nv = _glp_sds_int(data);
+      if (nv < 0)
+         _glp_sds_error(data, "invalid number of vertices\n");
+      na = _glp_sds_int(data);
+      if (na < 0)
+         _glp_sds_error(data, "invalid number of arcs\n");
+      xprintf("Graph has %d vert%s and %d arc%s\n",
+         nv, nv == 1 ? "ex" : "ices", na, na == 1 ? "" : "s");
+      if (nv > 0) glp_add_vertices(G, nv);
+      for (k = 1; k <= na; k++)
+      {  i = _glp_sds_int(data);
+         if (!(1 <= i && i <= nv))
+            _glp_sds_error(data, "tail vertex number out of range\n");
+         j = _glp_sds_int(data);
+         if (!(1 <= j && j <= nv))
+            _glp_sds_error(data, "head vertex number out of range\n");
+         glp_add_arc(G, i, j);
+      }
+      xprintf("%d lines were read\n", _glp_sds_line(data));
+      ret = 0;
+done: if (data != NULL) _glp_sds_close(data);
+      return ret;
+}
+
+/***********************************************************************
+*  NAME
+*
+*  glp_write_graph - write graph to plain text file
+*
+*  SYNOPSIS
+*
+*  int glp_write_graph(glp_graph *G, const char *fname).
+*
+*  DESCRIPTION
+*
+*  The routine glp_write_graph writes the specified graph to a plain
+*  text file.
+*
+*  RETURNS
+*
+*  If the operation was successful, the routine returns zero. Otherwise
+*  it prints an error message and returns non-zero. */
+
+int glp_write_graph(glp_graph *G, const char *fname)
+{     XFILE *fp;
+      glp_vertex *v;
+      glp_arc *a;
+      int i, count, ret;
+      xprintf("Writing graph to `%s'...\n", fname);
+      fp = xfopen(fname, "w"), count = 0;
+      if (fp == NULL)
+      {  xprintf("Unable to create `%s' - %s\n", fname, xerrmsg());
+         ret = 1;
+         goto done;
+      }
+      xfprintf(fp, "%d %d\n", G->nv, G->na), count++;
+      for (i = 1; i <= G->nv; i++)
+      {  v = G->v[i];
+         for (a = v->out; a != NULL; a = a->t_next)
+            xfprintf(fp, "%d %d\n", a->tail->i, a->head->i), count++;
+      }
+      xfflush(fp);
+      if (xferror(fp))
+      {  xprintf("Write error on `%s' - %s\n", fname, xerrmsg());
+         ret = 1;
+         goto done;
+      }
+      xprintf("%d lines were written\n", count);
+      ret = 0;
+done: if (fp != NULL) xfclose(fp);
+      return ret;
 }
 
 /* eof */

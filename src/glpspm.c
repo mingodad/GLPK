@@ -21,10 +21,7 @@
 *  along with GLPK. If not, see <http://www.gnu.org/licenses/>.
 ***********************************************************************/
 
-#define _GLPSTD_ERRNO
-#define _GLPSTD_STDIO
 #include "glphbm.h"
-#include "glppds.h"
 #include "glprgr.h"
 #include "glpspm.h"
 
@@ -475,6 +472,12 @@ int spm_drop_zeros(SPM *A, double eps)
 *  On success the routine returns a pointer to the matrix created,
 *  otherwise NULL. */
 
+#if 1
+SPM *spm_read_mat(const char *fname)
+{     xassert(fname != fname);
+      return NULL;
+}
+#else
 SPM *spm_read_mat(const char *fname)
 {     SPM *A = NULL;
       PDS *pds;
@@ -526,6 +529,7 @@ done: if (pds != NULL) pds_close_file(pds);
       if (fail && A != NULL) spm_delete_mat(A), A = NULL;
       return A;
 }
+#endif
 
 /***********************************************************************
 *  NAME
@@ -566,6 +570,13 @@ done: if (pds != NULL) pds_close_file(pds);
 *  col[k], k = 1,...,nnz, are column indices;
 *  val[k], k = 1,...,nnz, are element values. */
 
+#if 1
+int spm_write_mat(const SPM *A, const char *fname)
+{     xassert(A != A);
+      xassert(fname != fname);
+      return 0;
+}
+#else
 int spm_write_mat(const SPM *A, const char *fname)
 {     FILE *fp;
       int i, nnz, ret = 0;
@@ -600,6 +611,7 @@ int spm_write_mat(const SPM *A, const char *fname)
 done: if (fp != NULL) fclose(fp);
       return ret;
 }
+#endif
 
 /***********************************************************************
 *  NAME

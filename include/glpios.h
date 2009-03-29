@@ -612,6 +612,10 @@ void ios_pcost_branch(glp_tree *tree);
 void ios_pcost_free(glp_tree *tree);
 /* free working area used on pseudocost branching */
 
+#define ios_feas_pump _glp_ios_feas_pump
+void ios_feas_pump(glp_tree *T);
+/* feasibility pump heuristic */
+
 #endif
 
 /* eof */

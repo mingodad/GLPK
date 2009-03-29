@@ -1989,345 +1989,6 @@ If the variable is non-basic, the unboundedness is primal, otherwise,
 if the variable is basic, the unboundedness is dual (the latter case
 means that the problem has no primal feasible dolution).
 
-\subsection{lpx\_check\_kkt---check Karush-Kuhn-Tucker optimality
-conditions}
-
-\subsubsection*{Synopsis}
-
-\begin{verbatim}
-void lpx_check_kkt(glp_prob *lp, int scaled, LPXKKT *kkt);
-\end{verbatim}
-
-\subsubsection*{Description}
-
-The routine \verb|lpx_check_kkt| checks Karush-Kuhn-Tucker optimality
-conditions for basic solution. It is assumed that both primal and dual
-components of basic solution are valid.
-
-If the parameter \verb|scaled| is zero, the optimality conditions are
-checked for the original, unscaled LP problem. Otherwise, if the
-parameter \verb|scaled| is non-zero, the routine checks the conditions
-for an internally scaled LP problem.
-
-The parameter \verb|kkt| is a pointer to the structure \verb|LPXKKT|,
-to which the routine stores results of the check. Members of this
-structure are shown in the table below.
-
-\begin{table}[h]
-\begin{center}
-\begin{tabular}{@{}c|l|l@{}}
-Condition & Member & Comment \\
-\hline
-(KKT.PE) & \verb|pe_ae_max| &
-         Largest absolute error \\
-         & \verb|pe_ae_row| &
-         Number of row with largest absolute error \\
-         & \verb|pe_re_max| &
-         Largest relative error \\
-         & \verb|pe_re_row| &
-         Number of row with largest relative error \\
-         & \verb|pe_quality| &
-         Quality of primal solution \\
-\hline
-(KKT.PB) & \verb|pb_ae_max| &
-         Largest absolute error \\
-         & \verb|pb_ae_ind| &
-         Number of variable with largest absolute error \\
-         & \verb|pb_re_max| &
-         Largest relative error \\
-         & \verb|pb_re_ind| &
-         Number of variable with largest relative error \\
-         & \verb|pb_quality| &
-         Quality of primal feasibility \\
-\hline
-(KKT.DE) & \verb|de_ae_max| &
-         Largest absolute error \\
-         & \verb|de_ae_col| &
-         Number of column with largest absolute error \\
-         & \verb|de_re_max| &
-         Largest relative error \\
-         & \verb|de_re_col| &
-         Number of column with largest relative error \\
-         & \verb|de_quality| &
-         Quality of dual solution \\
-\hline
-(KKT.DB) & \verb|db_ae_max| &
-         Largest absolute error \\
-         & \verb|db_ae_ind| &
-         Number of variable with largest absolute error \\
-         & \verb|db_re_max| &
-         Largest relative error \\
-         & \verb|db_re_ind| &
-         Number of variable with largest relative error \\
-         & \verb|db_quality| &
-         Quality of dual feasibility \\
-\end{tabular}
-\end{center}
-\end{table}
-
-The routine performs all computations using only components of the
-given LP problem and the current basic solution.
-
-\subsubsection*{Background}
-
-The first condition checked by the routine is:
-$$x_R - A x_S = 0, \eqno{\rm (KKT.PE)}$$
-where $x_R$ is the subvector of auxiliary variables (rows), $x_S$ is the
-subvector of structural variables (columns), $A$ is the constraint
-matrix. This condition expresses the requirement that all primal
-variables must satisfy to the system of equality constraints of the
-original LP problem. In case of exact arithmetic this condition would be
-satisfied for any basic solution; however, in case of inexact
-(floating-point) arithmetic, this condition shows how accurate the
-primal basic solution is, that depends on accuracy of a representation
-of the basis matrix used by the simplex method routines.
-
-The second condition checked by the routine is:
-$$l_k \leq x_k \leq u_k {\rm \ \ \ for\ all}\ k=1,\dots,m+n,
-\eqno{\rm (KKT.PB)}$$
-where $x_k$ is auxiliary ($1\leq k\leq m$) or structural
-($m+1\leq k\leq m+n$) variable, $l_k$ and $u_k$ are, respectively,
-lower and upper bounds of the variable $x_k$ (including cases of
-infinite bounds). This condition expresses the requirement that all
-primal variables must satisfy to bound constraints of the original LP
-problem. Since in case of basic solution all non-basic variables are
-placed on their bounds, actually the condition (KKT.PB) needs to be
-checked for basic variables only. If the primal basic solution has
-sufficient accuracy, this condition shows primal feasibility of the
-solution.
-
-The third condition checked by the routine is:
-$${\rm grad}\;Z = c = (\tilde{A})^T \pi + d,$$
-where $Z$ is the objective function, $c$ is the vector of objective
-coefficients, $(\tilde{A})^T$ is a matrix transposed to the expanded
-constraint matrix $\tilde{A} = (I|-A)$, $\pi$ is a vector of Lagrange
-multipliers that correspond to equality constraints of the original LP
-problem, $d$ is a vector of Lagrange multipliers that correspond to
-bound constraints for all (auxiliary and structural) variables of the
-original LP problem. Geometrically the third condition expresses the
-requirement that the gradient of the objective function must belong to
-the orthogonal complement of a linear subspace defined by the equality
-and active bound constraints, i.e. that the gradient must be a linear
-combination of normals to the constraint planes, where Lagrange
-multipliers $\pi$ and $d$ are coefficients of that linear combination.
-
-To eliminate the vector $\pi$ the third condition can be rewritten as:
-$$
-\left(\begin{array}{@{}c@{}}I \\ -A^T\end{array}\right) \pi =
-\left(\begin{array}{@{}c@{}}d_R \\ d_S\end{array}\right) +
-\left(\begin{array}{@{}c@{}}c_R \\ c_S\end{array}\right),
-$$
-or, equivalently:
-$$
-\begin{array}{r@{}c@{}c}
-\pi + d_R&\ =\ &c_R, \\
--A^T\pi + d_S&\ =\ &c_S. \\
-\end{array}
-$$
-Then substituting the vector $\pi$ from the first equation into the
-second one we have:
-$$A^T (d_R - c_R) + (d_S - c_S) = 0, \eqno{\rm (KKT.DE)}$$
-where $d_R$ is the subvector of reduced costs of auxiliary variables
-(rows), $d_S$ is the subvector of reduced costs of structural variables
-(columns), $c_R$ and $c_S$ are subvectors of objective coefficients at,
-respectively, auxiliary and structural variables, $A^T$ is a matrix
-transposed to the constraint matrix of the original LP problem. In case
-of exact arithmetic this condition would be satisfied for any basic
-solution; however, in case of inexact (floating-point) arithmetic, this
-condition shows how accurate the dual basic solution is, that depends on
-accuracy of a representation of the basis matrix used by the simplex
-method routines.
-
-The last, fourth condition checked by the routine is (KKT.DB):
-
-\medskip
-
-\begin{tabular}{r@{}c@{}ll}
-&$\ d_k\ $& $=0,$&if $x_k$ is basic or free non-basic variable \\
-$0\leq$&$\ d_k\ $&$<+\infty$&if $x_k$ is non-basic on its lower
-(minimization) \\
-&&&or upper (maximization) bound \\
-$-\infty<$&$\ d_k\ $&$\leq 0$&if $x_k$ is non-basic on its upper
-(minimization) \\
-&&&or lower (maximization) bound \\
-$-\infty<$&$\ d_k\ $&$<+\infty$&if $x_k$ is non-basic fixed variable \\
-\end{tabular}
-
-\medskip
-
-\noindent
-for all $k=1,\dots,m+n$, where $d_k$ is a reduced cost (Lagrange
-multiplier) of auxiliary ($1\leq k\leq m$) or structural
-($m+1\leq k\leq m+n$) variable $x_k$. Geometrically this condition
-expresses the requirement that constraints of the original problem must
-"hold" the point preventing its movement along the anti-gradient (in
-case of minimization) or the gradient (in case of maximization) of the
-objective function. Since in case of basic solution reduced costs of
-all basic variables are placed on their (zero) bounds, actually the
-condition (KKT.DB) needs to be checked for non-basic variables only.
-If the dual basic solution has sufficient accuracy, this condition shows
-dual feasibility of the solution.
-
-Should note that the complete set of Karush-Kuhn-Tucker optimality
-conditions also includes the fifth, so called complementary slackness
-condition, which expresses the requirement that at least either a primal
-variable $x_k$ or its dual counterpart $d_k$ must be on its bound for
-all $k=1,\dots,m+n$. However, being always satisfied by definition for
-any basic solution that condition is not checked by the routine.
-
-To check the first condition (KKT.PE) the routine computes a vector of
-residuals:
-$$g = x_R - A x_S,$$
-determines component of this vector that correspond to largest absolute
-and relative errors:
-
-\medskip
-
-\hspace{30mm}
-\verb|pe_ae_max| $\displaystyle{= \max_{1\leq i\leq m}|g_i|}$,
-
-\medskip
-
-\hspace{30mm}
-\verb|pe_re_max| $\displaystyle{= \max_{1\leq i\leq m}
-\frac{|g_i|}{1+|(x_R)_i|}}$,
-
-\medskip
-
-\noindent
-and stores these quantities and corresponding row indices to the
-structure \verb|LPXKKT|.
-
-To check the second condition (KKT.PB) the routine computes a vector
-of residuals:
-$$
-h_k = \left\{
-\begin{array}{ll}
-0,         & {\rm if}\ l_k \leq x_k \leq u_k \\
-x_k - l_k, & {\rm if}\ x_k < l_k \\
-x_k - u_k, & {\rm if}\ x_k > u_k \\
-\end{array}
-\right.
-$$
-for all $k=1,\dots,m+n$, determines components of this vector that
-correspond to largest absolute and relative errors:
-
-\medskip
-
-\hspace{30mm}
-\verb|pb_ae_max| $\displaystyle{= \max_{1\leq k \leq m+n}|h_k|}$,
-
-\medskip
-
-\hspace{30mm}
-\verb|pb_re_max| $\displaystyle{= \max_{1\leq k \leq m+n}
-\frac{|h_k|}{1+|x_k|}}$,
-
-\medskip
-
-\noindent
-and stores these quantities and corresponding variable indices to the
-structure \verb|LPXKKT|.
-
-To check the third condition (KKT.DE) the routine computes a vector of
-residuals:
-$$u = A^T (d_R - c_R) + (d_S - c_S),$$
-determines components of this vector that correspond to largest
-absolute and relative errors:
-
-\medskip
-
-\hspace{30mm}
-\verb|de_ae_max| $\displaystyle{= \max_{1\leq j\leq n}|u_j|}$,
-
-\medskip
-
-\hspace{30mm}
-\verb|de_re_max| $\displaystyle{= \max_{1\leq j\leq n}
-\frac{|u_j|}{1+|(d_S)_j - (c_S)_j|}}$,
-
-\medskip
-
-\noindent
-and stores these quantities and corresponding column indices to the
-structure \verb|LPXKKT|.
-
-To check the fourth condition (KKT.DB) the routine computes a vector
-of residuals:
-
-$$
-v_k = \left\{
-\begin{array}{ll}
-0,         & {\rm if}\ d_k\ {\rm has\ correct\ sign} \\
-d_k,       & {\rm if}\ d_k\ {\rm has\ wrong\ sign} \\
-\end{array}
-\right.
-$$
-for all $k=1,\dots,m+n$, determines components of this vector that
-correspond to largest absolute and relative errors:
-
-\medskip
-
-\hspace{30mm}
-\verb|db_ae_max| $\displaystyle{= \max_{1\leq k\leq m+n}|v_k|}$,
-
-\medskip
-
-\hspace{30mm}
-\verb|db_re_max| $\displaystyle{= \max_{1\leq k\leq m+n}
-\frac{|v_k|}{1+|d_k - c_k|}}$,
-
-\medskip
-
-\noindent
-and stores these quantities and corresponding variable indices to the
-structure \verb|LPXKKT|.
-
-Using the relative errors for all the four conditions listed above the
-routine
-\verb|lpx_check_kkt| also estimates a "quality" of the basic solution
-from the standpoint of these conditions and stores corresponding
-quality indicators to the structure \verb|LPXKKT|:
-
-\verb|pe_quality|---quality of primal solution;
-
-\verb|pb_quality|---quality of primal feasibility;
-
-\verb|de_quality|---quality of dual solution;
-
-\verb|db_quality|---quality of dual feasibility.
-
-Each of these indicators is assigned to one of the following four
-values:
-
-\verb|'H'| means high quality,
-
-\verb|'M'| means medium quality,
-
-\verb|'L'| means low quality, or
-
-\verb|'?'| means wrong or infeasible solution.
-
-If all the indicators show high or medium quality (for an internally
-scaled LP problem, i.e. when the parameter \verb|scaled| in a call to
-the routine \verb|lpx_check_kkt| is non-zero), the user can be sure that
-the obtained basic solution is quite accurate.
-
-If some of the indicators show low quality, the solution can still be
-considered as relevant, though an additional analysis is needed
-depending on which indicator shows low quality.
-
-If the indicator \verb|pe_quality| is assigned to \verb|'?'|, the
-primal solution is wrong. If the indicator \verb|de_quality| is assigned
-to \verb|'?'|, the dual solution is wrong.
-
-If the indicator \verb|db_quality| is assigned to \verb|'?'| while
-other indicators show a good quality, this means that the current
-basic solution being primal feasible is not dual feasible. Similarly,
-if the indicator \verb|pb_quality| is assigned to \verb|'?'| while
-other indicators are not, this means that the current basic solution
-being dual feasible is not primal feasible.
-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \newpage
@@ -2762,6 +2423,16 @@ corresponding members in the structure \verb|glp_iocp|.
 \medskip
 
 \noindent\begin{tabular}{@{}p{17pt}@{}p{120.5mm}@{}}
+\multicolumn{2}{@{}l}{{\tt int fp\_heur} (default: {\tt GLP\_OFF})}
+\\
+&Feasibility pump heuristic option:\\
+&\verb|GLP_ON |---enable applying the feasibility pump heuristic;\\
+&\verb|GLP_OFF|---disable applying the feasibility pump heuristic.\\
+\end{tabular}
+
+\medskip
+
+\noindent\begin{tabular}{@{}p{17pt}@{}p{120.5mm}@{}}
 \multicolumn{2}{@{}l}{{\tt int gmi\_cuts} (default: {\tt GLP\_OFF})}\\
 &Gomory's mixed integer cut option:\\
 &\verb|GLP_ON |---enable generating Gomory's cuts;\\
@@ -2940,7 +2611,6 @@ found by the MIP solver as follows:
    the solver). \\
 \end{tabular}
 
-
 \subsection{glp\_mip\_obj\_val---retrieve objective value}
 
 \subsubsection*{Synopsis}
@@ -2979,5 +2649,350 @@ double glp_mip_col_val(glp_prob *mip, int j);
 
 The routine \verb|glp_mip_col_val| returns value of the structural
 variable associated with \verb|j|-th column for MIP solution.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\newpage
+
+\section{Additional routines}
+
+\subsection{lpx\_check\_kkt---check Karush-Kuhn-Tucker optimality
+conditions}
+
+\subsubsection*{Synopsis}
+
+\begin{verbatim}
+void lpx_check_kkt(glp_prob *lp, int scaled, LPXKKT *kkt);
+\end{verbatim}
+
+\subsubsection*{Description}
+
+The routine \verb|lpx_check_kkt| checks Karush-Kuhn-Tucker optimality
+conditions for basic solution. It is assumed that both primal and dual
+components of basic solution are valid.
+
+If the parameter \verb|scaled| is zero, the optimality conditions are
+checked for the original, unscaled LP problem. Otherwise, if the
+parameter \verb|scaled| is non-zero, the routine checks the conditions
+for an internally scaled LP problem.
+
+The parameter \verb|kkt| is a pointer to the structure \verb|LPXKKT|,
+to which the routine stores results of the check. Members of this
+structure are shown in the table below.
+
+\begin{table}[h]
+\begin{center}
+\begin{tabular}{@{}c|l|l@{}}
+Condition & Member & Comment \\
+\hline
+(KKT.PE) & \verb|pe_ae_max| &
+         Largest absolute error \\
+         & \verb|pe_ae_row| &
+         Number of row with largest absolute error \\
+         & \verb|pe_re_max| &
+         Largest relative error \\
+         & \verb|pe_re_row| &
+         Number of row with largest relative error \\
+         & \verb|pe_quality| &
+         Quality of primal solution \\
+\hline
+(KKT.PB) & \verb|pb_ae_max| &
+         Largest absolute error \\
+         & \verb|pb_ae_ind| &
+         Number of variable with largest absolute error \\
+         & \verb|pb_re_max| &
+         Largest relative error \\
+         & \verb|pb_re_ind| &
+         Number of variable with largest relative error \\
+         & \verb|pb_quality| &
+         Quality of primal feasibility \\
+\hline
+(KKT.DE) & \verb|de_ae_max| &
+         Largest absolute error \\
+         & \verb|de_ae_col| &
+         Number of column with largest absolute error \\
+         & \verb|de_re_max| &
+         Largest relative error \\
+         & \verb|de_re_col| &
+         Number of column with largest relative error \\
+         & \verb|de_quality| &
+         Quality of dual solution \\
+\hline
+(KKT.DB) & \verb|db_ae_max| &
+         Largest absolute error \\
+         & \verb|db_ae_ind| &
+         Number of variable with largest absolute error \\
+         & \verb|db_re_max| &
+         Largest relative error \\
+         & \verb|db_re_ind| &
+         Number of variable with largest relative error \\
+         & \verb|db_quality| &
+         Quality of dual feasibility \\
+\end{tabular}
+\end{center}
+\end{table}
+
+The routine performs all computations using only components of the
+given LP problem and the current basic solution.
+
+\subsubsection*{Background}
+
+The first condition checked by the routine is:
+$$x_R - A x_S = 0, \eqno{\rm (KKT.PE)}$$
+where $x_R$ is the subvector of auxiliary variables (rows), $x_S$ is the
+subvector of structural variables (columns), $A$ is the constraint
+matrix. This condition expresses the requirement that all primal
+variables must satisfy to the system of equality constraints of the
+original LP problem. In case of exact arithmetic this condition would be
+satisfied for any basic solution; however, in case of inexact
+(floating-point) arithmetic, this condition shows how accurate the
+primal basic solution is, that depends on accuracy of a representation
+of the basis matrix used by the simplex method routines.
+
+The second condition checked by the routine is:
+$$l_k \leq x_k \leq u_k {\rm \ \ \ for\ all}\ k=1,\dots,m+n,
+\eqno{\rm (KKT.PB)}$$
+where $x_k$ is auxiliary ($1\leq k\leq m$) or structural
+($m+1\leq k\leq m+n$) variable, $l_k$ and $u_k$ are, respectively,
+lower and upper bounds of the variable $x_k$ (including cases of
+infinite bounds). This condition expresses the requirement that all
+primal variables must satisfy to bound constraints of the original LP
+problem. Since in case of basic solution all non-basic variables are
+placed on their bounds, actually the condition (KKT.PB) needs to be
+checked for basic variables only. If the primal basic solution has
+sufficient accuracy, this condition shows primal feasibility of the
+solution.
+
+The third condition checked by the routine is:
+$${\rm grad}\;Z = c = (\tilde{A})^T \pi + d,$$
+where $Z$ is the objective function, $c$ is the vector of objective
+coefficients, $(\tilde{A})^T$ is a matrix transposed to the expanded
+constraint matrix $\tilde{A} = (I|-A)$, $\pi$ is a vector of Lagrange
+multipliers that correspond to equality constraints of the original LP
+problem, $d$ is a vector of Lagrange multipliers that correspond to
+bound constraints for all (auxiliary and structural) variables of the
+original LP problem. Geometrically the third condition expresses the
+requirement that the gradient of the objective function must belong to
+the orthogonal complement of a linear subspace defined by the equality
+and active bound constraints, i.e. that the gradient must be a linear
+combination of normals to the constraint planes, where Lagrange
+multipliers $\pi$ and $d$ are coefficients of that linear combination.
+
+To eliminate the vector $\pi$ the third condition can be rewritten as:
+$$
+\left(\begin{array}{@{}c@{}}I \\ -A^T\end{array}\right) \pi =
+\left(\begin{array}{@{}c@{}}d_R \\ d_S\end{array}\right) +
+\left(\begin{array}{@{}c@{}}c_R \\ c_S\end{array}\right),
+$$
+or, equivalently:
+$$
+\begin{array}{r@{}c@{}c}
+\pi + d_R&\ =\ &c_R, \\
+-A^T\pi + d_S&\ =\ &c_S. \\
+\end{array}
+$$
+Then substituting the vector $\pi$ from the first equation into the
+second one we have:
+$$A^T (d_R - c_R) + (d_S - c_S) = 0, \eqno{\rm (KKT.DE)}$$
+where $d_R$ is the subvector of reduced costs of auxiliary variables
+(rows), $d_S$ is the subvector of reduced costs of structural variables
+(columns), $c_R$ and $c_S$ are subvectors of objective coefficients at,
+respectively, auxiliary and structural variables, $A^T$ is a matrix
+transposed to the constraint matrix of the original LP problem. In case
+of exact arithmetic this condition would be satisfied for any basic
+solution; however, in case of inexact (floating-point) arithmetic, this
+condition shows how accurate the dual basic solution is, that depends on
+accuracy of a representation of the basis matrix used by the simplex
+method routines.
+
+The last, fourth condition checked by the routine is (KKT.DB):
+
+\medskip
+
+\begin{tabular}{r@{}c@{}ll}
+&$\ d_k\ $& $=0,$&if $x_k$ is basic or free non-basic variable \\
+$0\leq$&$\ d_k\ $&$<+\infty$&if $x_k$ is non-basic on its lower
+(minimization) \\
+&&&or upper (maximization) bound \\
+$-\infty<$&$\ d_k\ $&$\leq 0$&if $x_k$ is non-basic on its upper
+(minimization) \\
+&&&or lower (maximization) bound \\
+$-\infty<$&$\ d_k\ $&$<+\infty$&if $x_k$ is non-basic fixed variable \\
+\end{tabular}
+
+\medskip
+
+\noindent
+for all $k=1,\dots,m+n$, where $d_k$ is a reduced cost (Lagrange
+multiplier) of auxiliary ($1\leq k\leq m$) or structural
+($m+1\leq k\leq m+n$) variable $x_k$. Geometrically this condition
+expresses the requirement that constraints of the original problem must
+"hold" the point preventing its movement along the anti-gradient (in
+case of minimization) or the gradient (in case of maximization) of the
+objective function. Since in case of basic solution reduced costs of
+all basic variables are placed on their (zero) bounds, actually the
+condition (KKT.DB) needs to be checked for non-basic variables only.
+If the dual basic solution has sufficient accuracy, this condition shows
+dual feasibility of the solution.
+
+Should note that the complete set of Karush-Kuhn-Tucker optimality
+conditions also includes the fifth, so called complementary slackness
+condition, which expresses the requirement that at least either a primal
+variable $x_k$ or its dual counterpart $d_k$ must be on its bound for
+all $k=1,\dots,m+n$. However, being always satisfied by definition for
+any basic solution that condition is not checked by the routine.
+
+To check the first condition (KKT.PE) the routine computes a vector of
+residuals:
+$$g = x_R - A x_S,$$
+determines component of this vector that correspond to largest absolute
+and relative errors:
+
+\medskip
+
+\hspace{30mm}
+\verb|pe_ae_max| $\displaystyle{= \max_{1\leq i\leq m}|g_i|}$,
+
+\medskip
+
+\hspace{30mm}
+\verb|pe_re_max| $\displaystyle{= \max_{1\leq i\leq m}
+\frac{|g_i|}{1+|(x_R)_i|}}$,
+
+\medskip
+
+\noindent
+and stores these quantities and corresponding row indices to the
+structure \verb|LPXKKT|.
+
+To check the second condition (KKT.PB) the routine computes a vector
+of residuals:
+$$
+h_k = \left\{
+\begin{array}{ll}
+0,         & {\rm if}\ l_k \leq x_k \leq u_k \\
+x_k - l_k, & {\rm if}\ x_k < l_k \\
+x_k - u_k, & {\rm if}\ x_k > u_k \\
+\end{array}
+\right.
+$$
+for all $k=1,\dots,m+n$, determines components of this vector that
+correspond to largest absolute and relative errors:
+
+\medskip
+
+\hspace{30mm}
+\verb|pb_ae_max| $\displaystyle{= \max_{1\leq k \leq m+n}|h_k|}$,
+
+\medskip
+
+\hspace{30mm}
+\verb|pb_re_max| $\displaystyle{= \max_{1\leq k \leq m+n}
+\frac{|h_k|}{1+|x_k|}}$,
+
+\medskip
+
+\noindent
+and stores these quantities and corresponding variable indices to the
+structure \verb|LPXKKT|.
+
+To check the third condition (KKT.DE) the routine computes a vector of
+residuals:
+$$u = A^T (d_R - c_R) + (d_S - c_S),$$
+determines components of this vector that correspond to largest
+absolute and relative errors:
+
+\medskip
+
+\hspace{30mm}
+\verb|de_ae_max| $\displaystyle{= \max_{1\leq j\leq n}|u_j|}$,
+
+\medskip
+
+\hspace{30mm}
+\verb|de_re_max| $\displaystyle{= \max_{1\leq j\leq n}
+\frac{|u_j|}{1+|(d_S)_j - (c_S)_j|}}$,
+
+\medskip
+
+\noindent
+and stores these quantities and corresponding column indices to the
+structure \verb|LPXKKT|.
+
+To check the fourth condition (KKT.DB) the routine computes a vector
+of residuals:
+
+$$
+v_k = \left\{
+\begin{array}{ll}
+0,         & {\rm if}\ d_k\ {\rm has\ correct\ sign} \\
+d_k,       & {\rm if}\ d_k\ {\rm has\ wrong\ sign} \\
+\end{array}
+\right.
+$$
+for all $k=1,\dots,m+n$, determines components of this vector that
+correspond to largest absolute and relative errors:
+
+\medskip
+
+\hspace{30mm}
+\verb|db_ae_max| $\displaystyle{= \max_{1\leq k\leq m+n}|v_k|}$,
+
+\medskip
+
+\hspace{30mm}
+\verb|db_re_max| $\displaystyle{= \max_{1\leq k\leq m+n}
+\frac{|v_k|}{1+|d_k - c_k|}}$,
+
+\medskip
+
+\noindent
+and stores these quantities and corresponding variable indices to the
+structure \verb|LPXKKT|.
+
+Using the relative errors for all the four conditions listed above the
+routine
+\verb|lpx_check_kkt| also estimates a "quality" of the basic solution
+from the standpoint of these conditions and stores corresponding
+quality indicators to the structure \verb|LPXKKT|:
+
+\verb|pe_quality|---quality of primal solution;
+
+\verb|pb_quality|---quality of primal feasibility;
+
+\verb|de_quality|---quality of dual solution;
+
+\verb|db_quality|---quality of dual feasibility.
+
+Each of these indicators is assigned to one of the following four
+values:
+
+\verb|'H'| means high quality,
+
+\verb|'M'| means medium quality,
+
+\verb|'L'| means low quality, or
+
+\verb|'?'| means wrong or infeasible solution.
+
+If all the indicators show high or medium quality (for an internally
+scaled LP problem, i.e. when the parameter \verb|scaled| in a call to
+the routine \verb|lpx_check_kkt| is non-zero), the user can be sure that
+the obtained basic solution is quite accurate.
+
+If some of the indicators show low quality, the solution can still be
+considered as relevant, though an additional analysis is needed
+depending on which indicator shows low quality.
+
+If the indicator \verb|pe_quality| is assigned to \verb|'?'|, the
+primal solution is wrong. If the indicator \verb|de_quality| is assigned
+to \verb|'?'|, the dual solution is wrong.
+
+If the indicator \verb|db_quality| is assigned to \verb|'?'| while
+other indicators show a good quality, this means that the current
+basic solution being primal feasible is not dual feasible. Similarly,
+if the indicator \verb|pb_quality| is assigned to \verb|'?'| while
+other indicators are not, this means that the current basic solution
+being dual feasible is not primal feasible.
 
 %* eof *%

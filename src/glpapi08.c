@@ -442,7 +442,7 @@ static void restore(struct dsa *dsa, double row_pval[],
       val = xcalloc(1+orig_m, sizeof(double));
       for (k = 1; k <= orig_n; k++)
       {  sjj = glp_get_sjj(lp, k);
-         temp = lpx_get_obj_coef(lp, k) / sjj;
+         temp = lpx_get_obj_coef(lp, k) * sjj;
          len = lpx_get_mat_col(lp, k, ind, val);
          for (t = 1; t <= len; t++)
          {  rii = glp_get_rii(lp, ind[t]);

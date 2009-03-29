@@ -1,10 +1,10 @@
 ## Process this file with automake to produce Makefile.in ##
 
-INCLUDES = -I../include
+INCLUDES = -I$(srcdir)/../include
 
 lib_LTLIBRARIES = libglpk.la
 
-libglpk_la_LDFLAGS = -version-info 21:0:21 \
+libglpk_la_LDFLAGS = -version-info 22:0:22 \
 -export-symbols-regex '^(glp_|_glp_lpx_).*'
 
 libglpk_la_SOURCES = \
@@ -28,6 +28,7 @@ glpapi17.c \
 glpapi18.c \
 glpapi19.c \
 glpapi20.c \
+glpapi21.c \
 glpavl.c \
 glpbfd.c \
 glpbfx.c \
@@ -48,6 +49,7 @@ glpios06.c \
 glpios07.c \
 glpios08.c \
 glpios09.c \
+glpios10.c \
 glpipm.c \
 glpipp01.c \
 glpipp02.c \
@@ -71,10 +73,6 @@ glplpx02.c \
 glplpx03.c \
 glplpx04.c \
 glplpx05.c \
-glplpx06.c \
-glplpx07.c \
-glplpx08.c \
-glplpx09.c \
 glpluf.c \
 glplux.c \
 glpmat.c \
@@ -93,7 +91,6 @@ glpnet04.c \
 glpnet05.c \
 glpnet06.c \
 glpnet07.c \
-glppds.c \
 glpqmd.c \
 glprgr.c \
 glprng01.c \
@@ -101,6 +98,7 @@ glprng02.c \
 glpscf.c \
 glpscg.c \
 glpscl.c \
+glpsds.c \
 glpspm.c \
 glpspx01.c \
 glpspx02.c \

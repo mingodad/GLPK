@@ -230,7 +230,7 @@ incoming arcs.
 
 \newpage
 
-\section{Graph creating and modifying routines}
+\section{Basic graph routines}
 
 \subsection{glp\_create\_graph---create graph}
 
@@ -367,6 +367,212 @@ void glp_delete_graph(glp_graph *G);
 
 The routine \verb|glp_delete_graph| deletes the specified graph and
 frees all the memory allocated to this program object.
+
+\newpage
+
+\subsection{glp\_read\_graph---read graph from plain text file}
+
+\subsubsection*{Synopsis}
+
+\begin{verbatim}
+int glp_read_graph(glp_graph *G, const char *fname);
+\end{verbatim}
+
+\subsubsection*{Description}
+
+The routine \verb|glp_read_graph| reads a graph from a plain text file,
+whose name is specified by the parameter \verb|fname|. Note that before
+reading data the current content of the graph object is completely
+erased with the routine \verb|glp_erase_graph|.
+
+For the file format see description of the routine
+\verb|glp_write_graph|.
+
+\subsubsection*{Returns}
+
+If the operation was successful, the routine returns zero. Otherwise
+it prints an error message and returns non-zero.
+
+\subsection{glp\_write\_graph---write graph to plain text file}
+
+\subsubsection*{Synopsis}
+
+\begin{verbatim}
+int glp_write_graph(glp_graph *G, const char *fname);
+\end{verbatim}
+
+\subsubsection*{Description}
+
+The routine \verb|glp_write_graph| writes the graph to a plain text
+file, whose name is specified by the parameter \verb|fname|.
+
+\subsubsection*{Returns}
+
+If the operation was successful, the routine returns zero. Otherwise
+it prints an error message and returns non-zero.
+
+\subsubsection*{File format}
+
+The file created by the routine \verb|glp_write_graph| is a plain text
+file, which contains the following information:
+
+\begin{verbatim}
+   nv na
+   i[1] j[1]
+   i[2] j[2]
+   . . .
+   i[na] j[na]
+\end{verbatim}
+
+\noindent
+where:
+
+\noindent
+\verb|nv| is the number of vertices (nodes);
+
+\noindent
+\verb|na| is the number of arcs;
+
+\noindent
+\verb|i[k]|, $k=1,\dots,na$, is the index of tail vertex of arc $k$;
+
+\noindent
+\verb|j[k]|, $k=1,\dots,na$, is the index of head vertex of arc $k$.
+
+\newpage
+
+\section{Graph analysis routines}
+
+\subsection{glp\_weak\_comp---find all weakly connected components of
+graph}
+
+\subsubsection*{Synopsis}
+
+\begin{verbatim}
+int glp_weak_comp(glp_graph *G, int v_num);
+\end{verbatim}
+
+\subsubsection*{Description}
+
+The routine \verb|glp_weak_comp| finds all weakly connected components
+of the specified graph.
+
+The parameter \verb|v_num| specifies an offset of the field of type
+\verb|int| in the vertex data block, to which the routine stores the
+number of a weakly connected component containing that vertex. If
+\verb|v_num| $<0$, no component numbers are stored.
+
+The components are numbered in arbitrary order from 1 to \verb|nc|,
+where \verb|nc| is the total number of components found,
+$0\leq$ \verb|nc| $\leq|V|$.
+
+\subsubsection*{Returns}
+
+The routine returns \verb|nc|, the total number of components found.
+
+\subsection{glp\_strong\_comp---find all strongly connected components
+of graph}
+
+\subsubsection*{Synopsis}
+
+\begin{verbatim}
+int glp_strong_comp(glp_graph *G, int v_num);
+\end{verbatim}
+
+\subsubsection*{Description}
+
+The routine \verb|glp_strong_comp| finds all strongly connected
+components of the specified graph.
+
+The parameter \verb|v_num| specifies an offset of the field of type
+\verb|int| in the vertex data block, to which the routine stores the
+number of a strongly connected component containing that vertex. If
+\verb|v_num| $<0$, no component numbers are stored.
+
+The components are numbered in arbitrary order from 1 to \verb|nc|,
+where \verb|nc| is the total number of components found,
+$0\leq$ \verb|nc| $\leq|V|$. However, the component numbering has the
+property that for every arc $(i\rightarrow j)$ in the graph the
+condition $num(i)\geq num(j)$ holds.
+
+\subsubsection*{Returns}
+
+The routine returns \verb|nc|, the total number of components found.
+
+\subsubsection*{References}
+
+I.~S.~Duff, J.~K.~Reid, Algorithm 529: Permutations to block triangular
+form, ACM Trans. on Math. Softw. 4 (1978), 189-92.
+
+\subsubsection*{Example}
+
+The following program reads a graph from a plain text file
+`\verb|graph.txt|' and finds all its strongly connected components.
+
+\begin{verbatim}
+#include <stddef.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <glpk.h>
+
+typedef struct { int num; } v_data;
+
+#define vertex(v) ((v_data *)((v)->data))
+
+int main(void)
+{     glp_graph *G;
+      int i, nc;
+      G = glp_create_graph(sizeof(v_data), 0);
+      glp_read_graph(G, "graph.txt");
+      nc = glp_strong_comp(G, offsetof(v_data, num));
+      printf("nc = %d\n", nc);
+      for (i = 1; i <= G->nv; i++)
+         printf("num[%d] = %d\n", i, vertex(G->v[i])->num);
+      glp_delete_graph(G);
+      return 0;
+}
+\end{verbatim}
+
+\noindent
+If the file `\verb|graph.txt|' contains the graph shown below:
+
+\bigskip
+
+\noindent\hfil
+\xymatrix
+{1\ar[r]&2\ar[r]&3\ar[r]\ar[dd]&4\ar[dd]\\
+5\ar[u]&6\ar[l]\\
+7\ar[u]&&8\ar[lu]\ar[ll]\ar[r]&9\ar[r]&10\ar[r]\ar[d]&11\ar[d]\\
+12\ar[u]\ar[rru]\ar@/_/[rr]&&13\ar[ll]\ar[u]\ar[rr]&&14\ar[lu]&15\ar[l]
+\\
+}
+
+\bigskip\bigskip
+
+\noindent
+the program output may look like follows:
+
+\begin{verbatim}
+Reading graph from `graph.txt'...
+Graph has 15 vertices and 30 arcs
+31 lines were read
+nc = 4
+num[1] = 3
+num[2] = 3
+num[3] = 3
+num[4] = 2
+num[5] = 3
+num[6] = 3
+num[7] = 3
+num[8] = 3
+num[9] = 1
+num[10] = 1
+num[11] = 1
+num[12] = 4
+num[13] = 4
+num[14] = 1
+num[15] = 1
+\end{verbatim}
 
 \newpage
 

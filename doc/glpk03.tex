@@ -451,106 +451,29 @@ still used by the translator.
 
 \section{Problem solution reading/writing routines}
 
-\subsection{lpx\_print\_sol---write basic solution in printable
+\subsection{glp\_print\_sol---write basic solution in printable
 format}
 
 \subsubsection*{Synopsis}
 
 \begin{verbatim}
-int lpx_print_sol(glp_prob *lp, char *fname);
+int glp_print_sol(glp_prob *lp, const char *fname);
 \end{verbatim}
 
 \subsubsection*{Description}
 
-The routine \verb|lpx_print_sol writes| the current basic solution of
+The routine \verb|glp_print_sol writes| the current basic solution of
 an LP problem, which is specified by the pointer \verb|lp|, to a text
 file, whose name is the character string \verb|fname|, in printable
 format.
 
-Information reported by the routine \verb|lpx_print_sol| is intended
+Information reported by the routine \verb|glp_print_sol| is intended
 mainly for visual analysis.
 
 \subsubsection*{Returns}
 
 If no errors occurred, the routine returns zero. Otherwise the routine
 prints an error message and returns non-zero.
-
-\subsection{lpx\_print\_sens\_bnds---write bounds sensitivity
-information}
-
-\subsubsection*{Synopsis}
-
-\begin{verbatim}
-int lpx_print_sens_bnds(glp_prob *lp, char *fname);
-\end{verbatim}
-
-\subsubsection*{Description}
-
-The routine \verb|lpx_print_sens_bnds| writes the bounds for objective
-coefficients, right-hand-sides of constraints, and variable bounds
-for which the current optimal basic solution remains optimal (for LP
-only).
-
-The LP is given by the pointer \verb|lp|, and the output is written to
-the file specified by \verb|fname|.  The current contents of the file
-will be overwritten.
-
-Information reported by the routine \verb|lpx_print_sens_bnds| is
-intended mainly for visual analysis.
-
-\subsubsection*{Returns}
-
-If no errors occurred, the routine returns zero. Otherwise the routine
-prints an error message and returns non-zero.
-
-\subsection{lpx\_print\_ips---write interior-point solution in
-printable format}
-
-\subsubsection*{Synopsis}
-
-\begin{verbatim}
-int lpx_print_ips(glp_prob *lp, char *fname);
-\end{verbatim}
-
-\subsubsection*{Description}
-
-The routine \verb|lpx_print_ips| writes the current interior point
-solution  of an LP problem, which the parameter \verb|lp| points to, to
-a text file, whose name is the character string \verb|fname|, in
-printable format.
-
-Information reported by the routine \verb|lpx_print_ips| is intended
-mainly  for visual analysis.
-
-\subsubsection*{Returns}
-
-If no errors occurred, the routine returns zero. Otherwise the routine
-prints an error message and returns non-zero.
-
-\subsection{lpx\_print\_mip---write MIP solution in printable format}
-
-\subsubsection*{Synopsis}
-
-\begin{verbatim}
-int lpx_print_mip(glp_prob *lp, char *fname);
-\end{verbatim}
-
-\subsubsection*{Description}
-
-The routine \verb|lpx_print_mip| writes a best known integer solution
-of a MIP problem, which is specified by the pointer \verb|lp|, to a text
-file, whose name is the character string \verb|fname|, in printable
-format.
-
-Information reported by the routine \verb|lpx_print_mip| is intended
-mainly for visual analysis.
-
-\subsubsection*{Returns}
-
-If no errors occurred, the routine returns zero. Otherwise the routine
-prints an error message and returns non-zero.
-
-\pagebreak
 
 \subsection{glp\_read\_sol---read basic solution from text file}
 
@@ -571,6 +494,8 @@ For the file format see description of the routine \verb|glp_write_sol|.
 \subsubsection*{Returns}
 
 On success the routine returns zero, otherwise non-zero.
+
+\newpage
 
 \subsection{glp\_write\_sol---write basic solution to text file}
 
@@ -650,6 +575,58 @@ $n$ is the number of columns (structural variables);
 \noindent
 \verb|c_dual[j]|, $j=1,\dots,n$, is the dual value of $j$-th column.
 
+\subsection{lpx\_print\_sens\_bnds---write bounds sensitivity
+information}
+
+\subsubsection*{Synopsis}
+
+\begin{verbatim}
+int lpx_print_sens_bnds(glp_prob *lp, const char *fname);
+\end{verbatim}
+
+\subsubsection*{Description}
+
+The routine \verb|lpx_print_sens_bnds| writes the bounds for objective
+coefficients, right-hand-sides of constraints, and variable bounds
+for which the current optimal basic solution remains optimal (for LP
+only).
+
+The LP is given by the pointer \verb|lp|, and the output is written to
+the file specified by \verb|fname|.  The current contents of the file
+will be overwritten.
+
+Information reported by the routine \verb|lpx_print_sens_bnds| is
+intended mainly for visual analysis.
+
+\subsubsection*{Returns}
+
+If no errors occurred, the routine returns zero. Otherwise the routine
+prints an error message and returns non-zero.
+
+\subsection{glp\_print\_ipt---write interior-point solution in
+printable format}
+
+\subsubsection*{Synopsis}
+
+\begin{verbatim}
+int glp_print_ipt(glp_prob *lp, const char *fname);
+\end{verbatim}
+
+\subsubsection*{Description}
+
+The routine \verb|glp_print_ipt| writes the current interior point
+solution  of an LP problem, which the parameter \verb|lp| points to, to
+a text file, whose name is the character string \verb|fname|, in
+printable format.
+
+Information reported by the routine \verb|glp_print_ipt| is intended
+mainly for visual analysis.
+
+\subsubsection*{Returns}
+
+If no errors occurred, the routine returns zero. Otherwise the routine
+prints an error message and returns non-zero.
+
 \subsection{glp\_read\_ipt---read interior-point solution from text
 file}
 
@@ -670,8 +647,6 @@ For the file format see description of the routine \verb|glp_write_ipt|.
 \subsubsection*{Returns}
 
 On success the routine returns zero, otherwise non-zero.
-
-\pagebreak
 
 \subsection{glp\_write\_ipt---write interior-point solution to text
 file}
@@ -736,6 +711,31 @@ $n$ is the number of columns (structural variables);
 
 \noindent
 \verb|c_dual[j]|, $j=1,\dots,n$, is the dual value of $j$-th column.
+
+\subsection{glp\_print\_mip---write MIP solution in printable format}
+
+\subsubsection*{Synopsis}
+
+\begin{verbatim}
+int glp_print_mip(glp_prob *lp, const char *fname);
+\end{verbatim}
+
+\subsubsection*{Description}
+
+The routine \verb|glp_print_mip| writes a best known integer solution
+of a MIP problem, which is specified by the pointer \verb|lp|, to a text
+file, whose name is the character string \verb|fname|, in printable
+format.
+
+Information reported by the routine \verb|glp_print_mip| is intended
+mainly for visual analysis.
+
+\subsubsection*{Returns}
+
+If no errors occurred, the routine returns zero. Otherwise the routine
+prints an error message and returns non-zero.
+
+\newpage
 
 \subsection{glp\_read\_mip---read MIP solution from text file}
 

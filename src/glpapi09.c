@@ -559,6 +559,9 @@ int glp_intopt(glp_prob *mip, const glp_iocp *parm)
       if (!(parm->binarize == GLP_ON || parm->binarize == GLP_OFF))
          xerror("glp_intopt: binarize = %d; invalid parameter\n",
             parm->binarize);
+      if (!(parm->fp_heur == GLP_ON || parm->fp_heur == GLP_OFF))
+         xerror("glp_intopt: fp_heur = %d; invalid parameter\n",
+            parm->fp_heur);
       /* integer solution is currently undefined */
       mip->mip_stat = GLP_UNDEF;
       mip->mip_obj = 0.0;
@@ -661,7 +664,7 @@ void glp_init_iocp(glp_iocp *parm)
       parm->clq_cuts = GLP_OFF;
       parm->presolve = GLP_OFF;
       parm->binarize = GLP_OFF;
-      parm->fn_sol = NULL;
+      parm->fp_heur = GLP_OFF;
       return;
 }
 

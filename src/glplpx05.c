@@ -1,7 +1,9 @@
-/* glplpx05.c (branch-and-bound solver routine) */
+/* glplpx05.c (OPB format) */
 
 /***********************************************************************
 *  This code is part of GLPK (GNU Linear Programming Kit).
+*
+*  Author: Oscar Gustafsson <oscarg@isy.liu.se>.
 *
 *  Copyright (C) 2000,01,02,03,04,05,06,07,08,2009 Andrew Makhorin,
 *  Department for Applied Informatics, Moscow Aviation Institute,
@@ -21,137 +23,264 @@
 *  along with GLPK. If not, see <http://www.gnu.org/licenses/>.
 ***********************************************************************/
 
+#define _GLPSTD_ERRNO
+#define _GLPSTD_STDIO
 #include "glpapi.h"
+#include "glpipp.h"
 
 /*----------------------------------------------------------------------
--- lpx_check_int - check integer feasibility conditions.
+-- lpx_write_pb - write problem data in (normalized) OPB format.
 --
--- SYNOPSIS
+-- *Synopsis*
 --
 -- #include "glplpx.h"
--- void lpx_check_int(LPX *lp, LPXKKT *kkt);
+-- int lpx_write_pb(LPX *lp, const char *fname, int normalized,
+--    int binarize);
 --
--- DESCRIPTION
+-- *Description*
 --
--- The routine lpx_check_int checks integer fasibility conditions for
--- current mip solution specified by a problem object, which the
--- parameter lp points to.
+-- The routine lpx_write_pb writes problem data in OPB format
+-- to an output text file whose name is the character string fname.
+-- If normalized is non-zero the output will be generated in a
+-- normalized form with sequentially numbered variables, x1, x2 etc.
+-- If binarize, any integer variable will be repalzec by binary ones,
+-- see ipp_binarize
 --
--- The parameter kkt is a pointer to the structure LPXKKT, to which the
--- routine stores results of checking.
+-- *Returns*
 --
--- The routine lpx_check_int acts like the routine lpx_check_kkt with
--- the difference that:
---
--- the current mip solution is used;
---
--- only (KKT.PE) and (KKT.PB) conditions are checked. */
+-- If the operation was successful, the routine returns zero. Otherwise
+-- the routine prints an error message and returns non-zero. */
 
-void lpx_check_int(LPX *lp, LPXKKT *kkt)
-{     int m = lpx_get_num_rows(lp);
-      int n = lpx_get_num_cols(lp);
-      int *ind, i, len, t, j, k, type;
-      double *val, xR_i, g_i, xS_j, temp, lb, ub, x_k, h_k;
-      /*--------------------------------------------------------------*/
-      /* compute largest absolute and relative errors and corresponding
-         row indices for the condition (KKT.PE) */
-      kkt->pe_ae_max = 0.0, kkt->pe_ae_row = 0;
-      kkt->pe_re_max = 0.0, kkt->pe_re_row = 0;
-      ind = xcalloc(1+n, sizeof(int));
+int lpx_write_pb(LPX *lp, const char *fname, int normalized,
+      int binarize)
+{
+  FILE* fp;
+  int m,n,i,j,k,o,nonfree=0, obj_dir, dbl, *ndx, row_type, emptylhs=0;
+  double coeff, *val, bound, constant/*=0.0*/;
+  char* objconstname = "dummy_one";
+  char* emptylhsname = "dummy_zero";
+
+  /* Variables needed for possible binarization */
+  /*LPX* tlp;*/
+  IPP *ipp = NULL;
+  /*tlp=lp;*/
+
+  if(binarize) /* Transform integer variables to binary ones */
+    {
+      ipp = ipp_create_wksp();
+      ipp_load_orig(ipp, lp);
+      ipp_binarize(ipp);
+      lp = ipp_build_prob(ipp);
+    }
+  fp = fopen(fname, "w");
+
+  if(fp!= NULL)
+    {
+      xprintf(
+          "lpx_write_pb: writing problem in %sOPB format to `%s'...\n",
+              (normalized?"normalized ":""), fname);
+
+      m = glp_get_num_rows(lp);
+      n = glp_get_num_cols(lp);
+      for(i=1;i<=m;i++)
+        {
+          switch(glp_get_row_type(lp,i))
+            {
+            case GLP_LO:
+            case GLP_UP:
+            case GLP_FX:
+              {
+                nonfree += 1;
+                break;
+              }
+            case GLP_DB:
+              {
+                nonfree += 2;
+                break;
+              }
+            }
+        }
+      constant=glp_get_obj_coef(lp,0);
+      fprintf(fp,"* #variables = %d #constraints = %d\n",
+         n + (constant == 0?1:0), nonfree + (constant == 0?1:0));
+      /* Objective function */
+      obj_dir = glp_get_obj_dir(lp);
+      fprintf(fp,"min: ");
+      for(i=1;i<=n;i++)
+        {
+          coeff = glp_get_obj_coef(lp,i);
+          if(coeff != 0.0)
+            {
+              if(obj_dir == GLP_MAX)
+                coeff=-coeff;
+              if(normalized)
+                fprintf(fp, " %d x%d", (int)coeff, i);
+              else
+                fprintf(fp, " %d*%s", (int)coeff,
+                  glp_get_col_name(lp,i));
+
+            }
+        }
+      if(constant)
+        {
+          if(normalized)
+            fprintf(fp, " %d x%d", (int)constant, n+1);
+          else
+            fprintf(fp, " %d*%s", (int)constant, objconstname);
+        }
+      fprintf(fp,";\n");
+
+      if(normalized && !binarize)  /* Name substitution */
+        {
+          fprintf(fp,"* Variable name substitution:\n");
+          for(j=1;j<=n;j++)
+            {
+              fprintf(fp, "* x%d = %s\n", j, glp_get_col_name(lp,j));
+            }
+          if(constant)
+            fprintf(fp, "* x%d = %s\n", n+1, objconstname);
+        }
+
+      ndx = xcalloc(1+n, sizeof(int));
       val = xcalloc(1+n, sizeof(double));
-      for (i = 1; i <= m; i++)
-      {  /* determine xR[i] */
-         xR_i = lpx_mip_row_val(lp, i);
-         /* g[i] := xR[i] */
-         g_i = xR_i;
-         /* g[i] := g[i] - (i-th row of A) * xS */
-         len = lpx_get_mat_row(lp, i, ind, val);
-         for (t = 1; t <= len; t++)
-         {  j = ind[t];
-            /* determine xS[j] */
-            xS_j = lpx_mip_col_val(lp, j);
-            /* g[i] := g[i] - a[i,j] * xS[j] */
-            g_i -= val[t] * xS_j;
-         }
-         /* determine absolute error */
-         temp = fabs(g_i);
-         if (kkt->pe_ae_max < temp)
-            kkt->pe_ae_max = temp, kkt->pe_ae_row = i;
-         /* determine relative error */
-         temp /= (1.0 + fabs(xR_i));
-         if (kkt->pe_re_max < temp)
-            kkt->pe_re_max = temp, kkt->pe_re_row = i;
-      }
-      xfree(ind);
+
+      /* Constraints */
+      for(j=1;j<=m;j++)
+        {
+          row_type=glp_get_row_type(lp,j);
+          if(row_type!=GLP_FR)
+            {
+              if(row_type == GLP_DB)
+                {
+                  dbl=2;
+                  row_type = GLP_UP;
+                }
+              else
+                {
+                  dbl=1;
+                }
+              k=glp_get_mat_row(lp, j, ndx, val);
+              for(o=1;o<=dbl;o++)
+                {
+                  if(o==2)
+                    {
+                      row_type = GLP_LO;
+                    }
+                  if(k==0) /* Empty LHS */
+                    {
+                      emptylhs = 1;
+                      if(normalized)
+                        {
+                          fprintf(fp, "0 x%d ", n+2);
+                        }
+                      else
+                        {
+                          fprintf(fp, "0*%s ", emptylhsname);
+                        }
+                    }
+
+                  for(i=1;i<=k;i++)
+                    {
+                      if(val[i] != 0.0)
+                        {
+
+                          if(normalized)
+                            {
+                              fprintf(fp, "%d x%d ",
+              (row_type==GLP_UP)?(-(int)val[i]):((int)val[i]), ndx[i]);
+                            }
+                          else
+                            {
+                              fprintf(fp, "%d*%s ", (int)val[i],
+                                      glp_get_col_name(lp,ndx[i]));
+                            }
+                        }
+                    }
+                  switch(row_type)
+                    {
+                    case GLP_LO:
+                      {
+                        fprintf(fp, ">=");
+                        bound = glp_get_row_lb(lp,j);
+                        break;
+                      }
+                    case GLP_UP:
+                      {
+                        if(normalized)
+                          {
+                            fprintf(fp, ">=");
+                            bound = -glp_get_row_ub(lp,j);
+                          }
+                        else
+                          {
+                            fprintf(fp, "<=");
+                            bound = glp_get_row_ub(lp,j);
+                          }
+
+                        break;
+                      }
+                    case GLP_FX:
+                      {
+                        fprintf(fp, "=");
+                        bound = glp_get_row_lb(lp,j);
+                        break;
+                      }
+                    }
+                  fprintf(fp," %d;\n",(int)bound);
+                }
+            }
+        }
+      xfree(ndx);
       xfree(val);
-      /* estimate the solution quality */
-      if (kkt->pe_re_max <= 1e-9)
-         kkt->pe_quality = 'H';
-      else if (kkt->pe_re_max <= 1e-6)
-         kkt->pe_quality = 'M';
-      else if (kkt->pe_re_max <= 1e-3)
-         kkt->pe_quality = 'L';
-      else
-         kkt->pe_quality = '?';
-      /*--------------------------------------------------------------*/
-      /* compute largest absolute and relative errors and corresponding
-         variable indices for the condition (KKT.PB) */
-      kkt->pb_ae_max = 0.0, kkt->pb_ae_ind = 0;
-      kkt->pb_re_max = 0.0, kkt->pb_re_ind = 0;
-      for (k = 1; k <= m+n; k++)
-      {  /* determine x[k] */
-         if (k <= m)
-         {  i = k;
-            type = lpx_get_row_type(lp, i);
-            lb = lpx_get_row_lb(lp, i);
-            ub = lpx_get_row_ub(lp, i);
-            x_k = lpx_mip_row_val(lp, i);
-         }
-         else
-         {  j = k - m;
-            type = lpx_get_col_type(lp, j);
-            lb = lpx_get_col_lb(lp, j);
-            ub = lpx_get_col_ub(lp, j);
-            x_k = lpx_mip_col_val(lp, j);
-         }
-         /* compute h[k] */
-         h_k = 0.0;
-         switch (type)
-         {  case LPX_FR:
-               break;
-            case LPX_LO:
-               if (x_k < lb) h_k = x_k - lb;
-               break;
-            case LPX_UP:
-               if (x_k > ub) h_k = x_k - ub;
-               break;
-            case LPX_DB:
-            case LPX_FX:
-               if (x_k < lb) h_k = x_k - lb;
-               if (x_k > ub) h_k = x_k - ub;
-               break;
-            default:
-               xassert(type != type);
-         }
-         /* determine absolute error */
-         temp = fabs(h_k);
-         if (kkt->pb_ae_max < temp)
-            kkt->pb_ae_max = temp, kkt->pb_ae_ind = k;
-         /* determine relative error */
-         temp /= (1.0 + fabs(x_k));
-         if (kkt->pb_re_max < temp)
-            kkt->pb_re_max = temp, kkt->pb_re_ind = k;
-      }
-      /* estimate the solution quality */
-      if (kkt->pb_re_max <= 1e-9)
-         kkt->pb_quality = 'H';
-      else if (kkt->pb_re_max <= 1e-6)
-         kkt->pb_quality = 'M';
-      else if (kkt->pb_re_max <= 1e-3)
-         kkt->pb_quality = 'L';
-      else
-         kkt->pb_quality = '?';
-      return;
+
+      if(constant)
+        {
+          xprintf(
+        "lpx_write_pb: adding constant objective function variable\n");
+
+          if(normalized)
+            fprintf(fp, "1 x%d = 1;\n", n+1);
+          else
+            fprintf(fp, "1*%s = 1;\n", objconstname);
+        }
+      if(emptylhs)
+        {
+          xprintf(
+            "lpx_write_pb: adding dummy variable for empty left-hand si"
+            "de constraint\n");
+
+          if(normalized)
+            fprintf(fp, "1 x%d = 0;\n", n+2);
+          else
+            fprintf(fp, "1*%s = 0;\n", emptylhsname);
+        }
+
+    }
+  else
+    {
+      xprintf("Problems opening file for writing: %s\n", fname);
+      return(1);
+    }
+  fflush(fp);
+  if (ferror(fp))
+    {  xprintf("lpx_write_pb: can't write to `%s' - %s\n", fname,
+               strerror(errno));
+    goto fail;
+    }
+  fclose(fp);
+
+
+  if(binarize)
+    {
+      /* delete the resultant problem object */
+      if (lp != NULL) lpx_delete_prob(lp);
+      /* delete MIP presolver workspace */
+      if (ipp != NULL) ipp_delete_wksp(ipp);
+      /*lp=tlp;*/
+    }
+  return 0;
+ fail: if (fp != NULL) fclose(fp);
+  return 1;
 }
 
 /* eof */

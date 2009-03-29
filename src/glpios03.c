@@ -1018,6 +1018,7 @@ static void btrack_best_node(glp_tree *tree)
       return;
 }
 
+#if 0
 static void write_sol(glp_tree *tree)
 {     glp_prob *mip = tree->mip;
       int term_out = lib_link_env()->term_out;
@@ -1033,6 +1034,7 @@ static void write_sol(glp_tree *tree)
          glp_term_out(term_out);
       return;
 }
+#endif
 
 static void display_cut_info(glp_tree *tree)
 {     /* display number of cuts added to current subproblem */
@@ -1468,7 +1470,9 @@ more: /* minor loop starts here; at this point the current subproblem
          record_solution(tree);
          if (tree->parm->msg_lev >= GLP_MSG_ON)
             show_progress(tree, 1);
+#if 0
          write_sol(tree);
+#endif
 #if 0
          display_cut_info(tree);
 #else
@@ -1488,19 +1492,26 @@ more: /* minor loop starts here; at this point the current subproblem
          /* the current subproblem is fathomed; prune its branch */
          goto fath;
       }
-      /* basic solution of LP relaxation of the current subproblem is
+      /* basic solution to LP relaxation of the current subproblem is
          integer infeasible */
       /* try to fix some non-basic structural variables of integer kind
          on their current bounds using reduced costs */
       if (mip->mip_stat == GLP_FEAS)
          fix_by_red_cost(tree);
-#if 0
-//      if (tree->just_selected && tree->solved == 1)
-      if (tree->curr->level % 10 == 0 && tree->solved == 1)
-      {  double *x = xcalloc(1+tree->mip->n, sizeof(double));
-         if (fpump(tree->mip, x) == 0)
-            glp_ios_heur_sol(tree, x);
-         xfree(x);
+#if 1 /* 15/II-2009 */
+      /* try to find solution with feasibility pump heuristic */
+      if (tree->parm->fp_heur)
+      {  xassert(tree->reason == 0);
+         tree->reason = GLP_IHEUR;
+         ios_feas_pump(tree);
+         tree->reason = 0;
+         /* check if the current branch became hopeless */
+         if (!is_branch_hopeful(tree, p))
+         {  if (tree->parm->msg_lev >= GLP_MSG_DBG)
+               xprintf("Current branch became hopeless and can be prune"
+                  "d\n");
+            goto fath;
+         }
       }
 #endif
       /* call the user-defined callback routine to find solution with

@@ -18,6 +18,7 @@
 ..\src\glpapi18.obj 
 ..\src\glpapi19.obj 
 ..\src\glpapi20.obj 
+..\src\glpapi21.obj 
 ..\src\glpavl.obj 
 ..\src\glpbfd.obj 
 ..\src\glpbfx.obj 
@@ -38,6 +39,7 @@
 ..\src\glpios07.obj 
 ..\src\glpios08.obj 
 ..\src\glpios09.obj 
+..\src\glpios10.obj 
 ..\src\glpipm.obj 
 ..\src\glpipp01.obj 
 ..\src\glpipp02.obj 
@@ -61,10 +63,6 @@
 ..\src\glplpx03.obj 
 ..\src\glplpx04.obj 
 ..\src\glplpx05.obj 
-..\src\glplpx06.obj 
-..\src\glplpx07.obj 
-..\src\glplpx08.obj 
-..\src\glplpx09.obj 
 ..\src\glpluf.obj 
 ..\src\glplux.obj 
 ..\src\glpmat.obj 
@@ -83,7 +81,6 @@
 ..\src\glpnet05.obj 
 ..\src\glpnet06.obj 
 ..\src\glpnet07.obj 
-..\src\glppds.obj 
 ..\src\glpqmd.obj 
 ..\src\glprgr.obj 
 ..\src\glprng01.obj 
@@ -91,6 +88,7 @@
 ..\src\glpscf.obj 
 ..\src\glpscg.obj 
 ..\src\glpscl.obj 
+..\src\glpsds.obj 
 ..\src\glpspm.obj 
 ..\src\glpspx01.obj 
 ..\src\glpspx02.obj 

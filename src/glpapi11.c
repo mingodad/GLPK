@@ -1,4 +1,4 @@
-/* glpapi11.c (basis factorization and simplex tableau routines) */
+/* glpapi11.c (utility routines) */
 
 /***********************************************************************
 *  This code is part of GLPK (GNU Linear Programming Kit).
@@ -21,779 +21,947 @@
 *  along with GLPK. If not, see <http://www.gnu.org/licenses/>.
 ***********************************************************************/
 
-#define _GLPBFD_PRIVATE
 #include "glpapi.h"
+#define PDS _glp_data
+#define pds_open_file _glp_sds_open
+#define pds_set_jump _glp_sds_jump
+#define pds_error _glp_sds_error
+#define pds_scan_int _glp_sds_int
+#define pds_scan_num _glp_sds_num
+#define pds_close_file _glp_sds_close
+#undef FILE
+#define FILE XFILE
+#undef fopen
+#define fopen xfopen
+#undef strerror
+#define strerror(errno) xerrmsg()
+#undef fprintf
+#define fprintf xfprintf
+#undef fflush
+#define fflush xfflush
+#undef ferror
+#define ferror xferror
+#undef fclose
+#define fclose xfclose
 
-/***********************************************************************
-*  NAME
-*
-*  glp_bf_exists - check if the basis factorization exists
-*
-*  SYNOPSIS
-*
-*  int glp_bf_exists(glp_prob *lp);
-*
-*  RETURNS
-*
-*  If the basis factorization for the current basis associated with
-*  the specified problem object exists and therefore is available for
-*  computations, the routine glp_bf_exists returns non-zero. Otherwise
-*  the routine returns zero. */
-
-int glp_bf_exists(glp_prob *lp)
-{     int ret;
-      ret = (lp->m == 0 || lp->valid);
-      return ret;
-}
-
-/***********************************************************************
-*  NAME
-*
-*  glp_factorize - compute the basis factorization
-*
-*  SYNOPSIS
-*
-*  int glp_factorize(glp_prob *lp);
-*
-*  DESCRIPTION
-*
-*  The routine glp_factorize computes the basis factorization for the
-*  current basis associated with the specified problem object.
-*
-*  RETURNS
-*
-*  0  The basis factorization has been successfully computed.
-*
-*  GLP_EBADB
-*     The basis matrix is invalid, i.e. the number of basic (auxiliary
-*     and structural) variables differs from the number of rows in the
-*     problem object.
-*
-*  GLP_ESING
-*     The basis matrix is singular within the working precision.
-*
-*  GLP_ECOND
-*     The basis matrix is ill-conditioned. */
-
-static int b_col(void *info, int j, int ind[], double val[])
-{     glp_prob *lp = info;
-      int m = lp->m;
-      GLPAIJ *aij;
-      int k, len;
-      xassert(1 <= j && j <= m);
-      /* determine the ordinal number of basic auxiliary or structural
-         variable x[k] corresponding to basic variable xB[j] */
-      k = lp->head[j];
-      /* build j-th column of the basic matrix, which is k-th column of
-         the scaled augmented matrix (I | -R*A*S) */
-      if (k <= m)
-      {  /* x[k] is auxiliary variable */
-         len = 1;
-         ind[1] = k;
-         val[1] = 1.0;
+int glp_print_sol(glp_prob *P, const char *fname)
+{     /* write basic solution in printable format */
+      XFILE *fp;
+      GLPROW *row;
+      GLPCOL *col;
+      int i, j, t, ae_ind, re_ind, ret;
+      double ae_max, re_max;
+      xprintf("Writing basic solution to `%s'...\n", fname);
+      fp = xfopen(fname, "w");
+      if (fp == NULL)
+      {  xprintf("Unable to create `%s' - %s\n", fname, xerrmsg());
+         ret = 1;
+         goto done;
       }
-      else
-      {  /* x[k] is structural variable */
-         len = 0;
-         for (aij = lp->col[k-m]->ptr; aij != NULL; aij = aij->c_next)
-         {  len++;
-            ind[len] = aij->row->i;
-            val[len] = - aij->row->rii * aij->val * aij->col->sjj;
-         }
-      }
-      return len;
-}
-
-static void copy_bfcp(glp_prob *lp);
-
-int glp_factorize(glp_prob *lp)
-{     int m = lp->m;
-      int n = lp->n;
-      GLPROW **row = lp->row;
-      GLPCOL **col = lp->col;
-      int *head = lp->head;
-      int j, k, stat, ret;
-      /* invalidate the basis factorization */
-      lp->valid = 0;
-      /* build the basis header */
-      j = 0;
-      for (k = 1; k <= m+n; k++)
-      {  if (k <= m)
-         {  stat = row[k]->stat;
-            row[k]->bind = 0;
-         }
+      xfprintf(fp, "%-12s%s\n", "Problem:",
+         P->name == NULL ? "" : P->name);
+      xfprintf(fp, "%-12s%d\n", "Rows:", P->m);
+      xfprintf(fp, "%-12s%d\n", "Columns:", P->n);
+      xfprintf(fp, "%-12s%d\n", "Non-zeros:", P->nnz);
+      t = glp_get_status(P);
+      xfprintf(fp, "%-12s%s\n", "Status:",
+         t == GLP_OPT    ? "OPTIMAL" :
+         t == GLP_FEAS   ? "FEASIBLE" :
+         t == GLP_INFEAS ? "INFEASIBLE (INTERMEDIATE)" :
+         t == GLP_NOFEAS ? "INFEASIBLE (FINAL)" :
+         t == GLP_UNBND  ? "UNBOUNDED" :
+         t == GLP_UNDEF  ? "UNDEFINED" : "???");
+      xfprintf(fp, "%-12s%s%s%.10g (%s)\n", "Objective:",
+         P->obj == NULL ? "" : P->obj,
+         P->obj == NULL ? "" : " = ", P->obj_val,
+         P->dir == GLP_MIN ? "MINimum" :
+         P->dir == GLP_MAX ? "MAXimum" : "???");
+      xfprintf(fp, "\n");
+      xfprintf(fp, "   No.   Row name   St   Activity     Lower bound  "
+         " Upper bound    Marginal\n");
+      xfprintf(fp, "------ ------------ -- ------------- ------------- "
+         "------------- -------------\n");
+      for (i = 1; i <= P->m; i++)
+      {  row = P->row[i];
+         xfprintf(fp, "%6d ", i);
+         if (row->name == NULL || strlen(row->name) <= 12)
+            xfprintf(fp, "%-12s ", row->name == NULL ? "" : row->name);
          else
-         {  stat = col[k-m]->stat;
-            col[k-m]->bind = 0;
-         }
-         if (stat == GLP_BS)
-         {  j++;
-            if (j > m)
-            {  /* too many basic variables */
-               ret = GLP_EBADB;
-               goto fini;
-            }
-            head[j] = k;
-            if (k <= m)
-               row[k]->bind = j;
+            xfprintf(fp, "%s\n%20s", row->name, "");
+         xfprintf(fp, "%s ",
+            row->stat == GLP_BS ? "B " :
+            row->stat == GLP_NL ? "NL" :
+            row->stat == GLP_NU ? "NU" :
+            row->stat == GLP_NF ? "NF" :
+            row->stat == GLP_NS ? "NS" : "??");
+         xfprintf(fp, "%13.6g ",
+            fabs(row->prim) <= 1e-9 ? 0.0 : row->prim);
+         if (row->type == GLP_LO || row->type == GLP_DB ||
+             row->type == GLP_FX)
+            xfprintf(fp, "%13.6g ", row->lb);
+         else
+            xfprintf(fp, "%13s ", "");
+         if (row->type == GLP_UP || row->type == GLP_DB)
+            xfprintf(fp, "%13.6g ", row->ub);
+         else
+            xfprintf(fp, "%13s ", row->type == GLP_FX ? "=" : "");
+         if (row->stat != GLP_BS)
+         {  if (fabs(row->dual) <= 1e-9)
+               xfprintf(fp, "%13s", "< eps");
             else
-               col[k-m]->bind = j;
+               xfprintf(fp, "%13.6g ", row->dual);
          }
+         xfprintf(fp, "\n");
       }
-      if (j < m)
-      {  /* too few basic variables */
-         ret = GLP_EBADB;
-         goto fini;
-      }
-      /* try to factorize the basis matrix */
-      if (m > 0)
-      {  if (lp->bfd == NULL)
-         {  lp->bfd = bfd_create_it();
-            copy_bfcp(lp);
+      xfprintf(fp, "\n");
+      xfprintf(fp, "   No. Column name  St   Activity     Lower bound  "
+         " Upper bound    Marginal\n");
+      xfprintf(fp, "------ ------------ -- ------------- ------------- "
+         "------------- -------------\n");
+      for (j = 1; j <= P->n; j++)
+      {  col = P->col[j];
+         xfprintf(fp, "%6d ", j);
+         if (col->name == NULL || strlen(col->name) <= 12)
+            xfprintf(fp, "%-12s ", col->name == NULL ? "" : col->name);
+         else
+            xfprintf(fp, "%s\n%20s", col->name, "");
+         xfprintf(fp, "%s ",
+            col->stat == GLP_BS ? "B " :
+            col->stat == GLP_NL ? "NL" :
+            col->stat == GLP_NU ? "NU" :
+            col->stat == GLP_NF ? "NF" :
+            col->stat == GLP_NS ? "NS" : "??");
+         xfprintf(fp, "%13.6g ",
+            fabs(col->prim) <= 1e-9 ? 0.0 : col->prim);
+         if (col->type == GLP_LO || col->type == GLP_DB ||
+             col->type == GLP_FX)
+            xfprintf(fp, "%13.6g ", col->lb);
+         else
+            xfprintf(fp, "%13s ", "");
+         if (col->type == GLP_UP || col->type == GLP_DB)
+            xfprintf(fp, "%13.6g ", col->ub);
+         else
+            xfprintf(fp, "%13s ", col->type == GLP_FX ? "=" : "");
+         if (col->stat != GLP_BS)
+         {  if (fabs(col->dual) <= 1e-9)
+               xfprintf(fp, "%13s", "< eps");
+            else
+               xfprintf(fp, "%13.6g ", col->dual);
          }
-         switch (bfd_factorize(lp->bfd, m, lp->head, b_col, lp))
-         {  case 0:
-               /* ok */
-               break;
-            case BFD_ESING:
-               /* singular matrix */
-               ret = GLP_ESING;
-               goto fini;
-            case BFD_ECOND:
-               /* ill-conditioned matrix */
-               ret = GLP_ECOND;
-               goto fini;
-            default:
-               xassert(lp != lp);
-         }
-         lp->valid = 1;
+         xfprintf(fp, "\n");
       }
-      /* factorization successful */
+      xfprintf(fp, "\n");
+      xfprintf(fp, "Karush-Kuhn-Tucker optimality conditions:\n");
+      xfprintf(fp, "\n");
+      _glp_check_kkt(P, GLP_SOL, GLP_KKT_PE, &ae_max, &ae_ind, &re_max,
+         &re_ind);
+      xfprintf(fp, "KKT.PE: max.abs.err = %.2e on row %d\n",
+         ae_max, ae_ind);
+      xfprintf(fp, "        max.rel.err = %.2e on row %d\n",
+         re_max, re_ind);
+      xfprintf(fp, "%8s%s\n", "",
+         re_max <= 1e-9 ? "High quality" :
+         re_max <= 1e-6 ? "Medium quality" :
+         re_max <= 1e-3 ? "Low quality" : "PRIMAL SOLUTION IS WRONG");
+      xfprintf(fp, "\n");
+      _glp_check_kkt(P, GLP_SOL, GLP_KKT_PB, &ae_max, &ae_ind, &re_max,
+         &re_ind);
+      xfprintf(fp, "KKT.PB: max.abs.err = %.2e on %s %d\n",
+            ae_max, ae_ind <= P->m ? "row" : "column",
+            ae_ind <= P->m ? ae_ind : ae_ind - P->m);
+      xfprintf(fp, "        max.rel.err = %.2e on %s %d\n",
+            re_max, re_ind <= P->m ? "row" : "column",
+            re_ind <= P->m ? re_ind : re_ind - P->m);
+      xfprintf(fp, "%8s%s\n", "",
+         re_max <= 1e-9 ? "High quality" :
+         re_max <= 1e-6 ? "Medium quality" :
+         re_max <= 1e-3 ? "Low quality" : "PRIMAL SOLUTION IS INFEASIBL"
+            "E");
+      xfprintf(fp, "\n");
+      _glp_check_kkt(P, GLP_SOL, GLP_KKT_DE, &ae_max, &ae_ind, &re_max,
+         &re_ind);
+      xfprintf(fp, "KKT.DE: max.abs.err = %.2e on column %d\n",
+         ae_max, ae_ind == 0 ? 0 : ae_ind - P->m);
+      xfprintf(fp, "        max.rel.err = %.2e on column %d\n",
+         re_max, re_ind == 0 ? 0 : re_ind - P->m);
+      xfprintf(fp, "%8s%s\n", "",
+         re_max <= 1e-9 ? "High quality" :
+         re_max <= 1e-6 ? "Medium quality" :
+         re_max <= 1e-3 ? "Low quality" : "DUAL SOLUTION IS WRONG");
+      xfprintf(fp, "\n");
+      _glp_check_kkt(P, GLP_SOL, GLP_KKT_DB, &ae_max, &ae_ind, &re_max,
+         &re_ind);
+      xfprintf(fp, "KKT.DB: max.abs.err = %.2e on %s %d\n",
+            ae_max, ae_ind <= P->m ? "row" : "column",
+            ae_ind <= P->m ? ae_ind : ae_ind - P->m);
+      xfprintf(fp, "        max.rel.err = %.2e on %s %d\n",
+            re_max, re_ind <= P->m ? "row" : "column",
+            re_ind <= P->m ? re_ind : re_ind - P->m);
+      xfprintf(fp, "%8s%s\n", "",
+         re_max <= 1e-9 ? "High quality" :
+         re_max <= 1e-6 ? "Medium quality" :
+         re_max <= 1e-3 ? "Low quality" : "DUAL SOLUTION IS INFEASIBLE")
+            ;
+      xfprintf(fp, "\n");
+      xfprintf(fp, "End of output\n");
+      xfflush(fp);
+      if (xferror(fp))
+      {  xprintf("Write error on `%s' - %s\n", fname, xerrmsg());
+         ret = 1;
+         goto done;
+      }
       ret = 0;
-fini: /* bring the return code to the calling program */
+done: if (fp != NULL) xfclose(fp);
       return ret;
 }
 
 /***********************************************************************
 *  NAME
 *
-*  glp_bf_updated - check if the basis factorization has been updated
+*  glp_read_sol - read basic solution from text file
 *
 *  SYNOPSIS
 *
-*  int glp_bf_updated(glp_prob *lp);
-*
-*  RETURNS
-*
-*  If the basis factorization has been just computed from scratch, the
-*  routine glp_bf_updated returns zero. Otherwise, if the factorization
-*  has been updated one or more times, the routine returns non-zero. */
-
-int glp_bf_updated(glp_prob *lp)
-{     int cnt;
-      if (!(lp->m == 0 || lp->valid))
-         xerror("glp_bf_update: basis factorization does not exist\n");
-      cnt = (lp->m == 0 ? 0 : lp->bfd->upd_cnt);
-      return cnt;
-}
-
-/***********************************************************************
-*  NAME
-*
-*  glp_get_bfcp - retrieve basis factorization control parameters
-*
-*  SYNOPSIS
-*
-*  void glp_get_bfcp(glp_prob *lp, glp_bfcp *parm);
+*  int glp_read_sol(glp_prob *lp, const char *fname);
 *
 *  DESCRIPTION
 *
-*  The routine glp_get_bfcp retrieves control parameters, which are
-*  used on computing and updating the basis factorization associated
-*  with the specified problem object.
+*  The routine glp_read_sol reads basic solution from a text file whose
+*  name is specified by the parameter fname into the problem object.
 *
-*  Current values of control parameters are stored by the routine in
-*  a glp_bfcp structure, which the parameter parm points to. */
+*  For the file format see description of the routine glp_write_sol.
+*
+*  RETURNS
+*
+*  On success the routine returns zero, otherwise non-zero. */
 
-void glp_get_bfcp(glp_prob *lp, glp_bfcp *parm)
-{     glp_bfcp *bfcp = lp->bfcp;
-      if (bfcp == NULL)
-      {  parm->type = GLP_BF_FT;
-         parm->lu_size = 0;
-         parm->piv_tol = 0.10;
-         parm->piv_lim = 4;
-         parm->suhl = GLP_ON;
-         parm->eps_tol = 1e-15;
-         parm->max_gro = 1e+10;
-         parm->nfs_max = 50;
-         parm->upd_tol = 1e-6;
-         parm->nrs_max = 50;
-         parm->rs_size = 0;
+int glp_read_sol(glp_prob *lp, const char *fname)
+{     PDS *pds;
+      jmp_buf jump;
+      int i, j, k, ret = 0;
+      xprintf("Reading basic solution from `%s'...\n", fname);
+      pds = pds_open_file(fname);
+      if (pds == NULL)
+      {  ret = 1;
+         goto done;
       }
-      else
-         memcpy(parm, bfcp, sizeof(glp_bfcp));
-      return;
-}
-
-/***********************************************************************
-*  NAME
-*
-*  glp_set_bfcp - change basis factorization control parameters
-*
-*  SYNOPSIS
-*
-*  void glp_set_bfcp(glp_prob *lp, const glp_bfcp *parm);
-*
-*  DESCRIPTION
-*
-*  The routine glp_set_bfcp changes control parameters, which are used
-*  by internal GLPK routines in computing and updating the basis
-*  factorization associated with the specified problem object.
-*
-*  New values of the control parameters should be passed in a structure
-*  glp_bfcp, which the parameter parm points to.
-*
-*  The parameter parm can be specified as NULL, in which case all
-*  control parameters are reset to their default values. */
-
-static void copy_bfcp(glp_prob *lp)
-{     glp_bfcp _parm, *parm = &_parm;
-      BFD *bfd = lp->bfd;
-      glp_get_bfcp(lp, parm);
-      xassert(bfd != NULL);
-      bfd->type = parm->type;
-      bfd->lu_size = parm->lu_size;
-      bfd->piv_tol = parm->piv_tol;
-      bfd->piv_lim = parm->piv_lim;
-      bfd->suhl = parm->suhl;
-      bfd->eps_tol = parm->eps_tol;
-      bfd->max_gro = parm->max_gro;
-      bfd->nfs_max = parm->nfs_max;
-      bfd->upd_tol = parm->upd_tol;
-      bfd->nrs_max = parm->nrs_max;
-      bfd->rs_size = parm->rs_size;
-      return;
-}
-
-void glp_set_bfcp(glp_prob *lp, const glp_bfcp *parm)
-{     glp_bfcp *bfcp = lp->bfcp;
-      if (parm == NULL)
-      {  /* reset to default values */
-         if (bfcp != NULL)
-            xfree(bfcp), lp->bfcp = NULL;
+      if (setjmp(jump))
+      {  ret = 1;
+         goto done;
       }
-      else
-      {  /* set to specified values */
-         if (bfcp == NULL)
-            bfcp = lp->bfcp = xmalloc(sizeof(glp_bfcp));
-         memcpy(bfcp, parm, sizeof(glp_bfcp));
-         if (!(bfcp->type == GLP_BF_FT || bfcp->type == GLP_BF_BG ||
-               bfcp->type == GLP_BF_GR))
-            xerror("glp_set_bfcp: type = %d; invalid parameter\n",
-               bfcp->type);
-         if (bfcp->lu_size < 0)
-            xerror("glp_set_bfcp: lu_size = %d; invalid parameter\n",
-               bfcp->lu_size);
-         if (!(0.0 < bfcp->piv_tol && bfcp->piv_tol < 1.0))
-            xerror("glp_set_bfcp: piv_tol = %g; invalid parameter\n",
-               bfcp->piv_tol);
-         if (bfcp->piv_lim < 1)
-            xerror("glp_set_bfcp: piv_lim = %d; invalid parameter\n",
-               bfcp->piv_lim);
-         if (!(bfcp->suhl == GLP_ON || bfcp->suhl == GLP_OFF))
-            xerror("glp_set_bfcp: suhl = %d; invalid parameter\n",
-               bfcp->suhl);
-         if (!(0.0 <= bfcp->eps_tol && bfcp->eps_tol <= 1e-6))
-            xerror("glp_set_bfcp: eps_tol = %g; invalid parameter\n",
-               bfcp->eps_tol);
-         if (bfcp->max_gro < 1.0)
-            xerror("glp_set_bfcp: max_gro = %g; invalid parameter\n",
-               bfcp->max_gro);
-         if (!(1 <= bfcp->nfs_max && bfcp->nfs_max <= 32767))
-            xerror("glp_set_bfcp: nfs_max = %d; invalid parameter\n",
-               bfcp->nfs_max);
-         if (!(0.0 < bfcp->upd_tol && bfcp->upd_tol < 1.0))
-            xerror("glp_set_bfcp: upd_tol = %g; invalid parameter\n",
-               bfcp->upd_tol);
-         if (!(1 <= bfcp->nrs_max && bfcp->nrs_max <= 32767))
-            xerror("glp_set_bfcp: nrs_max = %d; invalid parameter\n",
-               bfcp->nrs_max);
-         if (bfcp->rs_size < 0)
-            xerror("glp_set_bfcp: rs_size = %d; invalid parameter\n",
-               bfcp->nrs_max);
-         if (bfcp->rs_size == 0)
-            bfcp->rs_size = 20 * bfcp->nrs_max;
+      pds_set_jump(pds, jump);
+      /* number of rows, number of columns */
+      k = pds_scan_int(pds);
+      if (k != lp->m)
+         pds_error(pds, "wrong number of rows\n");
+      k = pds_scan_int(pds);
+      if (k != lp->n)
+         pds_error(pds, "wrong number of columns\n");
+      /* primal status, dual status, objective value */
+      k = pds_scan_int(pds);
+      if (!(k == GLP_UNDEF || k == GLP_FEAS || k == GLP_INFEAS ||
+            k == GLP_NOFEAS))
+         pds_error(pds, "invalid primal status\n");
+      lp->pbs_stat = k;
+      k = pds_scan_int(pds);
+      if (!(k == GLP_UNDEF || k == GLP_FEAS || k == GLP_INFEAS ||
+            k == GLP_NOFEAS))
+         pds_error(pds, "invalid dual status\n");
+      lp->dbs_stat = k;
+      lp->obj_val = pds_scan_num(pds);
+      /* rows (auxiliary variables) */
+      for (i = 1; i <= lp->m; i++)
+      {  GLPROW *row = lp->row[i];
+         /* status, primal value, dual value */
+         k = pds_scan_int(pds);
+         if (!(k == GLP_BS || k == GLP_NL || k == GLP_NU ||
+               k == GLP_NF || k == GLP_NS))
+            pds_error(pds, "invalid row status\n");
+         glp_set_row_stat(lp, i, k);
+         row->prim = pds_scan_num(pds);
+         row->dual = pds_scan_num(pds);
       }
-      if (lp->bfd != NULL) copy_bfcp(lp);
-      return;
+      /* columns (structural variables) */
+      for (j = 1; j <= lp->n; j++)
+      {  GLPCOL *col = lp->col[j];
+         /* status, primal value, dual value */
+         k = pds_scan_int(pds);
+         if (!(k == GLP_BS || k == GLP_NL || k == GLP_NU ||
+               k == GLP_NF || k == GLP_NS))
+            pds_error(pds, "invalid column status\n");
+         glp_set_col_stat(lp, j, k);
+         col->prim = pds_scan_num(pds);
+         col->dual = pds_scan_num(pds);
+      }
+      xprintf("%d lines were read\n", _glp_sds_line(pds));
+done: if (ret) lp->pbs_stat = lp->dbs_stat = GLP_UNDEF;
+      if (pds != NULL) pds_close_file(pds);
+      return ret;
 }
 
 /***********************************************************************
 *  NAME
 *
-*  glp_get_bhead - retrieve the basis header information
+*  glp_write_sol - write basic solution to text file
 *
 *  SYNOPSIS
 *
-*  int glp_get_bhead(glp_prob *lp, int k);
+*  int glp_write_sol(glp_prob *lp, const char *fname);
 *
 *  DESCRIPTION
 *
-*  The routine glp_get_bhead returns the basis header information for
-*  the current basis associated with the specified problem object.
+*  The routine glp_write_sol writes the current basic solution to a
+*  text file whose name is specified by the parameter fname. This file
+*  can be read back with the routine glp_read_sol.
 *
 *  RETURNS
 *
-*  If xB[k], 1 <= k <= m, is i-th auxiliary variable (1 <= i <= m), the
-*  routine returns i. Otherwise, if xB[k] is j-th structural variable
-*  (1 <= j <= n), the routine returns m+j. Here m is the number of rows
-*  and n is the number of columns in the problem object. */
+*  On success the routine returns zero, otherwise non-zero.
+*
+*  FILE FORMAT
+*
+*  The file created by the routine glp_write_sol is a plain text file,
+*  which contains the following information:
+*
+*     m n
+*     p_stat d_stat obj_val
+*     r_stat[1] r_prim[1] r_dual[1]
+*     . . .
+*     r_stat[m] r_prim[m] r_dual[m]
+*     c_stat[1] c_prim[1] c_dual[1]
+*     . . .
+*     c_stat[n] c_prim[n] c_dual[n]
+*
+*  where:
+*  m is the number of rows (auxiliary variables);
+*  n is the number of columns (structural variables);
+*  p_stat is the primal status of the basic solution (GLP_UNDEF = 1,
+*     GLP_FEAS = 2, GLP_INFEAS = 3, or GLP_NOFEAS = 4);
+*  d_stat is the dual status of the basic solution (GLP_UNDEF = 1,
+*     GLP_FEAS = 2, GLP_INFEAS = 3, or GLP_NOFEAS = 4);
+*  obj_val is the objective value;
+*  r_stat[i], i = 1,...,m, is the status of i-th row (GLP_BS = 1,
+*     GLP_NL = 2, GLP_NU = 3, GLP_NF = 4, or GLP_NS = 5);
+*  r_prim[i], i = 1,...,m, is the primal value of i-th row;
+*  r_dual[i], i = 1,...,m, is the dual value of i-th row;
+*  c_stat[j], j = 1,...,n, is the status of j-th column (GLP_BS = 1,
+*     GLP_NL = 2, GLP_NU = 3, GLP_NF = 4, or GLP_NS = 5);
+*  c_prim[j], j = 1,...,n, is the primal value of j-th column;
+*  c_dual[j], j = 1,...,n, is the dual value of j-th column. */
 
-int glp_get_bhead(glp_prob *lp, int k)
-{     if (!(lp->m == 0 || lp->valid))
-         xerror("glp_get_bhead: basis factorization does not exist\n");
-      if (!(1 <= k && k <= lp->m))
-         xerror("glp_get_bhead: k = %d; index out of range\n", k);
-      return lp->head[k];
+int glp_write_sol(glp_prob *lp, const char *fname)
+{     FILE *fp;
+      int i, j, ret = 0;
+      xprintf("Writing basic solution to `%s'...\n", fname);
+      fp = fopen(fname, "w");
+      if (fp == NULL)
+      {  xprintf("Unable to create `%s' - %s\n", fname,
+            strerror(errno));
+         ret = 1;
+         goto done;
+      }
+      /* number of rows, number of columns */
+      fprintf(fp, "%d %d\n", lp->m, lp->n);
+      /* primal status, dual status, objective value */
+      fprintf(fp, "%d %d %.*g\n", lp->pbs_stat, lp->dbs_stat, DBL_DIG,
+         lp->obj_val);
+      /* rows (auxiliary variables) */
+      for (i = 1; i <= lp->m; i++)
+      {  GLPROW *row = lp->row[i];
+         /* status, primal value, dual value */
+         fprintf(fp, "%d %.*g %.*g\n", row->stat, DBL_DIG, row->prim,
+            DBL_DIG, row->dual);
+      }
+      /* columns (structural variables) */
+      for (j = 1; j <= lp->n; j++)
+      {  GLPCOL *col = lp->col[j];
+         /* status, primal value, dual value */
+         fprintf(fp, "%d %.*g %.*g\n", col->stat, DBL_DIG, col->prim,
+            DBL_DIG, col->dual);
+      }
+      fflush(fp);
+      if (ferror(fp))
+      {  xprintf("Write error on `%s' - %s\n", fname, strerror(errno));
+         ret = 1;
+         goto done;
+      }
+      xprintf("%d lines were written\n", 2 + lp->m + lp->n);
+done: if (fp != NULL) fclose(fp);
+      return ret;
 }
 
-/***********************************************************************
-*  NAME
-*
-*  glp_get_row_bind - retrieve row index in the basis header
-*
-*  SYNOPSIS
-*
-*  int glp_get_row_bind(glp_prob *lp, int i);
-*
-*  RETURNS
-*
-*  The routine glp_get_row_bind returns the index k of basic variable
-*  xB[k], 1 <= k <= m, which is i-th auxiliary variable, 1 <= i <= m,
-*  in the current basis associated with the specified problem object,
-*  where m is the number of rows. However, if i-th auxiliary variable
-*  is non-basic, the routine returns zero. */
+/**********************************************************************/
 
-int glp_get_row_bind(glp_prob *lp, int i)
-{     if (!(lp->m == 0 || lp->valid))
-         xerror("glp_get_row_bind: basis factorization does not exist\n"
-            );
-      if (!(1 <= i && i <= lp->m))
-         xerror("glp_get_row_bind: i = %d; row number out of range\n",
-            i);
-      return lp->row[i]->bind;
-}
-
-/***********************************************************************
-*  NAME
-*
-*  glp_get_col_bind - retrieve column index in the basis header
-*
-*  SYNOPSIS
-*
-*  int glp_get_col_bind(glp_prob *lp, int j);
-*
-*  RETURNS
-*
-*  The routine glp_get_col_bind returns the index k of basic variable
-*  xB[k], 1 <= k <= m, which is j-th structural variable, 1 <= j <= n,
-*  in the current basis associated with the specified problem object,
-*  where m is the number of rows, n is the number of columns. However,
-*  if j-th structural variable is non-basic, the routine returns zero.*/
-
-int glp_get_col_bind(glp_prob *lp, int j)
-{     if (!(lp->m == 0 || lp->valid))
-         xerror("glp_get_col_bind: basis factorization does not exist\n"
-            );
-      if (!(1 <= j && j <= lp->n))
-         xerror("glp_get_col_bind: j = %d; column number out of range\n"
-            , j);
-      return lp->col[j]->bind;
-}
-
-/***********************************************************************
-*  NAME
-*
-*  glp_ftran - perform forward transformation (solve system B*x = b)
-*
-*  SYNOPSIS
-*
-*  void glp_ftran(glp_prob *lp, double x[]);
-*
-*  DESCRIPTION
-*
-*  The routine glp_ftran performs forward transformation, i.e. solves
-*  the system B*x = b, where B is the basis matrix corresponding to the
-*  current basis for the specified problem object, x is the vector of
-*  unknowns to be computed, b is the vector of right-hand sides.
-*
-*  On entry elements of the vector b should be stored in dense format
-*  in locations x[1], ..., x[m], where m is the number of rows. On exit
-*  the routine stores elements of the vector x in the same locations.
-*
-*  SCALING/UNSCALING
-*
-*  Let A~ = (I | -A) is the augmented constraint matrix of the original
-*  (unscaled) problem. In the scaled LP problem instead the matrix A the
-*  scaled matrix A" = R*A*S is actually used, so
-*
-*     A~" = (I | A") = (I | R*A*S) = (R*I*inv(R) | R*A*S) =
-*                                                                    (1)
-*         = R*(I | A)*S~ = R*A~*S~,
-*
-*  is the scaled augmented constraint matrix, where R and S are diagonal
-*  scaling matrices used to scale rows and columns of the matrix A, and
-*
-*     S~ = diag(inv(R) | S)                                          (2)
-*
-*  is an augmented diagonal scaling matrix.
-*
-*  By definition:
-*
-*     A~ = (B | N),                                                  (3)
-*
-*  where B is the basic matrix, which consists of basic columns of the
-*  augmented constraint matrix A~, and N is a matrix, which consists of
-*  non-basic columns of A~. From (1) it follows that:
-*
-*     A~" = (B" | N") = (R*B*SB | R*N*SN),                           (4)
-*
-*  where SB and SN are parts of the augmented scaling matrix S~, which
-*  correspond to basic and non-basic variables, respectively. Therefore
-*
-*     B" = R*B*SB,                                                   (5)
-*
-*  which is the scaled basis matrix. */
-
-void glp_ftran(glp_prob *lp, double x[])
-{     int m = lp->m;
-      GLPROW **row = lp->row;
-      GLPCOL **col = lp->col;
-      int i, k;
-      /* B*x = b ===> (R*B*SB)*(inv(SB)*x) = R*b ===>
-         B"*x" = b", where b" = R*b, x = SB*x" */
-      if (!(m == 0 || lp->valid))
-         xerror("glp_ftran: basis factorization does not exist\n");
-      /* b" := R*b */
-      for (i = 1; i <= m; i++)
-         x[i] *= row[i]->rii;
-      /* x" := inv(B")*b" */
-      if (m > 0) bfd_ftran(lp->bfd, x);
-      /* x := SB*x" */
-      for (i = 1; i <= m; i++)
-      {  k = lp->head[i];
-         if (k <= m)
-            x[i] /= row[k]->rii;
+int glp_print_ipt(glp_prob *P, const char *fname)
+{     /* write interior-point solution in printable format */
+      XFILE *fp;
+      GLPROW *row;
+      GLPCOL *col;
+      int i, j, t, ae_ind, re_ind, ret;
+      double ae_max, re_max;
+      xprintf("Writing interior-point solution to `%s'...\n", fname);
+      fp = xfopen(fname, "w");
+      if (fp == NULL)
+      {  xprintf("Unable to create `%s' - %s\n", fname, xerrmsg());
+         ret = 1;
+         goto done;
+      }
+      xfprintf(fp, "%-12s%s\n", "Problem:",
+         P->name == NULL ? "" : P->name);
+      xfprintf(fp, "%-12s%d\n", "Rows:", P->m);
+      xfprintf(fp, "%-12s%d\n", "Columns:", P->n);
+      xfprintf(fp, "%-12s%d\n", "Non-zeros:", P->nnz);
+      t = glp_ipt_status(P);
+      xfprintf(fp, "%-12s%s\n", "Status:",
+         t == GLP_OPT    ? "OPTIMAL" :
+         t == GLP_UNDEF  ? "UNDEFINED" : "???");
+      xfprintf(fp, "%-12s%s%s%.10g (%s)\n", "Objective:",
+         P->obj == NULL ? "" : P->obj,
+         P->obj == NULL ? "" : " = ", P->ipt_obj,
+         P->dir == GLP_MIN ? "MINimum" :
+         P->dir == GLP_MAX ? "MAXimum" : "???");
+      xfprintf(fp, "\n");
+      xfprintf(fp, "   No.   Row name        Activity     Lower bound  "
+         " Upper bound    Marginal\n");
+      xfprintf(fp, "------ ------------    ------------- ------------- "
+         "------------- -------------\n");
+      for (i = 1; i <= P->m; i++)
+      {  row = P->row[i];
+         xfprintf(fp, "%6d ", i);
+         if (row->name == NULL || strlen(row->name) <= 12)
+            xfprintf(fp, "%-12s ", row->name == NULL ? "" : row->name);
          else
-            x[i] *= col[k-m]->sjj;
-      }
-      return;
-}
-
-/***********************************************************************
-*  NAME
-*
-*  glp_btran - perform backward transformation (solve system B'*x = b)
-*
-*  SYNOPSIS
-*
-*  void glp_btran(glp_prob *lp, double x[]);
-*
-*  DESCRIPTION
-*
-*  The routine glp_btran performs backward transformation, i.e. solves
-*  the system B'*x = b, where B' is a matrix transposed to the basis
-*  matrix corresponding to the current basis for the specified problem
-*  problem object, x is the vector of unknowns to be computed, b is the
-*  vector of right-hand sides.
-*
-*  On entry elements of the vector b should be stored in dense format
-*  in locations x[1], ..., x[m], where m is the number of rows. On exit
-*  the routine stores elements of the vector x in the same locations.
-*
-*  SCALING/UNSCALING
-*
-*  See comments to the routine glp_ftran. */
-
-void glp_btran(glp_prob *lp, double x[])
-{     int m = lp->m;
-      GLPROW **row = lp->row;
-      GLPCOL **col = lp->col;
-      int i, k;
-      /* B'*x = b ===> (SB*B'*R)*(inv(R)*x) = SB*b ===>
-         (B")'*x" = b", where b" = SB*b, x = R*x" */
-      if (!(m == 0 || lp->valid))
-         xerror("glp_btran: basis factorization does not exist\n");
-      /* b" := SB*b */
-      for (i = 1; i <= m; i++)
-      {  k = lp->head[i];
-         if (k <= m)
-            x[i] /= row[k]->rii;
+            xfprintf(fp, "%s\n%20s", row->name, "");
+         xfprintf(fp, "%3s", "");
+         xfprintf(fp, "%13.6g ",
+            fabs(row->pval) <= 1e-9 ? 0.0 : row->pval);
+         if (row->type == GLP_LO || row->type == GLP_DB ||
+             row->type == GLP_FX)
+            xfprintf(fp, "%13.6g ", row->lb);
          else
-            x[i] *= col[k-m]->sjj;
+            xfprintf(fp, "%13s ", "");
+         if (row->type == GLP_UP || row->type == GLP_DB)
+            xfprintf(fp, "%13.6g ", row->ub);
+         else
+            xfprintf(fp, "%13s ", row->type == GLP_FX ? "=" : "");
+         if (fabs(row->dval) <= 1e-9)
+            xfprintf(fp, "%13s", "< eps");
+         else
+            xfprintf(fp, "%13.6g ", row->dval);
+         xfprintf(fp, "\n");
       }
-      /* x" := inv[(B")']*b" */
-      if (m > 0) bfd_btran(lp->bfd, x);
-      /* x := R*x" */
-      for (i = 1; i <= m; i++)
-         x[i] *= row[i]->rii;
-      return;
+      xfprintf(fp, "\n");
+      xfprintf(fp, "   No. Column name       Activity     Lower bound  "
+         " Upper bound    Marginal\n");
+      xfprintf(fp, "------ ------------    ------------- ------------- "
+         "------------- -------------\n");
+      for (j = 1; j <= P->n; j++)
+      {  col = P->col[j];
+         xfprintf(fp, "%6d ", j);
+         if (col->name == NULL || strlen(col->name) <= 12)
+            xfprintf(fp, "%-12s ", col->name == NULL ? "" : col->name);
+         else
+            xfprintf(fp, "%s\n%20s", col->name, "");
+         xfprintf(fp, "%3s", "");
+         xfprintf(fp, "%13.6g ",
+            fabs(col->pval) <= 1e-9 ? 0.0 : col->pval);
+         if (col->type == GLP_LO || col->type == GLP_DB ||
+             col->type == GLP_FX)
+            xfprintf(fp, "%13.6g ", col->lb);
+         else
+            xfprintf(fp, "%13s ", "");
+         if (col->type == GLP_UP || col->type == GLP_DB)
+            xfprintf(fp, "%13.6g ", col->ub);
+         else
+            xfprintf(fp, "%13s ", col->type == GLP_FX ? "=" : "");
+         if (fabs(col->dval) <= 1e-9)
+            xfprintf(fp, "%13s", "< eps");
+         else
+            xfprintf(fp, "%13.6g ", col->dval);
+         xfprintf(fp, "\n");
+      }
+      xfprintf(fp, "\n");
+      xfprintf(fp, "Karush-Kuhn-Tucker optimality conditions:\n");
+      xfprintf(fp, "\n");
+      _glp_check_kkt(P, GLP_IPT, GLP_KKT_PE, &ae_max, &ae_ind, &re_max,
+         &re_ind);
+      xfprintf(fp, "KKT.PE: max.abs.err = %.2e on row %d\n",
+         ae_max, ae_ind);
+      xfprintf(fp, "        max.rel.err = %.2e on row %d\n",
+         re_max, re_ind);
+      xfprintf(fp, "%8s%s\n", "",
+         re_max <= 1e-9 ? "High quality" :
+         re_max <= 1e-6 ? "Medium quality" :
+         re_max <= 1e-3 ? "Low quality" : "PRIMAL SOLUTION IS WRONG");
+      xfprintf(fp, "\n");
+      _glp_check_kkt(P, GLP_IPT, GLP_KKT_PB, &ae_max, &ae_ind, &re_max,
+         &re_ind);
+      xfprintf(fp, "KKT.PB: max.abs.err = %.2e on %s %d\n",
+            ae_max, ae_ind <= P->m ? "row" : "column",
+            ae_ind <= P->m ? ae_ind : ae_ind - P->m);
+      xfprintf(fp, "        max.rel.err = %.2e on %s %d\n",
+            re_max, re_ind <= P->m ? "row" : "column",
+            re_ind <= P->m ? re_ind : re_ind - P->m);
+      xfprintf(fp, "%8s%s\n", "",
+         re_max <= 1e-9 ? "High quality" :
+         re_max <= 1e-6 ? "Medium quality" :
+         re_max <= 1e-3 ? "Low quality" : "PRIMAL SOLUTION IS INFEASIBL"
+            "E");
+      xfprintf(fp, "\n");
+      _glp_check_kkt(P, GLP_IPT, GLP_KKT_DE, &ae_max, &ae_ind, &re_max,
+         &re_ind);
+      xfprintf(fp, "KKT.DE: max.abs.err = %.2e on column %d\n",
+         ae_max, ae_ind == 0 ? 0 : ae_ind - P->m);
+      xfprintf(fp, "        max.rel.err = %.2e on column %d\n",
+         re_max, re_ind == 0 ? 0 : re_ind - P->m);
+      xfprintf(fp, "%8s%s\n", "",
+         re_max <= 1e-9 ? "High quality" :
+         re_max <= 1e-6 ? "Medium quality" :
+         re_max <= 1e-3 ? "Low quality" : "DUAL SOLUTION IS WRONG");
+      xfprintf(fp, "\n");
+      _glp_check_kkt(P, GLP_IPT, GLP_KKT_DB, &ae_max, &ae_ind, &re_max,
+         &re_ind);
+      xfprintf(fp, "KKT.DB: max.abs.err = %.2e on %s %d\n",
+            ae_max, ae_ind <= P->m ? "row" : "column",
+            ae_ind <= P->m ? ae_ind : ae_ind - P->m);
+      xfprintf(fp, "        max.rel.err = %.2e on %s %d\n",
+            re_max, re_ind <= P->m ? "row" : "column",
+            re_ind <= P->m ? re_ind : re_ind - P->m);
+      xfprintf(fp, "%8s%s\n", "",
+         re_max <= 1e-9 ? "High quality" :
+         re_max <= 1e-6 ? "Medium quality" :
+         re_max <= 1e-3 ? "Low quality" : "DUAL SOLUTION IS INFEASIBLE")
+            ;
+      xfprintf(fp, "\n");
+      xfprintf(fp, "End of output\n");
+      xfflush(fp);
+      if (xferror(fp))
+      {  xprintf("Write error on `%s' - %s\n", fname, xerrmsg());
+         ret = 1;
+         goto done;
+      }
+      ret = 0;
+done: if (fp != NULL) xfclose(fp);
+      return ret;
 }
 
 /***********************************************************************
 *  NAME
 *
-*  glp_eval_tab_row - compute row of the simplex tableau
+*  glp_read_ipt - read interior-point solution from text file
 *
 *  SYNOPSIS
 *
-*  int glp_eval_tab_row(glp_prob *lp, int k, int ind[], double val[]);
+*  int glp_read_ipt(glp_prob *lp, const char *fname);
 *
 *  DESCRIPTION
 *
-*  The routine glp_eval_tab_row computes a row of the current simplex
-*  tableau for the basic variable, which is specified by the number k:
-*  if 1 <= k <= m, x[k] is k-th auxiliary variable; if m+1 <= k <= m+n,
-*  x[k] is (k-m)-th structural variable, where m is number of rows, and
-*  n is number of columns. The current basis must be available.
+*  The routine glp_read_ipt reads interior-point solution from a text
+*  file whose name is specified by the parameter fname into the problem
+*  object.
 *
-*  The routine stores column indices and numerical values of non-zero
-*  elements of the computed row using sparse format to the locations
-*  ind[1], ..., ind[len] and val[1], ..., val[len], respectively, where
-*  0 <= len <= n is number of non-zeros returned on exit.
-*
-*  Element indices stored in the array ind have the same sense as the
-*  index k, i.e. indices 1 to m denote auxiliary variables and indices
-*  m+1 to m+n denote structural ones (all these variables are obviously
-*  non-basic by definition).
-*
-*  The computed row shows how the specified basic variable x[k] = xB[i]
-*  depends on non-basic variables:
-*
-*     xB[i] = alfa[i,1]*xN[1] + alfa[i,2]*xN[2] + ... + alfa[i,n]*xN[n],
-*
-*  where alfa[i,j] are elements of the simplex table row, xN[j] are
-*  non-basic (auxiliary and structural) variables.
+*  For the file format see description of the routine glp_write_ipt.
 *
 *  RETURNS
 *
-*  The routine returns number of non-zero elements in the simplex table
-*  row stored in the arrays ind and val.
-*
-*  BACKGROUND
-*
-*  The system of equality constraints of the LP problem is:
-*
-*     xR = A * xS,                                                   (1)
-*
-*  where xR is the vector of auxliary variables, xS is the vector of
-*  structural variables, A is the matrix of constraint coefficients.
-*
-*  The system (1) can be written in homogenous form as follows:
-*
-*     A~ * x = 0,                                                    (2)
-*
-*  where A~ = (I | -A) is the augmented constraint matrix (has m rows
-*  and m+n columns), x = (xR | xS) is the vector of all (auxiliary and
-*  structural) variables.
-*
-*  By definition for the current basis we have:
-*
-*     A~ = (B | N),                                                  (3)
-*
-*  where B is the basis matrix. Thus, the system (2) can be written as:
-*
-*     B * xB + N * xN = 0.                                           (4)
-*
-*  From (4) it follows that:
-*
-*     xB = A^ * xN,                                                  (5)
-*
-*  where the matrix
-*
-*     A^ = - inv(B) * N                                              (6)
-*
-*  is called the simplex table.
-*
-*  It is understood that i-th row of the simplex table is:
-*
-*     e * A^ = - e * inv(B) * N,                                     (7)
-*
-*  where e is a unity vector with e[i] = 1.
-*
-*  To compute i-th row of the simplex table the routine first computes
-*  i-th row of the inverse:
-*
-*     rho = inv(B') * e,                                             (8)
-*
-*  where B' is a matrix transposed to B, and then computes elements of
-*  i-th row of the simplex table as scalar products:
-*
-*     alfa[i,j] = - rho * N[j]   for all j,                          (9)
-*
-*  where N[j] is a column of the augmented constraint matrix A~, which
-*  corresponds to some non-basic auxiliary or structural variable. */
+*  On success the routine returns zero, otherwise non-zero. */
 
-int glp_eval_tab_row(glp_prob *lp, int k, int ind[], double val[])
-{     int m = lp->m;
-      int n = lp->n;
-      int i, t, len, lll, *iii;
-      double alfa, *rho, *vvv;
-      if (!(m == 0 || lp->valid))
-         xerror("glp_eval_tab_row: basis factorization does not exist\n"
-            );
-      if (!(1 <= k && k <= m+n))
-         xerror("glp_eval_tab_row: k = %d; variable number out of range"
-            , k);
-      /* determine xB[i] which corresponds to x[k] */
-      if (k <= m)
-         i = glp_get_row_bind(lp, k);
-      else
-         i = glp_get_col_bind(lp, k-m);
-      if (i == 0)
-         xerror("glp_eval_tab_row: k = %d; variable must be basic", k);
-      xassert(1 <= i && i <= m);
-      /* allocate working arrays */
-      rho = xcalloc(1+m, sizeof(double));
-      iii = xcalloc(1+m, sizeof(int));
-      vvv = xcalloc(1+m, sizeof(double));
-      /* compute i-th row of the inverse; see (8) */
-      for (t = 1; t <= m; t++) rho[t] = 0.0;
-      rho[i] = 1.0;
-      glp_btran(lp, rho);
-      /* compute i-th row of the simplex table */
-      len = 0;
-      for (k = 1; k <= m+n; k++)
-      {  if (k <= m)
-         {  /* x[k] is auxiliary variable, so N[k] is a unity column */
-            if (glp_get_row_stat(lp, k) == GLP_BS) continue;
-            /* compute alfa[i,j]; see (9) */
-            alfa = - rho[k];
-         }
-         else
-         {  /* x[k] is structural variable, so N[k] is a column of the
-               original constraint matrix A with negative sign */
-            if (glp_get_col_stat(lp, k-m) == GLP_BS) continue;
-            /* compute alfa[i,j]; see (9) */
-            lll = glp_get_mat_col(lp, k-m, iii, vvv);
-            alfa = 0.0;
-            for (t = 1; t <= lll; t++) alfa += rho[iii[t]] * vvv[t];
-         }
-         /* store alfa[i,j] */
-         if (alfa != 0.0) len++, ind[len] = k, val[len] = alfa;
+int glp_read_ipt(glp_prob *lp, const char *fname)
+{     PDS *pds;
+      jmp_buf jump;
+      int i, j, k, ret = 0;
+      xprintf("Reading interior-point solution from `%s'...\n", fname);
+      pds = pds_open_file(fname);
+      if (pds == NULL)
+      {  ret = 1;
+         goto done;
       }
-      xassert(len <= n);
-      /* free working arrays */
-      xfree(rho);
-      xfree(iii);
-      xfree(vvv);
-      /* return to the calling program */
-      return len;
+      if (setjmp(jump))
+      {  ret = 1;
+         goto done;
+      }
+      pds_set_jump(pds, jump);
+      /* number of rows, number of columns */
+      k = pds_scan_int(pds);
+      if (k != lp->m)
+         pds_error(pds, "wrong number of rows\n");
+      k = pds_scan_int(pds);
+      if (k != lp->n)
+         pds_error(pds, "wrong number of columns\n");
+      /* solution status, objective value */
+      k = pds_scan_int(pds);
+      if (!(k == GLP_UNDEF || k == GLP_OPT))
+         pds_error(pds, "invalid solution status\n");
+      lp->ipt_stat = k;
+      lp->ipt_obj = pds_scan_num(pds);
+      /* rows (auxiliary variables) */
+      for (i = 1; i <= lp->m; i++)
+      {  GLPROW *row = lp->row[i];
+         /* primal value, dual value */
+         row->pval = pds_scan_num(pds);
+         row->dval = pds_scan_num(pds);
+      }
+      /* columns (structural variables) */
+      for (j = 1; j <= lp->n; j++)
+      {  GLPCOL *col = lp->col[j];
+         /* primal value, dual value */
+         col->pval = pds_scan_num(pds);
+         col->dval = pds_scan_num(pds);
+      }
+      xprintf("%d lines were read\n", _glp_sds_line(pds));
+done: if (ret) lp->ipt_stat = GLP_UNDEF;
+      if (pds != NULL) pds_close_file(pds);
+      return ret;
 }
 
 /***********************************************************************
 *  NAME
 *
-*  glp_eval_tab_col - compute column of the simplex tableau
+*  glp_write_ipt - write interior-point solution to text file
 *
 *  SYNOPSIS
 *
-*  int glp_eval_tab_col(glp_prob *lp, int k, int ind[], double val[]);
+*  int glp_write_ipt(glp_prob *lp, const char *fname);
 *
 *  DESCRIPTION
 *
-*  The routine glp_eval_tab_col computes a column of the current simplex
-*  table for the non-basic variable, which is specified by the number k:
-*  if 1 <= k <= m, x[k] is k-th auxiliary variable; if m+1 <= k <= m+n,
-*  x[k] is (k-m)-th structural variable, where m is number of rows, and
-*  n is number of columns. The current basis must be available.
-*
-*  The routine stores row indices and numerical values of non-zero
-*  elements of the computed column using sparse format to the locations
-*  ind[1], ..., ind[len] and val[1], ..., val[len] respectively, where
-*  0 <= len <= m is number of non-zeros returned on exit.
-*
-*  Element indices stored in the array ind have the same sense as the
-*  index k, i.e. indices 1 to m denote auxiliary variables and indices
-*  m+1 to m+n denote structural ones (all these variables are obviously
-*  basic by the definition).
-*
-*  The computed column shows how basic variables depend on the specified
-*  non-basic variable x[k] = xN[j]:
-*
-*     xB[1] = ... + alfa[1,j]*xN[j] + ...
-*     xB[2] = ... + alfa[2,j]*xN[j] + ...
-*              . . . . . .
-*     xB[m] = ... + alfa[m,j]*xN[j] + ...
-*
-*  where alfa[i,j] are elements of the simplex table column, xB[i] are
-*  basic (auxiliary and structural) variables.
+*  The routine glp_write_ipt writes the current interior-point solution
+*  to a text file whose name is specified by the parameter fname. This
+*  file can be read back with the routine glp_read_ipt.
 *
 *  RETURNS
 *
-*  The routine returns number of non-zero elements in the simplex table
-*  column stored in the arrays ind and val.
+*  On success the routine returns zero, otherwise non-zero.
 *
-*  BACKGROUND
+*  FILE FORMAT
 *
-*  As it was explained in comments to the routine glp_eval_tab_row (see
-*  above) the simplex table is the following matrix:
+*  The file created by the routine glp_write_ipt is a plain text file,
+*  which contains the following information:
 *
-*     A^ = - inv(B) * N.                                             (1)
+*     m n
+*     stat obj_val
+*     r_prim[1] r_dual[1]
+*     . . .
+*     r_prim[m] r_dual[m]
+*     c_prim[1] c_dual[1]
+*     . . .
+*     c_prim[n] c_dual[n]
 *
-*  Therefore j-th column of the simplex table is:
-*
-*     A^ * e = - inv(B) * N * e = - inv(B) * N[j],                   (2)
-*
-*  where e is a unity vector with e[j] = 1, B is the basis matrix, N[j]
-*  is a column of the augmented constraint matrix A~, which corresponds
-*  to the given non-basic auxiliary or structural variable. */
+*  where:
+*  m is the number of rows (auxiliary variables);
+*  n is the number of columns (structural variables);
+*  stat is the solution status (GLP_UNDEF = 1 or GLP_OPT = 5);
+*  obj_val is the objective value;
+*  r_prim[i], i = 1,...,m, is the primal value of i-th row;
+*  r_dual[i], i = 1,...,m, is the dual value of i-th row;
+*  c_prim[j], j = 1,...,n, is the primal value of j-th column;
+*  c_dual[j], j = 1,...,n, is the dual value of j-th column. */
 
-int glp_eval_tab_col(glp_prob *lp, int k, int ind[], double val[])
-{     int m = lp->m;
-      int n = lp->n;
-      int t, len, stat;
-      double *col;
-      if (!(m == 0 || lp->valid))
-         xerror("glp_eval_tab_col: basis factorization does not exist\n"
-            );
-      if (!(1 <= k && k <= m+n))
-         xerror("glp_eval_tab_col: k = %d; variable number out of range"
-            , k);
-      if (k <= m)
-         stat = glp_get_row_stat(lp, k);
-      else
-         stat = glp_get_col_stat(lp, k-m);
-      if (stat == GLP_BS)
-         xerror("glp_eval_tab_col: k = %d; variable must be non-basic",
-            k);
-      /* obtain column N[k] with negative sign */
-      col = xcalloc(1+m, sizeof(double));
-      for (t = 1; t <= m; t++) col[t] = 0.0;
-      if (k <= m)
-      {  /* x[k] is auxiliary variable, so N[k] is a unity column */
-         col[k] = -1.0;
+int glp_write_ipt(glp_prob *lp, const char *fname)
+{     FILE *fp;
+      int i, j, ret = 0;
+      xprintf("Writing interior-point solution to `%s'...\n", fname);
+      fp = fopen(fname, "w");
+      if (fp == NULL)
+      {  xprintf("Unable to create `%s' - %s\n", fname,
+            strerror(errno));
+         ret = 1;
+         goto done;
       }
-      else
-      {  /* x[k] is structural variable, so N[k] is a column of the
-            original constraint matrix A with negative sign */
-         len = glp_get_mat_col(lp, k-m, ind, val);
-         for (t = 1; t <= len; t++) col[ind[t]] = val[t];
+      /* number of rows, number of columns */
+      fprintf(fp, "%d %d\n", lp->m, lp->n);
+      /* solution status, objective value */
+      fprintf(fp, "%d %.*g\n", lp->ipt_stat, DBL_DIG, lp->ipt_obj);
+      /* rows (auxiliary variables) */
+      for (i = 1; i <= lp->m; i++)
+      {  GLPROW *row = lp->row[i];
+         /* primal value, dual value */
+         fprintf(fp, "%.*g %.*g\n", DBL_DIG, row->pval, DBL_DIG,
+            row->dval);
       }
-      /* compute column of the simplex table, which corresponds to the
-         specified non-basic variable x[k] */
-      glp_ftran(lp, col);
-      len = 0;
-      for (t = 1; t <= m; t++)
-      {  if (col[t] != 0.0)
-         {  len++;
-            ind[len] = glp_get_bhead(lp, t);
-            val[len] = col[t];
-         }
+      /* columns (structural variables) */
+      for (j = 1; j <= lp->n; j++)
+      {  GLPCOL *col = lp->col[j];
+         /* primal value, dual value */
+         fprintf(fp, "%.*g %.*g\n", DBL_DIG, col->pval, DBL_DIG,
+            col->dval);
       }
-      xfree(col);
-      /* return to the calling program */
-      return len;
+      fflush(fp);
+      if (ferror(fp))
+      {  xprintf("Write error on `%s' - %s\n", fname, strerror(errno));
+         ret = 1;
+         goto done;
+      }
+      xprintf("%d lines were written\n", 2 + lp->m + lp->n);
+done: if (fp != NULL) fclose(fp);
+      return ret;
+}
+
+/**********************************************************************/
+
+int glp_print_mip(glp_prob *P, const char *fname)
+{     /* write MIP solution in printable format */
+      XFILE *fp;
+      GLPROW *row;
+      GLPCOL *col;
+      int i, j, t, ae_ind, re_ind, ret;
+      double ae_max, re_max;
+      xprintf("Writing MIP solution to `%s'...\n", fname);
+      fp = xfopen(fname, "w");
+      if (fp == NULL)
+      {  xprintf("Unable to create `%s' - %s\n", fname, xerrmsg());
+         ret = 1;
+         goto done;
+      }
+      xfprintf(fp, "%-12s%s\n", "Problem:",
+         P->name == NULL ? "" : P->name);
+      xfprintf(fp, "%-12s%d\n", "Rows:", P->m);
+      xfprintf(fp, "%-12s%d (%d integer, %d binary)\n", "Columns:",
+         P->n, glp_get_num_int(P), glp_get_num_bin(P));
+      xfprintf(fp, "%-12s%d\n", "Non-zeros:", P->nnz);
+      t = glp_mip_status(P);
+      xfprintf(fp, "%-12s%s\n", "Status:",
+         t == GLP_OPT    ? "INTEGER OPTIMAL" :
+         t == GLP_FEAS   ? "INTEGER NON-OPTIMAL" :
+         t == GLP_NOFEAS ? "INTEGER EMPTY" :
+         t == GLP_UNDEF  ? "INTEGER UNDEFINED" : "???");
+      xfprintf(fp, "%-12s%s%s%.10g (%s)\n", "Objective:",
+         P->obj == NULL ? "" : P->obj,
+         P->obj == NULL ? "" : " = ", P->mip_obj,
+         P->dir == GLP_MIN ? "MINimum" :
+         P->dir == GLP_MAX ? "MAXimum" : "???");
+      xfprintf(fp, "\n");
+      xfprintf(fp, "   No.   Row name        Activity     Lower bound  "
+         " Upper bound\n");
+      xfprintf(fp, "------ ------------    ------------- ------------- "
+         "-------------\n");
+      for (i = 1; i <= P->m; i++)
+      {  row = P->row[i];
+         xfprintf(fp, "%6d ", i);
+         if (row->name == NULL || strlen(row->name) <= 12)
+            xfprintf(fp, "%-12s ", row->name == NULL ? "" : row->name);
+         else
+            xfprintf(fp, "%s\n%20s", row->name, "");
+         xfprintf(fp, "%3s", "");
+         xfprintf(fp, "%13.6g ",
+            fabs(row->mipx) <= 1e-9 ? 0.0 : row->mipx);
+         if (row->type == GLP_LO || row->type == GLP_DB ||
+             row->type == GLP_FX)
+            xfprintf(fp, "%13.6g ", row->lb);
+         else
+            xfprintf(fp, "%13s ", "");
+         if (row->type == GLP_UP || row->type == GLP_DB)
+            xfprintf(fp, "%13.6g ", row->ub);
+         else
+            xfprintf(fp, "%13s ", row->type == GLP_FX ? "=" : "");
+         xfprintf(fp, "\n");
+      }
+      xfprintf(fp, "\n");
+      xfprintf(fp, "   No. Column name       Activity     Lower bound  "
+         " Upper bound\n");
+      xfprintf(fp, "------ ------------    ------------- ------------- "
+         "-------------\n");
+      for (j = 1; j <= P->n; j++)
+      {  col = P->col[j];
+         xfprintf(fp, "%6d ", j);
+         if (col->name == NULL || strlen(col->name) <= 12)
+            xfprintf(fp, "%-12s ", col->name == NULL ? "" : col->name);
+         else
+            xfprintf(fp, "%s\n%20s", col->name, "");
+         xfprintf(fp, "%s  ",
+            col->kind == GLP_CV ? " " :
+            col->kind == GLP_IV ? "*" : "?");
+         xfprintf(fp, "%13.6g ",
+            fabs(col->mipx) <= 1e-9 ? 0.0 : col->mipx);
+         if (col->type == GLP_LO || col->type == GLP_DB ||
+             col->type == GLP_FX)
+            xfprintf(fp, "%13.6g ", col->lb);
+         else
+            xfprintf(fp, "%13s ", "");
+         if (col->type == GLP_UP || col->type == GLP_DB)
+            xfprintf(fp, "%13.6g ", col->ub);
+         else
+            xfprintf(fp, "%13s ", col->type == GLP_FX ? "=" : "");
+         xfprintf(fp, "\n");
+      }
+      xfprintf(fp, "\n");
+      xfprintf(fp, "Integer feasibility conditions:\n");
+      xfprintf(fp, "\n");
+      _glp_check_kkt(P, GLP_MIP, GLP_KKT_PE, &ae_max, &ae_ind, &re_max,
+         &re_ind);
+      xfprintf(fp, "KKT.PE: max.abs.err = %.2e on row %d\n",
+         ae_max, ae_ind);
+      xfprintf(fp, "        max.rel.err = %.2e on row %d\n",
+         re_max, re_ind);
+      xfprintf(fp, "%8s%s\n", "",
+         re_max <= 1e-9 ? "High quality" :
+         re_max <= 1e-6 ? "Medium quality" :
+         re_max <= 1e-3 ? "Low quality" : "SOLUTION IS WRONG");
+      xfprintf(fp, "\n");
+      _glp_check_kkt(P, GLP_MIP, GLP_KKT_PB, &ae_max, &ae_ind, &re_max,
+         &re_ind);
+      xfprintf(fp, "KKT.PB: max.abs.err = %.2e on %s %d\n",
+            ae_max, ae_ind <= P->m ? "row" : "column",
+            ae_ind <= P->m ? ae_ind : ae_ind - P->m);
+      xfprintf(fp, "        max.rel.err = %.2e on %s %d\n",
+            re_max, re_ind <= P->m ? "row" : "column",
+            re_ind <= P->m ? re_ind : re_ind - P->m);
+      xfprintf(fp, "%8s%s\n", "",
+         re_max <= 1e-9 ? "High quality" :
+         re_max <= 1e-6 ? "Medium quality" :
+         re_max <= 1e-3 ? "Low quality" : "SOLUTION IS INFEASIBLE");
+      xfprintf(fp, "\n");
+      xfprintf(fp, "End of output\n");
+      xfflush(fp);
+      if (xferror(fp))
+      {  xprintf("Write error on `%s' - %s\n", fname, xerrmsg());
+         ret = 1;
+         goto done;
+      }
+      ret = 0;
+done: if (fp != NULL) xfclose(fp);
+      return ret;
+}
+
+/***********************************************************************
+*  NAME
+*
+*  glp_read_mip - read MIP solution from text file
+*
+*  SYNOPSIS
+*
+*  int glp_read_mip(glp_prob *mip, const char *fname);
+*
+*  DESCRIPTION
+*
+*  The routine glp_read_mip reads MIP solution from a text file whose
+*  name is specified by the parameter fname into the problem object.
+*
+*  For the file format see description of the routine glp_write_mip.
+*
+*  RETURNS
+*
+*  On success the routine returns zero, otherwise non-zero. */
+
+int glp_read_mip(glp_prob *mip, const char *fname)
+{     PDS *pds;
+      jmp_buf jump;
+      int i, j, k, ret = 0;
+      xprintf("Reading MIP solution from `%s'...\n", fname);
+      pds = pds_open_file(fname);
+      if (pds == NULL)
+      {  ret = 1;
+         goto done;
+      }
+      if (setjmp(jump))
+      {  ret = 1;
+         goto done;
+      }
+      pds_set_jump(pds, jump);
+      /* number of rows, number of columns */
+      k = pds_scan_int(pds);
+      if (k != mip->m)
+         pds_error(pds, "wrong number of rows\n");
+      k = pds_scan_int(pds);
+      if (k != mip->n)
+         pds_error(pds, "wrong number of columns\n");
+      /* solution status, objective value */
+      k = pds_scan_int(pds);
+      if (!(k == GLP_UNDEF || k == GLP_OPT || k == GLP_FEAS ||
+            k == GLP_NOFEAS))
+         pds_error(pds, "invalid solution status\n");
+      mip->mip_stat = k;
+      mip->mip_obj = pds_scan_num(pds);
+      /* rows (auxiliary variables) */
+      for (i = 1; i <= mip->m; i++)
+      {  GLPROW *row = mip->row[i];
+         row->mipx = pds_scan_num(pds);
+      }
+      /* columns (structural variables) */
+      for (j = 1; j <= mip->n; j++)
+      {  GLPCOL *col = mip->col[j];
+         col->mipx = pds_scan_num(pds);
+         if (col->kind == GLP_IV && col->mipx != floor(col->mipx))
+            pds_error(pds, "non-integer column value");
+      }
+      xprintf("%d lines were read\n", _glp_sds_line(pds));
+done: if (ret) mip->mip_stat = GLP_UNDEF;
+      if (pds != NULL) pds_close_file(pds);
+      return ret;
+}
+
+/***********************************************************************
+*  NAME
+*
+*  glp_write_mip - write MIP solution to text file
+*
+*  SYNOPSIS
+*
+*  int glp_write_mip(glp_prob *mip, const char *fname);
+*
+*  DESCRIPTION
+*
+*  The routine glp_write_mip writes the current MIP solution to a text
+*  file whose name is specified by the parameter fname. This file can
+*  be read back with the routine glp_read_mip.
+*
+*  RETURNS
+*
+*  On success the routine returns zero, otherwise non-zero.
+*
+*  FILE FORMAT
+*
+*  The file created by the routine glp_write_sol is a plain text file,
+*  which contains the following information:
+*
+*     m n
+*     stat obj_val
+*     r_val[1]
+*     . . .
+*     r_val[m]
+*     c_val[1]
+*     . . .
+*     c_val[n]
+*
+*  where:
+*  m is the number of rows (auxiliary variables);
+*  n is the number of columns (structural variables);
+*  stat is the solution status (GLP_UNDEF = 1, GLP_FEAS = 2,
+*     GLP_NOFEAS = 4, or GLP_OPT = 5);
+*  obj_val is the objective value;
+*  r_val[i], i = 1,...,m, is the value of i-th row;
+*  c_val[j], j = 1,...,n, is the value of j-th column. */
+
+int glp_write_mip(glp_prob *mip, const char *fname)
+{     FILE *fp;
+      int i, j, ret = 0;
+      xprintf("Writing MIP solution to `%s'...\n", fname);
+      fp = fopen(fname, "w");
+      if (fp == NULL)
+      {  xprintf("Unable to create `%s' - %s\n", fname,
+            strerror(errno));
+         ret = 1;
+         goto done;
+      }
+      /* number of rows, number of columns */
+      fprintf(fp, "%d %d\n", mip->m, mip->n);
+      /* solution status, objective value */
+      fprintf(fp, "%d %.*g\n", mip->mip_stat, DBL_DIG, mip->mip_obj);
+      /* rows (auxiliary variables) */
+      for (i = 1; i <= mip->m; i++)
+         fprintf(fp, "%.*g\n", DBL_DIG, mip->row[i]->mipx);
+      /* columns (structural variables) */
+      for (j = 1; j <= mip->n; j++)
+         fprintf(fp, "%.*g\n", DBL_DIG, mip->col[j]->mipx);
+      fflush(fp);
+      if (ferror(fp))
+      {  xprintf("Write error on `%s' - %s\n", fname, strerror(errno));
+         ret = 1;
+         goto done;
+      }
+      xprintf("%d lines were written\n", 2 + mip->m + mip->n);
+done: if (fp != NULL) fclose(fp);
+      return ret;
 }
 
 /* eof */

@@ -1,9 +1,13 @@
 dnl Process this file with autoconf to produce a configure script
 
-AC_INIT([GLPK], [4.36], [bug-glpk@gnu.org])
+AC_INIT([GLPK], [4.37], [bug-glpk@gnu.org])
+
 AC_CONFIG_SRCDIR([include/glpk.h])
 
+AC_CONFIG_MACRO_DIR([m4])
+
 AM_INIT_AUTOMAKE
+
 AC_CONFIG_HEADERS([config.h])
 
 AC_ARG_WITH(gmp,
@@ -62,7 +66,7 @@ AC_PROG_INSTALL
 AC_PROG_LIBTOOL
 
 dnl Check for math library
-AC_CHECK_LIB([m], [sqrt])
+AC_CHECK_LIB([m], [exp])
 
 dnl Check for vsnprintf function
 AC_CHECK_FUNCS([vsnprintf])
@@ -70,7 +74,7 @@ AC_CHECK_FUNCS([vsnprintf])
 AC_MSG_CHECKING([whether to use GNU MP bignum library])
 if test "$with_gmp" = "yes"; then
    AC_MSG_RESULT([yes])
-   AC_DEFINE([HAVE_GMP], [1])
+   AC_DEFINE([HAVE_GMP], [1], [N/A])
    LIBS="-lgmp $LIBS"
 else
    AC_MSG_RESULT([no])
@@ -79,7 +83,7 @@ fi
 AC_MSG_CHECKING([whether to use zlib data compression library])
 if test "$with_zlib" = "yes"; then
    AC_MSG_RESULT([yes])
-   AC_DEFINE([HAVE_ZLIB], [1])
+   AC_DEFINE([HAVE_ZLIB], [1], [N/A])
    LIBS="-lz $LIBS"
 else
    AC_MSG_RESULT([no])
@@ -88,15 +92,15 @@ fi
 AC_MSG_CHECKING([whether to enable shared library support])
 if test "$enable_dl" = "yes"; then
    AC_MSG_RESULT([ltdl])
-   AC_DEFINE([HAVE_LTDL], [1])
+   AC_DEFINE([HAVE_LTDL], [1], [N/A])
    LIBS="-lltdl $LIBS"
 elif test "$enable_dl" = "ltdl"; then
    AC_MSG_RESULT([ltdl])
-   AC_DEFINE([HAVE_LTDL], [1])
+   AC_DEFINE([HAVE_LTDL], [1], [N/A])
    LIBS="-lltdl $LIBS"
 elif test "$enable_dl" = "dlfcn"; then
    AC_MSG_RESULT([dlfcn])
-   AC_DEFINE([HAVE_DLFCN], [1])
+   AC_DEFINE([HAVE_DLFCN], [1], [N/A])
 else
    AC_MSG_RESULT([no])
 fi
@@ -107,13 +111,13 @@ if test "$enable_odbc" = "yes"; then
       AC_MSG_ERROR([--enable-odbc requires --enable-dl])
    fi
    AC_MSG_RESULT([yes])
-   AC_DEFINE([ODBC_DLNAME], ["libiodbc.so"])
+   AC_DEFINE([ODBC_DLNAME], ["libiodbc.so"], [N/A])
 elif test "$enable_odbc" = "unix"; then
    if test "$enable_dl" = "no"; then
       AC_MSG_ERROR([--enable-odbc requires --enable-dl])
    fi
    AC_MSG_RESULT([unix])
-   AC_DEFINE([ODBC_DLNAME], ["libodbc.so"])
+   AC_DEFINE([ODBC_DLNAME], ["libodbc.so"], [N/A])
 else
    AC_MSG_RESULT([no])
 fi
@@ -125,7 +129,7 @@ if test "$enable_mysql" = "yes"; then
    fi
    AC_MSG_RESULT([yes])
    CPPFLAGS="-I/usr/include/mysql $CPPFLAGS"
-   AC_DEFINE([MYSQL_DLNAME], ["libmysqlclient.so"])
+   AC_DEFINE([MYSQL_DLNAME], ["libmysqlclient.so"], [N/A])
 else
    AC_MSG_RESULT([no])
 fi

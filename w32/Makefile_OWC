@@ -23,6 +23,7 @@ glpapi17.obj &
 glpapi18.obj &
 glpapi19.obj &
 glpapi20.obj &
+glpapi21.obj &
 glpavl.obj &
 glpbfd.obj &
 glpbfx.obj &
@@ -43,6 +44,7 @@ glpios06.obj &
 glpios07.obj &
 glpios08.obj &
 glpios09.obj &
+glpios10.obj &
 glpipm.obj &
 glpipp01.obj &
 glpipp02.obj &
@@ -66,10 +68,6 @@ glplpx02.obj &
 glplpx03.obj &
 glplpx04.obj &
 glplpx05.obj &
-glplpx06.obj &
-glplpx07.obj &
-glplpx08.obj &
-glplpx09.obj &
 glpluf.obj &
 glplux.obj &
 glpmat.obj &
@@ -88,7 +86,6 @@ glpnet04.obj &
 glpnet05.obj &
 glpnet06.obj &
 glpnet07.obj &
-glppds.obj &
 glpqmd.obj &
 glprgr.obj &
 glprng01.obj &
@@ -96,6 +93,7 @@ glprng02.obj &
 glpscf.obj &
 glpscg.obj &
 glpscl.obj &
+glpsds.obj &
 glpspm.obj &
 glpspx01.obj &
 glpspx02.obj &

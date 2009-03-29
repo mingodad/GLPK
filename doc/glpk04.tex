@@ -2,11 +2,8 @@
 
 \chapter{Advanced API Routines}
 
-\section{LP basis and simplex tableau routines}
-\label{lpbasis}
-
-\subsection{Background}
-\label{subsecbasbgd}
+\section{Background}
+\label{basbgd}
 
 Using vector and matrix notations LP problem (1.1)---(1.3) (see Section
 \ref{seclp}, page \pageref{seclp}) can be stated as follows:
@@ -363,6 +360,9 @@ unchanged.
 
 \newpage
 
+\section{LP basis routines}
+\label{lpbasis}
+
 \subsection{glp\_bf\_exists---check if the basis factorization exists}
 
 \subsubsection*{Synopsis}
@@ -384,8 +384,8 @@ Let the problem object have $m$ rows and $n$ columns. In GLPK the
 {\it basis matrix} $B$ is a square non-singular matrix of the order $m$,
 whose columns correspond to basic (auxiliary and/or structural)
 variables. It is defined by the following main
-equality:\footnote{For more details see Subsection \ref{subsecbasbgd},
-page \pageref{subsecbasbgd}.}
+equality:\footnote{For more details see Subsection \ref{basbgd},
+page \pageref{basbgd}.}
 $$(B\ |\ N)=(I\ |-\!A)\Pi^T,$$
 where $I$ is the unity matrix of the order $m$, whose columns correspond
 to auxiliary variables; $A$ is the original constraint
@@ -414,8 +414,6 @@ must make sure (using the routine \verb|glp_bf_exists|) that the
 factorization exists and therefore available for computations.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-\newpage
 
 \subsection{glp\_factorize---compute the basis factorization}
 
@@ -528,7 +526,8 @@ The second purpose of this routine is to provide proper values for all
 fields of the structure \verb|glp_bfcp| in the case when the application
 program needs to change some control parameters.
 
-\subsection{Change basis factorization control parameters}
+\subsection{glp\_set\_bfcp---change basis factorization control
+parameters}
 
 \subsubsection*{Synopsis}
 
@@ -754,7 +753,7 @@ $B$.
 \def\arraystretch{1}
 
 The correspondence is defined as follows:\footnote{For more details see
-Subsection \ref{subsecbasbgd}, page \pageref{subsecbasbgd}.}
+Subsection \ref{basbgd}, page \pageref{basbgd}.}
 $$\left(\begin{array}{@{}c@{}}x_B\\x_N\\\end{array}\right)=
 \Pi\left(\begin{array}{@{}c@{}}x_R\\x_S\\\end{array}\right)
 \ \ \Leftrightarrow
@@ -907,6 +906,12 @@ The routine \verb|lpx_warm_up| returns one of the following exit codes:
    ill-condi\-tioned.
 \end{tabular}
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\newpage
+
+\section{Simplex tableau routines}
+
 \subsection{glp\_eval\_tab\_row---compute row of the tableau}
 
 \subsubsection*{Synopsis}
@@ -1037,6 +1042,8 @@ $N$ (3.9). So the routine performs FTRAN to transform $N_j$ to the
 simplex table column $\Xi_j=(\xi_{ij})$ and uses the permutation matrix
 $\Pi$ to convert row indices $i$ to original ordinal numbers of
 auxiliary and structural variables.
+
+\newpage
 
 \subsection{lpx\_transform\_row---transform explicitly specified\\
 row}
@@ -1225,8 +1232,6 @@ variable $y$ in order to keep primal feasibility. If the adjacent basic
 solution is primal unbounded and therefore the choice cannot be made,
 the routine returns zero.
 
-\newpage
-
 \subsection{lpx\_dual\_ratio\_test---perform dual ratio test}
 
 \subsubsection*{Synopsis}
@@ -1287,191 +1292,5 @@ some non-basic variable $(x_N)_j$, which should enter the basis instead
 the variable $y$ in order to keep dual feasibility. If the adjacent
 basic solution is dual unbounded and therefore the choice cannot be
 made, the routine returns zero.
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-\newpage
-
-\section{Library environment routines}
-
-\subsection{glp\_long---64-bit integer data type}
-
-Some GLPK API routines use 64-bit integer data type, which is declared
-in the header \verb|glpk.h| as follows:
-
-\begin{verbatim}
-typedef struct { int lo, hi; } glp_long;
-\end{verbatim}
-
-\noindent
-where \verb|lo| contains low 32 bits, and \verb|hi| contains high 32
-bits of 64-bit integer value.\footnote{GLPK conforms to ILP32, LLP64,
-and LP64 programming models, where the built-in type {\tt int}
-corresponds to 32-bit integers.}
-
-\subsection{glp\_version---determine library version}
-
-\subsubsection*{Synopsis}
-
-\begin{verbatim}
-const char *glp_version(void);
-\end{verbatim}
-
-\subsubsection*{Returns}
-
-The routine \verb|glp_version| returns a pointer to a null-terminated
-character string, which specifies the version of the GLPK library in
-the form \verb|"X.Y"|, where `\verb|X|' is the major version number, and
-`\verb|Y|' is the minor version number, for example, \verb|"4.16"|.
-
-\subsubsection*{Example}
-
-\begin{verbatim}
-printf("GLPK version is %s\n", glp_version());
-\end{verbatim}
-
-\subsection{glp\_term\_out---enable/disable terminal output}
-
-\subsubsection*{Synopsis}
-
-\begin{verbatim}
-void glp_term_out(int flag);
-\end{verbatim}
-
-\subsubsection*{Description}
-
-Depending on the parameter flag the routine \verb|glp_term_out| enables
-or disables terminal output performed by glpk routines:
-
-\verb|GLP_ON |---enable terminal output;
-
-\verb|GLP_OFF|---disable terminal output.
-
-\subsection{glp\_term\_hook---intercept terminal output}
-
-\subsubsection*{Synopsis}
-
-\begin{verbatim}
-void glp_term_hook(int (*func)(void *info, const char *s),
-      void *info);
-\end{verbatim}
-
-\subsubsection*{Description}
-
-The routine \verb|glp_term_hook| installs the user-defined hook routine
-to intercept all terminal output performed by GLPK routines.
-
-%This feature can be used to redirect the terminal output to other
-%destination, for example, to a file or a text window.
-
-The parameter {\it func} specifies the user-defined hook routine. It is
-called from an internal printing routine, which passes to it two
-parameters: {\it info} and {\it s}. The parameter {\it info} is a
-transit pointer specified in corresponding call to the routine
-\verb|glp_term_hook|; it may be used to pass some additional information
-to the hook routine. The parameter {\it s} is a pointer to the null
-terminated character string, which is intended to be written to the
-terminal. If the hook routine returns zero, the printing routine writes
-the string {\it s} to the terminal in a usual way; otherwise, if the
-hook routine returns non-zero, no terminal output is performed.
-
-To uninstall the hook routine both parameters {\it func} and {\it info}
-should be specified as \verb|NULL|.
-
-\subsubsection*{Example}
-
-\begin{verbatim}
-static int hook(void *info, const char *s)
-{     FILE *foo = info;
-      fputs(s, foo);
-      return 1;
-}
-
-int main(void)
-{     FILE *foo;
-      . . .
-      /* redirect terminal output */
-      glp_term_hook(hook, foo);
-      . . .
-      /* resume terminal output */
-      glp_term_hook(NULL, NULL);
-      . . .
-}
-\end{verbatim}
-
-\subsection{glp\_mem\_usage---get memory usage information}
-
-\subsubsection*{Synopsis}
-
-\begin{verbatim}
-void glp_mem_usage(int *count, int *cpeak, glp_long *total,
-      glp_long *tpeak);
-\end{verbatim}
-
-\subsubsection*{Description}
-
-The routine \verb|glp_mem_usage| reports some information about
-utilization of the memory by GLPK routines. Information is stored to
-locations specified by corresponding parameters (see below). Any
-parameter can be specified as \verb|NULL|, in which case corresponding
-information is not stored.
-
-\verb|*count| is the number of currently allocated memory blocks.
-
-\verb|*cpeak| is the peak value of \verb|*count| reached since the
-initialization of the GLPK library environment.
-
-\verb|*total| is the total amount, in bytes, of currently allocated
-memory blocks.
-
-\verb|*tpeak| is the peak value of \verb|*total| reached since the
-initialization of the GLPK library envirionment.
-
-\subsubsection*{Example}
-
-\begin{verbatim}
-glp_mem_usage(&count, NULL, NULL, NULL);
-printf("%d memory block(s) are still allocated\n", count);
-\end{verbatim}
-
-\subsection{glp\_mem\_limit---set memory usage limit}
-
-\subsubsection*{Synopsis}
-
-\begin{verbatim}
-void glp_mem_limit(int limit);
-\end{verbatim}
-
-\subsubsection*{Description}
-
-The routine \verb|glp_mem_limit| limits the amount of memory available
-for dynamic allocation (in GLPK routines) to \verb|limit| megabytes.
-
-\newpage
-
-\subsection{glp\_free\_env---free GLPK library environment}
-
-\subsubsection*{Synopsis}
-
-\begin{verbatim}
-void glp_free_env(void);
-\end{verbatim}
-
-\subsubsection*{Description}
-
-The routine \verb|glp_free_env| frees all resources used by GLPK
-routines (memory blocks, etc.) which are currently still in use.
-
-\subsubsection*{Usage notes}
-
-Normally the application program does not need to call this routine,
-because GLPK routines always free all unused resources. However, if
-the application program even has deleted all problem objects, there
-will be several memory blocks still allocated for the internal library
-needs. For some reasons the application program may want GLPK to free
-this memory, in which case it should call \verb|glp_free_env|.
-
-Note that a call to \verb|glp_free_env| invalidates all problem objects
-which still exist.
 
 %* eof *%

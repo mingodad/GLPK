@@ -1,3 +1,53 @@
+Sun Mar 29 12:00:00 2009 Andrew Makhorin <mao@mai2.rcnet.ru>
+
+        * GLPK 4.37 (22:0:22) has been released
+
+        * glpk.h
+        iocp.fp_heur was added to enable/disable fpump heuristic.
+
+        * glpios10.c
+        ios_feas_pump was added (feasibility pump heuristic).
+
+        * glpsol.c
+        --fpump command-line option was added.
+
+        * glpsds.c
+        Plain data set routines were added to facilitate reading plain
+        data in application programs. Currently these routines are not
+        in API, though declared in glpk.h.
+
+        * glpapi08.c
+        A bug was fixed in the internal routine restore. (Due to this
+        bug dual solution components were computed incorrectly if the
+        problem was scaled.)
+
+        * glpapi10.c, glpapi11.c
+        The following new API routines were added:
+        glp_print_sol (replaces lpx_print_sol);
+        glp_print_ipt (replaces lpx_print_ips);
+        glp_print_mip (replaces lpx_print_mip);
+        _glp_check_kkt (replaces lpx_check_kkt, lpx_check_int).
+        Now the routine lpx_print_prob (deprecated) is equivalent to
+        the routine glp_write_lp.
+
+        * glpapi18.c, glpapi19.c
+        The following new API routines were added:
+        glp_read_graph (read graph from plain text file);
+        glp_write_graph (write graph to plain text file);
+        glp_weak_comp (find all weakly connected components);
+        glp_strong_comp (find all strongly connected components).
+
+        * configure.ac, Makefile.am
+        Changes were made: (a) to allow using autoreconf/autoheader;
+        (b) to allow building glpk in a directory other than its source
+        directory. Thanks to Marco Atzeri <marco_atzeri@yahoo.it> for
+        bug report.
+
+        * examples/shiftcover.mod
+        An example model in MathProg was added.
+        Thanks to Larry D'Agostino <Larry.D'Agostino@gmacrescap.com>
+        for contribution.
+
 Fri Feb 06 12:00:00 2009 Andrew Makhorin <mao@mai2.rcnet.ru>
 
         * GLPK 4.36 (21:0:21) has been released

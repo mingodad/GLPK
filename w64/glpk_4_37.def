@@ -1,5 +1,5 @@
-LIBRARY glpk_4_36
-VERSION 4.36
+LIBRARY glpk_4_37
+VERSION 4.37
 DESCRIPTION "GNU Linear Programming Kit"
 EXPORTS
 ;; from glpapi01 ;;
@@ -94,13 +94,18 @@ EXPORTS
  glp_mip_status
  glp_set_col_kind
 ;; from glpapi10 ;;
+ _glp_check_kkt
+;; from glpapi11 ;;
+ glp_print_ipt
+ glp_print_mip
+ glp_print_sol
  glp_read_ipt
  glp_read_mip
  glp_read_sol
  glp_write_ipt
  glp_write_mip
  glp_write_sol
-;; from glpapi11 ;;
+;; from glpapi12 ;;
  glp_bf_exists
  glp_bf_updated
  glp_btran
@@ -113,7 +118,7 @@ EXPORTS
  glp_get_col_bind
  glp_get_row_bind
  glp_set_bfcp
-;; from glpapi12 ;;
+;; from glpapi13 ;;
  glp_ios_add_row
  glp_ios_best_node
  glp_ios_branch_upon
@@ -136,23 +141,24 @@ EXPORTS
  glp_ios_terminate
  glp_ios_tree_size
  glp_ios_up_node
-;; from glpapi13 ;;
+;; from glpapi14 ;;
  glp_calloc
  glp_free
  glp_free_env
  glp_malloc
  glp_mem_limit
  glp_mem_usage
+ glp_printf
  glp_term_hook
  glp_term_out
  glp_version
-;; from glpapi14 ;;
+;; from glpapi15 ;;
  glp_read_mps
  glp_write_mps
-;; from glpapi15 ;;
+;; from glpapi16 ;;
  glp_read_lp
  glp_write_lp
-;; from glpapi16 ;;
+;; from glpapi17 ;;
  glp_mpl_alloc_wksp
  glp_mpl_build_prob
  glp_mpl_free_wksp
@@ -160,22 +166,25 @@ EXPORTS
  glp_mpl_postsolve
  glp_mpl_read_data
  glp_mpl_read_model
-;; from glpapi17 ;;
- glp_main
 ;; from glpapi18 ;;
  glp_add_arc
  glp_add_vertices
  glp_create_graph
  glp_delete_graph
  glp_erase_graph
+ glp_read_graph
  glp_set_graph_name
+ glp_write_graph
 ;; from glpapi19 ;;
+ glp_strong_comp
+ glp_weak_comp
+;; from glpapi20 ;;
  glp_maxflow_ffalg
  glp_maxflow_lp
  glp_mincost_lp
  glp_mincost_okalg
-;; from glpapi20 ;;
- glp_weak_comp
+;; from glpapi21 ;;
+ glp_main
 ;; from glpavl ;;
  _glp_avl_create_tree
  _glp_avl_delete_node
@@ -318,6 +327,8 @@ EXPORTS
 ;; from glpios09 ;;
  _glp_ios_pcost_branch
  _glp_ios_pcost_free
+;; from glpios10 ;;
+ _glp_ios_feas_pump
 ;; from glpipm ;;
  _glp_ipm_main
 ;; from glpipp01 ;;
@@ -462,6 +473,8 @@ EXPORTS
  _glp_lpx_add_cols
  _glp_lpx_add_rows
  _glp_lpx_adv_basis
+ _glp_lpx_check_int
+ _glp_lpx_check_kkt
  _glp_lpx_cpx_basis
  _glp_lpx_create_index
  _glp_lpx_create_prob
@@ -486,6 +499,7 @@ EXPORTS
  _glp_lpx_get_col_type
  _glp_lpx_get_col_ub
  _glp_lpx_get_dual_stat
+ _glp_lpx_get_int_parm
  _glp_lpx_get_mat_col
  _glp_lpx_get_mat_row
  _glp_lpx_get_num_bin
@@ -500,6 +514,7 @@ EXPORTS
  _glp_lpx_get_prim_stat
  _glp_lpx_get_prob_name
  _glp_lpx_get_ray_info
+ _glp_lpx_get_real_parm
  _glp_lpx_get_row_bnds
  _glp_lpx_get_row_dual
  _glp_lpx_get_row_info
@@ -526,23 +541,30 @@ EXPORTS
  _glp_lpx_mip_obj_val
  _glp_lpx_mip_row_val
  _glp_lpx_mip_status
+ _glp_lpx_print_ips
+ _glp_lpx_print_mip
+ _glp_lpx_print_prob
+ _glp_lpx_print_sol
  _glp_lpx_read_bas
  _glp_lpx_read_cpxlp
  _glp_lpx_read_freemps
  _glp_lpx_read_model
  _glp_lpx_read_mps
+ _glp_lpx_reset_parms
  _glp_lpx_scale_prob
  _glp_lpx_set_class
  _glp_lpx_set_col_bnds
  _glp_lpx_set_col_kind
  _glp_lpx_set_col_name
  _glp_lpx_set_col_stat
+ _glp_lpx_set_int_parm
  _glp_lpx_set_mat_col
  _glp_lpx_set_mat_row
  _glp_lpx_set_obj_coef
  _glp_lpx_set_obj_dir
  _glp_lpx_set_obj_name
  _glp_lpx_set_prob_name
+ _glp_lpx_set_real_parm
  _glp_lpx_set_row_bnds
  _glp_lpx_set_row_name
  _glp_lpx_set_row_stat
@@ -559,16 +581,6 @@ EXPORTS
  _glp_1px_put_mip_soln
  _glp_1px_put_solution
 ;; from glplpx03 ;;
- _glp_lpx_get_int_parm
- _glp_lpx_get_real_parm
- _glp_lpx_reset_parms
- _glp_lpx_set_int_parm
- _glp_lpx_set_real_parm
-;; from glplpx04 ;;
- _glp_lpx_check_kkt
-;; from glplpx05 ;;
- _glp_lpx_check_int
-;; from glplpx06 ;;
  _glp_1px_eval_b_dual
  _glp_1px_eval_b_prim
  _glp_lpx_dual_ratio_test
@@ -576,14 +588,9 @@ EXPORTS
  _glp_lpx_transform_col
  _glp_lpx_transform_row
  _glp_lpx_warm_up
-;; from glplpx07 ;;
- _glp_lpx_print_ips
- _glp_lpx_print_mip
- _glp_lpx_print_prob
- _glp_lpx_print_sol
-;; from glplpx08 ;;
+;; from glplpx04 ;;
  _glp_lpx_print_sens_bnds
-;; from glplpx09 ;;
+;; from glplpx05 ;;
  _glp_lpx_write_pb
 ;; from glpluf ;;
  _glp_luf_a_solve
@@ -900,16 +907,6 @@ EXPORTS
  _glp_okalg
 ;; from glpnet07 ;;
  _glp_ffalg
-;; from glppds ;;
- _glp_pds_close_file
- _glp_pds_error
- _glp_pds_open_file
- _glp_pds_scan_int
- _glp_pds_scan_num
- _glp_pds_scan_sym
- _glp_pds_set_jump
- _glp_pds_skip_line
- _glp_pds_warning
 ;; from glpqmd ;;
  _glp_qmd_genqmd
  _glp_qmd_qmdmrg
@@ -942,6 +939,17 @@ EXPORTS
  _glp_scg_max_clique
 ;; from glpscl ;;
  _glp_scale_prob
+;; from glpsds ;;
+ _glp_sds_close
+ _glp_sds_error
+ _glp_sds_int
+ _glp_sds_item
+ _glp_sds_jump
+ _glp_sds_line
+ _glp_sds_num
+ _glp_sds_open
+ _glp_sds_text
+ _glp_sds_warning
 ;; from glpspm ;;
  _glp_spm_add_mat
  _glp_spm_add_num
