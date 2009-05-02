@@ -24,6 +24,8 @@
 #include "glplib.h"
 #include "glpmat.h"
 #include "glpqmd.h"
+#include "amd/amd.h"
+#include "colamd/colamd.h"
 
 /*----------------------------------------------------------------------
 -- check_fvs - check sparse vector in full-vector storage format.
@@ -483,6 +485,84 @@ void min_degree(int n, int A_ptr[], int A_ind[], int P_per[])
       xfree(nbrhd);
       xfree(qsize);
       xfree(qlink);
+      return;
+}
+
+/**********************************************************************/
+
+void amd_order1(int n, int A_ptr[], int A_ind[], int P_per[])
+{     /* approximate minimum degree ordering (AMD) */
+      int k, ret;
+      double Control[AMD_CONTROL], Info[AMD_INFO];
+      /* get the default parameters */
+      amd_defaults(Control);
+#if 0
+      /* and print them */
+      amd_control(Control);
+#endif
+      /* make all indices 0-based */
+      for (k = 1; k < A_ptr[n+1]; k++) A_ind[k]--;
+      for (k = 1; k <= n+1; k++) A_ptr[k]--;
+      /* call the ordering routine */
+      ret = amd_order(n, &A_ptr[1], &A_ind[1], &P_per[1], Control, Info)
+         ;
+#if 0
+      amd_info(Info);
+#endif
+      xassert(ret == AMD_OK || ret == AMD_OK_BUT_JUMBLED);
+      /* retsore 1-based indices */
+      for (k = 1; k <= n+1; k++) A_ptr[k]++;
+      for (k = 1; k < A_ptr[n+1]; k++) A_ind[k]++;
+      /* patch up permutation matrix */
+      memset(&P_per[n+1], 0, n * sizeof(int));
+      for (k = 1; k <= n; k++)
+      {  P_per[k]++;
+         xassert(1 <= P_per[k] && P_per[k] <= n);
+         xassert(P_per[n+P_per[k]] == 0);
+         P_per[n+P_per[k]] = k;
+      }
+      return;
+}
+
+/**********************************************************************/
+
+static void *allocate(size_t n, size_t size)
+{     void *ptr;
+      ptr = xcalloc(n, size);
+      memset(ptr, 0, n * size);
+      return ptr;
+}
+
+static void release(void *ptr)
+{     xfree(ptr);
+      return;
+}
+
+void symamd_ord(int n, int A_ptr[], int A_ind[], int P_per[])
+{     /* approximate minimum degree ordering (SYMAMD) */
+      int k, ok;
+      int stats[COLAMD_STATS];
+      /* make all indices 0-based */
+      for (k = 1; k < A_ptr[n+1]; k++) A_ind[k]--;
+      for (k = 1; k <= n+1; k++) A_ptr[k]--;
+      /* call the ordering routine */
+      ok = symamd(n, &A_ind[1], &A_ptr[1], &P_per[1], NULL, stats,
+         allocate, release);
+#if 0
+      symamd_report(stats);
+#endif
+      xassert(ok);
+      /* restore 1-based indices */
+      for (k = 1; k <= n+1; k++) A_ptr[k]++;
+      for (k = 1; k < A_ptr[n+1]; k++) A_ind[k]++;
+      /* patch up permutation matrix */
+      memset(&P_per[n+1], 0, n * sizeof(int));
+      for (k = 1; k <= n; k++)
+      {  P_per[k]++;
+         xassert(1 <= P_per[k] && P_per[k] <= n);
+         xassert(P_per[n+P_per[k]] == 0);
+         P_per[n+P_per[k]] = k;
+      }
       return;
 }
 

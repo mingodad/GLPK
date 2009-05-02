@@ -490,6 +490,7 @@ int ipp_analyze_row(IPP *ipp, IPPROW *row)
 done: return 0;
 }
 
+#if 0 /* wrong */
 /*----------------------------------------------------------------------
 -- GENERAL COLUMN ANALYSIS
 --
@@ -563,6 +564,7 @@ int ipp_analyze_col(IPP *ipp, IPPCOL *col)
       }
 done: return 0;
 }
+#endif
 
 /*----------------------------------------------------------------------
 -- ipp_basic_tech - basic MIP presolve analysis.
@@ -646,10 +648,12 @@ int ipp_basic_tech(IPP *ipp)
             {  /* process empty column */
                if (ipp_empty_col(ipp, col)) return 2;
             }
+#if 0
             else
             {  /* general column analysis */
                if (ipp_analyze_col(ipp, col)) return 2;
             }
+#endif
          }
       }
       for (row = ipp->row_ptr; row != NULL; row = row->next) nrows--;

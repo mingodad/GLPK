@@ -1,4 +1,4 @@
-/* glpapi17.c (processing models in GNU MathProg language) */
+/* glpapi17.c (basic graph and network routines) */
 
 /***********************************************************************
 *  This code is part of GLPK (GNU Linear Programming Kit).
@@ -21,212 +21,380 @@
 *  along with GLPK. If not, see <http://www.gnu.org/licenses/>.
 ***********************************************************************/
 
-#define _GLPSTD_STDIO
-#include "glpmpl.h"
-typedef MPL glp_tran;
-#define _GLP_TRAN
 #include "glpapi.h"
 
-glp_tran *glp_mpl_alloc_wksp(void)
-{     /* allocate the MathProg translator workspace */
-      glp_tran *tran;
-      tran = mpl_initialize();
-      return tran;
-}
+/* CAUTION: DO NOT CHANGE THE LIMITS BELOW */
 
-int glp_mpl_read_model(glp_tran *tran, const char *fname, int skip)
-{     /* read and translate model section */
-      int ret;
-      if (tran->phase != 0)
-         xerror("glp_mpl_read_model: invalid call sequence\n");
-      ret = mpl_read_model(tran, (char *)fname, skip);
-      if (ret == 1 || ret == 2)
-         ret = 0;
-      else if (ret == 4)
-         ret = 1;
-      else
-         xassert(ret != ret);
-      return ret;
-}
+#define NV_MAX 100000000 /* = 100*10^6 */
+/* maximal number of vertices in the graph */
 
-int glp_mpl_read_data(glp_tran *tran, const char *fname)
-{     /* read and translate data section */
-      int ret;
-      if (!(tran->phase == 1 || tran->phase == 2))
-         xerror("glp_mpl_read_data: invalid call sequence\n");
-      ret = mpl_read_data(tran, (char *)fname);
-      if (ret == 2)
-         ret = 0;
-      else if (ret == 4)
-         ret = 1;
-      else
-         xassert(ret != ret);
-      return ret;
-}
+#define NA_MAX 500000000 /* = 500*10^6 */
+/* maximal number of arcs in the graph */
 
-int glp_mpl_generate(glp_tran *tran, const char *fname)
-{     /* generate the model */
-      int ret;
-      if (!(tran->phase == 1 || tran->phase == 2))
-         xerror("glp_mpl_generate: invalid call sequence\n");
-      ret = mpl_generate(tran, (char *)fname);
-      if (ret == 3)
-         ret = 0;
-      else if (ret == 4)
-         ret = 1;
-      return ret;
-}
+/***********************************************************************
+*  NAME
+*
+*  glp_create_graph - create graph
+*
+*  SYNOPSIS
+*
+*  glp_graph *glp_create_graph(int v_size, int a_size);
+*
+*  DESCRIPTION
+*
+*  The routine creates a new graph, which initially is empty, i.e. has
+*  no vertices and arcs.
+*
+*  The parameter v_size specifies the size of data associated with each
+*  vertex of the graph (0 to 256 bytes).
+*
+*  The parameter a_size specifies the size of data associated with each
+*  arc of the graph (0 to 256 bytes).
+*
+*  RETURNS
+*
+*  The routine returns a pointer to the graph created. */
 
-void glp_mpl_build_prob(glp_tran *tran, glp_prob *prob)
-{     /* build LP/MIP problem instance from the model */
-      int m, n, i, j, t, kind, type, len, *ind;
-      double lb, ub, *val;
-      if (tran->phase != 3)
-         xerror("glp_mpl_build_prob: invalid call sequence\n");
-      /* erase the problem object */
-      glp_erase_prob(prob);
-      /* set problem name */
-      glp_set_prob_name(prob, mpl_get_prob_name(tran));
-      /* build rows (constraints) */
-      m = mpl_get_num_rows(tran);
-      if (m > 0)
-         glp_add_rows(prob, m);
-      for (i = 1; i <= m; i++)
-      {  /* set row name */
-         glp_set_row_name(prob, i, mpl_get_row_name(tran, i));
-         /* set row bounds */
-         type = mpl_get_row_bnds(tran, i, &lb, &ub);
-         switch (type)
-         {  case MPL_FR: type = GLP_FR; break;
-            case MPL_LO: type = GLP_LO; break;
-            case MPL_UP: type = GLP_UP; break;
-            case MPL_DB: type = GLP_DB; break;
-            case MPL_FX: type = GLP_FX; break;
-            default: xassert(type != type);
-         }
-         if (type == GLP_DB && fabs(lb - ub) < 1e-9 * (1.0 + fabs(lb)))
-         {  type = GLP_FX;
-            if (fabs(lb) <= fabs(ub)) ub = lb; else lb = ub;
-         }
-         glp_set_row_bnds(prob, i, type, lb, ub);
-         /* warn about non-zero constant term */
-         if (mpl_get_row_c0(tran, i) != 0.0)
-            xprintf("glp_mpl_build_prob: row %s; constant term %.12g ig"
-               "nored\n",
-               mpl_get_row_name(tran, i), mpl_get_row_c0(tran, i));
-      }
-      /* build columns (variables) */
-      n = mpl_get_num_cols(tran);
-      if (n > 0)
-         glp_add_cols(prob, n);
-      for (j = 1; j <= n; j++)
-      {  /* set column name */
-         glp_set_col_name(prob, j, mpl_get_col_name(tran, j));
-         /* set column kind */
-         kind = mpl_get_col_kind(tran, j);
-         switch (kind)
-         {  case MPL_NUM:
-               break;
-            case MPL_INT:
-            case MPL_BIN:
-               glp_set_col_kind(prob, j, GLP_IV);
-               break;
-            default:
-               xassert(kind != kind);
-         }
-         /* set column bounds */
-         type = mpl_get_col_bnds(tran, j, &lb, &ub);
-         switch (type)
-         {  case MPL_FR: type = GLP_FR; break;
-            case MPL_LO: type = GLP_LO; break;
-            case MPL_UP: type = GLP_UP; break;
-            case MPL_DB: type = GLP_DB; break;
-            case MPL_FX: type = GLP_FX; break;
-            default: xassert(type != type);
-         }
-         if (kind == MPL_BIN)
-         {  if (type == GLP_FR || type == GLP_UP || lb < 0.0) lb = 0.0;
-            if (type == GLP_FR || type == GLP_LO || ub > 1.0) ub = 1.0;
-            type = GLP_DB;
-         }
-         if (type == GLP_DB && fabs(lb - ub) < 1e-9 * (1.0 + fabs(lb)))
-         {  type = GLP_FX;
-            if (fabs(lb) <= fabs(ub)) ub = lb; else lb = ub;
-         }
-         glp_set_col_bnds(prob, j, type, lb, ub);
-      }
-      /* load the constraint matrix */
-      ind = xcalloc(1+n, sizeof(int));
-      val = xcalloc(1+n, sizeof(double));
-      for (i = 1; i <= m; i++)
-      {  len = mpl_get_mat_row(tran, i, ind, val);
-         glp_set_mat_row(prob, i, len, ind, val);
-      }
-      /* build objective function (the first objective is used) */
-      for (i = 1; i <= m; i++)
-      {  kind = mpl_get_row_kind(tran, i);
-         if (kind == MPL_MIN || kind == MPL_MAX)
-         {  /* set objective name */
-            glp_set_obj_name(prob, mpl_get_row_name(tran, i));
-            /* set optimization direction */
-            glp_set_obj_dir(prob, kind == MPL_MIN ? GLP_MIN : GLP_MAX);
-            /* set constant term */
-            glp_set_obj_coef(prob, 0, mpl_get_row_c0(tran, i));
-            /* set objective coefficients */
-            len = mpl_get_mat_row(tran, i, ind, val);
-            for (t = 1; t <= len; t++)
-               glp_set_obj_coef(prob, ind[t], val[t]);
-            break;
-         }
-      }
-      /* free working arrays */
-      xfree(ind);
-      xfree(val);
+static void create_graph(glp_graph *G, int v_size, int a_size)
+{     G->pool = dmp_create_pool();
+      G->name = NULL;
+      G->nv_max = 50;
+      G->nv = G->na = 0;
+      G->v = xcalloc(1+G->nv_max, sizeof(glp_vertex *));
+      G->index = NULL;
+      G->v_size = v_size;
+      G->a_size = a_size;
       return;
 }
 
-int glp_mpl_postsolve(glp_tran *tran, glp_prob *prob, int sol)
-{     /* postsolve the model */
-      int j, m, n, ret;
-      double x;
-      if (!(tran->phase == 3 && !tran->flag_p))
-         xerror("glp_mpl_postsolve: invalid call sequence\n");
-      if (!(sol == GLP_SOL || sol == GLP_IPT || sol == GLP_MIP))
-         xerror("glp_mpl_postsolve: sol = %d; invalid parameter\n",
-            sol);
-      m = mpl_get_num_rows(tran);
-      n = mpl_get_num_cols(tran);
-      if (!(m == glp_get_num_rows(prob) &&
-            n == glp_get_num_cols(prob)))
-         xerror("glp_mpl_postsolve: wrong problem object\n");
-      if (!mpl_has_solve_stmt(tran))
-      {  ret = 0;
+glp_graph *glp_create_graph(int v_size, int a_size)
+{     glp_graph *G;
+      if (!(0 <= v_size && v_size <= 256))
+         xerror("glp_create_graph: v_size = %d; invalid size of vertex "
+            "data\n", v_size);
+      if (!(0 <= a_size && a_size <= 256))
+         xerror("glp_create_graph: a_size = %d; invalid size of arc dat"
+            "a\n", a_size);
+      G = xmalloc(sizeof(glp_graph));
+      create_graph(G, v_size, a_size);
+      return G;
+}
+
+/***********************************************************************
+*  NAME
+*
+*  glp_set_graph_name - assign (change) graph name
+*
+*  SYNOPSIS
+*
+*  void glp_set_graph_name(glp_graph *G, const char *name);
+*
+*  DESCRIPTION
+*
+*  The routine glp_set_graph_name assigns a symbolic name specified by
+*  the character string name (1 to 255 chars) to the graph.
+*
+*  If the parameter name is NULL or an empty string, the routine erases
+*  the existing symbolic name of the graph. */
+
+void glp_set_graph_name(glp_graph *G, const char *name)
+{     if (G->name != NULL)
+      {  dmp_free_atom(G->pool, G->name, strlen(G->name)+1);
+         G->name = NULL;
+      }
+      if (!(name == NULL || name[0] == '\0'))
+      {  int j;
+         for (j = 0; name[j] != '\0'; j++)
+         {  if (j == 256)
+               xerror("glp_set_graph_name: graph name too long\n");
+            if (iscntrl((unsigned char)name[j]))
+               xerror("glp_set_graph_name: graph name contains invalid "
+                  "character(s)\n");
+         }
+         G->name = dmp_get_atom(G->pool, strlen(name)+1);
+         strcpy(G->name, name);
+      }
+      return;
+}
+
+/***********************************************************************
+*  NAME
+*
+*  glp_add_vertices - add new vertices to graph
+*
+*  SYNOPSIS
+*
+*  int glp_add_vertices(glp_graph *G, int nadd);
+*
+*  DESCRIPTION
+*
+*  The routine glp_add_vertices adds nadd vertices to the specified
+*  graph. New vertices are always added to the end of the vertex list,
+*  so ordinal numbers of existing vertices remain unchanged.
+*
+*  Being added each new vertex is isolated (has no incident arcs).
+*
+*  RETURNS
+*
+*  The routine glp_add_vertices returns an ordinal number of the first
+*  new vertex added to the graph. */
+
+int glp_add_vertices(glp_graph *G, int nadd)
+{     int i, nv_new;
+      if (nadd < 1)
+         xerror("glp_add_vertices: nadd = %d; invalid number of vertice"
+            "s\n", nadd);
+      if (nadd > NV_MAX - G->nv)
+         xerror("glp_add_vertices: nadd = %d; too many vertices\n",
+            nadd);
+      /* determine new number of vertices */
+      nv_new = G->nv + nadd;
+      /* increase the room, if necessary */
+      if (G->nv_max < nv_new)
+      {  glp_vertex **save = G->v;
+         while (G->nv_max < nv_new)
+         {  G->nv_max += G->nv_max;
+            xassert(G->nv_max > 0);
+         }
+         G->v = xcalloc(1+G->nv_max, sizeof(glp_vertex *));
+         memcpy(&G->v[1], &save[1], G->nv * sizeof(glp_vertex *));
+         xfree(save);
+      }
+      /* add new vertices to the end of the vertex list */
+      for (i = G->nv+1; i <= nv_new; i++)
+      {  glp_vertex *v;
+         G->v[i] = v = dmp_get_atom(G->pool, sizeof(glp_vertex));
+         v->i = i;
+         v->name = NULL;
+         v->entry = NULL;
+         if (G->v_size == 0)
+            v->data = NULL;
+         else
+         {  v->data = dmp_get_atom(G->pool, G->v_size);
+            memset(v->data, 0, G->v_size);
+         }
+         v->temp = NULL;
+         v->in = v->out = NULL;
+      }
+      /* set new number of vertices */
+      G->nv = nv_new;
+      /* return the ordinal number of the first vertex added */
+      return nv_new - nadd + 1;
+}
+
+/***********************************************************************
+*  NAME
+*
+*  glp_add_arc - add new arc to graph
+*
+*  SYNOPSIS
+*
+*  glp_arc *glp_add_arc(glp_graph *G, int i, int j);
+*
+*  DESCRIPTION
+*
+*  The routine glp_add_arc adds a new arc to the specified graph.
+*
+*  The parameters i and j specify the ordinal numbers of, resp., tail
+*  and head vertices of the arc. Note that self-loops and multiple arcs
+*  are allowed.
+*
+*  RETURNS
+*
+*  The routine glp_add_arc returns a pointer to the arc added. */
+
+glp_arc *glp_add_arc(glp_graph *G, int i, int j)
+{     glp_arc *a;
+      if (!(1 <= i && i <= G->nv))
+         xerror("glp_add_arc: i = %d; tail vertex number out of range\n"
+            , i);
+      if (!(1 <= j && j <= G->nv))
+         xerror("glp_add_arc: j = %d; head vertex number out of range\n"
+            , j);
+      if (G->na == NA_MAX)
+         xerror("glp_add_arc: too many arcs\n");
+      a = dmp_get_atom(G->pool, sizeof(glp_arc));
+      a->tail = G->v[i];
+      a->head = G->v[j];
+      if (G->a_size == 0)
+         a->data = NULL;
+      else
+      {  a->data = dmp_get_atom(G->pool, G->a_size);
+         memset(a->data, 0, G->a_size);
+      }
+      a->temp = NULL;
+      a->t_prev = NULL;
+      a->t_next = G->v[i]->out;
+      if (a->t_next != NULL) a->t_next->t_prev = a;
+      a->h_prev = NULL;
+      a->h_next = G->v[j]->in;
+      if (a->h_next != NULL) a->h_next->h_prev = a;
+      G->v[i]->out = G->v[j]->in = a;
+      G->na++;
+      return a;
+}
+
+/***********************************************************************
+*  NAME
+*
+*  glp_erase_graph - erase graph content
+*
+*  SYNOPSIS
+*
+*  void glp_erase_graph(glp_graph *G, int v_size, int a_size);
+*
+*  DESCRIPTION
+*
+*  The routine glp_erase_graph erases the content of the specified
+*  graph. The effect of this operation is the same as if the graph
+*  would be deleted with the routine glp_delete_graph and then created
+*  anew with the routine glp_create_graph, with exception that the
+*  handle (pointer) to the graph remains valid. */
+
+static void delete_graph(glp_graph *G)
+{     dmp_delete_pool(G->pool);
+      xfree(G->v);
+      if (G->index != NULL) avl_delete_tree(G->index);
+      return;
+}
+
+void glp_erase_graph(glp_graph *G, int v_size, int a_size)
+{     if (!(0 <= v_size && v_size <= 256))
+         xerror("glp_erase_graph: v_size = %d; invalid size of vertex d"
+            "ata\n", v_size);
+      if (!(0 <= a_size && a_size <= 256))
+         xerror("glp_erase_graph: a_size = %d; invalid size of arc data"
+            "\n", a_size);
+      delete_graph(G);
+      create_graph(G, v_size, a_size);
+      return;
+}
+
+/***********************************************************************
+*  NAME
+*
+*  glp_delete_graph - delete graph
+*
+*  SYNOPSIS
+*
+*  void glp_delete_graph(glp_graph *G);
+*
+*  DESCRIPTION
+*
+*  The routine glp_delete_graph deletes the specified graph and frees
+*  all the memory allocated to this program object. */
+
+void glp_delete_graph(glp_graph *G)
+{     delete_graph(G);
+      xfree(G);
+      return;
+}
+
+/***********************************************************************
+*  NAME
+*
+*  glp_read_graph - read graph from plain text file
+*
+*  SYNOPSIS
+*
+*  int glp_read_graph(glp_graph *G, const char *fname);
+*
+*  DESCRIPTION
+*
+*  The routine glp_read_graph reads a graph from a plain text file.
+*
+*  RETURNS
+*
+*  If the operation was successful, the routine returns zero. Otherwise
+*  it prints an error message and returns non-zero. */
+
+int glp_read_graph(glp_graph *G, const char *fname)
+{     _glp_data *data;
+      jmp_buf jump;
+      int nv, na, i, j, k, ret;
+      glp_erase_graph(G, G->v_size, G->a_size);
+      xprintf("Reading graph from `%s'...\n", fname);
+      data = _glp_sds_open(fname);
+      if (data == NULL)
+      {  ret = 1;
          goto done;
       }
-      for (j = 1; j <= n; j++)
-      {  if (sol == GLP_SOL)
-            x = glp_get_col_prim(prob, j);
-         else if (sol == GLP_IPT)
-            x = glp_ipt_col_prim(prob, j);
-         else if (sol == GLP_MIP)
-            x = glp_mip_col_val(prob, j);
-         else
-            xassert(sol != sol);
-         if (fabs(x) < 1e-9) x = 0.0;
-         mpl_put_col_value(tran, j, x);
+      if (setjmp(jump))
+      {  ret = 1;
+         goto done;
       }
-      ret = mpl_postsolve(tran);
-      if (ret == 3)
-         ret = 0;
-      else if (ret == 4)
-         ret = 1;
-done: return ret;
+      _glp_sds_jump(data, jump);
+      nv = _glp_sds_int(data);
+      if (nv < 0)
+         _glp_sds_error(data, "invalid number of vertices\n");
+      na = _glp_sds_int(data);
+      if (na < 0)
+         _glp_sds_error(data, "invalid number of arcs\n");
+      xprintf("Graph has %d vert%s and %d arc%s\n",
+         nv, nv == 1 ? "ex" : "ices", na, na == 1 ? "" : "s");
+      if (nv > 0) glp_add_vertices(G, nv);
+      for (k = 1; k <= na; k++)
+      {  i = _glp_sds_int(data);
+         if (!(1 <= i && i <= nv))
+            _glp_sds_error(data, "tail vertex number out of range\n");
+         j = _glp_sds_int(data);
+         if (!(1 <= j && j <= nv))
+            _glp_sds_error(data, "head vertex number out of range\n");
+         glp_add_arc(G, i, j);
+      }
+      xprintf("%d lines were read\n", _glp_sds_line(data));
+      ret = 0;
+done: if (data != NULL) _glp_sds_close(data);
+      return ret;
 }
 
-void glp_mpl_free_wksp(glp_tran *tran)
-{     /* free the MathProg translator workspace */
-      mpl_terminate(tran);
-      return;
+/***********************************************************************
+*  NAME
+*
+*  glp_write_graph - write graph to plain text file
+*
+*  SYNOPSIS
+*
+*  int glp_write_graph(glp_graph *G, const char *fname).
+*
+*  DESCRIPTION
+*
+*  The routine glp_write_graph writes the specified graph to a plain
+*  text file.
+*
+*  RETURNS
+*
+*  If the operation was successful, the routine returns zero. Otherwise
+*  it prints an error message and returns non-zero. */
+
+int glp_write_graph(glp_graph *G, const char *fname)
+{     XFILE *fp;
+      glp_vertex *v;
+      glp_arc *a;
+      int i, count, ret;
+      xprintf("Writing graph to `%s'...\n", fname);
+      fp = xfopen(fname, "w"), count = 0;
+      if (fp == NULL)
+      {  xprintf("Unable to create `%s' - %s\n", fname, xerrmsg());
+         ret = 1;
+         goto done;
+      }
+      xfprintf(fp, "%d %d\n", G->nv, G->na), count++;
+      for (i = 1; i <= G->nv; i++)
+      {  v = G->v[i];
+         for (a = v->out; a != NULL; a = a->t_next)
+            xfprintf(fp, "%d %d\n", a->tail->i, a->head->i), count++;
+      }
+      xfflush(fp);
+      if (xferror(fp))
+      {  xprintf("Write error on `%s' - %s\n", fname, xerrmsg());
+         ret = 1;
+         goto done;
+      }
+      xprintf("%d lines were written\n", count);
+      ret = 0;
+done: if (fp != NULL) xfclose(fp);
+      return ret;
 }
 
 /* eof */

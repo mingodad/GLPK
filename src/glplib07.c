@@ -118,6 +118,40 @@ void *xcalloc(int n, int size)
       return xmalloc(n * size);
 }
 
+/**********************************************************************/
+
+#if 0
+void *xrealloc(void *ptr, int size)
+{     /* reallocate memory block */
+      LIBMEM *desc;
+      int size_of_desc = align_datasize(sizeof(LIBMEM));
+      int copy_size;
+      void *old;
+      if (size < 0)
+         xerror("xrealloc: size = %d; invalid parameter\n", size);
+      if (ptr == NULL)
+      {  if (size > 0)
+            ptr = xmalloc(size);
+         goto done;
+      }
+      if (size == 0)
+      {  xfree(ptr);
+         ptr = NULL;
+         goto done;
+      }
+      desc = (void *)((char *)ptr - size_of_desc);
+      if (desc->flag != LIB_MEM_FLAG)
+         xerror("xrealloc: ptr = %p; invalid pointer\n", ptr);
+      copy_size = desc->size - size_of_desc;
+      if (copy_size > size) copy_size = size;
+      old = ptr;
+      ptr = xmalloc(size);
+      memcpy(ptr, old, copy_size);
+      xfree(old);
+done: return ptr;
+}
+#endif
+
 /***********************************************************************
 *  NAME
 *

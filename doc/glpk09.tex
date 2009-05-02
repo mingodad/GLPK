@@ -626,70 +626,71 @@ BOUNDS
 ENDATA
 \end{verbatim}
 
-\section{Specifying predefined basis}
-\label{secbas}
-
-The MPS format can also be used to specify some predefined basis for an
-LP problem, i.e. to specify which rows and columns are basic and which
-are non-basic.
-
-The order of a basis file in the MPS format is:
-
-$\bullet$ NAME indicator card;
-
-$\bullet$ data cards (can appear in arbitrary order);
-
-$\bullet$ ENDATA indicator card.
-
-Each data card specifies either a pair "basic column---non-basic row"
-or a non-basic column. All the data cards have the following format.
-
-`\verb|XL|' in the field 1 means that a column, whose name is given in
-the field 2, is basic, and a row, whose name is given in the field 3,
-is non-basic and placed on its lower bound.
-
-`\verb|XU|' in the field 1 means that a column, whose name is given in
-the field 2, is basic, and a row, whose name is given in the field 3,
-is non-basic and placed on its upper bound.
-
-`\verb|LL|' in the field 1 means that a column, whose name is given in
-the field 3, is non-basic and placed on its lower bound.
-
-`\verb|UL|' in the field 1 means that a column, whose name is given in
-the field 3, is non-basic and placed on its upper bound.
-
-The field 2 contains a column name.
-
-If the indicator given in the field 1 is `\verb|XL|' or `\verb|XU|',
-the field 3 contains a row name. Otherwise, if the indicator is
-`\verb|LL|' or `\verb|UL|', the field 3 is not used and should be empty.
-
-The field 4, 5, and 6 are not used and should be empty.
-
-A basis file in the MPS format acts like a patch: it doesn't specify
-a basis completely, instead that it is just shows in what a given basis
-differs from the "standard" basis, where all rows (auxiliary variables)
-are assumed to be basic and all columns (structural variables) are
-assumed to be non-basic.
-
-As an example here is a basis file that specifies an optimal basis
-for the example LP problem given in Section \ref{secmpsex},
-Page \pageref{secmpsex}:
-
-\pagebreak
-
-\begin{verbatim}
-*000000001111111111222222222233333333334444444444555555555566
-*234567890123456789012345678901234567890123456789012345678901
-NAME          PLAN
- XL BIN2      YIELD
- XL BIN3      FE
- XL BIN4      MN
- XL ALUM      AL
- XL SILICON   SI
- LL BIN1
- LL BIN5
-ENDATA
-\end{verbatim}
+%\section{Specifying predefined basis}
+%\label{secbas}
+%
+%The MPS format can also be used to specify some predefined basis for an
+%LP problem, i.e. to specify which rows and columns are basic and which
+%are non-basic.
+%
+%The order of a basis file in the MPS format is:
+%
+%$\bullet$ NAME indicator card;
+%
+%$\bullet$ data cards (can appear in arbitrary order);
+%
+%$\bullet$ ENDATA indicator card.
+%
+%Each data card specifies either a pair "basic column---non-basic row"
+%or a non-basic column. All the data cards have the following format.
+%
+%`\verb|XL|' in the field 1 means that a column, whose name is given in
+%the field 2, is basic, and a row, whose name is given in the field 3,
+%is non-basic and placed on its lower bound.
+%
+%`\verb|XU|' in the field 1 means that a column, whose name is given in
+%the field 2, is basic, and a row, whose name is given in the field 3,
+%is non-basic and placed on its upper bound.
+%
+%`\verb|LL|' in the field 1 means that a column, whose name is given in
+%the field 3, is non-basic and placed on its lower bound.
+%
+%`\verb|UL|' in the field 1 means that a column, whose name is given in
+%the field 3, is non-basic and placed on its upper bound.
+%
+%The field 2 contains a column name.
+%
+%If the indicator given in the field 1 is `\verb|XL|' or `\verb|XU|',
+%the field 3 contains a row name. Otherwise, if the indicator is
+%`\verb|LL|' or `\verb|UL|', the field 3 is not used and should be
+%empty.
+%
+%The field 4, 5, and 6 are not used and should be empty.
+%
+%A basis file in the MPS format acts like a patch: it doesn't specify
+%a basis completely, instead that it is just shows in what a given basis
+%differs from the "standard" basis, where all rows (auxiliary variables)
+%are assumed to be basic and all columns (structural variables) are
+%assumed to be non-basic.
+%
+%As an example here is a basis file that specifies an optimal basis
+%for the example LP problem given in Section \ref{secmpsex},
+%Page \pageref{secmpsex}:
+%
+%\pagebreak
+%
+%\begin{verbatim}
+%*000000001111111111222222222233333333334444444444555555555566
+%*234567890123456789012345678901234567890123456789012345678901
+%NAME          PLAN
+% XL BIN2      YIELD
+% XL BIN3      FE
+% XL BIN4      MN
+% XL ALUM      AL
+% XL SILICON   SI
+% LL BIN1
+% LL BIN5
+%ENDATA
+%\end{verbatim}
 
 %* eof *%

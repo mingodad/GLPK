@@ -4,7 +4,7 @@ INCLUDES = -I$(srcdir)/../include
 
 lib_LTLIBRARIES = libglpk.la
 
-libglpk_la_LDFLAGS = -version-info 22:0:22 \
+libglpk_la_LDFLAGS = -version-info 23:0:23 \
 -export-symbols-regex '^(glp_|_glp_lpx_).*'
 
 libglpk_la_SOURCES = \
@@ -28,7 +28,6 @@ glpapi17.c \
 glpapi18.c \
 glpapi19.c \
 glpapi20.c \
-glpapi21.c \
 glpavl.c \
 glpbfd.c \
 glpbfx.c \
@@ -82,8 +81,7 @@ glpmpl03.c \
 glpmpl04.c \
 glpmpl05.c \
 glpmpl06.c \
-glpmps01.c \
-glpmps02.c \
+glpmps.c \
 glpnet01.c \
 glpnet02.c \
 glpnet03.c \
@@ -91,6 +89,8 @@ glpnet04.c \
 glpnet05.c \
 glpnet06.c \
 glpnet07.c \
+glpnpp01.c \
+glpnpp02.c \
 glpqmd.c \
 glprgr.c \
 glprng01.c \
@@ -105,6 +105,19 @@ glpspx02.c \
 glpsql.c \
 glpssx01.c \
 glpssx02.c \
-glptsp.c
+glptsp.c \
+amd/amd_1.c \
+amd/amd_2.c \
+amd/amd_aat.c \
+amd/amd_control.c \
+amd/amd_defaults.c \
+amd/amd_dump.c \
+amd/amd_info.c \
+amd/amd_order.c \
+amd/amd_post_tree.c \
+amd/amd_postorder.c \
+amd/amd_preprocess.c \
+amd/amd_valid.c \
+colamd/colamd.c
 
 ## eof ##

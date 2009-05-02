@@ -44,7 +44,6 @@ src/glpapi17.o \
 src/glpapi18.o \
 src/glpapi19.o \
 src/glpapi20.o \
-src/glpapi21.o \
 src/glpavl.o \
 src/glpbfd.o \
 src/glpbfx.o \
@@ -98,8 +97,7 @@ src/glpmpl03.o \
 src/glpmpl04.o \
 src/glpmpl05.o \
 src/glpmpl06.o \
-src/glpmps01.o \
-src/glpmps02.o \
+src/glpmps.o \
 src/glpnet01.o \
 src/glpnet02.o \
 src/glpnet03.o \
@@ -107,6 +105,8 @@ src/glpnet04.o \
 src/glpnet05.o \
 src/glpnet06.o \
 src/glpnet07.o \
+src/glpnpp01.o \
+src/glpnpp02.o \
 src/glpqmd.o \
 src/glprgr.o \
 src/glprng01.o \
@@ -121,7 +121,20 @@ src/glpspx02.o \
 src/glpsql.o \
 src/glpssx01.o \
 src/glpssx02.o \
-src/glptsp.o
+src/glptsp.o \
+src/amd/amd_1.o \
+src/amd/amd_2.o \
+src/amd/amd_aat.o \
+src/amd/amd_control.o \
+src/amd/amd_defaults.o \
+src/amd/amd_dump.o \
+src/amd/amd_info.o \
+src/amd/amd_order.o \
+src/amd/amd_post_tree.o \
+src/amd/amd_postorder.o \
+src/amd/amd_preprocess.o \
+src/amd/amd_valid.o \
+src/colamd/colamd.o
 
 .c.o:
 	$(GCC) $(CFLAGS) -Iinclude -o $@ -c $<

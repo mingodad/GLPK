@@ -21,8 +21,8 @@
 *  along with GLPK. If not, see <http://www.gnu.org/licenses/>.
 ***********************************************************************/
 
-#ifndef _GLPK_H
-#define _GLPK_H
+#ifndef GLPK_H
+#define GLPK_H
 
 #ifdef __cplusplus
 extern "C" {
@@ -30,10 +30,10 @@ extern "C" {
 
 /* library version numbers: */
 #define GLP_MAJOR_VERSION  4
-#define GLP_MINOR_VERSION  37
+#define GLP_MINOR_VERSION  38
 
-#ifndef _GLP_PROB
-#define _GLP_PROB
+#ifndef GLP_PROB
+#define GLP_PROB
 typedef struct { double _opaque_prob; } glp_prob;
 /* LP/MIP problem object */
 #endif
@@ -81,8 +81,8 @@ typedef struct { double _opaque_prob; } glp_prob;
 #define GLP_OPT            5  /* solution is optimal */
 #define GLP_UNBND          6  /* solution is unbounded */
 
-#ifndef _GLP_BFCP
-#define _GLP_BFCP
+#ifndef GLP_BFCP
+#define GLP_BFCP
 typedef struct glp_bfcp glp_bfcp;
 #endif
 
@@ -137,8 +137,19 @@ typedef struct
       double foo_bar[36];     /* (reserved) */
 } glp_smcp;
 
-#ifndef _GLP_TREE
-#define _GLP_TREE
+typedef struct
+{     /* interior-point solver control parameters */
+      int msg_lev;            /* message level (see glp_smcp) */
+      int ord_alg;            /* ordering algorithm: */
+#define GLP_ORD_NONE       0  /* natural (original) ordering */
+#define GLP_ORD_QMD        1  /* quotient minimum degree (QMD) */
+#define GLP_ORD_AMD        2  /* approx. minimum degree (AMD) */
+#define GLP_ORD_SYMAMD     3  /* approx. minimum degree (SYMAMD) */
+      double foo_bar[48];     /* (reserved) */
+} glp_iptcp;
+
+#ifndef GLP_TREE
+#define GLP_TREE
 typedef struct { double _opaque_tree; } glp_tree;
 /* branch-and-bound tree */
 #endif
@@ -250,8 +261,20 @@ typedef struct
 #define GLP_MPS_DECK       1  /* fixed (ancient) */
 #define GLP_MPS_FILE       2  /* free (modern) */
 
-#ifndef _GLP_TRAN
-#define _GLP_TRAN
+typedef struct
+{     /* MPS input/output control parameters */
+      int blank;
+      /* character code to replace blanks in symbolic names */
+      char *obj_name;
+      /* objective row name */
+      double tol_mps;
+      /* zero tolerance for MPS data */
+      double foo_bar[17];
+      /* (reserved for use in the future) */
+} glp_mpscp;
+
+#ifndef GLP_TRAN
+#define GLP_TRAN
 typedef struct { double _opaque_tran; } glp_tran;
 /* MathProg translator workspace */
 #endif
@@ -456,8 +479,11 @@ double glp_get_col_dual(glp_prob *P, int j);
 int glp_get_unbnd_ray(glp_prob *P);
 /* determine variable causing unboundedness */
 
-int glp_interior(glp_prob *P, const void *parm);
+int glp_interior(glp_prob *P, const glp_iptcp *parm);
 /* solve LP problem with the interior-point method */
+
+void glp_init_iptcp(glp_iptcp *parm);
+/* initialize interior-point solver control parameters */
 
 int glp_ipt_status(glp_prob *P);
 /* retrieve status of interior-point solution */
@@ -639,11 +665,14 @@ int glp_ios_heur_sol(glp_tree *T, const double x[]);
 void glp_ios_terminate(glp_tree *T);
 /* terminate the solution process */
 
-int glp_read_mps(glp_prob *P, int fmt, const void *parm,
+void glp_init_mpscp(glp_mpscp *parm);
+/* initialize MPS format control parameters */
+
+int glp_read_mps(glp_prob *P, int fmt, const glp_mpscp *parm,
       const char *fname);
 /* read problem data in MPS format */
 
-int glp_write_mps(glp_prob *P, int fmt, const void *parm,
+int glp_write_mps(glp_prob *P, int fmt, const glp_mpscp *parm,
       const char *fname);
 /* write problem data in MPS format */
 
@@ -858,8 +887,10 @@ void glp_mem_limit(int limit);
 void glp_free_env(void);
 /* free GLPK library environment */
 
-#ifndef _GLP_DATA
-#define _GLP_DATA
+/**********************************************************************/
+
+#ifndef GLP_DATA
+#define GLP_DATA
 typedef struct { double _opaque_data; } _glp_data;
 /* plain data set */
 #endif

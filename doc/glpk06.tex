@@ -232,7 +232,7 @@ incoming arcs.
 
 \section{Basic graph routines}
 
-\subsection{glp\_create\_graph---create graph}
+\subsection{glp\_create\_graph: create graph}
 
 \subsubsection*{Synopsis}
 
@@ -255,7 +255,7 @@ bytes, $0\leq a\_size\leq 256$.
 
 The routine returns a pointer to the graph created.
 
-\subsection{glp\_set\_graph\_name---assign (change) graph name}
+\subsection{glp\_set\_graph\_name: assign (change) graph name}
 
 \subsubsection*{Synopsis}
 
@@ -273,7 +273,7 @@ routine erases the existing symbolic name of the graph.
 
 \newpage
 
-\subsection{glp\_add\_vertices---add new vertices to graph}
+\subsection{glp\_add\_vertices: add new vertices to graph}
 
 \subsubsection*{Synopsis}
 
@@ -302,11 +302,11 @@ if the block size is zero, the field \verb|data| is set to \verb|NULL|.
 The routine \verb|glp_add_vertices| returns the ordinal number of the
 first new vertex added to the graph.
 
-\subsection{glp\_set\_vertex\_name---assign (change) vertex name}
+\subsection{glp\_set\_vertex\_name: assign (change) vertex name}
 
 [This routine is not implemented yet.]
 
-\subsection{glp\_add\_arc---add new arc to graph}
+\subsection{glp\_add\_arc: add new arc to graph}
 
 \subsubsection*{Synopsis}
 
@@ -328,15 +328,15 @@ it by binary zeros, and stores a pointer to it in the field \verb|data|
 of the struct \verb|glp_arc|. Otherwise, if the block size is zero, the
 field \verb|data| is set to \verb|NULL|.
 
-\subsection{glp\_remove\_vertices---remove vertices from graph}
+\subsection{glp\_remove\_vertices: remove vertices from graph}
 
 [This routine is not implemented yet.]
 
-\subsection{glp\_remove\_arc---remove arc from graph}
+\subsection{glp\_remove\_arc: remove arc from graph}
 
 [This routine is not implemented yet.]
 
-\subsection{glp\_erase\_graph---erase graph content}
+\subsection{glp\_erase\_graph: erase graph content}
 
 \subsubsection*{Synopsis}
 
@@ -355,7 +355,7 @@ with the routine \verb|glp_create_graph|, with exception that the handle
 The parameters \verb|v_size| and \verb|a_size| have the same meaning as
 for the routine \verb|glp_create_graph|.
 
-\subsection{glp\_delete\_graph---delete graph}
+\subsection{glp\_delete\_graph: delete graph}
 
 \subsubsection*{Synopsis}
 
@@ -370,7 +370,7 @@ frees all the memory allocated to this program object.
 
 \newpage
 
-\subsection{glp\_read\_graph---read graph from plain text file}
+\subsection{glp\_read\_graph: read graph from plain text file}
 
 \subsubsection*{Synopsis}
 
@@ -393,7 +393,7 @@ For the file format see description of the routine
 If the operation was successful, the routine returns zero. Otherwise
 it prints an error message and returns non-zero.
 
-\subsection{glp\_write\_graph---write graph to plain text file}
+\subsection{glp\_write\_graph: write graph to plain text file}
 
 \subsubsection*{Synopsis}
 
@@ -443,7 +443,7 @@ where:
 
 \section{Graph analysis routines}
 
-\subsection{glp\_weak\_comp---find all weakly connected components of
+\subsection{glp\_weak\_comp: find all weakly connected components of
 graph}
 
 \subsubsection*{Synopsis}
@@ -470,7 +470,7 @@ $0\leq$ \verb|nc| $\leq|V|$.
 
 The routine returns \verb|nc|, the total number of components found.
 
-\subsection{glp\_strong\_comp---find all strongly connected components
+\subsection{glp\_strong\_comp: find all strongly connected components
 of graph}
 
 \subsubsection*{Synopsis}
@@ -663,7 +663,7 @@ $$\sum_{(i,j)\in A}x_{ij}-\sum_{(j,i)\in A}x_{ji}=b_i\ \ \ \hbox
 $$l_{ij}\leq x_{ij}\leq u_{ij}\ \ \ \hbox{for all}\ (i,j)\in A
 \eqno(3)$$
 
-\subsection{glp\_read\_mincost---read minimum cost flow problem\\data
+\subsection{glp\_read\_mincost: read minimum cost flow problem\\data
 in DIMACS format}
 
 \subsubsection*{Synopsis}
@@ -747,6 +747,7 @@ material is based on the paper ``The First DIMACS International
 Algorithm Implementation Challenge: Problem Definitions and
 Specifications'', which is publically available at
 {\tt http://dimacs.rutgers.edu/Challenges/}.}}
+\label{subsecmincost}
 
 The DIMACS input file is a plain ASCII text file. It contains
 {\it lines} of several types described below. A line is terminated with
@@ -854,7 +855,7 @@ c eof
 
 \newpage
 
-\subsection{glp\_write\_mincost---write minimum cost flow problem\\data
+\subsection{glp\_write\_mincost: write minimum cost flow problem\\data
 in DIMACS format}
 
 \subsubsection*{Synopsis}
@@ -906,7 +907,7 @@ it prints an error message and returns non-zero.
 
 \newpage
 
-\subsection{glp\_mincost\_lp---convert minimum cost flow problem\\to LP}
+\subsection{glp\_mincost\_lp: convert minimum cost flow problem\\to LP}
 
 \subsubsection*{Synopsis}
 
@@ -1027,7 +1028,7 @@ Bounds
 End
 \end{verbatim}
 
-\subsection{glp\_mincost\_okalg---solve minimum cost flow problem with
+\subsection{glp\_mincost\_okalg: solve minimum cost flow problem with
 out-of-kilter algorithm}
 
 \subsubsection*{Synopsis}
@@ -1233,7 +1234,7 @@ node 9:    pi =   -23
 
 \newpage
 
-\subsection{glp\_netgen---Klingman's network problem generator}
+\subsection{glp\_netgen: Klingman's network problem generator}
 
 \subsubsection*{Synopsis}
 
@@ -1320,7 +1321,7 @@ If the instance was successfully generated, the routine
 \verb|glp_netgen| returns zero; otherwise, if specified parameters are
 inconsistent, the routine returns a non-zero error code.
 
-\subsection{glp\_gridgen---grid-like network problem generator}
+\subsection{glp\_gridgen: grid-like network problem generator}
 
 \subsubsection*{Synopsis}
 
@@ -1527,7 +1528,7 @@ $$
 $$0\leq x_{ij}\leq u_{ij}\ \ \ \hbox{for all}\ (i,j)\in A
 \eqno(9)$$
 
-\subsection{glp\_read\_maxflow---read maximum flow problem data\\in
+\subsection{glp\_read\_maxflow: read maximum flow problem data\\in
 DIMACS format}
 
 \subsubsection*{Synopsis}
@@ -1596,6 +1597,7 @@ material is based on the paper ``The First DIMACS International
 Algorithm Implementation Challenge: Problem Definitions and
 Specifications'', which is publically available at
 {\tt http://dimacs.rutgers.edu/Challenges/}.}}
+\label{subsecmaxflow}
 
 The DIMACS input file is a plain ASCII text file. It contains
 {\it lines} of several types described below. A line is terminated with
@@ -1701,7 +1703,7 @@ c eof
 
 \newpage
 
-\subsection{glp\_write\_maxflow---write maximum flow problem data\\
+\subsection{glp\_write\_maxflow: write maximum flow problem data\\
 in DIMACS format}
 
 \subsubsection*{Synopsis}
@@ -1740,7 +1742,7 @@ automatic compression on writing it.)
 If the operation was successful, the routine returns zero. Otherwise,
 it prints an error message and returns non-zero.
 
-\subsection{glp\_maxflow\_lp---convert maximum flow problem to LP}
+\subsection{glp\_maxflow\_lp: convert maximum flow problem to LP}
 
 \subsubsection*{Synopsis}
 
@@ -1844,7 +1846,7 @@ End
 
 \newpage
 
-\subsection{glp\_maxflow\_ffalg---solve maximum flow problem with
+\subsection{glp\_maxflow\_ffalg: solve maximum flow problem with
 Ford-Fulkerson algorithm}
 
 \subsubsection*{Synopsis}
@@ -1981,7 +1983,7 @@ x[8->9] =    18 (0)
 
 \newpage
 
-\subsection{glp\_rmfgen---Goldfarb's maximum flow problem generator}
+\subsection{glp\_rmfgen: Goldfarb's maximum flow problem generator}
 
 \subsubsection*{Synopsis}
 

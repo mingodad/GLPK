@@ -93,7 +93,7 @@ option should be passed to the configure script.
    ODBC and MySQL shared libraries (see below).
 
    For details about the GNU shared library support see the manual at
-   <http://www.gnu.org/software/libtool/manual.html>.
+   <http://www.gnu.org/software/libtool/manual/>.
 
 --enable-odbc        Enable using ODBC table driver (libiodbc)
 --enable-odbc=unix   Enable using ODBC table driver (libodbc)

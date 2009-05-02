@@ -237,11 +237,11 @@ static double randy(struct csa *csa);
 static void select_source_sinks(struct csa *csa);
 static int uniform(struct csa *csa, double a[2]);
 
-int glp_gridgen(glp_graph *_G, int _v_rhs, int _a_cap, int _a_cost,
+int glp_gridgen(glp_graph *G_, int _v_rhs, int _a_cap, int _a_cost,
       const int parm[1+14])
 {     struct csa _csa, *csa = &_csa;
       int n, ret;
-      G = _G;
+      G = G_;
       v_rhs = _v_rhs;
       a_cap = _a_cap;
       a_cost = _a_cost;

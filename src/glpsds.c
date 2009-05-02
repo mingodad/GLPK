@@ -41,7 +41,7 @@ struct _glp_data
       /* current data item */
 };
 
-#define _GLP_DATA
+#define GLP_DATA
 #include "glpapi.h"
 
 static void next_char(_glp_data *data);

@@ -1,3 +1,8 @@
+Xypron <xypron.glpk@gmx.de> for testing GLPK on 64-bit platforms and
+for maintaining Windows versions of the package.
+
+Nelson H. F. Beebe <beebe@math.utah.edu> for bug report.
+
 Larry D'Agostino <Larry.D'Agostino@gmacrescap.com> for example model in
 MathProg.
 

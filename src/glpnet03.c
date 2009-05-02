@@ -159,14 +159,14 @@ static void assign(struct csa *csa);
 static void setran(struct csa *csa, int iseed);
 static int iran(struct csa *csa, int ilow, int ihigh);
 
-int glp_netgen(glp_graph *_G, int _v_rhs, int _a_cap, int _a_cost,
+int glp_netgen(glp_graph *G_, int _v_rhs, int _a_cap, int _a_cost,
       const int parm[1+15])
 {     struct csa _csa, *csa = &_csa;
       int iseed, nprob, ntsorc, ntsink, iphic, i, nskel, nltr, ltsink,
          ntrans, npsink, nftr, npsorc, ntravl, ntrrem, lsorc, lpick,
          nsksr, nsrchn, j, item, l, ks, k, ksp, li, n, ii, it, ih, icap,
          jcap, icost, jcost, ret;
-      G = _G;
+      G = G_;
       v_rhs = _v_rhs;
       a_cap = _a_cap;
       a_cost = _a_cost;

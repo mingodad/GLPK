@@ -58,22 +58,25 @@ am_libglpk_la_OBJECTS = glpapi01.lo glpapi02.lo glpapi03.lo \
 	glpapi04.lo glpapi05.lo glpapi06.lo glpapi07.lo glpapi08.lo \
 	glpapi09.lo glpapi10.lo glpapi11.lo glpapi12.lo glpapi13.lo \
 	glpapi14.lo glpapi15.lo glpapi16.lo glpapi17.lo glpapi18.lo \
-	glpapi19.lo glpapi20.lo glpapi21.lo glpavl.lo glpbfd.lo \
-	glpbfx.lo glpcpx.lo glpdmp.lo glpdmx.lo glpfhv.lo glpgmp.lo \
-	glphbm.lo glpini01.lo glpini02.lo glpios01.lo glpios02.lo \
-	glpios03.lo glpios04.lo glpios05.lo glpios06.lo glpios07.lo \
-	glpios08.lo glpios09.lo glpios10.lo glpipm.lo glpipp01.lo \
-	glpipp02.lo glplib01.lo glplib02.lo glplib03.lo glplib04.lo \
-	glplib05.lo glplib06.lo glplib07.lo glplib08.lo glplib09.lo \
-	glplib10.lo glplib11.lo glplib12.lo glplpf.lo glplpp01.lo \
-	glplpp02.lo glplpx01.lo glplpx02.lo glplpx03.lo glplpx04.lo \
-	glplpx05.lo glpluf.lo glplux.lo glpmat.lo glpmpl01.lo \
-	glpmpl02.lo glpmpl03.lo glpmpl04.lo glpmpl05.lo glpmpl06.lo \
-	glpmps01.lo glpmps02.lo glpnet01.lo glpnet02.lo glpnet03.lo \
-	glpnet04.lo glpnet05.lo glpnet06.lo glpnet07.lo glpqmd.lo \
+	glpapi19.lo glpapi20.lo glpavl.lo glpbfd.lo glpbfx.lo \
+	glpcpx.lo glpdmp.lo glpdmx.lo glpfhv.lo glpgmp.lo glphbm.lo \
+	glpini01.lo glpini02.lo glpios01.lo glpios02.lo glpios03.lo \
+	glpios04.lo glpios05.lo glpios06.lo glpios07.lo glpios08.lo \
+	glpios09.lo glpios10.lo glpipm.lo glpipp01.lo glpipp02.lo \
+	glplib01.lo glplib02.lo glplib03.lo glplib04.lo glplib05.lo \
+	glplib06.lo glplib07.lo glplib08.lo glplib09.lo glplib10.lo \
+	glplib11.lo glplib12.lo glplpf.lo glplpp01.lo glplpp02.lo \
+	glplpx01.lo glplpx02.lo glplpx03.lo glplpx04.lo glplpx05.lo \
+	glpluf.lo glplux.lo glpmat.lo glpmpl01.lo glpmpl02.lo \
+	glpmpl03.lo glpmpl04.lo glpmpl05.lo glpmpl06.lo glpmps.lo \
+	glpnet01.lo glpnet02.lo glpnet03.lo glpnet04.lo glpnet05.lo \
+	glpnet06.lo glpnet07.lo glpnpp01.lo glpnpp02.lo glpqmd.lo \
 	glprgr.lo glprng01.lo glprng02.lo glpscf.lo glpscg.lo \
 	glpscl.lo glpsds.lo glpspm.lo glpspx01.lo glpspx02.lo \
-	glpsql.lo glpssx01.lo glpssx02.lo glptsp.lo
+	glpsql.lo glpssx01.lo glpssx02.lo glptsp.lo amd_1.lo amd_2.lo \
+	amd_aat.lo amd_control.lo amd_defaults.lo amd_dump.lo \
+	amd_info.lo amd_order.lo amd_post_tree.lo amd_postorder.lo \
+	amd_preprocess.lo amd_valid.lo colamd.lo
 libglpk_la_OBJECTS = $(am_libglpk_la_OBJECTS)
 libglpk_la_LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) \
 	$(LIBTOOLFLAGS) --mode=link $(CCLD) $(AM_CFLAGS) $(CFLAGS) \
@@ -213,7 +216,7 @@ top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
 INCLUDES = -I$(srcdir)/../include
 lib_LTLIBRARIES = libglpk.la
-libglpk_la_LDFLAGS = -version-info 22:0:22 \
+libglpk_la_LDFLAGS = -version-info 23:0:23 \
 -export-symbols-regex '^(glp_|_glp_lpx_).*'
 
 libglpk_la_SOURCES = \
@@ -237,7 +240,6 @@ glpapi17.c \
 glpapi18.c \
 glpapi19.c \
 glpapi20.c \
-glpapi21.c \
 glpavl.c \
 glpbfd.c \
 glpbfx.c \
@@ -291,8 +293,7 @@ glpmpl03.c \
 glpmpl04.c \
 glpmpl05.c \
 glpmpl06.c \
-glpmps01.c \
-glpmps02.c \
+glpmps.c \
 glpnet01.c \
 glpnet02.c \
 glpnet03.c \
@@ -300,6 +301,8 @@ glpnet04.c \
 glpnet05.c \
 glpnet06.c \
 glpnet07.c \
+glpnpp01.c \
+glpnpp02.c \
 glpqmd.c \
 glprgr.c \
 glprng01.c \
@@ -314,7 +317,20 @@ glpspx02.c \
 glpsql.c \
 glpssx01.c \
 glpssx02.c \
-glptsp.c
+glptsp.c \
+amd/amd_1.c \
+amd/amd_2.c \
+amd/amd_aat.c \
+amd/amd_control.c \
+amd/amd_defaults.c \
+amd/amd_dump.c \
+amd/amd_info.c \
+amd/amd_order.c \
+amd/amd_post_tree.c \
+amd/amd_postorder.c \
+amd/amd_preprocess.c \
+amd/amd_valid.c \
+colamd/colamd.c
 
 all: all-am
 
@@ -385,6 +401,19 @@ mostlyclean-compile:
 distclean-compile:
 	-rm -f *.tab.c
 
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/amd_1.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/amd_2.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/amd_aat.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/amd_control.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/amd_defaults.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/amd_dump.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/amd_info.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/amd_order.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/amd_post_tree.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/amd_postorder.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/amd_preprocess.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/amd_valid.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/colamd.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/glpapi01.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/glpapi02.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/glpapi03.Plo@am__quote@
@@ -405,7 +434,6 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/glpapi18.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/glpapi19.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/glpapi20.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/glpapi21.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/glpavl.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/glpbfd.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/glpbfx.Plo@am__quote@
@@ -459,8 +487,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/glpmpl04.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/glpmpl05.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/glpmpl06.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/glpmps01.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/glpmps02.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/glpmps.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/glpnet01.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/glpnet02.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/glpnet03.Plo@am__quote@
@@ -468,6 +495,8 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/glpnet05.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/glpnet06.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/glpnet07.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/glpnpp01.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/glpnpp02.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/glpqmd.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/glprgr.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/glprng01.Plo@am__quote@
@@ -504,6 +533,97 @@ distclean-compile:
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	source='$<' object='$@' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(LTCOMPILE) -c -o $@ $<
+
+amd_1.lo: amd/amd_1.c
+@am__fastdepCC_TRUE@	$(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT amd_1.lo -MD -MP -MF $(DEPDIR)/amd_1.Tpo -c -o amd_1.lo `test -f 'amd/amd_1.c' || echo '$(srcdir)/'`amd/amd_1.c
+@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/amd_1.Tpo $(DEPDIR)/amd_1.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='amd/amd_1.c' object='amd_1.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o amd_1.lo `test -f 'amd/amd_1.c' || echo '$(srcdir)/'`amd/amd_1.c
+
+amd_2.lo: amd/amd_2.c
+@am__fastdepCC_TRUE@	$(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT amd_2.lo -MD -MP -MF $(DEPDIR)/amd_2.Tpo -c -o amd_2.lo `test -f 'amd/amd_2.c' || echo '$(srcdir)/'`amd/amd_2.c
+@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/amd_2.Tpo $(DEPDIR)/amd_2.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='amd/amd_2.c' object='amd_2.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o amd_2.lo `test -f 'amd/amd_2.c' || echo '$(srcdir)/'`amd/amd_2.c
+
+amd_aat.lo: amd/amd_aat.c
+@am__fastdepCC_TRUE@	$(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT amd_aat.lo -MD -MP -MF $(DEPDIR)/amd_aat.Tpo -c -o amd_aat.lo `test -f 'amd/amd_aat.c' || echo '$(srcdir)/'`amd/amd_aat.c
+@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/amd_aat.Tpo $(DEPDIR)/amd_aat.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='amd/amd_aat.c' object='amd_aat.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o amd_aat.lo `test -f 'amd/amd_aat.c' || echo '$(srcdir)/'`amd/amd_aat.c
+
+amd_control.lo: amd/amd_control.c
+@am__fastdepCC_TRUE@	$(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT amd_control.lo -MD -MP -MF $(DEPDIR)/amd_control.Tpo -c -o amd_control.lo `test -f 'amd/amd_control.c' || echo '$(srcdir)/'`amd/amd_control.c
+@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/amd_control.Tpo $(DEPDIR)/amd_control.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='amd/amd_control.c' object='amd_control.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o amd_control.lo `test -f 'amd/amd_control.c' || echo '$(srcdir)/'`amd/amd_control.c
+
+amd_defaults.lo: amd/amd_defaults.c
+@am__fastdepCC_TRUE@	$(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT amd_defaults.lo -MD -MP -MF $(DEPDIR)/amd_defaults.Tpo -c -o amd_defaults.lo `test -f 'amd/amd_defaults.c' || echo '$(srcdir)/'`amd/amd_defaults.c
+@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/amd_defaults.Tpo $(DEPDIR)/amd_defaults.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='amd/amd_defaults.c' object='amd_defaults.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o amd_defaults.lo `test -f 'amd/amd_defaults.c' || echo '$(srcdir)/'`amd/amd_defaults.c
+
+amd_dump.lo: amd/amd_dump.c
+@am__fastdepCC_TRUE@	$(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT amd_dump.lo -MD -MP -MF $(DEPDIR)/amd_dump.Tpo -c -o amd_dump.lo `test -f 'amd/amd_dump.c' || echo '$(srcdir)/'`amd/amd_dump.c
+@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/amd_dump.Tpo $(DEPDIR)/amd_dump.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='amd/amd_dump.c' object='amd_dump.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o amd_dump.lo `test -f 'amd/amd_dump.c' || echo '$(srcdir)/'`amd/amd_dump.c
+
+amd_info.lo: amd/amd_info.c
+@am__fastdepCC_TRUE@	$(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT amd_info.lo -MD -MP -MF $(DEPDIR)/amd_info.Tpo -c -o amd_info.lo `test -f 'amd/amd_info.c' || echo '$(srcdir)/'`amd/amd_info.c
+@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/amd_info.Tpo $(DEPDIR)/amd_info.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='amd/amd_info.c' object='amd_info.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o amd_info.lo `test -f 'amd/amd_info.c' || echo '$(srcdir)/'`amd/amd_info.c
+
+amd_order.lo: amd/amd_order.c
+@am__fastdepCC_TRUE@	$(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT amd_order.lo -MD -MP -MF $(DEPDIR)/amd_order.Tpo -c -o amd_order.lo `test -f 'amd/amd_order.c' || echo '$(srcdir)/'`amd/amd_order.c
+@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/amd_order.Tpo $(DEPDIR)/amd_order.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='amd/amd_order.c' object='amd_order.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o amd_order.lo `test -f 'amd/amd_order.c' || echo '$(srcdir)/'`amd/amd_order.c
+
+amd_post_tree.lo: amd/amd_post_tree.c
+@am__fastdepCC_TRUE@	$(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT amd_post_tree.lo -MD -MP -MF $(DEPDIR)/amd_post_tree.Tpo -c -o amd_post_tree.lo `test -f 'amd/amd_post_tree.c' || echo '$(srcdir)/'`amd/amd_post_tree.c
+@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/amd_post_tree.Tpo $(DEPDIR)/amd_post_tree.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='amd/amd_post_tree.c' object='amd_post_tree.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o amd_post_tree.lo `test -f 'amd/amd_post_tree.c' || echo '$(srcdir)/'`amd/amd_post_tree.c
+
+amd_postorder.lo: amd/amd_postorder.c
+@am__fastdepCC_TRUE@	$(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT amd_postorder.lo -MD -MP -MF $(DEPDIR)/amd_postorder.Tpo -c -o amd_postorder.lo `test -f 'amd/amd_postorder.c' || echo '$(srcdir)/'`amd/amd_postorder.c
+@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/amd_postorder.Tpo $(DEPDIR)/amd_postorder.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='amd/amd_postorder.c' object='amd_postorder.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o amd_postorder.lo `test -f 'amd/amd_postorder.c' || echo '$(srcdir)/'`amd/amd_postorder.c
+
+amd_preprocess.lo: amd/amd_preprocess.c
+@am__fastdepCC_TRUE@	$(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT amd_preprocess.lo -MD -MP -MF $(DEPDIR)/amd_preprocess.Tpo -c -o amd_preprocess.lo `test -f 'amd/amd_preprocess.c' || echo '$(srcdir)/'`amd/amd_preprocess.c
+@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/amd_preprocess.Tpo $(DEPDIR)/amd_preprocess.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='amd/amd_preprocess.c' object='amd_preprocess.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o amd_preprocess.lo `test -f 'amd/amd_preprocess.c' || echo '$(srcdir)/'`amd/amd_preprocess.c
+
+amd_valid.lo: amd/amd_valid.c
+@am__fastdepCC_TRUE@	$(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT amd_valid.lo -MD -MP -MF $(DEPDIR)/amd_valid.Tpo -c -o amd_valid.lo `test -f 'amd/amd_valid.c' || echo '$(srcdir)/'`amd/amd_valid.c
+@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/amd_valid.Tpo $(DEPDIR)/amd_valid.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='amd/amd_valid.c' object='amd_valid.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o amd_valid.lo `test -f 'amd/amd_valid.c' || echo '$(srcdir)/'`amd/amd_valid.c
+
+colamd.lo: colamd/colamd.c
+@am__fastdepCC_TRUE@	$(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT colamd.lo -MD -MP -MF $(DEPDIR)/colamd.Tpo -c -o colamd.lo `test -f 'colamd/colamd.c' || echo '$(srcdir)/'`colamd/colamd.c
+@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/colamd.Tpo $(DEPDIR)/colamd.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='colamd/colamd.c' object='colamd.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o colamd.lo `test -f 'colamd/colamd.c' || echo '$(srcdir)/'`colamd/colamd.c
 
 mostlyclean-libtool:
 	-rm -f *.lo

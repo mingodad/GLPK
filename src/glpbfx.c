@@ -22,7 +22,7 @@
 ***********************************************************************/
 
 typedef struct BFX BFX;
-#define _GLPBFX_DEFINED
+#define GLPBFX_DEFINED
 #include "glpbfx.h"
 #include "glplib.h"
 #include "glplux.h"

@@ -21,7 +21,7 @@
 *  along with GLPK. If not, see <http://www.gnu.org/licenses/>.
 ***********************************************************************/
 
-#define _GLPBFD_PRIVATE
+#define GLPBFD_PRIVATE
 #include "glpbfd.h"
 #include "glplib.h"
 #define xfault xerror

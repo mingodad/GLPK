@@ -1,3 +1,21 @@
+GLPK 4.38 (release date: May 02, 2009)
+
+        API routines glp_read_mps and glp_write_mps were improved.
+
+        Some improvements were made in the dual simplex routines.
+
+        Two external software modules AMD and COLAMD were included in
+        the distribution (for more details please see src/amd/README
+        and src/colamd/README). Now they are used in the interior-point
+        solver to reorder the matrix prior to Cholesky factorization.
+
+        API routine glp_ipt_status may return two new statuses due to
+        changes in the routine glp_interior. For details please see the
+        reference manual included in the distribution.
+
+        A minor bug was fixed in the graph/network routines. Thanks to
+        Nelson H. F. Beebe <beebe@math.utah.edu> for bug report.
+
 GLPK 4.37 (release date: Mar 29, 2009)
 
         The 0-1 Feasibility Pump heuristic was included in the GLPK

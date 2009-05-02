@@ -28,7 +28,7 @@ int main(void)
       glp_mpl_build_prob(tran, mip);
       glp_simplex(mip, NULL);
       glp_intopt(mip, NULL);
-      ret = glp_mpl_postsolve(tran, mip, GLP_MPL_MIP);
+      ret = glp_mpl_postsolve(tran, mip, GLP_MIP);
       if (ret != 0)
          fprintf(stderr, "Error on postsolving model\n");
 skip: glp_mpl_free_wksp(tran);

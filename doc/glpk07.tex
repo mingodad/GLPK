@@ -4,7 +4,7 @@
 
 \section{Library environment routines}
 
-\subsection{glp\_long---64-bit integer data type}
+\subsection{glp\_long: 64-bit integer data type}
 
 Some GLPK API routines use 64-bit integer data type, which is declared
 in the header \verb|glpk.h| as follows:
@@ -19,7 +19,7 @@ bits of 64-bit integer value.\footnote{GLPK conforms to ILP32, LLP64,
 and LP64 programming models, where the built-in type {\tt int}
 corresponds to 32-bit integers.}
 
-\subsection{glp\_version---determine library version}
+\subsection{glp\_version: determine library version}
 
 \subsubsection*{Synopsis}
 
@@ -34,13 +34,15 @@ character string, which specifies the version of the GLPK library in
 the form \verb|"X.Y"|, where `\verb|X|' is the major version number, and
 `\verb|Y|' is the minor version number, for example, \verb|"4.16"|.
 
+\newpage
+
 \subsubsection*{Example}
 
 \begin{verbatim}
 printf("GLPK version is %s\n", glp_version());
 \end{verbatim}
 
-\subsection{glp\_term\_out---enable/disable terminal output}
+\subsection{glp\_term\_out: enable/disable terminal output}
 
 \subsubsection*{Synopsis}
 
@@ -57,7 +59,7 @@ or disables terminal output performed by glpk routines:
 
 \verb|GLP_OFF|---disable terminal output.
 
-\subsection{glp\_term\_hook---intercept terminal output}
+\subsection{glp\_term\_hook: intercept terminal output}
 
 \subsubsection*{Synopsis}
 
@@ -109,7 +111,7 @@ int main(void)
 }
 \end{verbatim}
 
-\subsection{glp\_mem\_usage---get memory usage information}
+\subsection{glp\_mem\_usage: get memory usage information}
 
 \subsubsection*{Synopsis}
 
@@ -144,7 +146,7 @@ glp_mem_usage(&count, NULL, NULL, NULL);
 printf("%d memory block(s) are still allocated\n", count);
 \end{verbatim}
 
-\subsection{glp\_mem\_limit---set memory usage limit}
+\subsection{glp\_mem\_limit: set memory usage limit}
 
 \subsubsection*{Synopsis}
 
@@ -157,7 +159,7 @@ void glp_mem_limit(int limit);
 The routine \verb|glp_mem_limit| limits the amount of memory available
 for dynamic allocation (in GLPK routines) to \verb|limit| megabytes.
 
-\subsection{glp\_free\_env---free GLPK library environment}
+\subsection{glp\_free\_env: free GLPK library environment}
 
 \subsubsection*{Synopsis}
 

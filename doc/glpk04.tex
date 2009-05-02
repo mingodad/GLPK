@@ -363,7 +363,7 @@ unchanged.
 \section{LP basis routines}
 \label{lpbasis}
 
-\subsection{glp\_bf\_exists---check if the basis factorization exists}
+\subsection{glp\_bf\_exists: check if the basis factorization exists}
 
 \subsubsection*{Synopsis}
 
@@ -415,7 +415,7 @@ factorization exists and therefore available for computations.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\subsection{glp\_factorize---compute the basis factorization}
+\subsection{glp\_factorize: compute the basis factorization}
 
 \subsubsection*{Synopsis}
 
@@ -455,7 +455,7 @@ condition number is too large.\\
 
 \newpage
 
-\subsection{glp\_bf\_updated---check if the basis factorization has\\
+\subsection{glp\_bf\_updated: check if the basis factorization has\\
 been updated}
 
 \subsubsection*{Synopsis}
@@ -495,7 +495,7 @@ factorization has been updated at least once since it was computed from
 
 \newpage
 
-\subsection{glp\_get\_bfcp---retrieve basis factorization control
+\subsection{glp\_get\_bfcp: retrieve basis factorization control
 parameters}
 
 \subsubsection*{Synopsis}
@@ -526,7 +526,7 @@ The second purpose of this routine is to provide proper values for all
 fields of the structure \verb|glp_bfcp| in the case when the application
 program needs to change some control parameters.
 
-\subsection{glp\_set\_bfcp---change basis factorization control
+\subsection{glp\_set\_bfcp: change basis factorization control
 parameters}
 
 \subsubsection*{Synopsis}
@@ -721,7 +721,7 @@ size is determined automatically.\\
 
 \newpage
 
-\subsection{glp\_get\_bhead---retrieve the basis header information}
+\subsection{glp\_get\_bhead: retrieve the basis header information}
 
 \subsubsection*{Synopsis}
 
@@ -777,7 +777,7 @@ problem object.
 
 \newpage
 
-\subsection{glp\_get\_row\_bind---retrieve row index in the basis\\
+\subsection{glp\_get\_row\_bind: retrieve row index in the basis\\
 header}
 
 \subsubsection*{Synopsis}
@@ -801,7 +801,7 @@ The routine \verb|glp_get_row_bind| is an inverse to the routine
 \verb|glp_get_bhead|: if \verb|glp_get_bhead|$(lp,k)$ returns $i$,
 \verb|glp_get_row_bind|$(lp,i)$ returns $k$, and vice versa.
 
-\subsection{glp\_get\_col\_bind---retrieve column index in the basis
+\subsection{glp\_get\_col\_bind: retrieve column index in the basis
 header}
 
 \subsubsection*{Synopsis}
@@ -830,7 +830,7 @@ The routine \verb|glp_get_col_bind| is an inverse to the routine
 
 \newpage
 
-\subsection{glp\_ftran---perform forward transformation}
+\subsection{glp\_ftran: perform forward transformation}
 
 \subsubsection*{Synopsis}
 
@@ -850,7 +850,7 @@ locations \verb|x[1]|, \dots, \verb|x[m]|, where $m$ is the number of
 rows. On exit the routine stores elements of the vector $x$ in the same
 locations.
 
-\subsection{glp\_btran---perform backward transformation}
+\subsection{glp\_btran: perform backward transformation}
 
 \subsubsection*{Synopsis}
 
@@ -875,7 +875,7 @@ locations.
 
 \newpage
 
-\subsection{lpx\_warm\_up---``warm up'' LP basis}
+\subsection{lpx\_warm\_up: ``warm up'' LP basis}
 
 \subsubsection*{Synopsis}
 
@@ -912,7 +912,7 @@ The routine \verb|lpx_warm_up| returns one of the following exit codes:
 
 \section{Simplex tableau routines}
 
-\subsection{glp\_eval\_tab\_row---compute row of the tableau}
+\subsection{glp\_eval\_tab\_row: compute row of the tableau}
 
 \subsubsection*{Synopsis}
 
@@ -976,7 +976,7 @@ corresponds to non-basic variable $(x_N)_j$. The permutation matrix
 $\Pi$ is used again to convert indices $j$ of non-basic columns to
 original ordinal numbers of auxiliary and structural variables.
 
-\subsection{glp\_eval\_tab\_col---compute column of the tableau}
+\subsection{glp\_eval\_tab\_col: compute column of the tableau}
 
 \subsubsection*{Synopsis}
 
@@ -1045,7 +1045,7 @@ auxiliary and structural variables.
 
 \newpage
 
-\subsection{lpx\_transform\_row---transform explicitly specified\\
+\subsection{lpx\_transform\_row: transform explicitly specified\\
 row}
 
 \subsubsection*{Synopsis}
@@ -1097,7 +1097,7 @@ The routine \verb|lpx_transform_row| returns \verb|len'|, the number of
 non-zero coefficients in the resultant row stored in the arrays
 \verb|ind| and \verb|val|.
 
-\subsection{lpx\_transform\_col---transform explicitly specified\\
+\subsection{lpx\_transform\_col: transform explicitly specified\\
 column}
 
 \subsubsection*{Synopsis}
@@ -1164,7 +1164,7 @@ The routine \verb|lpx_transform_col| returns \verb|len'|, the number of
 non-zero coefficients in the resultant column stored in the arrays
 \verb|ind| and \verb|val|.
 
-\subsection{lpx\_prim\_ratio\_test---perform primal ratio test}
+\subsection{lpx\_prim\_ratio\_test: perform primal ratio test}
 
 \subsubsection*{Synopsis}
 
@@ -1232,7 +1232,7 @@ variable $y$ in order to keep primal feasibility. If the adjacent basic
 solution is primal unbounded and therefore the choice cannot be made,
 the routine returns zero.
 
-\subsection{lpx\_dual\_ratio\_test---perform dual ratio test}
+\subsection{lpx\_dual\_ratio\_test: perform dual ratio test}
 
 \subsubsection*{Synopsis}
 

@@ -1,3 +1,43 @@
+Sat May 02 12:00:00 2009 Andrew Makhorin <mao@mai2.rcnet.ru>
+
+        * GLPK 4.38 (23:0:23) has been released
+
+        * glpmps.c
+        API routines to read/write MPS files were re-implemented.
+
+        * glpspx02.c
+        Some improvements were made in the dual simplex routine.
+
+        * glpk.h
+        New structure glp_iptcp was added.
+
+        * glpnpp.h, glpnpp01.c, glpnpp02.c
+        New LP/MIP preprocessor. Currently it includes only some basic
+        routines and used only in the interior-point solver.
+
+        * glpapi08.c
+        API routine glp_interior was replaced by an improved version
+        (new LP/MIP preprocessor, new ordering algorithms).
+
+        New API routine glp_init_iptcp was added.
+
+        API routine glp_ipt_status may return two new statuses due to
+        changes in glp_interior.
+
+        * glpsol.c
+        New command-line options were added (ordering algorithm used in
+        the interior-point solver).
+
+        * amd/*.*, colamd/*.*
+        Two external software modules AMD and COLAMD/SYMAMD used in the
+        interior-point solver were included in the distribution.
+
+        For details see amd/README and colamd/README.
+
+        * glpnet03.c, glpnet04.c, glpnet05.c
+        A minor bug was fixed (_G => G_). Thanks to Nelson H. F. Beebe
+        <beebe@math.utah.edu> for bug report.
+
 Sun Mar 29 12:00:00 2009 Andrew Makhorin <mao@mai2.rcnet.ru>
 
         * GLPK 4.37 (22:0:22) has been released

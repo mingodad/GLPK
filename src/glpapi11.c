@@ -414,7 +414,9 @@ int glp_print_ipt(glp_prob *P, const char *fname)
       t = glp_ipt_status(P);
       xfprintf(fp, "%-12s%s\n", "Status:",
          t == GLP_OPT    ? "OPTIMAL" :
-         t == GLP_UNDEF  ? "UNDEFINED" : "???");
+         t == GLP_UNDEF  ? "UNDEFINED" :
+         t == GLP_INFEAS ? "INFEASIBLE (INTERMEDIATE)" :
+         t == GLP_NOFEAS ? "INFEASIBLE (FINAL)" : "???");
       xfprintf(fp, "%-12s%s%s%.10g (%s)\n", "Objective:",
          P->obj == NULL ? "" : P->obj,
          P->obj == NULL ? "" : " = ", P->ipt_obj,

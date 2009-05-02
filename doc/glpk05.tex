@@ -471,8 +471,8 @@ in this case.
 
 \section{Basic routines}
 
-\subsection{glp\_ios\_reason---determine reason for calling the
-callback routine}
+\subsection{glp\_ios\_reason: determine reason for calling the callback
+routine}
 
 \subsubsection*{Synopsis}
 
@@ -499,7 +499,7 @@ the user-defined callback routine is being called:
 
 \verb|GLP_IBINGO |---better integer solution found.
 
-\subsection{glp\_ios\_get\_prob---access the problem object}
+\subsection{glp\_ios\_get\_prob: access the problem object}
 
 \subsubsection*{Synopsis}
 
@@ -529,7 +529,7 @@ original problem object passed to the routine \verb|glp_intopt| if the
 MIP presolver is not used; otherwise it is an internal problem object
 built by the presolver.
 
-\subsection{glp\_ios\_row\_attr---determine additional row attributes}
+\subsection{glp\_ios\_row\_attr: determine additional row attributes}
 
 \subsubsection*{Synopsis}
 
@@ -581,7 +581,7 @@ following:\\
 
 \newpage
 
-\subsection{glp\_ios\_mip\_gap---compute relative MIP gap}
+\subsection{glp\_ios\_mip\_gap: compute relative MIP gap}
 
 \subsubsection*{Synopsis}
 
@@ -618,7 +618,7 @@ routine \verb|glp_ios_mip_gap| should be multiplied by 100\%.
 
 \newpage
 
-\subsection{glp\_ios\_node\_data---access application-specific data}
+\subsection{glp\_ios\_node\_data: access application-specific data}
 
 \subsubsection*{Synopsis}
 
@@ -646,8 +646,8 @@ The routine \verb|glp_ios_node_data| returns a pointer to the memory
 block for the specified subproblem. Note that if \verb|cb_size| = 0, the
 routine returns a null pointer.
 
-\subsection{glp\_ios\_select\_node---select subproblem to continue
-the search}
+\subsection{glp\_ios\_select\_node: select subproblem to continue the
+search}
 
 \subsubsection*{Synopsis}
 
@@ -665,7 +665,7 @@ selected.
 
 \newpage
 
-\subsection{glp\_ios\_heur\_sol---provide solution found by heuristic}
+\subsection{glp\_ios\_heur\_sol: provide solution found by heuristic}
 
 \subsubsection*{Synopsis}
 
@@ -697,7 +697,7 @@ If the provided solution is accepted, the routine
 \verb|glp_ios_heur_sol| returns zero. Otherwise, if the provided
 solution is rejected, the routine returns non-zero.
 
-\subsection{glp\_ios\_can\_branch---check if can branch upon specified
+\subsection{glp\_ios\_can\_branch: check if can branch upon specified
 variable}
 
 \subsubsection*{Synopsis}
@@ -713,7 +713,7 @@ returns non-zero, otherwise zero.
 
 \newpage
 
-\subsection{glp\_ios\_branch\_upon---choose variable to branch upon}
+\subsection{glp\_ios\_branch\_upon: choose variable to branch upon}
 
 \subsubsection*{Synopsis}
 
@@ -762,7 +762,7 @@ is selected, a general selection technique will be used.
 
 \newpage
 
-\subsection{glp\_ios\_terminate---terminate the solution process}
+\subsection{glp\_ios\_terminate: terminate the solution process}
 
 \subsubsection*{Synopsis}
 
@@ -781,7 +781,7 @@ MIP solver should prematurely terminate the search.
 
 \section{The search tree exploring routines}
 
-\subsection{glp\_ios\_tree\_size---determine size of the search tree}
+\subsection{glp\_ios\_tree\_size: determine size of the search tree}
 
 \subsubsection*{Synopsis}
 
@@ -807,8 +807,8 @@ a new node appears in the tree and never decreased.
 If some of the parameters \verb|a_cnt|, \verb|n_cnt|, \verb|t_cnt| is
 a null pointer, the corresponding count is not stored.
 
-\subsection{glp\_ios\_curr\_node---determine current active
-subproblem}
+\subsection{glp\_ios\_curr\_node: determine current active subprob-\\
+lem}
 
 \subsubsection*{Synopsis}
 
@@ -824,7 +824,7 @@ exist, the routine returns zero.
 
 \newpage
 
-\subsection{glp\_ios\_next\_node---determine next active subproblem}
+\subsection{glp\_ios\_next\_node: determine next active subproblem}
 
 \subsubsection*{Synopsis}
 
@@ -846,8 +846,7 @@ no next active subproblem in the list, zero is returned.
 All subproblems in the active list are ordered chronologically, i.e.
 subproblem $A$ precedes subproblem $B$ if $A$ was created before $B$.
 
-\subsection{glp\_ios\_prev\_node---determine previous active
-subproblem}
+\subsection{glp\_ios\_prev\_node: determine previous active subproblem}
 
 \subsubsection*{Synopsis}
 
@@ -871,7 +870,7 @@ subproblem $A$ precedes subproblem $B$ if $A$ was created before $B$.
 
 \newpage
 
-\subsection{glp\_ios\_up\_node---determine parent subproblem}
+\subsection{glp\_ios\_up\_node: determine parent subproblem}
 
 \subsubsection*{Synopsis}
 
@@ -887,7 +886,7 @@ returns the reference number of its parent subproblem. However, if the
 specified subproblem is the root of the tree and, therefore, has
 no parent, the routine returns zero.
 
-\subsection{glp\_ios\_node\_level---determine subproblem level}
+\subsection{glp\_ios\_node\_level: determine subproblem level}
 
 \subsubsection*{Synopsis}
 
@@ -902,7 +901,7 @@ subproblem,\linebreak whose reference number is $p$, in the
 branch-and-bound tree. (The root subproblem has level 0, and the level
 of any other subproblem is the level of its parent plus one.)
 
-\subsection{glp\_ios\_node\_bound---determine subproblem local\\bound}
+\subsection{glp\_ios\_node\_bound: determine subproblem local\\bound}
 
 \subsubsection*{Synopsis}
 
@@ -932,8 +931,8 @@ then improved as the root LP relaxation has been solved.
 Note that the local bound is not necessarily the optimal objective value
 to corresponding LP relaxation.
 
-\subsection{glp\_ios\_best\_node---find active subproblem with best
-local bound}
+\subsection{glp\_ios\_best\_node: find active subproblem with best local
+bound}
 
 \subsubsection*{Synopsis}
 
@@ -959,7 +958,7 @@ bound for integer optimal solution to the original MIP problem.
 
 \section{The cut pool routines}
 
-\subsection{glp\_ios\_pool\_size---determine current size of the cut\\
+\subsection{glp\_ios\_pool\_size: determine current size of the cut\\
 pool}
 
 \subsubsection*{Synopsis}
@@ -974,7 +973,7 @@ The routine \verb|glp_ios_pool_size| returns the current size of the
 cut pool, that is, the number of cutting plane constraints currently
 added to it.
 
-\subsection{glp\_ios\_add\_row---add constraint to the cut pool}
+\subsection{glp\_ios\_add\_row: add constraint to the cut pool}
 
 \subsubsection*{Synopsis}
 
@@ -1067,7 +1066,7 @@ the cut pool is empty. On the other hand, the solver itself can generate
 cutting plane constraints (like Gomory's or mixed integer rounding
 cuts), in which case the cut pool may be non-empty.
 
-\subsection{glp\_ios\_del\_row---remove constraint from the cut pool}
+\subsection{glp\_ios\_del\_row: remove constraint from the cut pool}
 
 \subsubsection*{Synopsis}
 
@@ -1106,8 +1105,8 @@ while (glp_ios_pool_size(tree) > 10)
 
 \newpage
 
-\subsection{glp\_ios\_clear\_pool---remove all constraints from the
-cut pool}
+\subsection{glp\_ios\_clear\_pool: remove all constraints from the cut
+pool}
 
 \subsubsection*{Synopsis}
 

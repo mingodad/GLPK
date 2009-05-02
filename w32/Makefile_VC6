@@ -1,6 +1,7 @@
 # Build GLPK with Microsoft Visual C++ 6.0
 
-CFLAGS = /I. /DHAVE_CONFIG_H /nologo /W3 /O2
+CFLAGS = /I. /I..\include /I..\src /I..\src\amd /I..\src\colamd \
+        /DHAVE_CONFIG_H /nologo /W3 /O2
 
 OBJSET = \
 ..\src\glpapi01.obj \
@@ -23,7 +24,6 @@ OBJSET = \
 ..\src\glpapi18.obj \
 ..\src\glpapi19.obj \
 ..\src\glpapi20.obj \
-..\src\glpapi21.obj \
 ..\src\glpavl.obj \
 ..\src\glpbfd.obj \
 ..\src\glpbfx.obj \
@@ -77,8 +77,7 @@ OBJSET = \
 ..\src\glpmpl04.obj \
 ..\src\glpmpl05.obj \
 ..\src\glpmpl06.obj \
-..\src\glpmps01.obj \
-..\src\glpmps02.obj \
+..\src\glpmps.obj \
 ..\src\glpnet01.obj \
 ..\src\glpnet02.obj \
 ..\src\glpnet03.obj \
@@ -86,6 +85,8 @@ OBJSET = \
 ..\src\glpnet05.obj \
 ..\src\glpnet06.obj \
 ..\src\glpnet07.obj \
+..\src\glpnpp01.obj \
+..\src\glpnpp02.obj \
 ..\src\glpqmd.obj \
 ..\src\glprgr.obj \
 ..\src\glprng01.obj \
@@ -100,18 +101,33 @@ OBJSET = \
 ..\src\glpsql.obj \
 ..\src\glpssx01.obj \
 ..\src\glpssx02.obj \
-..\src\glptsp.obj
+..\src\glptsp.obj \
+..\src\amd\amd_1.obj \
+..\src\amd\amd_2.obj \
+..\src\amd\amd_aat.obj \
+..\src\amd\amd_control.obj \
+..\src\amd\amd_defaults.obj \
+..\src\amd\amd_dump.obj \
+..\src\amd\amd_info.obj \
+..\src\amd\amd_order.obj \
+..\src\amd\amd_post_tree.obj \
+..\src\amd\amd_postorder.obj \
+..\src\amd\amd_preprocess.obj \
+..\src\amd\amd_valid.obj \
+..\src\colamd\colamd.obj
 
 .c.obj:
-        cl.exe $(CFLAGS) /I..\include /Fo$*.obj /c $*.c
+        cl.exe $(CFLAGS) /Fo$*.obj /c $*.c
 
 all: glpk.lib glpsol.exe
 
 glpk.lib: $(OBJSET)
-        lib.exe /out:glpk.lib ..\src\*.obj
+        lib.exe /out:glpk.lib ..\src\*.obj ..\src\amd\*.obj \
+                ..\src\colamd\*.obj
 
 glpsol.exe: ..\examples\glpsol.obj glpk.lib
-        cl.exe $(CFLAGS) /Feglpsol.exe ..\examples\glpsol.obj glpk.lib
+        cl.exe $(CFLAGS) /Feglpsol.exe ..\examples\glpsol.obj \
+                glpk.lib
 
 check: glpsol.exe
         .\glpsol.exe --mps ..\examples\plan.mps

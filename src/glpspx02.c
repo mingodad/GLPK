@@ -23,6 +23,12 @@
 
 #include "glpspx.h"
 
+#define GLP_DEBUG 1
+
+#if 0
+#define GLP_LONG_STEP 1
+#endif
+
 struct csa
 {     /* common storage area */
       /*--------------------------------------------------------------*/
@@ -80,6 +86,19 @@ struct csa
       /* row indices */
       double *A_val; /* double A_val[A_ptr[n+1]]; */
       /* non-zero element values */
+#if 1 /* 06/IV-2009 */
+      /* constraint matrix A stored by rows */
+      int *AT_ptr; /* int AT_ptr[1+m+1];
+      /* AT_ptr[0] is not used;
+         AT_ptr[i], 1 <= i <= m, is starting position of i-th row in
+         arrays AT_ind and AT_val; note that AT_ptr[1] is always 1;
+         AT_ptr[m+1] indicates the position after the last element in
+         arrays AT_ind and AT_val */
+      int *AT_ind; /* int AT_ind[AT_ptr[m+1]]; */
+      /* column indices */
+      double *AT_val; /* double AT_val[AT_ptr[m+1]]; */
+      /* non-zero element values */
+#endif
       /*--------------------------------------------------------------*/
       /* basis header */
       int *head; /* int head[1+m+n]; */
@@ -90,6 +109,13 @@ struct csa
          head[m+j], 1 <= j <= n, is the ordinal number of non-basic
          variable xN[j]; head[m+j] = k means that xN[j] = x[k] and j-th
          column of matrix N is k-th column of matrix (I|-A) */
+#if 1 /* 06/IV-2009 */
+      int *bind; /* int bind[1+m+n]; */
+      /* bind[0] is not used;
+         bind[k], 1 <= k <= m+n, is the position of k-th column of the
+         matrix (I|-A) in the matrix (B|N); that is, bind[k] = k' means
+         that head[k'] = k */
+#endif
       char *stat; /* char stat[1+n]; */
       /* stat[0] is not used;
          stat[j], 1 <= j <= n, is the status of non-basic variable
@@ -106,6 +132,7 @@ struct csa
       /* factorization is valid only if this flag is set */
       BFD *bfd; /* BFD bfd[1:m,1:m]; */
       /* factorized (invertable) form of the basis matrix */
+#if 0 /* 06/IV-2009 */
       /*--------------------------------------------------------------*/
       /* matrix N is a matrix composed from columns of the augmented
          constraint matrix (I|-A) corresponding to non-basic variables
@@ -124,6 +151,7 @@ struct csa
       /* column indices */
       double *N_val; /* double N_val[N_ptr[m+1]]; */
       /* non-zero element values */
+#endif
       /*--------------------------------------------------------------*/
       /* working parameters */
       int phase;
@@ -210,6 +238,22 @@ struct csa
          |tcol_vec[j]| <  eps for j in trow_ind[num+1,...,nnz],
          where eps is a pivot tolerance */
       /*--------------------------------------------------------------*/
+#ifdef GLP_LONG_STEP /* 07/IV-2009 */
+      int nbps;
+      /* number of breakpoints, 0 <= nbps <= n */
+      struct bkpt
+      {     int j;
+            /* index of non-basic variable xN[j], 1 <= j <= n */
+            double t;
+            /* value of dual ray parameter at breakpoint, t >= 0 */
+            double dz;
+            /* dz = zeta(t = t[k]) - zeta(t = 0) */
+      } *bkpt; /* struct bkpt bkpt[1+n]; */
+      /* bkpt[0] is not used;
+         bkpt[k], 1 <= k <= nbps, is k-th breakpoint of the dual
+         objective */
+#endif
+      /*--------------------------------------------------------------*/
       /* non-basic variable xN[q] chosen to enter the basis */
       int q;
       /* index of the non-basic variable xN[q] chosen, 1 <= q <= n;
@@ -269,18 +313,31 @@ static struct csa *alloc_csa(glp_prob *lp)
       csa->A_ptr = xcalloc(1+n+1, sizeof(int));
       csa->A_ind = xcalloc(1+nnz, sizeof(int));
       csa->A_val = xcalloc(1+nnz, sizeof(double));
+#if 1 /* 06/IV-2009 */
+      csa->AT_ptr = xcalloc(1+m+1, sizeof(int));
+      csa->AT_ind = xcalloc(1+nnz, sizeof(int));
+      csa->AT_val = xcalloc(1+nnz, sizeof(double));
+#endif
       csa->head = xcalloc(1+m+n, sizeof(int));
+#if 1 /* 06/IV-2009 */
+      csa->bind = xcalloc(1+m+n, sizeof(int));
+#endif
       csa->stat = xcalloc(1+n, sizeof(char));
+#if 0 /* 06/IV-2009 */
       csa->N_ptr = xcalloc(1+m+1, sizeof(int));
       csa->N_len = xcalloc(1+m, sizeof(int));
       csa->N_ind = NULL; /* will be allocated later */
       csa->N_val = NULL; /* will be allocated later */
+#endif
       csa->bbar = xcalloc(1+m, sizeof(double));
       csa->cbar = xcalloc(1+n, sizeof(double));
       csa->refsp = xcalloc(1+m+n, sizeof(char));
       csa->gamma = xcalloc(1+m, sizeof(double));
       csa->trow_ind = xcalloc(1+n, sizeof(int));
       csa->trow_vec = xcalloc(1+n, sizeof(double));
+#ifdef GLP_LONG_STEP /* 07/IV-2009 */
+      csa->bkpt = xcalloc(1+n, sizeof(struct bkpt));
+#endif
       csa->tcol_ind = xcalloc(1+m, sizeof(int));
       csa->tcol_vec = xcalloc(1+m, sizeof(double));
       csa->work1 = xcalloc(1+m, sizeof(double));
@@ -296,9 +353,6 @@ static struct csa *alloc_csa(glp_prob *lp)
 *  This routine initializes all data structures in the common storage
 *  area (CSA). */
 
-static void alloc_N(struct csa *csa);
-static void build_N(struct csa *csa);
-
 static void init_csa(struct csa *csa, glp_prob *lp)
 {     int m = csa->m;
       int n = csa->n;
@@ -313,7 +367,15 @@ static void init_csa(struct csa *csa, glp_prob *lp)
       int *A_ptr = csa->A_ptr;
       int *A_ind = csa->A_ind;
       double *A_val = csa->A_val;
+#if 1 /* 06/IV-2009 */
+      int *AT_ptr = csa->AT_ptr;
+      int *AT_ind = csa->AT_ind;
+      double *AT_val = csa->AT_val;
+#endif
       int *head = csa->head;
+#if 1 /* 06/IV-2009 */
+      int *bind = csa->bind;
+#endif
       char *stat = csa->stat;
       char *refsp = csa->refsp;
       double *gamma = csa->gamma;
@@ -374,7 +436,22 @@ static void init_csa(struct csa *csa, glp_prob *lp)
          }
       }
       A_ptr[n+1] = loc;
-      xassert(loc == lp->nnz+1);
+      xassert(loc-1 == lp->nnz);
+#if 1 /* 06/IV-2009 */
+      /* matrix A (by rows) */
+      loc = 1;
+      for (i = 1; i <= m; i++)
+      {  GLPAIJ *aij;
+         AT_ptr[i] = loc;
+         for (aij = lp->row[i]->ptr; aij != NULL; aij = aij->r_next)
+         {  AT_ind[loc] = aij->col->j;
+            AT_val[loc] = aij->row->rii * aij->val * aij->col->sjj;
+            loc++;
+         }
+      }
+      AT_ptr[m+1] = loc;
+      xassert(loc-1 == lp->nnz);
+#endif
       /* basis header */
       xassert(lp->valid);
       memcpy(&head[1], &lp->head[1], m * sizeof(int));
@@ -398,12 +475,18 @@ static void init_csa(struct csa *csa, glp_prob *lp)
          }
       }
       xassert(k == n);
+#if 1 /* 06/IV-2009 */
+      for (k = 1; k <= m+n; k++)
+         bind[head[k]] = k;
+#endif
       /* factorization of matrix B */
       csa->valid = 1, lp->valid = 0;
       csa->bfd = lp->bfd, lp->bfd = NULL;
+#if 0 /* 06/IV-2009 */
       /* matrix N (by rows) */
       alloc_N(csa);
       build_N(csa);
+#endif
       /* working parameters */
       csa->phase = 0;
       csa->tm_beg = xtime();
@@ -657,195 +740,6 @@ static void refine_btran(struct csa *csa, double h[], double x[])
       bfd_btran(csa->bfd, d);
       /* refine the solution vector (new x) = (old x) + d */
       for (i = 1; i <= m; i++) x[i] += d[i];
-      return;
-}
-#endif
-
-#if 1 /* copied from primal */
-/***********************************************************************
-*  alloc_N - allocate matrix N
-*
-*  This routine determines maximal row lengths of matrix N, sets its
-*  row pointers, and then allocates arrays N_ind and N_val.
-*
-*  Note that some fixed structural variables may temporarily become
-*  double-bounded, so corresponding columns of matrix A should not be
-*  ignored on calculating maximal row lengths of matrix N. */
-
-static void alloc_N(struct csa *csa)
-{     int m = csa->m;
-      int n = csa->n;
-      int *A_ptr = csa->A_ptr;
-      int *A_ind = csa->A_ind;
-      int *N_ptr = csa->N_ptr;
-      int *N_len = csa->N_len;
-      int i, j, beg, end, ptr;
-      /* determine number of non-zeros in each row of the augmented
-         constraint matrix (I|-A) */
-      for (i = 1; i <= m; i++)
-         N_len[i] = 1;
-      for (j = 1; j <= n; j++)
-      {  beg = A_ptr[j];
-         end = A_ptr[j+1];
-         for (ptr = beg; ptr < end; ptr++)
-            N_len[A_ind[ptr]]++;
-      }
-      /* determine maximal row lengths of matrix N and set its row
-         pointers */
-      N_ptr[1] = 1;
-      for (i = 1; i <= m; i++)
-      {  /* row of matrix N cannot have more than n non-zeros */
-         if (N_len[i] > n) N_len[i] = n;
-         N_ptr[i+1] = N_ptr[i] + N_len[i];
-      }
-      /* now maximal number of non-zeros in matrix N is known */
-      csa->N_ind = xcalloc(N_ptr[m+1], sizeof(int));
-      csa->N_val = xcalloc(N_ptr[m+1], sizeof(double));
-      return;
-}
-#endif
-
-#if 1 /* copied from primal */
-/***********************************************************************
-*  add_N_col - add column of matrix (I|-A) to matrix N
-*
-*  This routine adds j-th column to matrix N which is k-th column of
-*  the augmented constraint matrix (I|-A). (It is assumed that old j-th
-*  column was previously removed from matrix N.) */
-
-static void add_N_col(struct csa *csa, int j, int k)
-{     int m = csa->m;
-#ifdef GLP_DEBUG
-      int n = csa->n;
-#endif
-      int *N_ptr = csa->N_ptr;
-      int *N_len = csa->N_len;
-      int *N_ind = csa->N_ind;
-      double *N_val = csa->N_val;
-      int pos;
-#ifdef GLP_DEBUG
-      xassert(1 <= j && j <= n);
-      xassert(1 <= k && k <= m+n);
-#endif
-      if (k <= m)
-      {  /* N[j] is k-th column of submatrix I */
-         pos = N_ptr[k] + (N_len[k]++);
-#ifdef GLP_DEBUG
-         xassert(pos < N_ptr[k+1]);
-#endif
-         N_ind[pos] = j;
-         N_val[pos] = 1.0;
-      }
-      else
-      {  /* N[j] is (k-m)-th column of submatrix (-A) */
-         int *A_ptr = csa->A_ptr;
-         int *A_ind = csa->A_ind;
-         double *A_val = csa->A_val;
-         int i, beg, end, ptr;
-         beg = A_ptr[k-m];
-         end = A_ptr[k-m+1];
-         for (ptr = beg; ptr < end; ptr++)
-         {  i = A_ind[ptr]; /* row number */
-            pos = N_ptr[i] + (N_len[i]++);
-#ifdef GLP_DEBUG
-            xassert(pos < N_ptr[i+1]);
-#endif
-            N_ind[pos] = j;
-            N_val[pos] = - A_val[ptr];
-         }
-      }
-      return;
-}
-#endif
-
-#if 1 /* copied from primal */
-/***********************************************************************
-*  del_N_col - remove column of matrix (I|-A) from matrix N
-*
-*  This routine removes j-th column from matrix N which is k-th column
-*  of the augmented constraint matrix (I|-A). */
-
-static void del_N_col(struct csa *csa, int j, int k)
-{     int m = csa->m;
-#ifdef GLP_DEBUG
-      int n = csa->n;
-#endif
-      int *N_ptr = csa->N_ptr;
-      int *N_len = csa->N_len;
-      int *N_ind = csa->N_ind;
-      double *N_val = csa->N_val;
-      int pos, head, tail;
-#ifdef GLP_DEBUG
-      xassert(1 <= j && j <= n);
-      xassert(1 <= k && k <= m+n);
-#endif
-      if (k <= m)
-      {  /* N[j] is k-th column of submatrix I */
-         /* find element in k-th row of N */
-         head = N_ptr[k];
-         for (pos = head; N_ind[pos] != j; pos++) /* nop */;
-         /* and remove it from the row list */
-         tail = head + (--N_len[k]);
-#ifdef GLP_DEBUG
-         xassert(pos <= tail);
-#endif
-         N_ind[pos] = N_ind[tail];
-         N_val[pos] = N_val[tail];
-      }
-      else
-      {  /* N[j] is (k-m)-th column of submatrix (-A) */
-         int *A_ptr = csa->A_ptr;
-         int *A_ind = csa->A_ind;
-         int i, beg, end, ptr;
-         beg = A_ptr[k-m];
-         end = A_ptr[k-m+1];
-         for (ptr = beg; ptr < end; ptr++)
-         {  i = A_ind[ptr]; /* row number */
-            /* find element in i-th row of N */
-            head = N_ptr[i];
-            for (pos = head; N_ind[pos] != j; pos++) /* nop */;
-            /* and remove it from the row list */
-            tail = head + (--N_len[i]);
-#ifdef GLP_DEBUG
-            xassert(pos <= tail);
-#endif
-            N_ind[pos] = N_ind[tail];
-            N_val[pos] = N_val[tail];
-         }
-      }
-      return;
-}
-#endif
-
-#if 1 /* copied from primal */
-/***********************************************************************
-*  build_N - build matrix N for current basis
-*
-*  This routine builds matrix N for the current basis from columns
-*  of the augmented constraint matrix (I|-A) corresponding to non-basic
-*  non-fixed variables. */
-
-static void build_N(struct csa *csa)
-{     int m = csa->m;
-      int n = csa->n;
-      int *head = csa->head;
-      char *stat = csa->stat;
-      int *N_len = csa->N_len;
-      int j, k;
-      /* N := empty matrix */
-      memset(&N_len[1], 0, m * sizeof(int));
-      /* go through non-basic columns of matrix (I|-A) */
-      for (j = 1; j <= n; j++)
-      {  if (stat[j] != GLP_NS)
-         {  /* xN[j] is non-fixed; add j-th column to matrix N which is
-               k-th column of matrix (I|-A) */
-            k = head[m+j]; /* x[k] = xN[j] */
-#ifdef GLP_DEBUG
-            xassert(1 <= k && k <= m+n);
-#endif
-            add_N_col(csa, j, k);
-         }
-      }
       return;
 }
 #endif
@@ -1326,7 +1220,7 @@ static void refine_rho(struct csa *csa, double rho[])
 }
 #endif
 
-#if 1 /* copied from primal */
+#if 1 /* 06/IV-2009 */
 /***********************************************************************
 *  eval_trow - compute pivot row of the simplex table
 *
@@ -1341,18 +1235,70 @@ static void refine_rho(struct csa *csa, double rho[])
 *  by the routine eval_rho.
 *
 *  Note that elements of the pivot row corresponding to fixed non-basic
-*  variables are not computed. */
+*  variables are not computed.
+*
+*  NOTES
+*
+*  Computing pivot row of the simplex table is one of the most time
+*  consuming operations, and for some instances it may take more than
+*  50% of the total solution time.
+*
+*  In the current implementation there are two routines to compute the
+*  pivot row. The routine eval_trow1 computes elements of the pivot row
+*  as inner products of columns of the matrix N and the vector rho; it
+*  is used when the vector rho is relatively dense. The routine
+*  eval_trow2 computes the pivot row as a linear combination of rows of
+*  the matrix N; it is used when the vector rho is relatively sparse. */
 
-static void eval_trow(struct csa *csa, double rho[])
+static void eval_trow1(struct csa *csa, double rho[])
 {     int m = csa->m;
       int n = csa->n;
-#ifdef GLP_DEBUG
+      int *A_ptr = csa->A_ptr;
+      int *A_ind = csa->A_ind;
+      double *A_val = csa->A_val;
+      int *head = csa->head;
       char *stat = csa->stat;
-#endif
-      int *N_ptr = csa->N_ptr;
-      int *N_len = csa->N_len;
-      int *N_ind = csa->N_ind;
-      double *N_val = csa->N_val;
+      int *trow_ind = csa->trow_ind;
+      double *trow_vec = csa->trow_vec;
+      int j, k, beg, end, ptr, nnz;
+      double temp;
+      /* compute the pivot row as inner products of columns of the
+         matrix N and vector rho: trow[j] = - rho * N[j] */
+      nnz = 0;
+      for (j = 1; j <= n; j++)
+      {  if (stat[j] == GLP_NS)
+         {  /* xN[j] is fixed */
+            trow_vec[j] = 0.0;
+            continue;
+         }
+         k = head[m+j]; /* x[k] = xN[j] */
+         if (k <= m)
+         {  /* N[j] is k-th column of submatrix I */
+            temp = - rho[k];
+         }
+         else
+         {  /* N[j] is (k-m)-th column of submatrix (-A) */
+            beg = A_ptr[k-m], end = A_ptr[k-m+1];
+            temp = 0.0;
+            for (ptr = beg; ptr < end; ptr++)
+               temp += rho[A_ind[ptr]] * A_val[ptr];
+         }
+         if (temp != 0.0)
+            trow_ind[++nnz] = j;
+         trow_vec[j] = temp;
+      }
+      csa->trow_nnz = nnz;
+      return;
+}
+
+static void eval_trow2(struct csa *csa, double rho[])
+{     int m = csa->m;
+      int n = csa->n;
+      int *AT_ptr = csa->AT_ptr;
+      int *AT_ind = csa->AT_ind;
+      double *AT_val = csa->AT_val;
+      int *bind = csa->bind;
+      char *stat = csa->stat;
       int *trow_ind = csa->trow_ind;
       double *trow_vec = csa->trow_vec;
       int i, j, beg, end, ptr, nnz;
@@ -1366,16 +1312,14 @@ static void eval_trow(struct csa *csa, double rho[])
       {  temp = rho[i];
          if (temp == 0.0) continue;
          /* trow := trow - rho[i] * N'[i] */
-         beg = N_ptr[i];
-         end = beg + N_len[i];
+         j = bind[i] - m; /* x[i] = xN[j] */
+         if (j >= 1 && stat[j] != GLP_NS)
+            trow_vec[j] -= temp;
+         beg = AT_ptr[i], end = AT_ptr[i+1];
          for (ptr = beg; ptr < end; ptr++)
-         {
-#ifdef GLP_DEBUG
-            j = N_ind[ptr];
-            xassert(1 <= j && j <= n);
-            xassert(stat[j] != GLP_NS);
-#endif
-            trow_vec[N_ind[ptr]] -= temp * N_val[ptr];
+         {  j = bind[m + AT_ind[ptr]] - m; /* x[k] = xN[j] */
+            if (j >= 1 && stat[j] != GLP_NS)
+               trow_vec[j] += temp * AT_val[ptr];
          }
       }
       /* construct sparse pattern of the pivot row */
@@ -1385,6 +1329,26 @@ static void eval_trow(struct csa *csa, double rho[])
             trow_ind[++nnz] = j;
       }
       csa->trow_nnz = nnz;
+      return;
+}
+
+static void eval_trow(struct csa *csa, double rho[])
+{     int m = csa->m;
+      int i, nnz;
+      double dens;
+      /* determine the density of the vector rho */
+      nnz = 0;
+      for (i = 1; i <= m; i++)
+         if (rho[i] != 0.0) nnz++;
+      dens = (double)nnz / (double)m;
+      if (dens >= 0.20)
+      {  /* rho is relatively dense */
+         eval_trow1(csa, rho);
+      }
+      else
+      {  /* rho is relatively sparse */
+         eval_trow2(csa, rho);
+      }
       return;
 }
 #endif
@@ -1437,6 +1401,138 @@ static void sort_trow(struct csa *csa, double tol_piv)
       csa->trow_num = num;
       return;
 }
+
+#ifdef GLP_LONG_STEP /* 07/IV-2009 */
+static int ls_func(const void *p1_, const void *p2_)
+{     const struct bkpt *p1 = p1_, *p2 = p2_;
+      if (p1->t < p2->t) return -1;
+      if (p1->t > p2->t) return +1;
+      return 0;
+}
+
+static int ls_func1(const void *p1_, const void *p2_)
+{     const struct bkpt *p1 = p1_, *p2 = p2_;
+      if (p1->dz < p2->dz) return -1;
+      if (p1->dz > p2->dz) return +1;
+      return 0;
+}
+
+static void long_step(struct csa *csa)
+{     int m = csa->m;
+#ifdef GLP_DEBUG
+      int n = csa->n;
+#endif
+      char *type = csa->type;
+      double *lb = csa->lb;
+      double *ub = csa->ub;
+      int *head = csa->head;
+      char *stat = csa->stat;
+      double *cbar = csa->cbar;
+      double delta = csa->delta;
+      int *trow_ind = csa->trow_ind;
+      double *trow_vec = csa->trow_vec;
+      int trow_num = csa->trow_num;
+      struct bkpt *bkpt = csa->bkpt;
+      int j, k, kk, nbps, pos;
+      double alfa, s, slope, dzmax;
+      /* delta > 0 means that xB[p] violates its lower bound, so to
+         increase the dual objective lambdaB[p] must increase;
+         delta < 0 means that xB[p] violates its upper bound, so to
+         increase the dual objective lambdaB[p] must decrease */
+      /* s := sign(delta) */
+      s = (delta > 0.0 ? +1.0 : -1.0);
+      /* determine breakpoints of the dual objective */
+      nbps = 0;
+      for (pos = 1; pos <= trow_num; pos++)
+      {  j = trow_ind[pos];
+#ifdef GLP_DEBUG
+         xassert(1 <= j && j <= n);
+         xassert(stat[j] != GLP_NS);
+#endif
+         /* if there is free non-basic variable, switch to the standard
+            ratio test */
+         if (stat[j] == GLP_NF)
+         {  nbps = 0;
+            goto done;
+         }
+         /* lambdaN[j] = ... - alfa * t - ..., where t = s * lambdaB[i]
+            is the dual ray parameter, t >= 0 */
+         alfa = s * trow_vec[j];
+#ifdef GLP_DEBUG
+         xassert(alfa != 0.0);
+         xassert(stat[j] == GLP_NL || stat[j] == GLP_NU);
+#endif
+         if (alfa > 0.0 && stat[j] == GLP_NL ||
+             alfa < 0.0 && stat[j] == GLP_NU)
+         {  /* either lambdaN[j] >= 0 (if stat = GLP_NL) and decreases
+               or lambdaN[j] <= 0 (if stat = GLP_NU) and increases; in
+               both cases we have a breakpoint */
+            nbps++;
+#ifdef GLP_DEBUG
+            xassert(nbps <= n);
+#endif
+            bkpt[nbps].j = j;
+            bkpt[nbps].t = cbar[j] / alfa;
+/*
+if (stat[j] == GLP_NL && cbar[j] < 0.0 ||
+    stat[j] == GLP_NU && cbar[j] > 0.0)
+xprintf("%d %g\n", stat[j], cbar[j]);
+*/
+            /* if t is negative, replace it by exact zero (see comments
+               in the routine chuzc) */
+            if (bkpt[nbps].t < 0.0) bkpt[nbps].t = 0.0;
+         }
+      }
+      /* if there are less than two breakpoints, switch to the standard
+         ratio test */
+      if (nbps < 2)
+      {  nbps = 0;
+         goto done;
+      }
+      /* sort breakpoints by ascending the dual ray parameter, t */
+      qsort(&bkpt[1], nbps, sizeof(struct bkpt), ls_func);
+      /* determine last breakpoint, at which the dual objective still
+         greater than at t = 0 */
+      dzmax = 0.0;
+      slope = fabs(delta); /* initial slope */
+      for (kk = 1; kk <= nbps; kk++)
+      {  if (kk == 1)
+            bkpt[kk].dz =
+               0.0 + slope * (bkpt[kk].t - 0.0);
+         else
+            bkpt[kk].dz =
+               bkpt[kk-1].dz + slope * (bkpt[kk].t - bkpt[kk-1].t);
+         if (dzmax < bkpt[kk].dz)
+            dzmax = bkpt[kk].dz;
+         else if (bkpt[kk].dz < 0.05 * (1.0 + dzmax))
+         {  nbps = kk - 1;
+            break;
+         }
+         j = bkpt[kk].j;
+         k = head[m+j]; /* x[k] = xN[j] */
+         if (type[k] == GLP_DB)
+            slope -= fabs(trow_vec[j]) * (ub[k] - lb[k]);
+         else
+         {  nbps = kk;
+            break;
+         }
+      }
+      /* if there are less than two breakpoints, switch to the standard
+         ratio test */
+      if (nbps < 2)
+      {  nbps = 0;
+         goto done;
+      }
+      /* sort breakpoints by ascending the dual change, dz */
+      qsort(&bkpt[1], nbps, sizeof(struct bkpt), ls_func1);
+/*
+for (kk = 1; kk <= nbps; kk++)
+xprintf("%d; t = %g; dz = %g\n", kk, bkpt[kk].t, bkpt[kk].dz);
+*/
+done: csa->nbps = nbps;
+      return;
+}
+#endif
 
 /***********************************************************************
 *  chuzc - choose non-basic variable (column of the simplex table)
@@ -2056,6 +2152,9 @@ static void change_basis(struct csa *csa)
 #endif
       char *type = csa->type;
       int *head = csa->head;
+#if 1 /* 06/IV-2009 */
+      int *bind = csa->bind;
+#endif
       char *stat = csa->stat;
       int p = csa->p;
       double delta = csa->delta;
@@ -2068,6 +2167,9 @@ static void change_basis(struct csa *csa)
 #endif
       /* xB[p] <-> xN[q] */
       k = head[p], head[p] = head[m+q], head[m+q] = k;
+#if 1 /* 06/IV-2009 */
+      bind[head[p]] = p, bind[head[m+q]] = m + q;
+#endif
       if (type[k] == GLP_FX)
          stat[q] = GLP_NS;
       else if (delta > 0.0)
@@ -2474,18 +2576,31 @@ static void free_csa(struct csa *csa)
       xfree(csa->A_ptr);
       xfree(csa->A_ind);
       xfree(csa->A_val);
+#if 1 /* 06/IV-2009 */
+      xfree(csa->AT_ptr);
+      xfree(csa->AT_ind);
+      xfree(csa->AT_val);
+#endif
       xfree(csa->head);
+#if 1 /* 06/IV-2009 */
+      xfree(csa->bind);
+#endif
       xfree(csa->stat);
+#if 0 /* 06/IV-2009 */
       xfree(csa->N_ptr);
       xfree(csa->N_len);
       xfree(csa->N_ind);
       xfree(csa->N_val);
+#endif
       xfree(csa->bbar);
       xfree(csa->cbar);
       xfree(csa->refsp);
       xfree(csa->gamma);
       xfree(csa->trow_ind);
       xfree(csa->trow_vec);
+#ifdef GLP_LONG_STEP /* 07/IV-2009 */
+      xfree(csa->bkpt);
+#endif
       xfree(csa->tcol_ind);
       xfree(csa->tcol_vec);
       xfree(csa->work1);
@@ -2596,7 +2711,9 @@ loop: /* main loop starts here */
             xassert(check_stab(csa, parm->tol_dj) == 0);
             /* some non-basic double-bounded variables might become
                fixed (on phase I) or vice versa (on phase II) */
+#if 0 /* 06/IV-2009 */
             build_N(csa);
+#endif
             csa->refct = 0;
             /* bounds of non-basic variables have been changed, so
                invalidate primal values */
@@ -2635,7 +2752,9 @@ loop: /* main loop starts here */
             cbar_st = 1;
          }
          set_orig_bnds(csa);
+#if 0 /* 06/IV-2009 */
          build_N(csa);
+#endif
          csa->refct = 0;
          bbar_st = 0;
       }
@@ -2799,6 +2918,17 @@ loop: /* main loop starts here */
       /* unlike primal simplex there is no need to check accuracy of
          the primal value of xB[p] (which might be computed using the
          pivot row), since bbar is a result of FTRAN */
+#ifdef GLP_LONG_STEP /* 07/IV-2009 */
+      long_step(csa);
+      if (csa->nbps > 0)
+      {  csa->q = csa->bkpt[csa->nbps].j;
+         if (csa->delta > 0.0)
+            csa->new_dq = + csa->bkpt[csa->nbps].t;
+         else
+            csa->new_dq = - csa->bkpt[csa->nbps].t;
+      }
+      else
+#endif
       /* choose non-basic variable xN[q] */
       switch (parm->r_test)
       {  case GLP_RT_STD:
@@ -2882,11 +3012,28 @@ loop: /* main loop starts here */
          }
       }
       /* update primal values of basic variables */
+#ifdef GLP_LONG_STEP /* 07/IV-2009 */
+      if (csa->nbps > 0)
+      {  int kk, j, k;
+         for (kk = 1; kk < csa->nbps; kk++)
+         {  if (csa->bkpt[kk].t >= csa->bkpt[csa->nbps].t) continue;
+            j = csa->bkpt[kk].j;
+            k = csa->head[csa->m + j];
+            xassert(csa->type[k] == GLP_DB);
+            if (csa->stat[j] == GLP_NL)
+               csa->stat[j] = GLP_NU;
+            else
+               csa->stat[j] = GLP_NL;
+         }
+      }
+      bbar_st = 0;
+#else
       update_bbar(csa);
       if (csa->phase == 2)
          csa->bbar[0] += (csa->cbar[csa->q] / csa->zeta) *
             (csa->delta / csa->tcol_vec[csa->p]);
       bbar_st = 2; /* updated */
+#endif
       /* update reduced costs of non-basic variables */
       update_cbar(csa);
       cbar_st = 2; /* updated */
@@ -2908,10 +3055,12 @@ loop: /* main loop starts here */
       {  csa->valid = 0;
          binv_st = 0; /* invalid */
       }
+#if 0 /* 06/IV-2009 */
       /* update matrix N */
       del_N_col(csa, csa->q, csa->head[csa->m+csa->q]);
       if (csa->type[csa->head[csa->p]] != GLP_FX)
          add_N_col(csa, csa->q, csa->head[csa->p]);
+#endif
       /* change the basis header */
       change_basis(csa);
       /* iteration complete */

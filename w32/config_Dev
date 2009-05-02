@@ -1,5 +1,0 @@
-/* GLPK configuration file (Dev-C++) */
-
-#define __WOE__ 1
-
-/* eof */

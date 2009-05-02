@@ -23,7 +23,9 @@
 
 #include "glpapi.h"
 #include "glplib.h"
+#if 0 /* 13/IV-2009 */
 #include "glpmps.h"
+#endif
 
 LPX *lpx_create_prob(void)
 {     /* create problem object */
@@ -1205,12 +1207,26 @@ int lpx_write_mps(LPX *lp, const char *fname)
 
 int lpx_read_bas(LPX *lp, const char *fname)
 {     /* read LP basis in fixed MPS format */
+#if 0 /* 13/IV-2009 */
       return read_bas(lp, fname);
+#else
+      xassert(lp == lp);
+      xassert(fname == fname);
+      xerror("lpx_read_bas: operation not supported\n");
+      return 0;
+#endif
 }
 
 int lpx_write_bas(LPX *lp, const char *fname)
 {     /* write LP basis in fixed MPS format */
+#if 0 /* 13/IV-2009 */
       return write_bas(lp, fname);
+#else
+      xassert(lp == lp);
+      xassert(fname == fname);
+      xerror("lpx_write_bas: operation not supported\n");
+      return 0;
+#endif
 }
 
 LPX *lpx_read_freemps(const char *fname)

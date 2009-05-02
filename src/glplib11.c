@@ -255,7 +255,7 @@ char *strrev(char *s)
 /***********************************************************************
 *  NAME
 *
-*  gcd - compute greatest common divisor of two integers
+*  gcd - find greatest common divisor of two integers
 *
 *  SYNOPSIS
 *
@@ -265,11 +265,11 @@ char *strrev(char *s)
 *  RETURNS
 *
 *  The routine gcd returns gcd(x, y), the greatest common divisor of
-*  the two non-negative integers given.
+*  the two positive integers given.
 *
 *  ALGORITHM
 *
-*  The routine gcd is based on the Euclidean algorithm.
+*  The routine gcd is based on Euclid's algorithm.
 *
 *  REFERENCES
 *
@@ -279,8 +279,7 @@ char *strrev(char *s)
 
 int gcd(int x, int y)
 {     int r;
-      xassert(x >= 0);
-      xassert(y >= 0);
+      xassert(x > 0 && y > 0);
       while (y > 0)
          r = x % y, x = y, y = r;
       return x;
@@ -289,7 +288,7 @@ int gcd(int x, int y)
 /***********************************************************************
 *  NAME
 *
-*  gcdn - compute greatest common divisor of n integers
+*  gcdn - find greatest common divisor of n integers
 *
 *  SYNOPSIS
 *
@@ -299,7 +298,7 @@ int gcd(int x, int y)
 *  RETURNS
 *
 *  The routine gcdn returns gcd(x[1], x[2], ..., x[n]), the greatest
-*  common divisor of the non-negative integers given.
+*  common divisor of n positive integers given, n > 0.
 *
 *  BACKGROUND
 *
@@ -317,7 +316,7 @@ int gcdn(int n, int x[])
 {     int d, j;
       xassert(n > 0);
       for (j = 1; j <= n; j++)
-      {  xassert(x[j] >= 0);
+      {  xassert(x[j] > 0);
          if (j == 1)
             d = x[1];
          else
@@ -325,6 +324,76 @@ int gcdn(int n, int x[])
          if (d == 1) break;
       }
       return d;
+}
+
+/***********************************************************************
+*  NAME
+*
+*  lcm - find least common multiple of two integers
+*
+*  SYNOPSIS
+*
+*  #include "glplib.h"
+*  int lcm(int x, int y);
+*
+*  RETURNS
+*
+*  The routine lcm returns lcm(x, y), the least common multiple of the
+*  two positive integers given. In case of integer overflow the routine
+*  returns zero.
+*
+*  BACKGROUND
+*
+*  The routine lcm is based on the following identity:
+*
+*     lcm(x, y) = (x * y) / gcd(x, y) = x * [y / gcd(x, y)],
+*
+*  where gcd(x, y) is the greatest common divisor of x and y. */
+
+int lcm(int x, int y)
+{     xassert(x > 0);
+      xassert(y > 0);
+      y /= gcd(x, y);
+      if (x > INT_MAX / y) return 0;
+      return x * y;
+}
+
+/***********************************************************************
+*  NAME
+*
+*  lcmn - find least common multiple of n integers
+*
+*  SYNOPSIS
+*
+*  #include "glplib.h"
+*  int lcmn(int n, int x[]);
+*
+*  RETURNS
+*
+*  The routine lcmn returns lcm(x[1], x[2], ..., x[n]), the least
+*  common multiple of n positive integers given, n > 0. In case of
+*  integer overflow the routine returns zero.
+*
+*  BACKGROUND
+*
+*  The routine lcmn is based on the following identity:
+*
+*     lcmn(x, y, z) = lcm(lcm(x, y), z),
+*
+*  where lcm(x, y) is the least common multiple of x and y. */
+
+int lcmn(int n, int x[])
+{     int m, j;
+      xassert(n > 0);
+      for (j = 1; j <= n; j++)
+      {  xassert(x[j] > 0);
+         if (j == 1)
+            m = x[1];
+         else
+            m = lcm(m, x[j]);
+         if (m == 0) break;
+      }
+      return m;
 }
 
 /***********************************************************************

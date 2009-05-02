@@ -285,13 +285,13 @@ static void gen_free_net(network *n)
       return;
 }
 
-int glp_rmfgen(glp_graph *_G, int *_s, int *_t, int _a_cap,
+int glp_rmfgen(glp_graph *G_, int *_s, int *_t, int _a_cap,
       const int parm[1+5])
 {     struct csa _csa, *csa = &_csa;
       network *n;
       char comm[10][80], *com1[10];
       int seed, a, b, c1, c2, ret;
-      G = _G;
+      G = G_;
       s = _s;
       t = _t;
       a_cap = _a_cap;
