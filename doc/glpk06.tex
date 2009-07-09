@@ -1,0 +1,1519 @@
+%* glpk06.tex *%
+
+\chapter{Graph and Network API Routines}
+
+\section{Introduction}
+
+\subsection{Graph program object}
+
+In GLPK the base program object used to represent graphs and networks
+is a directed graph (digraph).
+
+Formally, {\it digraph} (or simply, {\it graph}) is a pair $G=(V,A)$,
+where $V$ is a set of {\it vertices}, and $A$ is a set
+{\it arcs}.\footnote{$A$ may be a multiset.} Each arc $a\in A$ is an
+ordered pair of vertices $a=(x,y)$, where $x\in V$ is called {\it tail
+vertex} of arc $a$, and $y\in V$ is called its {\it head vertex}.
+
+Representation of a graph in the program includes three structs defined
+by typedef in the header \verb|glpk.h|:
+
+\medskip
+
+$\bullet$ \verb|glp_graph|, which represents the graph in a whole,
+
+$\bullet$ \verb|glp_vertex|, which represents a vertex of the graph, and
+
+$\bullet$ \verb|glp_arc|, which represents an arc of the graph.
+
+\medskip
+
+All these three structs are ``semi-opaque'', i.e. the application
+program can directly access their fields through pointers, however,
+changing the fields directly is not allowed---all changes should be
+performed only with appropriate GLPK API routines.
+
+\newpage
+
+\newenvironment{comment}
+{\addtolength{\leftskip}{17pt}\noindent}
+{\par\addtolength{\leftskip}{-17pt}}
+
+\noindent
+{\bf glp\_graph.} The struct \verb|glp_graph| has the following
+fields available to the application program:
+
+\medskip
+
+\noindent
+\verb|char *name;|
+
+\begin{comment}Symbolic name assigned to the graph. It is a pointer to
+a null terminated character string of length from 1 to 255 characters.
+If no name is assigned to the graph, this field contains \verb|NULL|.
+\end{comment}
+
+\medskip
+
+\noindent
+\verb|int nv;|
+
+\begin{comment}The number of vertices in the graph, $nv\geq 0$.
+\end{comment}
+
+\medskip
+
+\noindent
+\verb|int na;|
+
+\begin{comment}The number of arcs in the graph, $na\geq 0$.
+\end{comment}
+
+\medskip
+
+\noindent
+\verb|glp_vertex **v;|
+
+\begin{comment}Pointer to an array containing the list of vertices.
+Element $v[0]$ is not used. Element $v[i]$, $1\leq i\leq nv$, is a
+pointer to $i$-th vertex of the graph. Note that on adding new vertices
+to the graph the field $v$ may be altered due to reallocation. However,
+pointers $v[i]$ are not changed while corresponding vertices exist in
+the graph.
+\end{comment}
+
+\medskip
+
+\noindent
+\verb|int v_size;|
+
+\begin{comment}Size of vertex data blocks, in bytes,
+$0\leq v\_size\leq 256$. (See also the field \verb|data| in the struct
+\verb|glp_vertex|.)
+\end{comment}
+
+\medskip
+
+\noindent
+\verb|int a_size;|
+
+\begin{comment}Size of arc data blocks, in bytes,
+$0\leq v\_size\leq 256$. (See also the field \verb|data| in the struct
+\verb|glp_arc|.)
+\end{comment}
+
+\bigskip
+
+\noindent
+{\bf glp\_vertex.} The struct \verb|glp_vertex| has the following
+fields available to the application program:
+
+\medskip
+
+\noindent
+\verb|int i;|
+
+\begin{comment}Ordinal number of the vertex, $1\leq i\leq nv$. Note
+that element $v[i]$ in the struct \verb|glp_graph| points to the vertex,
+whose ordinal number is $i$.
+\end{comment}
+
+\medskip
+
+\noindent
+\verb|char *name;|
+
+\begin{comment}Symbolic name assigned to the vertex. It is a pointer to
+a null terminated character string of length from 1 to 255 characters.
+If no name is assigned to the vertex, this field contains \verb|NULL|.
+\end{comment}
+
+\medskip
+
+\noindent
+\verb|void *data;|
+
+\begin{comment}Pointer to a data block associated with the vertex. This
+data block is automatically allocated on creating a new vertex and freed
+on deleting the vertex. If $v\_size=0$, the block is not allocated, and
+this field contains \verb|NULL|.
+\end{comment}
+
+\medskip
+
+\noindent
+\verb|void *temp;|
+
+\begin{comment}Working pointer, which may be used freely for any
+purposes. The application program can change this field directly.
+\end{comment}
+
+\medskip
+
+\noindent
+\verb|glp_arc *in;|
+
+\begin{comment}Pointer to the (unordered) list of incoming arcs. If the
+vertex has no incoming arcs, this field contains \verb|NULL|.
+\end{comment}
+
+\medskip
+
+\noindent
+\verb|glp_arc *out;|
+
+\begin{comment}Pointer to the (unordered) list of outgoing arcs. If the
+vertex has no outgoing arcs, this field contains \verb|NULL|.
+\end{comment}
+
+\bigskip
+
+\noindent
+{\bf glp\_arc.} The struct \verb|glp_arc| has the following fields
+available to the application program:
+
+\medskip
+
+\noindent
+\verb|glp_vertex *tail;|
+
+\begin{comment}Pointer to a vertex, which is tail endpoint of the arc.
+\end{comment}
+
+\medskip
+
+\noindent
+\verb|glp_vertex *head;|
+
+\begin{comment}Pointer to a vertex, which is head endpoint of the arc.
+\end{comment}
+
+\medskip
+
+\noindent
+\verb|void *data;|
+
+\begin{comment}Pointer to a data block associated with the arc. This
+data block is automatically allocated on creating a new arc and freed on
+deleting the arc. If $v\_size=0$, the block is not allocated, and this
+field contains \verb|NULL|.
+\end{comment}
+
+\medskip
+
+\noindent
+\verb|void *temp;|
+
+\begin{comment}Working pointer, which may be used freely for any
+purposes. The application program can change this field directly.
+\end{comment}
+
+\medskip
+
+\noindent
+\verb|glp_arc *t_next;|
+
+\begin{comment}Pointer to another arc, which has the same tail endpoint
+as this one. \verb|NULL| in this field indicates the end of the list of
+outgoing arcs.
+\end{comment}
+
+\medskip
+
+\noindent
+\verb|glp_arc *h_next;|
+
+\begin{comment}Pointer to another arc, which has the same head endpoint
+as this one. \verb|NULL| in this field indicates the end of the list of
+incoming arcs.
+\end{comment}
+
+\newpage
+
+\section{Graph creating and modifying routines}
+
+\subsection{glp\_create\_graph---create graph}
+
+\subsubsection*{Synopsis}
+
+\begin{verbatim}
+glp_graph *glp_create_graph(int v_size, int a_size);
+\end{verbatim}
+
+\subsubsection*{Description}
+
+The routine \verb|glp_create_graph| creates a new graph, which
+initially is\linebreak empty, i.e. has no vertices and arcs.
+
+The parameter \verb|v_size| specifies the size of vertex data blocks,
+in bytes, $0\leq v\_size\leq 256$.
+
+The parameter \verb|a_size| specifies the size of arc data blocks, in
+bytes, $0\leq a\_size\leq 256$.
+
+\subsubsection*{Returns}
+
+The routine returns a pointer to the graph created.
+
+\subsection{glp\_set\_graph\_name---assign (change) graph name}
+
+\subsubsection*{Synopsis}
+
+\begin{verbatim}
+void glp_set_graph_name(glp_graph *G, const char *name);
+\end{verbatim}
+
+\subsubsection*{Description}
+
+The routine \verb|glp_set_graph_name| assigns a symbolic name specified
+by the character string \verb|name| (1 to 255 chars) to the graph.
+
+If the parameter \verb|name| is \verb|NULL| or an empty string, the
+routine erases the existing symbolic name of the graph.
+
+\newpage
+
+\subsection{glp\_add\_vertices---add new vertices to graph}
+
+\subsubsection*{Synopsis}
+
+\begin{verbatim}
+int glp_add_vertices(glp_graph *G, int nadd);
+\end{verbatim}
+
+\subsubsection*{Description}
+
+The routine \verb|glp_add_vertices| adds \verb|nadd| vertices to the
+specified graph. New vertices are always added to the end of the vertex
+list, so ordinal numbers of existing vertices remain unchanged. Note
+that this operation may change the field \verb|v| in the struct
+\verb|glp_graph| (pointer to the vertex array) due to reallocation.
+
+Being added each new vertex is isolated, i.e. has no incident arcs.
+
+If the size of vertex data blocks specified on creating the graph is
+non-zero, the routine also allocates a memory block of that size for
+each new vertex added, fills it by binary zeros, and stores a pointer to
+it in the field \verb|data| of the struct \verb|glp_vertex|. Otherwise,
+if the block size is zero, the field \verb|data| is set to \verb|NULL|.
+
+\subsubsection*{Returns}
+
+The routine \verb|glp_add_vertices| returns the ordinal number of the
+first new vertex added to the graph.
+
+\subsection{glp\_set\_vertex\_name---assign (change) vertex name}
+
+[This routine is not implemented yet.]
+
+\subsection{glp\_add\_arc---add new arc to graph}
+
+\subsubsection*{Synopsis}
+
+\begin{verbatim}
+glp_arc *glp_add_arc(glp_graph *G, int i, int j);
+\end{verbatim}
+
+\subsubsection*{Description}
+
+The routine \verb|glp_add_arc| adds one new arc to the specified graph.
+
+The parameters \verb|i| and \verb|j| specify the ordinal numbers of,
+resp., tail and head endpoints (vertices) of the arc. Note that
+self-loops and multiple arcs are allowed.
+
+If the size of arc data blocks specified on creating the graph is
+non-zero, the routine also allocates a memory block of that size, fills
+it by binary zeros, and stores a pointer to it in the field \verb|data|
+of the struct \verb|glp_arc|. Otherwise, if the block size is zero, the
+field \verb|data| is set to \verb|NULL|.
+
+\subsection{glp\_remove\_vertices---remove vertices from graph}
+
+[This routine is not implemented yet.]
+
+\subsection{glp\_remove\_arc---remove arc from graph}
+
+[This routine is not implemented yet.]
+
+\subsection{glp\_erase\_graph---erase graph content}
+
+\subsubsection*{Synopsis}
+
+\begin{verbatim}
+void glp_erase_graph(glp_graph *G, int v_size, int a_size);
+\end{verbatim}
+
+\subsubsection*{Description}
+
+The routine \verb|glp_erase_graph| erases the content of the specified
+graph. The effect of this operation is the same as if the graph would be
+deleted with the routine \verb|glp_delete_graph| and then created anew
+with the routine \verb|glp_create_graph|, with exception that the handle
+(pointer) to the graph remains valid.
+
+The parameters \verb|v_size| and \verb|a_size| have the same meaning as
+for the routine \verb|glp_create_graph|.
+
+\subsection{glp\_delete\_graph---delete graph}
+
+\subsubsection*{Synopsis}
+
+\begin{verbatim}
+void glp_delete_graph(glp_graph *G);
+\end{verbatim}
+
+\subsubsection*{Description}
+
+The routine \verb|glp_delete_graph| deletes the specified graph and
+frees all the memory allocated to this program object.
+
+\newpage
+
+\section{Minimum cost flow problem}
+
+\subsection{Background}
+
+The {\it minimum cost flow problem} (MCFP) is stated as follows. Let
+there be given a directed graph (flow network) $G=(V,A)$, where $V$ is
+a set of vertices (nodes), and $A\subseteq V\times V$ is a set of arcs.
+Let for each node $i\in V$ there be given a quantity $b_i$ having the
+following meaning:
+
+if $b_i>0$, then $|b_i|$ is a {\it supply} at node $i$, which shows
+how many flow units are {\it generated} at node $i$ (or, equivalently,
+entering the network through node $i$ from the outside);
+
+if $b_i<0$, then $|b_i|$ is a {\it demand} at node $i$, which shows how
+many flow units are {\it lost} at node $i$ (or, equivalently, leaving
+the network through node $i$ to the outside);
+
+if $b_i=0$, then $i$ is a {\it transshipment} node, at which the flow
+is conserved, i.e. neither generated nor lost.
+
+Let also for each arc $a=(i,j)\in A$ there be given the following three
+quantities:
+
+$l_{ij}$, a (non-negative) lower bound to the flow through arc $(i,j)$;
+
+$u_{ij}$, an upper bound to the flow through arc $(i,j)$, which is the
+{\it arc capacity};
+
+$c_{ij}$, a per-unit cost of the flow through arc $(i,j)$.
+
+The problem is to find flows $x_{ij}$ through every arc of the network,
+which satisfy the specified bounds and the conservation constraints at
+all nodes, and minimize the total flow cost. Here the conservation
+constraint at a node means that the total flow entering this node
+through its incoming arcs plus the supply at this node must be equal to
+the total flow leaving this node through its outgoing arcs plus the
+demand at this node.
+
+An example of the minimum cost flow problem is shown on Fig.~1.
+
+\bigskip
+
+\noindent\hfil
+\xymatrix @C=48pt
+{_{20}\ar@{~>}[d]&
+v_2\ar[r]|{_{0,10,\$2}}\ar[dd]|{_{0,9,\$3}}&
+v_3\ar[dd]|{_{2,12,\$1}}\ar[r]|{_{0,18,\$0}}&
+v_8\ar[rd]|{_{0,20,\$9}}&\\
+v_1\ar[ru]|{_{0,14,\$0}}\ar[rd]|{_{0,23,\$0}}&&&
+v_6\ar[d]|{_{0,7,\$0}}\ar[u]|{_{4,8,\$0}}&
+v_9\ar@{~>}[d]\\
+&v_4\ar[r]|{_{0,26,\$0}}&
+v_5\ar[luu]|{_{0,11,\$1}}\ar[ru]|{_{0,25,\$5}}\ar[r]|{_{0,4,\$7}}&
+v_7\ar[ru]|{_{0,15,\$3}}&_{20}\\
+}
+
+\medskip
+
+\noindent\hfil
+\begin{tabular}{ccc}
+\xymatrix @C=48pt{v_i\ar[r]|{\ l,u,\$c\ }&v_j\\}&
+\xymatrix{\hbox{\footnotesize supply}\ar@{~>}[r]&v_i\\}&
+\xymatrix{v_i\ar@{~>}[r]&\hbox{\footnotesize demand}\\}\\
+\end{tabular}
+
+\bigskip
+
+\noindent\hfil
+Fig.~1. An example of the minimum cost flow problem.
+
+\newpage
+
+The minimum cost flow problem can be naturally formulated as the
+following LP problem:
+
+\medskip
+
+\noindent
+\hspace{.5in}minimize
+$$z=\sum_{(i,j)\in A}c_{ij}x_{ij}\eqno(1)$$
+\hspace{.5in}subject to
+$$\sum_{(i,j)\in A}x_{ij}-\sum_{(j,i)\in A}x_{ji}=b_i\ \ \ \hbox
+{for all}\ i\in V\eqno(2)$$
+$$l_{ij}\leq x_{ij}\leq u_{ij}\ \ \ \hbox{for all}\ (i,j)\in A
+\eqno(3)$$
+
+\subsection{glp\_read\_mincost---read minimum cost flow problem\\data
+in DIMACS format}
+
+\subsubsection*{Synopsis}
+
+\begin{verbatim}
+int glp_read_mincost(glp_graph *G, int v_rhs, int a_low,
+      int a_cap, int a_cost, const char *fname);
+\end{verbatim}
+
+\subsubsection*{Description}
+
+The routine \verb|glp_read_mincost| reads the minimum cost flow problem
+data from a text file in DIMACS format.
+
+The parameter \verb|G| specifies the graph object, to which the problem
+data have to be stored. Note that before reading data the current
+content of the graph object is completely erased with the routine
+\verb|glp_erase_graph|.
+
+The parameter \verb|v_rhs| specifies an offset of the field of type
+\verb|double| in the vertex data block, to which the routine stores
+$b_i$, the supply/demand value. If \verb|v_rhs| $<0$, the value is not
+stored.
+
+The parameter \verb|a_low| specifies an offset of the field of type
+\verb|double| in the arc data block, to which the routine stores
+$l_{ij}$, the lower bound to the arc flow. If \verb|a_low| $<0$, the
+lower bound is not stored.
+
+The parameter \verb|a_cap| specifies an offset of the field of type
+\verb|double| in the arc data block, to which the routine stores
+$u_{ij}$, the upper bound to the arc flow (the arc capacity). If
+\verb|a_cap| $<0$, the upper bound is not stored.
+
+The parameter \verb|a_cost| specifies an offset of the field of type
+\verb|double| in the arc data block, to which the routine stores
+$c_{ij}$, the per-unit cost of the arc flow. If \verb|a_cost| $<0$, the
+cost is not stored.
+
+The character string \verb|fname| specifies the name of a text file to
+be read in. (If the file name name ends with the suffix `\verb|.gz|',
+the file is assumed to be compressed, in which case the routine
+decompresses it ``on the fly''.)
+
+\subsubsection*{Returns}
+
+If the operation was successful, the routine returns zero. Otherwise,
+it prints an error message and returns non-zero.
+
+\subsubsection*{Example}
+
+\begin{verbatim}
+typedef struct
+{     /* vertex data block */
+      ...
+      double rhs;
+      ...
+} v_data;
+
+typedef struct
+{     /* arc data block */
+      ...
+      double low, cap, cost;
+      ...
+} a_data;
+
+int main(void)
+{     glp_graph *G;
+      int ret;
+      G = glp_create_graph(sizeof(v_data), sizeof(a_data));
+      ret = glp_read_mincost(G, offsetof(v_data, rhs),
+         offsetof(a_data, low), offsetof(a_data, cap),
+         offsetof(a_data, cost), "sample.min");
+      if (ret != 0) goto ...
+      ...
+}
+\end{verbatim}
+
+\subsubsection*{DIMACS minimum cost flow problem format\footnote{This
+material is based on the paper ``The First DIMACS International
+Algorithm Implementation Challenge: Problem Definitions and
+Specifications'', which is publically available at
+{\tt http://dimacs.rutgers.edu/Challenges/}.}}
+
+The DIMACS input file is a plain ASCII text file. It contains
+{\it lines} of several types described below. A line is terminated with
+an end-of-line character. Fields in each line are separated by at least
+one blank space. Each line begins with a one-character designator to
+identify the line type.
+
+Note that DIMACS requires all numerical quantities to be integers in
+the range $[-2^{31},\ 2^{31}-1]$ while GLPK allows the quantities to be
+floating-point numbers.
+
+\paragraph{Comment lines.} Comment lines give human-readable information
+about the file and are ignored by programs. Comment lines can appear
+anywhere in the file. Each comment line begins with a lower-case
+character \verb|c|.
+
+\begin{verbatim}
+   c This is a comment line
+\end{verbatim}
+
+\paragraph{Problem line.} There is one problem line per data file. The
+problem line must appear before any node or arc descriptor lines. It has
+the following format:
+
+\begin{verbatim}
+   p min NODES ARCS
+\end{verbatim}
+
+\noindent
+The lower-case character \verb|p| signifies that this is a problem line.
+The three-character problem designator \verb|min| identifies the file as
+containing specification information for the minimum cost flow problem.
+The \verb|NODES| field contains an integer value specifying the number
+of nodes in the network. The \verb|ARCS| field contains an integer value
+specifying the number of arcs in the network.
+
+\paragraph{Node descriptors.} All node descriptor lines must appear
+before all arc descriptor lines. The node descriptor lines describe
+supply and demand nodes, but not transshipment nodes. That is, only
+nodes with non-zero node supply/demand values appear. There is one node
+descriptor line for each such node, with the following format:
+
+\begin{verbatim}
+   n ID FLOW
+\end{verbatim}
+
+\noindent
+The lower-case character \verb|n| signifies that this is a node
+descriptor line. The \verb|ID| field gives a node identification number,
+an integer between 1 and \verb|NODES|. The \verb|FLOW| field gives the
+amount of supply (if positive) or demand (if negative) at node
+\verb|ID|.
+
+\paragraph{Arc descriptors.} There is one arc descriptor line for each
+arc in the network. Arc descriptor lines are of the following format:
+
+\begin{verbatim}
+a SRC DST LOW CAP COST
+\end{verbatim}
+
+\noindent
+The lower-case character \verb|a| signifies that this is an arc
+descriptor line. For a directed arc $(i,j)$ the \verb|SRC| field gives
+the identification number $i$ for the tail endpoint, and the \verb|DST|
+field gives the identification number $j$ for the head endpoint.
+Identification numbers are integers between 1 and \verb|NODES|. The
+\verb|LOW| field specifies the minimum amount of flow that can be sent
+along arc $(i,j)$, and the \verb|CAP| field gives the maximum amount of
+flow that can be sent along arc $(i,j)$ in a feasible flow. The
+\verb|COST| field contains the per-unit cost of flow sent along arc
+$(i,j)$.
+
+\paragraph{Example.} Below here is an example of the data file in
+DIMACS format corresponding to the minimum cost flow problem shown on
+Fig~1.
+
+\begin{verbatim}
+c sample.min
+c
+c This is an example of the minimum cost flow problem data
+c in DIMACS format.
+c
+p min 9 14
+c
+n 1 20
+n 9 -20
+c
+a 1 2 0 14 0
+a 1 4 0 23 0
+a 2 3 0 10 2
+a 2 4 0  9 3
+a 3 5 2 12 1
+a 3 8 0 18 0
+a 4 5 0 26 0
+a 5 2 0 11 1
+a 5 6 0 25 5
+a 5 7 0  4 7
+a 6 7 0  7 0
+a 6 8 4  8 0
+a 7 9 0 15 3
+a 8 9 0 20 9
+c
+c eof
+\end{verbatim}
+
+\newpage
+
+\subsection{glp\_write\_mincost---write minimum cost flow problem\\data
+in DIMACS format}
+
+\subsubsection*{Synopsis}
+
+\begin{verbatim}
+int glp_write_mincost(glp_graph *G, int v_rhs, int a_low,
+      int a_cap, int a_cost, const char *fname);
+\end{verbatim}
+
+\subsubsection*{Description}
+
+The routine \verb|glp_write_mincost| writes the minimum cost flow
+problem data to a text file in DIMACS format.
+
+The parameter \verb|G| is the graph (network) program object, which
+specifies the minimum cost flow problem instance.
+
+The parameter \verb|v_rhs| specifies an offset of the field of type
+\verb|double| in the vertex data block, which contains $b_i$, the
+supply/demand value. If \verb|v_rhs| $<0$, it is assumed that $b_i=0$,
+i.e. the node is transshipment.
+
+The parameter \verb|a_low| specifies an offset of the field of type
+\verb|double| in the arc data block, which contains $l_{ij}$, the lower
+bound to the arc flow. If \verb|a_low| $<0$, it is assumed that
+$l_{ij}=0$, i.e. the arc flow is non-negative.
+
+The parameter \verb|a_cap| specifies an offset of the field of type
+\verb|double| in the arc data block, which contains $u_{ij}$, the upper
+bound to the arc flow (the arc capacity). If \verb|a_cap| $<0$ or the
+upper bound is spacified as \verb|DBL_MAX|, it is assumed that
+$u_{ij}=\infty$, i.e. the arc is uncapacitated.
+
+The parameter \verb|a_cost| specifies an offset of the field of type
+\verb|double| in the arc data block, which contains $c_{ij}$, the
+per-unit cost of the arc flow. If \verb|a_cost| $<0$, it is assumed that
+$c_{ij}=0$.
+
+The character string \verb|fname| specifies a name of the text file to
+be written out. (If the file name ends with suffix `\verb|.gz|', the
+file is assumed to be compressed, in which case the routine performs
+automatic compression on writing it.)
+
+\subsubsection*{Returns}
+
+If the operation was successful, the routine returns zero. Otherwise,
+it prints an error message and returns non-zero.
+
+\newpage
+
+\subsection{glp\_mincost\_lp---convert minimum cost flow problem\\to LP}
+
+\subsubsection*{Synopsis}
+
+\begin{verbatim}
+void glp_mincost_lp(glp_prob *lp, glp_graph *G, int names,
+      int v_rhs, int a_low, int a_cap, int a_cost);
+\end{verbatim}
+
+\subsubsection*{Description}
+
+The routine \verb|glp_mincost_lp| builds LP problem (1)---(3), which
+corresponds to the specified minimum cost flow problem.
+
+The parameter \verb|lp| is the resultant LP problem object to be built.
+Note that on entry its current content is erased with the routine
+\verb|glp_erase_prob|.
+
+The parameter \verb|G| is the graph (network) program object, which
+specifies the minimum cost flow problem instance.
+
+The parameter \verb|names| is a flag. If it is \verb|GLP_ON|, the
+routine uses symbolic names of the graph object components to assign
+symbolic names to the LP problem object components. If the flag is
+\verb|GLP_OFF|, no symbolic names are assigned.
+
+The parameter \verb|v_rhs| specifies an offset of the field of type
+\verb|double| in the vertex data block, which contains $b_i$, the
+supply/demand value. If \verb|v_rhs| $<0$, it is assumed that $b_i=0$,
+i.e. the node is transshipment.
+
+The parameter \verb|a_low| specifies an offset of the field of type
+\verb|double| in the arc data block, which contains $l_{ij}$, the lower
+bound to the arc flow. If \verb|a_low| $<0$, it is assumed that
+$l_{ij}=0$, i.e. the arc flow is non-negative.
+
+The parameter \verb|a_cap| specifies an offset of the field of type
+\verb|double| in the arc data block, which contains $u_{ij}$, the upper
+bound to the arc flow (the arc capacity). If \verb|a_cap| $<0$ or the
+upper bound is spacified as \verb|DBL_MAX|, it is assumed that
+$u_{ij}=\infty$, i.e. the arc is uncapacitated.
+
+The parameter \verb|a_cost| specifies an offset of the field of type
+\verb|double| in the arc data block, which contains $c_{ij}$, the
+per-unit cost of the arc flow. If \verb|a_cost| $<0$, it is assumed that
+$c_{ij}=0$.
+
+\subsubsection*{Example}
+
+The example program below reads the minimum cost problem instance in
+DIMACS format from file `\verb|sample.min|', converts the instance to
+LP, and then writes the resultant LP in CPLEX format to file
+`\verb|mincost.lp|'.
+
+\newpage
+
+\begin{verbatim}
+#include <stddef.h>
+#include <glpk.h>
+
+typedef struct { double rhs; } v_data;
+typedef struct { double low, cap, cost; } a_data;
+
+int main(void)
+{     glp_graph *G;
+      glp_prob *lp;
+      G = glp_create_graph(sizeof(v_data), sizeof(a_data));
+      glp_read_mincost(G, offsetof(v_data, rhs),
+         offsetof(a_data, low), offsetof(a_data, cap),
+         offsetof(a_data, cost), "sample.min");
+      lp = glp_create_prob();
+      glp_mincost_lp(lp, G, GLP_ON, offsetof(v_data, rhs),
+         offsetof(a_data, low), offsetof(a_data, cap),
+         offsetof(a_data, cost));
+      glp_delete_graph(G);
+      glp_write_lp(lp, NULL, "mincost.lp");
+      glp_delete_prob(lp);
+      return 0;
+}
+\end{verbatim}
+
+If `\verb|sample.min|' is the example data file from the previous
+subsection, the output file `\verb|mincost.lp|' may look like follows:
+
+\begin{verbatim}
+Minimize
+ obj: + 3 x(2,4) + 2 x(2,3) + x(3,5) + 7 x(5,7) + 5 x(5,6)
+ + x(5,2) + 3 x(7,9) + 9 x(8,9)
+
+Subject To
+ r_1: + x(1,2) + x(1,4) = 20
+ r_2: - x(5,2) + x(2,3) + x(2,4) - x(1,2) = 0
+ r_3: + x(3,5) + x(3,8) - x(2,3) = 0
+ r_4: + x(4,5) - x(2,4) - x(1,4) = 0
+ r_5: + x(5,2) + x(5,6) + x(5,7) - x(4,5) - x(3,5) = 0
+ r_6: + x(6,7) + x(6,8) - x(5,6) = 0
+ r_7: + x(7,9) - x(6,7) - x(5,7) = 0
+ r_8: + x(8,9) - x(6,8) - x(3,8) = 0
+ r_9: - x(8,9) - x(7,9) = -20
+
+Bounds
+ 0 <= x(1,4) <= 23
+ 0 <= x(1,2) <= 14
+ 0 <= x(2,4) <= 9
+ 0 <= x(2,3) <= 10
+ 0 <= x(3,8) <= 18
+ 2 <= x(3,5) <= 12
+ 0 <= x(4,5) <= 26
+ 0 <= x(5,7) <= 4
+ 0 <= x(5,6) <= 25
+ 0 <= x(5,2) <= 11
+ 4 <= x(6,8) <= 8
+ 0 <= x(6,7) <= 7
+ 0 <= x(7,9) <= 15
+ 0 <= x(8,9) <= 20
+
+End
+\end{verbatim}
+
+\subsection{glp\_netgen---Klingman's network problem generator}
+
+\subsubsection*{Synopsis}
+
+\begin{verbatim}
+int glp_netgen(glp_graph *G, int v_rhs, int a_cap, int a_cost,
+      const int parm[1+15]);
+\end{verbatim}
+
+\subsubsection*{Description}
+
+The routine \verb|glp_netgen| is a GLPK version of the network problem
+generator developed by Dr.~Darwin~Klingman.\footnote{D.~Klingman,
+A.~Napier, and J.~Stutz. NETGEN: A program for generating large scale
+capacitated assignment, transportation, and minimum cost flow networks.
+Management Science 20 (1974), 814-20.} It can create capacitated and
+uncapacitated minimum cost flow (or transshipment), transportation, and
+assignment problems.
+
+The parameter \verb|G| specifies the graph object, to which the
+generated  problem data have to be stored. Note that on entry the graph
+object  is erased with the routine \verb|glp_erase_graph|.
+
+The parameter \verb|v_rhs| specifies an offset of the field of type
+\verb|double| in the vertex data block, to which the routine stores the
+supply or  demand value. If \verb|v_rhs| $<0$, the value is not stored.
+
+The parameter \verb|a_cap| specifies an offset of the field of type
+\verb|double| in the arc data block, to which the routine stores the
+arc capacity. If \verb|a_cap| $<0$, the capacity is not stored.
+
+The parameter \verb|a_cost| specifies an offset of the field of type
+\verb|double| in the arc data block, to which the routine stores the
+per-unit cost if the arc flow. If \verb|a_cost| $<0$, the cost is not
+stored.
+
+The array \verb|parm| contains description of the network to be
+generated:
+
+\begin{tabular}{@{}lll@{}}
+\verb|parm[0] |&             &not used\\
+\verb|parm[1] |&\verb|iseed |&8-digit positive random number seed\\
+\verb|parm[2] |&\verb|nprob |&8-digit problem id number\\
+\verb|parm[3] |&\verb|nodes |&total number of nodes\\
+\verb|parm[4] |&\verb|nsorc |&total number of source nodes\\
+&&(including transshipment nodes)\\
+\verb|parm[5] |&\verb|nsink |&total number of sink nodes\\
+&&(including transshipment nodes)\\
+\verb|parm[6] |&\verb|iarcs |&number of arc\\
+\verb|parm[7] |&\verb|mincst|&minimum cost for arcs\\
+\verb|parm[8] |&\verb|maxcst|&maximum cost for arcs\\
+\verb|parm[9] |&\verb|itsup |&total supply\\
+\verb|parm[10]|&\verb|ntsorc|&number of transshipment source nodes\\
+\verb|parm[11]|&\verb|ntsink|&number of transshipment sink nodes\\
+\verb|parm[12]|&\verb|iphic |&percentage of skeleton arcs to be given
+the maxi-\\&&mum cost\\
+\verb|parm[13]|&\verb|ipcap |&percentage of arcs to be capacitated\\
+\verb|parm[14]|&\verb|mincap|&minimum upper bound for capacitated arcs\\
+\verb|parm[15]|&\verb|maxcap|&maximum upper bound for capacitated arcs\\
+\end{tabular}
+
+\subsubsection*{Notes}
+
+\noindent\indent
+1. The routine generates a transportation problem if:
+$${\tt nsorc}+{\tt nsink}={\tt nodes},
+\  {\tt ntsorc}=0,\ \mbox{and}\ {\tt ntsink}=0.$$
+
+2. The routine generates an assignment problem if the requirements for
+a transportation problem are met and:
+$${\tt nsorc}={\tt nsink}\ \mbox{and}\ {\tt itsup}={\tt nsorc}.$$
+
+3. The routine always generates connected graphs. So, if the number of
+requested arcs has been reached and the generated instance is not fully
+connected, the routine generates a few remaining arcs to ensure
+connectedness. Thus, the actual number of arcs generated by the routine
+may be greater than the requested number of arcs.
+
+\subsubsection*{Returns}
+
+If the instance was successfully generated, the routine
+\verb|glp_netgen| returns zero; otherwise, if specified parameters are
+inconsistent, the routine returns a non-zero error code.
+
+\subsection{glp\_gridgen---grid-like network problem generator}
+
+\subsubsection*{Synopsis}
+
+\begin{verbatim}
+int glp_gridgen(glp_graph *G, int v_rhs, int a_cap, int a_cost,
+      const int parm[1+14]);
+\end{verbatim}
+
+\subsubsection*{Description}
+
+The routine \verb|glp_gridgen| is a GLPK version of the grid-like
+network problem generator developed by Yusin Lee and Jim
+Orlin.\footnote{Y.~Lee and J.~Orlin. GRIDGEN generator., 1991. The
+original code is publically available from
+{\tt<ftp://dimacs.rutgers.edu/pub/netflow/generators/network/gridgen>}.}
+
+The parameter \verb|G| specifies the graph object, to which the
+generated  problem data have to be stored. Note that on entry the graph
+object  is erased with the routine \verb|glp_erase_graph|.
+
+The parameter \verb|v_rhs| specifies an offset of the field of type
+\verb|double| in the vertex data block, to which the routine stores the
+supply or  demand value. If \verb|v_rhs| $<0$, the value is not stored.
+
+The parameter \verb|a_cap| specifies an offset of the field of type
+\verb|double| in the arc data block, to which the routine stores the
+arc capacity. If \verb|a_cap| $<0$, the capacity is not stored.
+
+The parameter \verb|a_cost| specifies an offset of the field of type
+\verb|double| in the arc data block, to which the routine stores the
+per-unit cost if the arc flow. If \verb|a_cost| $<0$, the cost is not
+stored.
+
+The array \verb|parm| contains parameters of the network to be
+generated:
+
+\begin{tabular}{@{}ll@{}}
+\verb|parm[0] |&not used\\
+\verb|parm[1] |&two-ways arcs indicator:\\
+               &1 --- if links in both direction should be generated\\
+               &0 --- otherwise\\
+\verb|parm[2] |&random number seed (a positive integer)\\
+\verb|parm[3] |&number of nodes (the number of nodes generated might
+be\\&slightly different to make the network a grid)\\
+\verb|parm[4] |&grid width\\
+\verb|parm[5] |&number of sources\\
+\end{tabular}
+
+\begin{tabular}{@{}ll@{}}
+\verb|parm[6] |&number of sinks\\
+\verb|parm[7] |&average degree\\
+\verb|parm[8] |&total flow\\
+\verb|parm[9] |&distribution of arc costs:\\
+               &1 --- uniform\\
+               &2 --- exponential\\
+\verb|parm[10]|&lower bound for arc cost (uniform)\\
+               &$100\lambda$ (exponential)\\
+\verb|parm[11]|&upper bound for arc cost (uniform)\\
+               &not used (exponential)\\
+\verb|parm[12]|&distribution of arc capacities:\\
+               &1 --- uniform\\
+               &2 --- exponential\\
+\verb|parm[13]|&lower bound for arc capacity (uniform)\\
+               &$100\lambda$ (exponential)\\
+\verb|parm[14]|&upper bound for arc capacity (uniform)\\
+               &not used (exponential)\\
+\end{tabular}
+
+\subsubsection*{Returns}
+
+If the instance was successfully generated, the routine
+\verb|glp_gridgen| returns zero; otherwise, if specified parameters are
+inconsistent, the routine returns a non-zero error code.
+
+\subsubsection*{Comments\footnote{This material is based on comments
+to the original version of GRIDGEN.}}
+
+This network generator generates a grid-like network plus a super node.
+In additional to the arcs connecting the nodes in the grid, there is an
+arc from each supply node to the super node and from the super node to
+each demand node to guarantee feasiblity. These arcs have very high
+costs and very big capacities.
+
+The idea of this network generator is as follows: First, a grid of
+$n_1\times n_2$ is generated. For example, $5\times 3$. The nodes are
+numbered as 1 to 15, and the supernode is numbered as $n_1\times n_2+1$.
+Then arcs between adjacent nodes are generated. For these arcs, the user
+is allowed to specify either to generate two-way arcs or one-way arcs.
+If two-way arcs are to be generated, two arcs, one in each direction,
+will be generated between each adjacent node pairs. Otherwise, only one
+arc will be generated. If this is the case, the arcs will be generated
+in alterntive directions as shown below.
+
+\bigskip
+
+\noindent\hfil
+\xymatrix
+{1\ar[r]\ar[d]&2\ar[r]&3\ar[r]\ar[d]&4\ar[r]&5\ar[d]\\
+6\ar[d]&7\ar[l]\ar[u]&8\ar[l]\ar[d]&9\ar[l]\ar[u]&10\ar[l]\ar[d]\\
+11\ar[r]&12\ar[r]\ar[u]&13\ar[r]&14\ar[r]\ar[u]&15\\
+}
+
+\bigskip
+
+Then the arcs between the super node and the source/sink nodes are added
+as mentioned before. If the number of arcs still doesn't reach the
+requirement, additional arcs will be added by uniformly picking random
+node pairs. There is no checking to prevent multiple arcs between any
+pair of nodes. However, there will be no self-arcs (arcs that poins back
+to its tail node) in the network.
+
+The source and sink nodes are selected uniformly in the network, and
+the imbalances of each source/sink node are also assigned by uniform
+distribution.
+
+\newpage
+
+\section{Maximum flow problem}
+
+\subsection{Background}
+
+The {\it maximum flow problem} (MAXFLOW) is stated as follows. Let
+there be given a directed graph (flow network) $G=(V,A)$, where $V$ is
+a set of vertices (nodes), and $A\subseteq V\times V$ is a set of arcs.
+Let also for each arc $a=(i,j)\in A$ there be given its capacity
+$u_{ij}$. The problem is, for given {\it source} node $s\in V$ and
+{\it sink} node $t\in V$, to find flows $x_{ij}$ through every arc of
+the network, which satisfy the specified arc capacities and the
+conservation constraints at all nodes, and maximize the total flow $F$
+through the network from $s$ to $t$. Here the conservation constraint
+at a node means that the total flow entering this node through its
+incoming arcs (plus $F$, if it is the source node) must be equal to the
+total flow leaving this node through its outgoing arcs (plus $F$, if it
+is the sink node).
+
+An example of the maximum flow problem, where $s=v_1$ and $t=v_9$, is
+shown on Fig.~2.
+
+\bigskip
+
+\noindent\hfil
+\xymatrix @C=48pt
+{_{F}\ar@{~>}[d]&
+v_2\ar[r]|{_{10}}\ar[dd]|{_{9}}&
+v_3\ar[dd]|{_{12}}\ar[r]|{_{18}}&
+v_8\ar[rd]|{_{20}}&\\
+v_1\ar[ru]|{_{14}}\ar[rd]|{_{23}}&&&
+v_6\ar[d]|{_{7}}\ar[u]|{_{8}}&
+v_9\ar@{~>}[d]\\
+&v_4\ar[r]|{_{26}}&
+v_5\ar[luu]|{_{11}}\ar[ru]|{_{25}}\ar[r]|{_{4}}&
+v_7\ar[ru]|{_{15}}&_{F}\\
+}
+
+\bigskip
+
+\noindent\hfil
+Fig.~2. An example of the maximum flow problem.
+
+\bigskip
+
+The maximum flow problem can be naturally formulated as the following
+LP problem:
+
+\medskip
+
+\noindent
+\hspace{.5in}maximize
+$$F\eqno(4)$$
+\hspace{.5in}subject to
+$$\sum_{(i,j)\in A}x_{ij}-\sum_{(j,i)\in A}x_{ji}=\left\{
+\begin{array}{@{\ }rl}
++F,&\hbox{for}\ i=s\\
+ 0,&\hbox{for all}\ i\in V\backslash\{s,t\}\\
+-F,&\hbox{for}\ i=t\\
+\end{array}
+\right.\eqno(5)
+$$
+$$0\leq x_{ij}\leq u_{ij}\ \ \ \hbox{for all}\ (i,j)\in A
+\eqno(6)$$
+
+\medskip
+
+\noindent
+where $F\geq 0$ is an additional variable playing the role of the
+objective.
+
+\newpage
+
+Another LP formulation of the maximum flow problem, which does not
+include the variable $F$, is the following:
+
+\medskip
+
+\noindent
+\hspace{.5in}maximize
+$$z=\sum_{(s,j)\in A}x_{sj}-\sum_{(j,s)\in A}x_{js}\ (=F)\eqno(7)$$
+\hspace{.5in}subject to
+$$\sum_{(i,j)\in A}x_{ij}-\sum_{(j,i)\in A}x_{ji}\left\{
+\begin{array}{@{\ }rl}
+\geq 0,&\hbox{for}\ i=s\\
+=0,&\hbox{for all}\ i\in V\backslash\{s,t\}\\
+\leq 0,&\hbox{for}\ i=t\\
+\end{array}
+\right.\eqno(8)
+$$
+$$0\leq x_{ij}\leq u_{ij}\ \ \ \hbox{for all}\ (i,j)\in A
+\eqno(9)$$
+
+\subsection{glp\_read\_maxflow---read maximum flow problem data\\in
+DIMACS format}
+
+\subsubsection*{Synopsis}
+
+\begin{verbatim}
+int glp_read_maxflow(glp_graph *G, int *s, int *t, int a_cap,
+      const char *fname);
+\end{verbatim}
+
+\subsubsection*{Description}
+
+The routine \verb|glp_read_maxflow| reads the maximum flow problem
+data from a text file in DIMACS format.
+
+The parameter \verb|G| specifies the graph object, to which the problem
+data have to be stored. Note that before reading data the current
+content of the graph object is completely erased with the routine
+\verb|glp_erase_graph|.
+
+The pointer \verb|s| specifies a location, to which the routine stores
+the ordinal number of the source node. If \verb|s| is \verb|NULL|, the
+source node number is not stored.
+
+The pointer \verb|t| specifies a location, to which the routine stores
+the ordinal number of the sink node. If \verb|t| is \verb|NULL|, the
+sink node number is not stored.
+
+The parameter \verb|a_cap| specifies an offset of the field of type
+\verb|double| in the arc data block, to which the routine stores
+$u_{ij}$, the arc capacity. If \verb|a_cap| $<0$, the arc capacity is
+not stored.
+
+The character string \verb|fname| specifies the name of a text file to
+be read in. (If the file name name ends with the suffix `\verb|.gz|',
+the file is assumed to be compressed, in which case the routine
+decompresses it ``on the fly''.)
+
+\subsubsection*{Returns}
+
+If the operation was successful, the routine returns zero. Otherwise,
+it prints an error message and returns non-zero.
+
+\subsubsection*{Example}
+
+\begin{verbatim}
+typedef struct
+{     /* arc data block */
+      ...
+      double cap;
+      ...
+} a_data;
+
+int main(void)
+{     glp_graph *G;
+      int s, t, ret;
+      G = glp_create_graph(..., sizeof(a_data));
+      ret = glp_read_maxflow(G, &s, &t, offsetof(a_data, cap),
+         "sample.max");
+      if (ret != 0) goto ...
+      ...
+}
+\end{verbatim}
+
+\subsubsection*{DIMACS maximum flow problem format\footnote{This
+material is based on the paper ``The First DIMACS International
+Algorithm Implementation Challenge: Problem Definitions and
+Specifications'', which is publically available at
+{\tt http://dimacs.rutgers.edu/Challenges/}.}}
+
+The DIMACS input file is a plain ASCII text file. It contains
+{\it lines} of several types described below. A line is terminated with
+an end-of-line character. Fields in each line are separated by at least
+one blank space. Each line begins with a one-character designator to
+identify the line type.
+
+Note that DIMACS requires all numerical quantities to be integers in
+the range $[-2^{31},\ 2^{31}-1]$ while GLPK allows the quantities to be
+floating-point numbers.
+
+\newpage
+
+\paragraph{Comment lines.} Comment lines give human-readable information
+about the file and are ignored by programs. Comment lines can appear
+anywhere in the file. Each comment line begins with a lower-case
+character \verb|c|.
+
+\begin{verbatim}
+   c This is a comment line
+\end{verbatim}
+
+\paragraph{Problem line.} There is one problem line per data file. The
+problem line must appear before any node or arc descriptor lines. It has
+the following format:
+
+\begin{verbatim}
+   p max NODES ARCS
+\end{verbatim}
+
+\noindent
+The lower-case character \verb|p| signifies that this is a problem line.
+The three-character problem designator \verb|max| identifies the file as
+containing specification information for the maximum flow problem. The
+\verb|NODES| field contains an integer value specifying the number of
+nodes in the network. The \verb|ARCS| field contains an integer value
+specifying the number of arcs in the network.
+
+\paragraph{Node descriptors.} Two node descriptor lines for the source
+and sink nodes must appear before all arc descriptor lines. They may
+appear in either order, each with the following format:
+
+\begin{verbatim}
+   n ID WHICH
+\end{verbatim}
+
+\noindent
+The lower-case character \verb|n| signifies that this a node descriptor
+line. The \verb|ID| field gives a node identification number, an integer
+between 1 and \verb|NODES|. The \verb|WHICH| field gives either a
+lower-case \verb|s| or \verb|t|, designating the source and sink,
+respectively.
+
+\paragraph{Arc descriptors.} There is one arc descriptor line for each
+arc in the network. Arc descriptor lines are of the following format:
+
+\begin{verbatim}
+a SRC DST CAP
+\end{verbatim}
+
+\noindent
+The lower-case character \verb|a| signifies that this is an arc
+descriptor line. For a directed arc $(i,j)$ the \verb|SRC| field gives
+the identification number $i$ for the tail endpoint, and the \verb|DST|
+field gives the identification number $j$ for the head endpoint.
+Identification numbers are integers between 1 and \verb|NODES|. The
+\verb|CAP| field gives the arc capacity, i.e. maximum amount of flow
+that can be sent along arc $(i,j)$ in a feasible flow.
+
+\newpage
+
+\paragraph{Example.} Below here is an example of the data file in
+DIMACS format corresponding to the maximum flow problem shown on Fig~2.
+
+\begin{verbatim}
+c sample.max
+c
+c This is an example of the maximum flow problem data
+c in DIMACS format.
+c
+p max 9 14
+c
+n 1 s
+n 9 t
+c
+a 1 2 14
+a 1 4 23
+a 2 3 10
+a 2 4  9
+a 3 5 12
+a 3 8 18
+a 4 5 26
+a 5 2 11
+a 5 6 25
+a 5 7  4
+a 6 7  7
+a 6 8  8
+a 7 9 15
+a 8 9 20
+c
+c eof
+\end{verbatim}
+
+\newpage
+
+\subsection{glp\_write\_maxflow---write maximum flow problem data\\
+in DIMACS format}
+
+\subsubsection*{Synopsis}
+
+\begin{verbatim}
+int glp_write_maxflow(glp_graph *G, int s, int t, int a_cap,
+      const char *fname);
+\end{verbatim}
+
+\subsubsection*{Description}
+
+The routine \verb|glp_write_maxflow| writes the maximum flow problem
+data to a text file in DIMACS format.
+
+The parameter \verb|G| is the graph (network) program object, which
+specifies the maximum flow problem instance.
+
+The parameter \verb|s| specifies the ordinal number of the source node.
+
+The parameter \verb|t| specifies the ordinal number of the sink node.
+
+The parameter \verb|a_cap| specifies an offset of the field of type
+\verb|double| in the arc data block, which contains $u_{ij}$, the upper
+bound to the arc flow (the arc capacity). If \verb|a_cap| $<0$ or the
+upper bound is spacified as \verb|DBL_MAX|, it is assumed that
+$u_{ij}=\infty$, i.e. the arc is uncapacitated.
+
+The character string \verb|fname| specifies a name of the text file to
+be written out. (If the file name ends with suffix `\verb|.gz|', the
+file is assumed to be compressed, in which case the routine performs
+automatic compression on writing it.)
+
+\subsubsection*{Returns}
+
+If the operation was successful, the routine returns zero. Otherwise,
+it prints an error message and returns non-zero.
+
+\subsection{glp\_maxflow\_lp---convert maximum flow problem to LP}
+
+\subsubsection*{Synopsis}
+
+\begin{verbatim}
+void glp_maxflow_lp(glp_prob *lp, glp_graph *G, int names,
+      int s, int t, int a_cap);
+\end{verbatim}
+
+\subsubsection*{Description}
+
+The routine \verb|glp_maxflow_lp| builds LP problem (7)---(9), which
+corresponds to the specified maximum flow problem.
+
+The parameter \verb|lp| is the resultant LP problem object to be built.
+Note that on entry its current content is erased with the routine
+\verb|glp_erase_prob|.
+
+The parameter \verb|G| is the graph (network) program object, which
+specifies the maximum flow problem instance.
+
+The parameter \verb|names| is a flag. If it is \verb|GLP_ON|, the
+routine uses symbolic names of the graph object components to assign
+symbolic names to the LP problem object components. If the flag is
+\verb|GLP_OFF|, no symbolic names are assigned.
+
+The parameter \verb|s| specifies the ordinal number of the source node.
+
+The parameter \verb|t| specifies the ordinal number of the sink node.
+
+The parameter \verb|a_cap| specifies an offset of the field of type
+\verb|double| in the arc data block, which contains $u_{ij}$, the upper
+bound to the arc flow (the arc capacity). If \verb|a_cap| $<0$ or the
+upper bound is spacified as \verb|DBL_MAX|, it is assumed that
+$u_{ij}=\infty$, i.e. the arc is uncapacitated.
+
+\subsubsection*{Example}
+
+The example program below reads the maximum flow problem in DIMACS
+format from file `\verb|sample.max|', converts the instance to LP, and
+then writes the resultant LP in CPLEX format to file
+`\verb|maxflow.lp|'.
+
+\begin{verbatim}
+#include <stddef.h>
+#include <glpk.h>
+
+int main(void)
+{     glp_graph *G;
+      glp_prob *lp;
+      int s, t;
+      G = glp_create_graph(0, sizeof(double));
+      glp_read_maxflow(G, &s, &t, 0, "sample.max");
+      lp = glp_create_prob();
+      glp_maxflow_lp(lp, G, GLP_ON, s, t, 0);
+      glp_delete_graph(G);
+      glp_write_lp(lp, NULL, "maxflow.lp");
+      glp_delete_prob(lp);
+      return 0;
+}
+\end{verbatim}
+
+\newpage
+
+If `\verb|sample.max|' is the example data file from the previous
+subsection, the output `\verb|maxflow.lp|' may look like follows:
+
+\begin{verbatim}
+Maximize
+ obj: + x(1,4) + x(1,2)
+
+Subject To
+ r_1: + x(1,2) + x(1,4) >= 0
+ r_2: - x(5,2) + x(2,3) + x(2,4) - x(1,2) = 0
+ r_3: + x(3,5) + x(3,8) - x(2,3) = 0
+ r_4: + x(4,5) - x(2,4) - x(1,4) = 0
+ r_5: + x(5,2) + x(5,6) + x(5,7) - x(4,5) - x(3,5) = 0
+ r_6: + x(6,7) + x(6,8) - x(5,6) = 0
+ r_7: + x(7,9) - x(6,7) - x(5,7) = 0
+ r_8: + x(8,9) - x(6,8) - x(3,8) = 0
+ r_9: - x(8,9) - x(7,9) <= 0
+
+Bounds
+ 0 <= x(1,4) <= 23
+ 0 <= x(1,2) <= 14
+ 0 <= x(2,4) <= 9
+ 0 <= x(2,3) <= 10
+ 0 <= x(3,8) <= 18
+ 0 <= x(3,5) <= 12
+ 0 <= x(4,5) <= 26
+ 0 <= x(5,7) <= 4
+ 0 <= x(5,6) <= 25
+ 0 <= x(5,2) <= 11
+ 0 <= x(6,8) <= 8
+ 0 <= x(6,7) <= 7
+ 0 <= x(7,9) <= 15
+ 0 <= x(8,9) <= 20
+
+End
+\end{verbatim}
+
+\newpage
+
+\subsection{glp\_rmfgen---Goldfarb's maximum flow problem generator}
+
+\subsubsection*{Synopsis}
+
+\begin{verbatim}
+int glp_rmfgen(glp_graph *G, int *s, int *t, int a_cap,
+      const int parm[1+5]);
+\end{verbatim}
+
+\subsubsection*{Description}
+
+The routine \verb|glp_rmfgen| is a GLPK version of the maximum flow
+problem generator developed by D.~Goldfarb and
+M.~Grigoriadis.\footnote{D.~Goldfarb and M.~D.~Grigoriadis,
+``A computational comparison of the Dinic and network simplex methods
+for maximum flow.'' Annals of Op. Res. 13 (1988),
+pp.~83-123.}$^{,}$\footnote{U.~Derigs and W.~Meier, ``Implementing
+Goldberg's max-flow algorithm: A computational investigation.''
+Zeitschrift f\"ur Operations Research 33 (1989),
+pp.~383-403.}$^{,}$\footnote{The original code of RMFGEN implemented by
+Tamas Badics is publically available from
+{\tt <ftp://dimacs.rutgers.edu/pub/netflow/generators/network/genrmf>}.}
+
+The parameter \verb|G| specifies the graph object, to which the
+generated problem data have to be stored. Note that on entry the graph
+object is erased with the routine \verb|glp_erase_graph|.
+
+The pointers \verb|s| and \verb|t| specify locations, to which the
+routine stores the source and sink node numbers, respectively. If
+\verb|s| or \verb|t| is \verb|NULL|, corresponding node number is not
+stored.
+
+The parameter \verb|a_cap| specifies an offset of the field of type
+\verb|double| in the arc data block, to which the routine stores the arc
+capacity. If \verb|a_cap| $<0$, the capacity is not stored.
+
+The array \verb|parm| contains description of the network to be
+generated:
+
+\begin{tabular}{@{}lll@{}}
+\verb|parm[0]|&           &not used\\
+\verb|parm[1]|&\verb|seed|&random number seed (a positive integer)\\
+\verb|parm[2]|&\verb|a   |&frame size\\
+\verb|parm[3]|&\verb|b   |&depth\\
+\verb|parm[4]|&\verb|c1  |&minimal arc capacity\\
+\verb|parm[5]|&\verb|c2  |&maximal arc capacity\\
+\end{tabular}
+
+\subsubsection*{Returns}
+
+If the instance was successfully generated, the routine
+\verb|glp_netgen| returns zero; otherwise, if specified parameters are
+inconsistent, the routine returns a non-zero error code.
+
+\newpage
+
+\subsubsection*{Comments\footnote{This material is based on comments
+to the original version of RMFGEN.}}
+
+The generated network is as follows. It has $b$ pieces of frames of
+size $a\times a$. (So alltogether the number of vertices is
+$a\times a\times b$.)
+
+In each frame all the vertices are connected with their neighbours
+(forth and back). In addition the vertices of a frame are connected
+one to one with the vertices of next frame using a random permutation
+of those vertices.
+
+The source is the lower left vertex of the first frame, the sink is
+the upper right vertex of the $b$-th frame.
+
+\begin{verbatim}
+                              t
+                     +-------+
+                     |      .|
+                     |     . |
+                  /  |    /  |
+                 +-------+/ -+ b
+                 |    |  |/.
+               a |   -v- |/
+                 |    |  |/
+                 +-------+ 1
+                s    a
+\end{verbatim}
+
+The capacities are randomly chosen integers from the range of
+$[c_1,c_2]$  in the case of interconnecting edges, and $c_2\cdot a^2$
+for the in-frame edges.
+
+%* eof *%

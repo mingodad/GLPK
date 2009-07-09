@@ -1,0 +1,118 @@
+# Build GLPK with Open Watcom C/C++ 1.6
+
+CFLAGS = /I. /DHAVE_CONFIG_H
+
+OBJSET = &
+glpapi01.obj &
+glpapi02.obj &
+glpapi03.obj &
+glpapi04.obj &
+glpapi05.obj &
+glpapi06.obj &
+glpapi07.obj &
+glpapi08.obj &
+glpapi09.obj &
+glpapi10.obj &
+glpapi11.obj &
+glpapi12.obj &
+glpapi13.obj &
+glpapi14.obj &
+glpapi15.obj &
+glpapi16.obj &
+glpapi17.obj &
+glpapi18.obj &
+glpapi19.obj &
+glpavl.obj &
+glpbfd.obj &
+glpbfx.obj &
+glpcpx.obj &
+glpdmp.obj &
+glpdmx.obj &
+glpfhv.obj &
+glpgmp.obj &
+glphbm.obj &
+glpini01.obj &
+glpini02.obj &
+glpios01.obj &
+glpios02.obj &
+glpios03.obj &
+glpios04.obj &
+glpios05.obj &
+glpios06.obj &
+glpios07.obj &
+glpios08.obj &
+glpios09.obj &
+glpipm.obj &
+glpipp01.obj &
+glpipp02.obj &
+glplib01.obj &
+glplib02.obj &
+glplib03.obj &
+glplib04.obj &
+glplib05.obj &
+glplib06.obj &
+glplib07.obj &
+glplib08.obj &
+glplib09.obj &
+glplib10.obj &
+glplib11.obj &
+glplib12.obj &
+glplpf.obj &
+glplpp01.obj &
+glplpp02.obj &
+glplpx01.obj &
+glplpx02.obj &
+glplpx03.obj &
+glplpx04.obj &
+glplpx05.obj &
+glplpx06.obj &
+glplpx07.obj &
+glplpx08.obj &
+glplpx09.obj &
+glpluf.obj &
+glplux.obj &
+glpmat.obj &
+glpmpl01.obj &
+glpmpl02.obj &
+glpmpl03.obj &
+glpmpl04.obj &
+glpmpl05.obj &
+glpmpl06.obj &
+glpmps01.obj &
+glpmps02.obj &
+glpnet01.obj &
+glpnet02.obj &
+glpnet03.obj &
+glpnet04.obj &
+glpnet05.obj &
+glppds.obj &
+glpqmd.obj &
+glprgr.obj &
+glprng01.obj &
+glprng02.obj &
+glpscf.obj &
+glpscg.obj &
+glpscl.obj &
+glpspm.obj &
+glpspx01.obj &
+glpspx02.obj &
+glpsql.obj &
+glpssx01.obj &
+glpssx02.obj &
+glptsp.obj
+
+.c:     ..\src\;..\examples\;
+
+.c.obj:
+        wcc386.exe $(CFLAGS) /I..\include $[*
+
+all: glpk.lib glpsol.exe .SYMBOLIC
+
+glpk.lib: $(OBJSET)
+        wlib -b -c -n glpk.lib +$(OBJSET)
+
+glpsol.exe: glpsol.obj glpk.lib
+        wlink F glpsol.obj L glpk.lib N glpsol.exe
+
+check:  glpsol.exe .SYMBOLIC
+        .\glpsol.exe --mps ..\examples\plan.mps

@@ -1,0 +1,5 @@
+/* GLPK configuration file (Digital Mars C/C++ 8.50) */
+
+#define __WOE__ 1
+
+/* eof */

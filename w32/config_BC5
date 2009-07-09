@@ -1,0 +1,5 @@
+/* GLPK configuration file (Borland C++ 5.0) */
+
+#define __WOE__ 1
+
+/* eof */
