@@ -1,3 +1,59 @@
+Mon Dec 21 12:00:00 2009 Andrew Makhorin <mao@gnu.org>
+
+        * GLPK 4.41 (26:0:26) has been released
+
+        * glpapi12.c
+        The following new API routines were added:
+        glp_transform_row (replaces lpx_transform_row);
+        glp_transform_col (replaces lpx_transform_col);
+        glp_prim_rtest (replaces lpx_prim_ratio_test);
+        glp_dual_rtest (replaces lpx_dual_ratio_test).
+        Note that values returned by glp_prim_rtest and glp_dual_rtest
+        differ from the ones retutned by the deprecated routines.
+
+        * glpnpp*.*
+        The LP/MIP preprocessor was essentially re-implemented.
+
+        * glpios03.c
+        The feature to remove inactive cuts from the active subproblem
+        was implemented.
+
+        * glpios11.c
+        The feature processing cuts stored in the cut pool was improved
+        (now it uses estimation of objective degradation).
+
+        * glpscg.*
+        Obsolete implemetation of the conflict graph was removed.
+
+        * glpmpl.h, glpmpl03.c, glpmpl04.c
+        FILE was replaced by XFILE to allow using GLPK I/O routines.
+
+        * glpsql.c, examples/sql, doc/tables.tex
+        The SQL table driver was changed to allow multiple arguments
+        separated by semicolon in SQL statements. Thanks to Xypron
+        <xypron.glpk@gmx.de>.
+
+        * glpk.h, glpapi14.c
+        New API routine glp_time was added (not documented yet).
+
+        * glpapi20.c
+        Two new options were added to glpsol: --seed value (initialize
+        pseudo-random number generator used in MathProg model with
+        specified seed value), and --ini filename (use as initial basis
+        previously saved with -w option).
+
+        * examples/xyacfs.mod
+        Thanks to Nigel Galloway <nigel_galloway@operamail.com> for
+        contribution.
+
+        * examples/dbf/*.*
+        Thanks to Noli Sicad <nsicad@gmail.com> for contribution.
+
+        * w32/*.*, w64/*.*
+        Scripts to build GLPK with Microsoft Visual Studio 2010 were
+        added. Thanks to Xypron <xypron.glpk@gmx.de> for contribution
+        and testing.
+
 Tue Nov 03 12:00:00 2009 Andrew Makhorin <mao@gnu.org>
 
         * GLPK 4.40 (25:0:25) has been released

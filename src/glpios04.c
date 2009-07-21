@@ -1,4 +1,4 @@
-/* glpios04.c */
+/* glpios04.c (operations on sparse vectors) */
 
 /***********************************************************************
 *  This code is part of GLPK (GNU Linear Programming Kit).

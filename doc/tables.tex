@@ -29,10 +29,10 @@
 
 \author{\begin{tabular}{cc}
 Andrew Makhorin&Heinrich Schuchardt\\
-{\tt <mao@mai2.rcnet.ru>}&{\tt<heinrich.schuchardt@gmx.de>}\\
+{\tt <mao@gnu.org>}&{\tt<heinrich.schuchardt@gmx.de>}\\
 \end{tabular}}
 
-\date{September, 2008}
+\date{November, 2009}
 
 \maketitle
 
@@ -423,18 +423,27 @@ the following fieldnames are allowed:
 
 \verb|UID      | user name.
 
-The second argument and all following but the last one are considered
-to be SQL statements that shall be executed directly.
+The second argument and all following are considered to be SQL
+statements
 
-For IN-table the last argument can be a SELECT command starting with
-the capitalized letters \verb|'SELECT '|. If the string does not start
-with \verb|'SELECT '| it is considered to be a table name and a SELECT
-statement is automatically generated.
+SQL statements may be spread over multiple arguments.  If the last
+character of an argument is a semicolon this indicates the end of
+a SQL statement.
 
-For OUT-table the last argument can contain one or multiple question
-marks. If it contains a question mark it is considered a template for
-the write routine. Otherwise the string is considered a table name and
-an INSERT template is automatically generated.
+The arguments of a SQL statement are concatenated separated by space.
+The eventual trailing semicolon will be removed.
+
+All but the last SQL statement will be executed directly.
+
+For IN-table the last SQL statement can be a SELECT command starting
+with the capitalized letters \verb|'SELECT '|. If the string does not
+start with \verb|'SELECT '| it is considered to be a table name and a
+SELECT statement is automatically generated.
+
+For OUT-table the last SQL statement can contain one or multiple
+question marks. If it contains a question mark it is considered a
+template for the write routine. Otherwise the string is considered a
+table name and an INSERT template is automatically generated.
 
 The writing routine uses the template with the question marks and
 replaces the first question mark by the first output parameter, the
@@ -445,12 +454,12 @@ The following is an example of the output table statement:
 
 \begin{small}
 \begin{verbatim}
-table ta { l in LOCATIONS } OUT 
+table ta { l in LOCATIONS } OUT
    'ODBC'
    'DSN=glpkdb;UID=glpkuser;PWD=glpkpassword'
-   'DROP TABLE IF EXISTS result'
-   'CREATE TABLE result ( ID INT, LOC VARCHAR(255), QUAN DOUBLE )'
-   'INSERT INTO result VALUES ( 4, ?, ? )' :
+   'DROP TABLE IF EXISTS result;'
+   'CREATE TABLE result ( ID INT, LOC VARCHAR(255), QUAN DOUBLE );'
+   'INSERT INTO result 'VALUES ( 4, ?, ? )' :
    l ~ LOC, quantity[l] ~ QUAN;
 \end{verbatim}
 \end{small}
@@ -460,11 +469,11 @@ Alternatively it could be written as follows:
 
 \begin{small}
 \begin{verbatim}
-table ta { l in LOCATIONS } OUT 
+table ta { l in LOCATIONS } OUT
    'ODBC'
    'DSN=glpkdb;UID=glpkuser;PWD=glpkpassword'
-   'DROP TABLE IF EXISTS result'
-   'CREATE TABLE result ( ID INT, LOC VARCHAR(255), QUAN DOUBLE )'
+   'DROP TABLE IF EXISTS result;'
+   'CREATE TABLE result ( ID INT, LOC VARCHAR(255), QUAN DOUBLE );'
    'result' :
    l ~ LOC, quantity[l] ~ QUAN, 4 ~ ID;
 \end{verbatim}
@@ -478,7 +487,7 @@ UPDATE, DELETE, etc. For example:
 table ta { l in LOCATIONS } OUT
    'ODBC'
    'DSN=glpkdb;UID=glpkuser;PWD=glpkpassword'
-   'UPDATE result SET DATE = ' & date & ' WHERE ID = 4'
+   'UPDATE result SET DATE = ' & date & ' WHERE ID = 4;'
    'UPDATE result SET QUAN = ? WHERE LOC = ? AND ID = 4' :
    quantity[l], l;
 \end{verbatim}
@@ -502,8 +511,6 @@ sudo apt-get install libmysqlclient15-dev
 Note that on configuring the GLPK package to enable using the MySQL
 library the option `\verb|--enable-mysql|' should be passed to the
 configure script.
-
-\pagebreak
 
 \paragraph{Microsoft Windows.}
 Under Microsoft Windows the MySQL table driver also uses the MySQL
@@ -542,18 +549,27 @@ equal sign. The following fieldnames are allowed:
 
 \verb|Port     | port used by the server (defaulting to 3306).
 
-The second argument and all following but the last are considered to be
-SQL statements that shall be executed directly.
+The second argument and all following are considered to be SQL
+statements
 
-For IN-table the last argument can be a SELECT command starting with
-the capitalized letters \verb|'SELECT '|. If the string does not start
-with \verb|'SELECT '| it is considered to be a table name and a SELECT
-statement is automatically generated.
+SQL statements may be spread over multiple arguments.  If the last
+character of an argument is a semicolon this indicates the end of
+a SQL statement.
 
-For OUT-table the last argument can contain one or multiple question
-marks. If it contains a question mark it is considered a template for
-the write routine. Otherwise the string is considered a table name and
-an INSERT template is automatically generated.
+The arguments of a SQL statement are concatenated separated by space.
+The eventual trailing semicolon will be removed.
+
+All but the last SQL statement will be executed directly.
+
+For IN-table the last SQL statement can be a SELECT command starting
+with the capitalized letters \verb|'SELECT '|. If the string does not
+start with \verb|'SELECT '| it is considered to be a table name and a
+SELECT statement is automatically generated.
+
+For OUT-table the last SQL statement can contain one or multiple
+question marks. If it contains a question mark it is considered a
+template for the write routine. Otherwise the string is considered a
+table name and an INSERT template is automatically generated.
 
 The writing routine uses the template with the question marks and
 replaces the first question mark by the first output parameter, the
@@ -567,8 +583,8 @@ The following is an example of the output table statement:
 table ta { l in LOCATIONS } OUT
    'MySQL'
    'Database=glpkdb;UID=glpkuser;PWD=glpkpassword'
-   'DROP TABLE IF EXISTS result'
-   'CREATE TABLE result ( ID INT, LOC VARCHAR(255), QUAN DOUBLE )'
+   'DROP TABLE IF EXISTS result;'
+   'CREATE TABLE result ( ID INT, LOC VARCHAR(255), QUAN DOUBLE );'
    'INSERT INTO result VALUES ( 4, ?, ? )' :
    l ~ LOC, quantity[l] ~ QUAN;
 \end{verbatim}
@@ -582,8 +598,8 @@ Alternatively it could be written as follows:
 table ta { l in LOCATIONS } OUT
    'MySQL'
    'Database=glpkdb;UID=glpkuser;PWD=glpkpassword'
-   'DROP TABLE IF EXISTS result'
-   'CREATE TABLE result ( ID INT, LOC VARCHAR(255), QUAN DOUBLE )'
+   'DROP TABLE IF EXISTS result;'
+   'CREATE TABLE result ( ID INT, LOC VARCHAR(255), QUAN DOUBLE );'
    'result' :
    l ~ LOC, quantity[l] ~ QUAN, 4 ~ ID;
 \end{verbatim}
@@ -597,16 +613,16 @@ UPDATE, DELETE, etc. For example:
 table ta { l in LOCATIONS } OUT
    'MySQL'
    'Database=glpkdb;UID=glpkuser;PWD=glpkpassword'
-   'UPDATE result SET DATE = ' & date & ' WHERE ID = 4'
+   'UPDATE result SET DATE = ' & date & ' WHERE ID = 4;'
    'UPDATE result SET QUAN = ? WHERE LOC = ? AND ID = 4' :
    quantity[l], l;
 \end{verbatim}
 \end{small}
 
-\vspace{15mm}
-
-\begin{center}
-\rule{40mm}{.5pt}
-\end{center}
+%\vspace{15mm}
+%
+%\begin{center}
+%\rule{40mm}{.5pt}
+%\end{center}
 
 \end{document}

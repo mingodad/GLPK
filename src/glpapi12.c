@@ -21,7 +21,6 @@
 *  along with GLPK. If not, see <http://www.gnu.org/licenses/>.
 ***********************************************************************/
 
-#define GLPBFD_PRIVATE
 #include "glpapi.h"
 
 /***********************************************************************
@@ -193,7 +192,11 @@ int glp_bf_updated(glp_prob *lp)
 {     int cnt;
       if (!(lp->m == 0 || lp->valid))
          xerror("glp_bf_update: basis factorization does not exist\n");
+#if 0 /* 15/XI-2009 */
       cnt = (lp->m == 0 ? 0 : lp->bfd->upd_cnt);
+#else
+      cnt = (lp->m == 0 ? 0 : bfd_get_count(lp->bfd));
+#endif
       return cnt;
 }
 
@@ -256,6 +259,7 @@ void glp_get_bfcp(glp_prob *lp, glp_bfcp *parm)
 *  The parameter parm can be specified as NULL, in which case all
 *  control parameters are reset to their default values. */
 
+#if 0 /* 15/XI-2009 */
 static void copy_bfcp(glp_prob *lp)
 {     glp_bfcp _parm, *parm = &_parm;
       BFD *bfd = lp->bfd;
@@ -274,6 +278,14 @@ static void copy_bfcp(glp_prob *lp)
       bfd->rs_size = parm->rs_size;
       return;
 }
+#else
+static void copy_bfcp(glp_prob *lp)
+{     glp_bfcp _parm, *parm = &_parm;
+      glp_get_bfcp(lp, parm);
+      bfd_set_parm(lp->bfd, parm);
+      return;
+}
+#endif
 
 void glp_set_bfcp(glp_prob *lp, const glp_bfcp *parm)
 {     glp_bfcp *bfcp = lp->bfcp;
@@ -988,5 +1000,792 @@ int glp_eval_tab_col(glp_prob *lp, int k, int ind[], double val[])
       /* return to the calling program */
       return len;
 }
+
+/***********************************************************************
+*  NAME
+*
+*  glp_transform_row - transform explicitly specified row
+*
+*  SYNOPSIS
+*
+*  int glp_transform_row(glp_prob *P, int len, int ind[], double val[]);
+*
+*  DESCRIPTION
+*
+*  The routine glp_transform_row performs the same operation as the
+*  routine glp_eval_tab_row with exception that the row to be
+*  transformed is specified explicitly as a sparse vector.
+*
+*  The explicitly specified row may be thought as a linear form:
+*
+*     x = a[1]*x[m+1] + a[2]*x[m+2] + ... + a[n]*x[m+n],             (1)
+*
+*  where x is an auxiliary variable for this row, a[j] are coefficients
+*  of the linear form, x[m+j] are structural variables.
+*
+*  On entry column indices and numerical values of non-zero elements of
+*  the row should be stored in locations ind[1], ..., ind[len] and
+*  val[1], ..., val[len], where len is the number of non-zero elements.
+*
+*  This routine uses the system of equality constraints and the current
+*  basis in order to express the auxiliary variable x in (1) through the
+*  current non-basic variables (as if the transformed row were added to
+*  the problem object and its auxiliary variable were basic), i.e. the
+*  resultant row has the form:
+*
+*     x = alfa[1]*xN[1] + alfa[2]*xN[2] + ... + alfa[n]*xN[n],       (2)
+*
+*  where xN[j] are non-basic (auxiliary or structural) variables, n is
+*  the number of columns in the LP problem object.
+*
+*  On exit the routine stores indices and numerical values of non-zero
+*  elements of the resultant row (2) in locations ind[1], ..., ind[len']
+*  and val[1], ..., val[len'], where 0 <= len' <= n is the number of
+*  non-zero elements in the resultant row returned by the routine. Note
+*  that indices (numbers) of non-basic variables stored in the array ind
+*  correspond to original ordinal numbers of variables: indices 1 to m
+*  mean auxiliary variables and indices m+1 to m+n mean structural ones.
+*
+*  RETURNS
+*
+*  The routine returns len', which is the number of non-zero elements in
+*  the resultant row stored in the arrays ind and val.
+*
+*  BACKGROUND
+*
+*  The explicitly specified row (1) is transformed in the same way as it
+*  were the objective function row.
+*
+*  From (1) it follows that:
+*
+*     x = aB * xB + aN * xN,                                         (3)
+*
+*  where xB is the vector of basic variables, xN is the vector of
+*  non-basic variables.
+*
+*  The simplex table, which corresponds to the current basis, is:
+*
+*     xB = [-inv(B) * N] * xN.                                       (4)
+*
+*  Therefore substituting xB from (4) to (3) we have:
+*
+*     x = aB * [-inv(B) * N] * xN + aN * xN =
+*                                                                    (5)
+*       = rho * (-N) * xN + aN * xN = alfa * xN,
+*
+*  where:
+*
+*     rho = inv(B') * aB,                                            (6)
+*
+*  and
+*
+*     alfa = aN + rho * (-N)                                         (7)
+*
+*  is the resultant row computed by the routine. */
+
+int glp_transform_row(glp_prob *P, int len, int ind[], double val[])
+{     int i, j, k, m, n, t, lll, *iii;
+      double alfa, *a, *aB, *rho, *vvv;
+      if (!glp_bf_exists(P))
+         xerror("glp_transform_row: basis factorization does not exist "
+            "\n");
+      m = glp_get_num_rows(P);
+      n = glp_get_num_cols(P);
+      /* unpack the row to be transformed to the array a */
+      a = xcalloc(1+n, sizeof(double));
+      for (j = 1; j <= n; j++) a[j] = 0.0;
+      if (!(0 <= len && len <= n))
+         xerror("glp_transform_row: len = %d; invalid row length\n",
+            len);
+      for (t = 1; t <= len; t++)
+      {  j = ind[t];
+         if (!(1 <= j && j <= n))
+            xerror("glp_transform_row: ind[%d] = %d; column index out o"
+               "f range\n", t, j);
+         if (val[t] == 0.0)
+            xerror("glp_transform_row: val[%d] = 0; zero coefficient no"
+               "t allowed\n", t);
+         if (a[j] != 0.0)
+            xerror("glp_transform_row: ind[%d] = %d; duplicate column i"
+               "ndices not allowed\n", t, j);
+         a[j] = val[t];
+      }
+      /* construct the vector aB */
+      aB = xcalloc(1+m, sizeof(double));
+      for (i = 1; i <= m; i++)
+      {  k = glp_get_bhead(P, i);
+         /* xB[i] is k-th original variable */
+         xassert(1 <= k && k <= m+n);
+         aB[i] = (k <= m ? 0.0 : a[k-m]);
+      }
+      /* solve the system B'*rho = aB to compute the vector rho */
+      rho = aB, glp_btran(P, rho);
+      /* compute coefficients at non-basic auxiliary variables */
+      len = 0;
+      for (i = 1; i <= m; i++)
+      {  if (glp_get_row_stat(P, i) != GLP_BS)
+         {  alfa = - rho[i];
+            if (alfa != 0.0)
+            {  len++;
+               ind[len] = i;
+               val[len] = alfa;
+            }
+         }
+      }
+      /* compute coefficients at non-basic structural variables */
+      iii = xcalloc(1+m, sizeof(int));
+      vvv = xcalloc(1+m, sizeof(double));
+      for (j = 1; j <= n; j++)
+      {  if (glp_get_col_stat(P, j) != GLP_BS)
+         {  alfa = a[j];
+            lll = glp_get_mat_col(P, j, iii, vvv);
+            for (t = 1; t <= lll; t++) alfa += vvv[t] * rho[iii[t]];
+            if (alfa != 0.0)
+            {  len++;
+               ind[len] = m+j;
+               val[len] = alfa;
+            }
+         }
+      }
+      xassert(len <= n);
+      xfree(iii);
+      xfree(vvv);
+      xfree(aB);
+      xfree(a);
+      return len;
+}
+
+/***********************************************************************
+*  NAME
+*
+*  glp_transform_col - transform explicitly specified column
+*
+*  SYNOPSIS
+*
+*  int glp_transform_col(glp_prob *P, int len, int ind[], double val[]);
+*
+*  DESCRIPTION
+*
+*  The routine glp_transform_col performs the same operation as the
+*  routine glp_eval_tab_col with exception that the column to be
+*  transformed is specified explicitly as a sparse vector.
+*
+*  The explicitly specified column may be thought as if it were added
+*  to the original system of equality constraints:
+*
+*     x[1] = a[1,1]*x[m+1] + ... + a[1,n]*x[m+n] + a[1]*x
+*     x[2] = a[2,1]*x[m+1] + ... + a[2,n]*x[m+n] + a[2]*x            (1)
+*        .  .  .  .  .  .  .  .  .  .  .  .  .  .  .
+*     x[m] = a[m,1]*x[m+1] + ... + a[m,n]*x[m+n] + a[m]*x
+*
+*  where x[i] are auxiliary variables, x[m+j] are structural variables,
+*  x is a structural variable for the explicitly specified column, a[i]
+*  are constraint coefficients for x.
+*
+*  On entry row indices and numerical values of non-zero elements of
+*  the column should be stored in locations ind[1], ..., ind[len] and
+*  val[1], ..., val[len], where len is the number of non-zero elements.
+*
+*  This routine uses the system of equality constraints and the current
+*  basis in order to express the current basic variables through the
+*  structural variable x in (1) (as if the transformed column were added
+*  to the problem object and the variable x were non-basic), i.e. the
+*  resultant column has the form:
+*
+*     xB[1] = ... + alfa[1]*x
+*     xB[2] = ... + alfa[2]*x                                        (2)
+*        .  .  .  .  .  .
+*     xB[m] = ... + alfa[m]*x
+*
+*  where xB are basic (auxiliary and structural) variables, m is the
+*  number of rows in the problem object.
+*
+*  On exit the routine stores indices and numerical values of non-zero
+*  elements of the resultant column (2) in locations ind[1], ...,
+*  ind[len'] and val[1], ..., val[len'], where 0 <= len' <= m is the
+*  number of non-zero element in the resultant column returned by the
+*  routine. Note that indices (numbers) of basic variables stored in
+*  the array ind correspond to original ordinal numbers of variables:
+*  indices 1 to m mean auxiliary variables and indices m+1 to m+n mean
+*  structural ones.
+*
+*  RETURNS
+*
+*  The routine returns len', which is the number of non-zero elements
+*  in the resultant column stored in the arrays ind and val.
+*
+*  BACKGROUND
+*
+*  The explicitly specified column (1) is transformed in the same way
+*  as any other column of the constraint matrix using the formula:
+*
+*     alfa = inv(B) * a,                                             (3)
+*
+*  where alfa is the resultant column computed by the routine. */
+
+int glp_transform_col(glp_prob *P, int len, int ind[], double val[])
+{     int i, m, t;
+      double *a, *alfa;
+      if (!glp_bf_exists(P))
+         xerror("glp_transform_col: basis factorization does not exist "
+            "\n");
+      m = glp_get_num_rows(P);
+      /* unpack the column to be transformed to the array a */
+      a = xcalloc(1+m, sizeof(double));
+      for (i = 1; i <= m; i++) a[i] = 0.0;
+      if (!(0 <= len && len <= m))
+         xerror("glp_transform_col: len = %d; invalid column length\n",
+            len);
+      for (t = 1; t <= len; t++)
+      {  i = ind[t];
+         if (!(1 <= i && i <= m))
+            xerror("glp_transform_col: ind[%d] = %d; row index out of r"
+               "ange\n", t, i);
+         if (val[t] == 0.0)
+            xerror("glp_transform_col: val[%d] = 0; zero coefficient no"
+               "t allowed\n", t);
+         if (a[i] != 0.0)
+            xerror("glp_transform_col: ind[%d] = %d; duplicate row indi"
+               "ces not allowed\n", t, i);
+         a[i] = val[t];
+      }
+      /* solve the system B*a = alfa to compute the vector alfa */
+      alfa = a, glp_ftran(P, alfa);
+      /* store resultant coefficients */
+      len = 0;
+      for (i = 1; i <= m; i++)
+      {  if (alfa[i] != 0.0)
+         {  len++;
+            ind[len] = glp_get_bhead(P, i);
+            val[len] = alfa[i];
+         }
+      }
+      xfree(a);
+      return len;
+}
+
+/***********************************************************************
+*  NAME
+*
+*  glp_prim_rtest - perform primal ratio test
+*
+*  SYNOPSIS
+*
+*  int glp_prim_rtest(glp_prob *P, int len, const int ind[],
+*     const double val[], int dir, double eps);
+*
+*  DESCRIPTION
+*
+*  The routine glp_prim_rtest performs the primal ratio test using an
+*  explicitly specified column of the simplex table.
+*
+*  The current basic solution associated with the LP problem object
+*  must be primal feasible.
+*
+*  The explicitly specified column of the simplex table shows how the
+*  basic variables xB depend on some non-basic variable x (which is not
+*  necessarily presented in the problem object):
+*
+*     xB[1] = ... + alfa[1] * x + ...
+*     xB[2] = ... + alfa[2] * x + ...                                (*)
+*         .  .  .  .  .  .  .  .
+*     xB[m] = ... + alfa[m] * x + ...
+*
+*  The column (*) is specifed on entry to the routine using the sparse
+*  format. Ordinal numbers of basic variables xB[i] should be placed in
+*  locations ind[1], ..., ind[len], where ordinal number 1 to m denote
+*  auxiliary variables, and ordinal numbers m+1 to m+n denote structural
+*  variables. The corresponding non-zero coefficients alfa[i] should be
+*  placed in locations val[1], ..., val[len]. The arrays ind and val are
+*  not changed on exit.
+*
+*  The parameter dir specifies direction in which the variable x changes
+*  on entering the basis: +1 means increasing, -1 means decreasing.
+*
+*  The parameter eps is an absolute tolerance (small positive number)
+*  used by the routine to skip small alfa[j] of the row (*).
+*
+*  The routine determines which basic variable (among specified in
+*  ind[1], ..., ind[len]) should leave the basis in order to keep primal
+*  feasibility.
+*
+*  RETURNS
+*
+*  The routine glp_prim_rtest returns the index piv in the arrays ind
+*  and val corresponding to the pivot element chosen, 1 <= piv <= len.
+*  If the adjacent basic solution is primal unbounded and therefore the
+*  choice cannot be made, the routine returns zero.
+*
+*  COMMENTS
+*
+*  If the non-basic variable x is presented in the LP problem object,
+*  the column (*) can be computed with the routine glp_eval_tab_col;
+*  otherwise it can be computed with the routine glp_transform_col. */
+
+int glp_prim_rtest(glp_prob *P, int len, const int ind[],
+      const double val[], int dir, double eps)
+{     int k, m, n, piv, t, type, stat;
+      double alfa, big, beta, lb, ub, temp, teta;
+      if (glp_get_prim_stat(P) != GLP_FEAS)
+         xerror("glp_prim_rtest: basic solution is not primal feasible "
+            "\n");
+      if (!(dir == +1 || dir == -1))
+         xerror("glp_prim_rtest: dir = %d; invalid parameter\n", dir);
+      if (!(0.0 < eps && eps < 1.0))
+         xerror("glp_prim_rtest: eps = %g; invalid parameter\n", eps);
+      m = glp_get_num_rows(P);
+      n = glp_get_num_cols(P);
+      /* initial settings */
+      piv = 0, teta = DBL_MAX, big = 0.0;
+      /* walk through the entries of the specified column */
+      for (t = 1; t <= len; t++)
+      {  /* get the ordinal number of basic variable */
+         k = ind[t];
+         if (!(1 <= k && k <= m+n))
+            xerror("glp_prim_rtest: ind[%d] = %d; variable number out o"
+               "f range\n", t, k);
+         /* determine type, bounds, status and primal value of basic
+            variable xB[i] = x[k] in the current basic solution */
+         if (k <= m)
+         {  type = glp_get_row_type(P, k);
+            lb = glp_get_row_lb(P, k);
+            ub = glp_get_row_ub(P, k);
+            stat = glp_get_row_stat(P, k);
+            beta = glp_get_row_prim(P, k);
+         }
+         else
+         {  type = glp_get_col_type(P, k-m);
+            lb = glp_get_col_lb(P, k-m);
+            ub = glp_get_col_ub(P, k-m);
+            stat = glp_get_col_stat(P, k-m);
+            beta = glp_get_col_prim(P, k-m);
+         }
+         if (stat != GLP_BS)
+            xerror("glp_prim_rtest: ind[%d] = %d; non-basic variable no"
+               "t allowed\n", t, k);
+         /* determine influence coefficient at basic variable xB[i]
+            in the explicitly specified column and turn to the case of
+            increasing the variable x in order to simplify the program
+            logic */
+         alfa = (dir > 0 ? + val[t] : - val[t]);
+         /* analyze main cases */
+         if (type == GLP_FR)
+         {  /* xB[i] is free variable */
+            continue;
+         }
+         else if (type == GLP_LO)
+lo:      {  /* xB[i] has an lower bound */
+            if (alfa > - eps) continue;
+            temp = (lb - beta) / alfa;
+         }
+         else if (type == GLP_UP)
+up:      {  /* xB[i] has an upper bound */
+            if (alfa < + eps) continue;
+            temp = (ub - beta) / alfa;
+         }
+         else if (type == GLP_DB)
+         {  /* xB[i] has both lower and upper bounds */
+            if (alfa < 0.0) goto lo; else goto up;
+         }
+         else if (type == GLP_FX)
+         {  /* xB[i] is fixed variable */
+            if (- eps < alfa && alfa < + eps) continue;
+            temp = 0.0;
+         }
+         else
+            xassert(type != type);
+         /* if the value of the variable xB[i] violates its lower or
+            upper bound (slightly, because the current basis is assumed
+            to be primal feasible), temp is negative; we can think this
+            happens due to round-off errors and the value is exactly on
+            the bound; this allows replacing temp by zero */
+         if (temp < 0.0) temp = 0.0;
+         /* apply the minimal ratio test */
+         if (teta > temp || teta == temp && big < fabs(alfa))
+            piv = t, teta = temp, big = fabs(alfa);
+      }
+      /* return index of the pivot element chosen */
+      return piv;
+}
+
+/***********************************************************************
+*  NAME
+*
+*  glp_dual_rtest - perform dual ratio test
+*
+*  SYNOPSIS
+*
+*  int glp_dual_rtest(glp_prob *P, int len, const int ind[],
+*     const double val[], int dir, double eps);
+*
+*  DESCRIPTION
+*
+*  The routine glp_dual_rtest performs the dual ratio test using an
+*  explicitly specified row of the simplex table.
+*
+*  The current basic solution associated with the LP problem object
+*  must be dual feasible.
+*
+*  The explicitly specified row of the simplex table is a linear form
+*  that shows how some basic variable x (which is not necessarily
+*  presented in the problem object) depends on non-basic variables xN:
+*
+*     x = alfa[1] * xN[1] + alfa[2] * xN[2] + ... + alfa[n] * xN[n]. (*)
+*
+*  The row (*) is specified on entry to the routine using the sparse
+*  format. Ordinal numbers of non-basic variables xN[j] should be placed
+*  in locations ind[1], ..., ind[len], where ordinal numbers 1 to m
+*  denote auxiliary variables, and ordinal numbers m+1 to m+n denote
+*  structural variables. The corresponding non-zero coefficients alfa[j]
+*  should be placed in locations val[1], ..., val[len]. The arrays ind
+*  and val are not changed on exit.
+*
+*  The parameter dir specifies direction in which the variable x changes
+*  on leaving the basis: +1 means that x goes to its lower bound, and -1
+*  means that x goes to its upper bound.
+*
+*  The parameter eps is an absolute tolerance (small positive number)
+*  used by the routine to skip small alfa[j] of the row (*).
+*
+*  The routine determines which non-basic variable (among specified in
+*  ind[1], ..., ind[len]) should enter the basis in order to keep dual
+*  feasibility.
+*
+*  RETURNS
+*
+*  The routine glp_dual_rtest returns the index piv in the arrays ind
+*  and val corresponding to the pivot element chosen, 1 <= piv <= len.
+*  If the adjacent basic solution is dual unbounded and therefore the
+*  choice cannot be made, the routine returns zero.
+*
+*  COMMENTS
+*
+*  If the basic variable x is presented in the LP problem object, the
+*  row (*) can be computed with the routine glp_eval_tab_row; otherwise
+*  it can be computed with the routine glp_transform_row. */
+
+int glp_dual_rtest(glp_prob *P, int len, const int ind[],
+      const double val[], int dir, double eps)
+{     int k, m, n, piv, t, stat;
+      double alfa, big, cost, obj, temp, teta;
+      if (glp_get_dual_stat(P) != GLP_FEAS)
+         xerror("glp_dual_rtest: basic solution is not dual feasible\n")
+            ;
+      if (!(dir == +1 || dir == -1))
+         xerror("glp_dual_rtest: dir = %d; invalid parameter\n", dir);
+      if (!(0.0 < eps && eps < 1.0))
+         xerror("glp_dual_rtest: eps = %g; invalid parameter\n", eps);
+      m = glp_get_num_rows(P);
+      n = glp_get_num_cols(P);
+      /* take into account optimization direction */
+      obj = (glp_get_obj_dir(P) == GLP_MIN ? +1.0 : -1.0);
+      /* initial settings */
+      piv = 0, teta = DBL_MAX, big = 0.0;
+      /* walk through the entries of the specified row */
+      for (t = 1; t <= len; t++)
+      {  /* get ordinal number of non-basic variable */
+         k = ind[t];
+         if (!(1 <= k && k <= m+n))
+            xerror("glp_dual_rtest: ind[%d] = %d; variable number out o"
+               "f range\n", t, k);
+         /* determine status and reduced cost of non-basic variable
+            x[k] = xN[j] in the current basic solution */
+         if (k <= m)
+         {  stat = glp_get_row_stat(P, k);
+            cost = glp_get_row_dual(P, k);
+         }
+         else
+         {  stat = glp_get_col_stat(P, k-m);
+            cost = glp_get_col_dual(P, k-m);
+         }
+         if (stat == GLP_BS)
+            xerror("glp_dual_rtest: ind[%d] = %d; basic variable not al"
+               "lowed\n", t, k);
+         /* determine influence coefficient at non-basic variable xN[j]
+            in the explicitly specified row and turn to the case of
+            increasing the variable x in order to simplify the program
+            logic */
+         alfa = (dir > 0 ? + val[t] : - val[t]);
+         /* analyze main cases */
+         if (stat == GLP_NL)
+         {  /* xN[j] is on its lower bound */
+            if (alfa < + eps) continue;
+            temp = (obj * cost) / alfa;
+         }
+         else if (stat == GLP_NU)
+         {  /* xN[j] is on its upper bound */
+            if (alfa > - eps) continue;
+            temp = (obj * cost) / alfa;
+         }
+         else if (stat == GLP_NF)
+         {  /* xN[j] is non-basic free variable */
+            if (- eps < alfa && alfa < + eps) continue;
+            temp = 0.0;
+         }
+         else if (stat == GLP_NS)
+         {  /* xN[j] is non-basic fixed variable */
+            continue;
+         }
+         else
+            xassert(stat != stat);
+         /* if the reduced cost of the variable xN[j] violates its zero
+            bound (slightly, because the current basis is assumed to be
+            dual feasible), temp is negative; we can think this happens
+            due to round-off errors and the reduced cost is exact zero;
+            this allows replacing temp by zero */
+         if (temp < 0.0) temp = 0.0;
+         /* apply the minimal ratio test */
+         if (teta > temp || teta == temp && big < fabs(alfa))
+            piv = t, teta = temp, big = fabs(alfa);
+      }
+      /* return index of the pivot element chosen */
+      return piv;
+}
+
+/***********************************************************************
+*  NAME
+*
+*  glp_analyze_row - simulate one iteration of dual simplex method
+*
+*  SYNOPSIS
+*
+*  int glp_analyze_row(glp_prob *P, int len, const int ind[],
+*     const double val[], int type, double rhs, double eps, int *piv,
+*     double *x, double *dx, double *y, double *dy, double *dz);
+*
+*  DESCRIPTION
+*
+*  Let the current basis be optimal or dual feasible, and there be
+*  specified a row (constraint), which is violated by the current basic
+*  solution. The routine glp_analyze_row simulates one iteration of the
+*  dual simplex method to determine some information on the adjacent
+*  basis (see below), where the specified row becomes active constraint
+*  (i.e. its auxiliary variable becomes non-basic).
+*
+*  The current basic solution associated with the problem object passed
+*  to the routine must be dual feasible, and its primal components must
+*  be defined.
+*
+*  The row to be analyzed must be previously transformed either with
+*  the routine glp_eval_tab_row (if the row is in the problem object)
+*  or with the routine glp_transform_row (if the row is external, i.e.
+*  not in the problem object). This is needed to express the row only
+*  through (auxiliary and structural) variables, which are non-basic in
+*  the current basis:
+*
+*     y = alfa[1] * xN[1] + alfa[2] * xN[2] + ... + alfa[n] * xN[n],
+*
+*  where y is an auxiliary variable of the row, alfa[j] is an influence
+*  coefficient, xN[j] is a non-basic variable.
+*
+*  The row is passed to the routine in sparse format. Ordinal numbers
+*  of non-basic variables are stored in locations ind[1], ..., ind[len],
+*  where numbers 1 to m denote auxiliary variables while numbers m+1 to
+*  m+n denote structural variables. Corresponding non-zero coefficients
+*  alfa[j] are stored in locations val[1], ..., val[len]. The arrays
+*  ind and val are ot changed on exit.
+*
+*  The parameters type and rhs specify the row type and its right-hand
+*  side as follows:
+*
+*     type = GLP_LO: y = sum alfa[j] * xN[j] >= rhs
+*
+*     type = GLP_UP: y = sum alfa[j] * xN[j] <= rhs
+*
+*  The parameter eps is an absolute tolerance (small positive number)
+*  used by the routine to skip small coefficients alfa[j] on performing
+*  the dual ratio test.
+*
+*  If the operation was successful, the routine stores the following
+*  information to corresponding location (if some parameter is NULL,
+*  its value is not stored):
+*
+*  piv   index in the array ind and val, 1 <= piv <= len, determining
+*        the non-basic variable, which would enter the adjacent basis;
+*
+*  x     value of the non-basic variable in the current basis;
+*
+*  dx    difference between values of the non-basic variable in the
+*        adjacent and current bases, dx = x.new - x.old;
+*
+*  y     value of the row (i.e. of its auxiliary variable) in the
+*        current basis;
+*
+*  dy    difference between values of the row in the adjacent and
+*        current bases, dy = y.new - y.old;
+*
+*  dz    difference between values of the objective function in the
+*        adjacent and current bases, dz = z.new - z.old. Note that in
+*        case of minimization dz >= 0, and in case of maximization
+*        dz <= 0, i.e. in the adjacent basis the objective function
+*        always gets worse (degrades). */
+
+int _glp_analyze_row(glp_prob *P, int len, const int ind[],
+      const double val[], int type, double rhs, double eps, int *_piv,
+      double *_x, double *_dx, double *_y, double *_dy, double *_dz)
+{     int t, k, dir, piv, ret = 0;
+      double x, dx, y, dy, dz;
+      if (P->pbs_stat == GLP_UNDEF)
+         xerror("glp_analyze_row: primal basic solution components are "
+            "undefined\n");
+      if (P->dbs_stat != GLP_FEAS)
+         xerror("glp_analyze_row: basic solution is not dual feasible\n"
+            );
+      /* compute the row value y = sum alfa[j] * xN[j] in the current
+         basis */
+      if (!(0 <= len && len <= P->n))
+         xerror("glp_analyze_row: len = %d; invalid row length\n", len);
+      y = 0.0;
+      for (t = 1; t <= len; t++)
+      {  /* determine value of x[k] = xN[j] in the current basis */
+         k = ind[t];
+         if (!(1 <= k && k <= P->m+P->n))
+            xerror("glp_analyze_row: ind[%d] = %d; row/column index out"
+               " of range\n", t, k);
+         if (k <= P->m)
+         {  /* x[k] is auxiliary variable */
+            if (P->row[k]->stat == GLP_BS)
+               xerror("glp_analyze_row: ind[%d] = %d; basic auxiliary v"
+                  "ariable is not allowed\n", t, k);
+            x = P->row[k]->prim;
+         }
+         else
+         {  /* x[k] is structural variable */
+            if (P->col[k-P->m]->stat == GLP_BS)
+               xerror("glp_analyze_row: ind[%d] = %d; basic structural "
+                  "variable is not allowed\n", t, k);
+            x = P->col[k-P->m]->prim;
+         }
+         y += val[t] * x;
+      }
+      /* check if the row is primal infeasible in the current basis,
+         i.e. the constraint is violated at the current point */
+      if (type == GLP_LO)
+      {  if (y >= rhs)
+         {  /* the constraint is not violated */
+            ret = 1;
+            goto done;
+         }
+         /* in the adjacent basis y goes to its lower bound */
+         dir = +1;
+      }
+      else if (type == GLP_UP)
+      {  if (y <= rhs)
+         {  /* the constraint is not violated */
+            ret = 1;
+            goto done;
+         }
+         /* in the adjacent basis y goes to its upper bound */
+         dir = -1;
+      }
+      else
+         xerror("glp_analyze_row: type = %d; invalid parameter\n",
+            type);
+      /* compute dy = y.new - y.old */
+      dy = rhs - y;
+      /* perform dual ratio test to determine which non-basic variable
+         should enter the adjacent basis to keep it dual feasible */
+      piv = glp_dual_rtest(P, len, ind, val, dir, eps);
+      if (piv == 0)
+      {  /* no dual feasible adjacent basis exists */
+         ret = 2;
+         goto done;
+      }
+      /* non-basic variable x[k] = xN[j] should enter the basis */
+      k = ind[piv];
+      xassert(1 <= k && k <= P->m+P->n);
+      /* determine its value in the current basis */
+      if (k <= P->m)
+         x = P->row[k]->prim;
+      else
+         x = P->col[k-P->m]->prim;
+      /* compute dx = x.new - x.old = dy / alfa[j] */
+      xassert(val[piv] != 0.0);
+      dx = dy / val[piv];
+      /* compute dz = z.new - z.old = d[j] * dx, where d[j] is reduced
+         cost of xN[j] in the current basis */
+      if (k <= P->m)
+         dz = P->row[k]->dual * dx;
+      else
+         dz = P->col[k-P->m]->dual * dx;
+      /* store the analysis results */
+      if (_piv != NULL) *_piv = piv;
+      if (_x   != NULL) *_x   = x;
+      if (_dx  != NULL) *_dx  = dx;
+      if (_y   != NULL) *_y   = y;
+      if (_dy  != NULL) *_dy  = dy;
+      if (_dz  != NULL) *_dz  = dz;
+done: return ret;
+}
+
+#if 0
+int main(void)
+{     /* example program for the routine glp_analyze_row */
+      glp_prob *P;
+      glp_smcp parm;
+      int i, k, len, piv, ret, ind[1+100];
+      double rhs, x, dx, y, dy, dz, val[1+100];
+      P = glp_create_prob();
+      /* read plan.mps (see glpk/examples) */
+      ret = glp_read_mps(P, GLP_MPS_DECK, NULL, "plan.mps");
+      glp_assert(ret == 0);
+      /* and solve it to optimality */
+      ret = glp_simplex(P, NULL);
+      glp_assert(ret == 0);
+      glp_assert(glp_get_status(P) == GLP_OPT);
+      /* the optimal objective value is 296.217 */
+      /* we would like to know what happens if we would add a new row
+         (constraint) to plan.mps:
+         .01 * bin1 + .01 * bin2 + .02 * bin4 + .02 * bin5 <= 12 */
+      /* first, we specify this new row */
+      glp_create_index(P);
+      len = 0;
+      ind[++len] = glp_find_col(P, "BIN1"), val[len] = .01;
+      ind[++len] = glp_find_col(P, "BIN2"), val[len] = .01;
+      ind[++len] = glp_find_col(P, "BIN4"), val[len] = .02;
+      ind[++len] = glp_find_col(P, "BIN5"), val[len] = .02;
+      rhs = 12;
+      /* then we can compute value of the row (i.e. of its auxiliary
+         variable) in the current basis to see if the constraint is
+         violated */
+      y = 0.0;
+      for (k = 1; k <= len; k++)
+         y += val[k] * glp_get_col_prim(P, ind[k]);
+      glp_printf("y = %g\n", y);
+      /* this prints y = 15.1372, so the constraint is violated, since
+         we require that y <= rhs = 12 */
+      /* now we transform the row to express it only through non-basic
+         (auxiliary and artificial) variables */
+      len = glp_transform_row(P, len, ind, val);
+      /* finally, we simulate one step of the dual simplex method to
+         obtain necessary information for the adjacent basis */
+      ret = _glp_analyze_row(P, len, ind, val, GLP_UP, rhs, 1e-9, &piv,
+         &x, &dx, &y, &dy, &dz);
+      glp_assert(ret == 0);
+      glp_printf("k = %d, x = %g; dx = %g; y = %g; dy = %g; dz = %g\n",
+         ind[piv], x, dx, y, dy, dz);
+      /* this prints dz = 5.64418 and means that in the adjacent basis
+         the objective function would be 296.217 + 5.64418 = 301.861 */
+      /* now we actually include the row into the problem object; note
+         that the arrays ind and val are clobbered, so we need to build
+         them once again */
+      len = 0;
+      ind[++len] = glp_find_col(P, "BIN1"), val[len] = .01;
+      ind[++len] = glp_find_col(P, "BIN2"), val[len] = .01;
+      ind[++len] = glp_find_col(P, "BIN4"), val[len] = .02;
+      ind[++len] = glp_find_col(P, "BIN5"), val[len] = .02;
+      rhs = 12;
+      i = glp_add_rows(P, 1);
+      glp_set_row_bnds(P, i, GLP_UP, 0, rhs);
+      glp_set_mat_row(P, i, len, ind, val);
+      /* and perform one dual simplex iteration */
+      glp_init_smcp(&parm);
+      parm.meth = GLP_DUAL;
+      parm.it_lim = 1;
+      glp_simplex(P, &parm);
+      /* the current objective value is 301.861 */
+      return 0;
+}
+#endif
 
 /* eof */

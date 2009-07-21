@@ -544,8 +544,8 @@ void glp_ios_branch_upon(glp_tree *tree, int j, int sel)
             "e\n", j);
       if (!(sel == GLP_DN_BRNCH || sel == GLP_UP_BRNCH ||
             sel == GLP_NO_BRNCH))
-         xerror("glp_ios_branch_upon: sel = %d: branch selection flag i"
-            "nvalid\n", sel);
+         xerror("glp_ios_branch_upon: sel = %d: invalid branch selectio"
+            "n flag\n", sel);
       if (!(tree->non_int[j]))
          xerror("glp_ios_branch_upon: j = %d; variable cannot be used t"
             "o branch upon\n", j);
@@ -586,10 +586,10 @@ err:     xerror("glp_ios_select_node: p = %d; invalid subproblem refere"
          xerror("glp_ios_select_node: p = %d; subproblem not in the act"
             "ive list\n", p);
       /* no subproblem must be selected yet */
-      if (tree->btrack != NULL)
+      if (tree->next_p != 0)
          xerror("glp_ios_select_node: subproblem already selected\n");
       /* select the specified subproblem to continue the search */
-      tree->btrack = node;
+      tree->next_p = p;
       return;
 }
 
@@ -694,7 +694,7 @@ void glp_ios_terminate(glp_tree *tree)
 {     if (tree->parm->msg_lev >= GLP_MSG_DBG)
          xprintf("The search is prematurely terminated due to applicati"
             "on request\n");
-      tree->terminate = 1;
+      tree->stop = 1;
       return;
 }
 

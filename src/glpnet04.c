@@ -338,11 +338,11 @@ int glp_gridgen(glp_graph *G_, int _v_rhs, int _a_cap, int _a_cost,
          input. */
       if (n * n >= n_node)
       {  n1 = n;
-         n2 = (double)n_node / n + 0.5;
+         n2 = (int)((double)n_node / (double)n + 0.5);
       }
       else
       {  n2 = n;
-         n1 = (double)n_node / n + 0.5;
+         n1 = (int)((double)n_node / (double)n + 0.5);
       }
       /* Recalculate the total number of nodes and plus 1 for the super
          node. */

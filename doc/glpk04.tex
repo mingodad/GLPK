@@ -25,38 +25,38 @@ $$
 where:
 
 \noindent
-$x_R=(x_1,x_2,\dots,x_m)$ is the vector of auxiliary variables;
+$x_R=(x_1,\dots,x_m)$ is the vector of auxiliary variables;
 
 \noindent
-$x_S=(x_{m+1},x_{m+2},\dots,x_{m+n})$ is the vector of structural
+$x_S=(x_{m+1},\dots,x_{m+n})$ is the vector of structural
 variables;
 
 \noindent
 $z$ is the objective function;
 
 \noindent
-$c=(c_1,c_2,\dots,c_n)$ is the vector of objective coefficients;
+$c=(c_1,\dots,c_n)$ is the vector of objective coefficients;
 
 \noindent
 $c_0$ is the constant term (``shift'') of the objective function;
 
 \noindent
-$A=(a_{11},a_{12},\dots,a_{mn})$ is the constraint matrix;
+$A=(a_{11},\dots,a_{mn})$ is the constraint matrix;
 
 \noindent
-$l_R=(l_1,l_2,\dots,l_m)$ is the vector of lower bounds of auxiliary
+$l_R=(l_1,\dots,l_m)$ is the vector of lower bounds of auxiliary
 variables;
 
 \noindent
-$u_R=(u_1,u_2,\dots,u_m)$ is the vector of upper bounds of auxiliary
+$u_R=(u_1,\dots,u_m)$ is the vector of upper bounds of auxiliary
 variables;
 
 \noindent
-$l_S=(l_{m+1},l_{m+2},\dots,l_{m+n})$ is the vector of lower bounds of
+$l_S=(l_{m+1},\dots,l_{m+n})$ is the vector of lower bounds of
 structural variables;
 
 \noindent
-$u_S={u_{m+1},u_{m+2},\dots,u_{m+n}}$ is the vector of upper bounds of
+$u_S=(u_{m+1},\dots,u_{m+n})$ is the vector of upper bounds of
 structural variables.
 
 \medskip
@@ -1045,252 +1045,246 @@ auxiliary and structural variables.
 
 \newpage
 
-\subsection{lpx\_transform\_row---transform explicitly specified\\
+\subsection{glp\_transform\_row---transform explicitly specified\\
 row}
 
 \subsubsection*{Synopsis}
 
 \begin{verbatim}
-int lpx_transform_row(glp_prob *lp, int len, int ind[],
+int glp_transform_row(glp_prob *P, int len, int ind[],
       double val[]);
 \end{verbatim}
 
 \subsubsection*{Description}
 
-The routine \verb|lpx_transform_row| performs the same operation as the
-routine \verb|lpx_eval_tab_row|, except that the transformed row is
-specified explicitly.
+The routine \verb|glp_transform_row| performs the same operation as the
+routine \verb|glp_eval_tab_row| with exception that the row to be
+transformed is specified explicitly as a sparse vector.
 
 The explicitly specified row may be thought as a linear form:
-$$x=a_1x_{m+1}+a_2x_{m+2}+\dots+a_nx_{m+n},\eqno(1)$$
+$$x=a_1x_{m+1}+a_2x_{m+2}+\dots+a_nx_{m+n},$$
 where $x$ is an auxiliary variable for this row, $a_j$ are coefficients
 of the linear form, $x_{m+j}$ are structural variables.
 
 On entry column indices and numerical values of non-zero coefficients
-$a_j$ of the transformed row should be placed in locations
-\verb|ind[1]|, \dots, \verb|ind[len]| and \verb|val[1]|, \dots,
-\verb|val[len]|, where \verb|len| is number of non-zero coefficients.
+$a_j$ of the specified row should be placed in locations \verb|ind[1]|,
+\dots, \verb|ind[len]| and \verb|val[1]|, \dots, \verb|val[len]|, where
+\verb|len| is number of non-zero coefficients.
 
 This routine uses the system of equality constraints and the current
-basis in order to express the auxiliary variable $x$ in (1) through the
-current non-basic variables (as if the transformed row were added to
-the problem object and the auxiliary variable $x$ were basic), i.e. the
-resultant row has the form:
-$$x=\alpha_1(x_N)_1+\alpha_2(x_N)_2+\dots+\alpha_n(x_N)_n,\eqno(2)$$
-where $\alpha_j$ are influence coefficients, $(x_N)_j$ are non-basic
-(auxiliary and structural) variables, $n$ is number of columns in the
-specified problem object.
+basis in order to express the auxiliary variable $x$ through the current
+non-basic variables (as if the transformed row were added to the problem
+object and the auxiliary variable $x$ were basic), i.e. the resultant
+row has the form:
+$$x=\xi_1(x_N)_1+\xi_2(x_N)_2+\dots+\xi_n(x_N)_n,$$
+where $\xi_j$ are influence coefficients, $(x_N)_j$ are non-basic
+(auxiliary and structural) variables, $n$ is the number of columns in
+the problem object.
 
 On exit the routine stores indices and numerical values of non-zero
-coefficients $\alpha_j$ of the resultant row (2) in locations
-\verb|ind[1]|, \dots, \verb|ind[len']| and \verb|val[1]|, \dots,
-\verb|val[len']|, where $0\leq{\tt len'}\leq n$ is the number of
-non-zero coefficients in the resultant row returned by the routine.
-Note that indices of non-basic variables stored in the array \verb|ind|
-correspond to original ordinal numbers of variables: indices 1 to $m$
-mean auxiliary variables and indices $m+1$ to $m+n$ mean structural
-ones.
+coefficients $\xi_j$ of the resultant row in locations \verb|ind[1]|,
+\dots, \verb|ind[len']| and \verb|val[1]|, \dots, \verb|val[len']|,
+where $0\leq{\tt len'}\leq n$ is the number of non-zero coefficients in
+the resultant row returned by the routine. Note that indices of
+non-basic variables stored in the array \verb|ind| correspond to
+original ordinal numbers of variables: indices 1 to $m$ mean auxiliary
+variables and indices $m+1$ to $m+n$ mean structural ones.
 
 \subsubsection*{Returns}
 
-The routine \verb|lpx_transform_row| returns \verb|len'|, the number of
+The routine \verb|glp_transform_row| returns \verb|len'|, the number of
 non-zero coefficients in the resultant row stored in the arrays
 \verb|ind| and \verb|val|.
 
-\subsection{lpx\_transform\_col---transform explicitly specified\\
+\subsection{glp\_transform\_col---transform explicitly specified\\
 column}
 
 \subsubsection*{Synopsis}
 
 \begin{verbatim}
-int lpx_transform_col(glp_prob *lp, int len, int ind[],
+int glp_transform_col(glp_prob *P, int len, int ind[],
       double val[]);
 \end{verbatim}
 
 \subsubsection*{Description}
 
-The routine \verb|lpx_transform_col| performs the same operation as the
-routine \verb|lpx_eval_tab_col|, except that the transformed column is
-specified explicitly.
+The routine \verb|glp_transform_col| performs the same operation as the
+routine \verb|glp_eval_tab_col| with exception that the column to be
+transformed is specified explicitly as a sparse vector.
 
 The explicitly specified column may be thought as it were added to
 the original system of equality constraints:
 $$
-\begin{array}{rl}
-x_1 &= a_{11}x_{m+1}+\dots+a_{1n}x_{m+n}+a_1x \\
-x_2 &= a_{21}x_{m+1}+\dots+a_{2n}x_{m+n}+a_2x \\
-    &  \dots \dots \dots \\
-x_m &= a_{m1}x_{m+1}+\dots+a_{mn}x_{m+n}+a_mx \\
-\end{array} \eqno(1)
+\begin{array}{l@{\ }c@{\ }r@{\ }c@{\ }r@{\ }c@{\ }r}
+x_1&=&a_{11}x_{m+1}&+\dots+&a_{1n}x_{m+n}&+&a_1x \\
+x_2&=&a_{21}x_{m+1}&+\dots+&a_{2n}x_{m+n}&+&a_2x \\
+\multicolumn{7}{c}
+{.\ \ .\ \ .\ \ .\ \ .\ \ .\ \ .\ \ .\ \ .\ \ .\ \ .\ \ .\ \ .\ \ .}\\
+x_m&=&a_{m1}x_{m+1}&+\dots+&a_{mn}x_{m+n}&+&a_mx \\
+\end{array}
 $$
 where $x_i$ are auxiliary variables, $x_{m+j}$ are structural variables
 (presented in the problem object), $x$ is a structural variable for the
-explicitly specified column, $a_i$ are constraint coefficients for $x$.
+explicitly specified column, $a_i$ are constraint coefficients at $x$.
 
 On entry row indices and numerical values of non-zero coefficients
-$a_i$ of the transformed column should be placed in locations
+$a_i$ of the specified column should be placed in locations
 \verb|ind[1]|, \dots, \verb|ind[len]| and \verb|val[1]|, \dots,
 \verb|val[len]|, where \verb|len| is number of non-zero coefficients.
 
 This routine uses the system of equality constraints and the current
 basis in order to express the current basic variables through the
-structural variable $x$ in (1) (as if the transformed column were added
-to the problem object and the variable $x$ were non-basic):
+structural variable $x$ (as if the transformed column were added to the
+problem object and the variable $x$ were non-basic):
 $$
-\begin{array}{rl}
-(x_B)_1 &= \dots + \alpha_{1}x \\
-(x_B)_2 &= \dots + \alpha_{2}x \\
-        &  \dots \dots \dots   \\
-(x_B)_m &= \dots + \alpha_{m}x \\
-\end{array} \eqno(2)
+\begin{array}{l@{\ }c@{\ }r}
+(x_B)_1&=\dots+&\xi_{1}x\\
+(x_B)_2&=\dots+&\xi_{2}x\\
+\multicolumn{3}{c}{.\ \ .\ \ .\ \ .\ \ .\ \ .}\\
+(x_B)_m&=\dots+&\xi_{m}x\\
+\end{array}
 $$
-where $\alpha_i$ are influence coefficients, $x_B$ are basic (auxiliary
-and structural) variables, $m$ is number of rows in the specified
-problem object.
+where $\xi_i$ are influence coefficients, $x_B$ are basic (auxiliary
+and structural) variables, $m$ is the number of rows in the problem
+object.
 
 On exit the routine stores indices and numerical values of non-zero
-coefficients $\alpha_i$ of the resultant column (2) in locations
-\verb|ind[1]|, \dots, \verb|ind[len']| and \verb|val[1]|, \dots,
-\verb|val[len']|, where $0\leq{\tt len'}\leq m$ is the number of
-non-zero coefficients in the resultant column returned by the routine.
-Note that indices of basic variables stored in the array \verb|ind|
-correspond to original ordinal numbers of variables, i.e. indices
-1 to $m$ mean auxiliary variables, indices $m+1$ to $m+n$ mean
-structural ones.
+coefficients $\xi_i$ of the resultant column in locations \verb|ind[1]|,
+\dots, \verb|ind[len']| and \verb|val[1]|, \dots, \verb|val[len']|,
+where $0\leq{\tt len'}\leq m$ is the number of non-zero coefficients in
+the resultant column returned by the routine. Note that indices of basic
+variables stored in the array \verb|ind| correspond to original ordinal
+numbers of variables, i.e. indices 1 to $m$ mean auxiliary variables,
+indices $m+1$ to $m+n$ mean structural ones.
 
 \subsubsection*{Returns}
 
-The routine \verb|lpx_transform_col| returns \verb|len'|, the number of
+The routine \verb|glp_transform_col| returns \verb|len'|, the number of
 non-zero coefficients in the resultant column stored in the arrays
 \verb|ind| and \verb|val|.
 
-\subsection{lpx\_prim\_ratio\_test---perform primal ratio test}
+\subsection{glp\_prim\_rtest---perform primal ratio test}
 
 \subsubsection*{Synopsis}
 
 \begin{verbatim}
-int lpx_prim_ratio_test(glp_prob *lp, int len, int ind[],
-      double val[], int how, double tol);
+int glp_prim_rtest(glp_prob *P, int len, const int ind[],
+      const double val[], int dir, double eps);
 \end{verbatim}
 
 \subsubsection*{Description}
 
-The routine \verb|lpx_prim_ratio_test| performs the primal ratio test
-for an explicitly specified column of the simplex table.
+The routine \verb|glp_prim_rtest| performs the primal ratio test using
+an explicitly specified column of the simplex table.
 
-The primal basic solution associated with an LP problem object, which
-the parameter \verb|lp| points to, should be feasible. No components
-of the LP problem object are changed by the routine.
+The current basic solution associated with the LP problem object must be
+primal feasible.
 
-The explicitly specified column of the simplex table shows how the
-basic variables $x_B$ depend on some non-basic variable $y$ (which is
-not necessarily presented in the problem object):
+The explicitly specified column of the simplex table shows how the basic
+variables $x_B$ depend on some non-basic variable $x$ (which is not
+necessarily presented in the problem object):
 $$
-\begin{array}{rl}
-(x_B)_1 &= \dots + \alpha_{1}y \\
-(x_B)_2 &= \dots + \alpha_{2}y \\
-        &  \dots \dots \dots   \\
-(x_B)_m &= \dots + \alpha_{m}y \\
-\end{array} \eqno(1)
+\begin{array}{l@{\ }c@{\ }r}
+(x_B)_1&=\dots+&\xi_{1}x\\
+(x_B)_2&=\dots+&\xi_{2}x\\
+\multicolumn{3}{c}{.\ \ .\ \ .\ \ .\ \ .\ \ .}\\
+(x_B)_m&=\dots+&\xi_{m}x\\
+\end{array}
 $$
 
-The column (1) is specifed on entry to the routine using the sparse
-format. Ordinal numbers of basic variables $(x_B)_i$ should be placed in
-locations \verb|ind[1]|, \dots, \verb|ind[len]|, where ordinal number
-1 to $m$ denote auxiliary variables, and ordinal numbers $m+1$ to $m+n$
-denote structural variables. The corresponding non-zero coefficients
-$\alpha_i$ should be placed in locations \verb|val[1]|, \dots,
-\verb|val[len]|. The arrays \verb|ind| and \verb|val| are not changed by
-the routine.
+The column is specifed on entry to the routine in sparse format. Ordinal
+numbers of basic variables $(x_B)_i$ should be placed in locations
+\verb|ind[1]|, \dots, \verb|ind[len]|, where ordinal number 1 to $m$
+denote auxiliary variables, and ordinal numbers $m+1$ to $m+n$ denote
+structural variables. The corresponding non-zero coefficients $\xi_i$
+should be placed in locations \verb|val[1]|, \dots, \verb|val[len]|. The
+arrays \verb|ind| and \verb|val| are not changed by the routine.
 
-The parameter \verb|how| specifies in which direction the variable $y$
+The parameter \verb|dir| specifies direction in which the variable $x$
 changes on entering the basis: $+1$ means increasing, $-1$ means
 decreasing.
 
-The parameter \verb|tol| is a relative tolerance (small positive number)
-used by the routine to skip small $\alpha_i$ in the column (1).
+The parameter \verb|eps| is an absolute tolerance (small positive
+number, say, $10^{-9}$) used by the routine to skip $\xi_i$'s whose
+magnitude is less than \verb|eps|.
 
-The routine determines the ordinal number of a basic variable
-(among specified in \verb|ind[1]|, \dots, \verb|ind[len]|), which
-reaches its (lower or upper) bound first before any other basic
-variables do and which therefore should leave the basis instead the
-variable $y$ in order to keep primal feasibility, and returns it on
-exit. If the choice cannot be made (i.e. if the adjacent basic solution
-is primal unbounded due to $y$), the routine returns zero.
-
-\subsubsection*{Note}
-
-If the non-basic variable $y$ is presented in the LP problem object, the
-column (1) can be computed using the routine \verb|lpx_eval_tab_col|.
-Otherwise it can be computed using the routine \verb|lpx_transform_col|.
+The routine determines which basic variable (among those specified in
+\verb|ind[1]|, \dots, \verb|ind[len]|) reaches its (lower or upper)
+bound first before any other basic variables do, and which, therefore,
+should leave the basis in order to keep primal feasibility.
 
 \subsubsection*{Returns}
 
-The routine \verb|lpx_prim_ratio_test| returns the ordinal number of
-some basic variable $(x_B)_i$, which should leave the basis instead the
-variable $y$ in order to keep primal feasibility. If the adjacent basic
-solution is primal unbounded and therefore the choice cannot be made,
+The routine \verb|glp_prim_rtest| returns the index, \verb|piv|, in the
+arrays \verb|ind| and \verb|val| corresponding to the pivot element
+chosen, $1\leq$ \verb|piv| $\leq$ \verb|len|. If the adjacent basic
+solution is primal unbounded, and therefore the choice cannot be made,
 the routine returns zero.
 
-\subsection{lpx\_dual\_ratio\_test---perform dual ratio test}
+\subsubsection*{Comments}
+
+If the non-basic variable $x$ is presented in the LP problem object, the
+input column can be computed with the routine \verb|glp_eval_tab_col|;
+otherwise, it can be computed with the routine \verb|glp_transform_col|.
+
+\subsection{glp\_dual\_rtest---perform dual ratio test}
 
 \subsubsection*{Synopsis}
 
 \begin{verbatim}
-int lpx_dual_ratio_test(glp_prob *lp, int len, int ind[],
-      double val[], int how, double tol);
+int glp_dual_rtest(glp_prob *P, int len, const int ind[],
+      const double val[], int dir, double eps);
 \end{verbatim}
 
 \subsubsection*{Description}
 
-The routine \verb|lpx_dual_ratio_test| performs the dual ratio test for
+The routine \verb|glp_dual_rtest| performs the dual ratio test using
 an explicitly specified row of the simplex table.
 
-The dual basic solution associated with an LP problem object, which the
-parameter \verb|lp| points to, should be feasible. No components of the
-LP problem object are changed by the routine.
+The current basic solution associated with the LP problem object must be
+dual feasible.
 
-The explicitly specified row of the simplex table is a linear form,
-which shows how some basic variable $y$ (not necessarily presented in
-the problem object) depends on non-basic variables $x_N$:
-$$y=\alpha_1(x_N)_1+\alpha_2(x_N)_2+\dots+\alpha_n(x_N)_n.\eqno(1)$$
+The explicitly specified row of the simplex table is a linear form
+that shows how some basic variable $x$ (which is not necessarily
+presented in the problem object) depends on non-basic variables $x_N$:
+$$x=\xi_1(x_N)_1+\xi_2(x_N)_2+\dots+\xi_n(x_N)_n.$$
 
-The linear form (1) is specified on entry to the routine using the
-sparse format. Ordinal numbers of non-basic variables $(x_N)_j$ should
-be placed in locations \verb|ind[1]|, \dots, \verb|ind[len]|, where
-ordinal numbers 1 to $m$ denote auxiliary variables, and ordinal numbers
-$m+1$ to $m+n$ denote structural variables. The corresponding non-zero
-coefficients $\alpha_j$ should be placed in locations \verb|val[1]|,
-\dots, \verb|val[len]|. The arrays \verb|ind| and \verb|val| are not
-changed by the routine.
+The row is specified on entry to the routine in sparse format. Ordinal
+numbers of non-basic variables $(x_N)_j$ should be placed in locations
+\verb|ind[1]|, \dots, \verb|ind[len]|, where ordinal numbers 1 to $m$
+denote auxiliary variables, and ordinal numbers $m+1$ to $m+n$ denote
+structural variables. The corresponding non-zero coefficients $\xi_j$
+should be placed in locations \verb|val[1]|, \dots, \verb|val[len]|.
+The arrays \verb|ind| and \verb|val| are not changed by the routine.
 
-The parameter \verb|how| specifies in which direction the variable $y$
-changes on leaving the basis: $+1$ means increasing, $-1$ means
-decreasing.
+The parameter \verb|dir| specifies direction in which the variable $x$
+changes on leaving the basis: $+1$ means that $x$ goes on its lower
+bound, so its reduced cost (dual variable) is increasing (minimization)
+or decreasing (maximization); $-1$ means that $x$ goes on its upper
+bound, so its reduced cost is decreasing (minimization) or increasing
+(maximization).
 
-The parameter \verb|tol| is a relative tolerance (small positive number)
-used by the routine to skip small $\alpha_j$ in the form (1).
+The parameter \verb|eps| is an absolute tolerance (small positive
+number, say, $10^{-9}$) used by the routine to skip $\xi_j$'s whose
+magnitude is less than \verb|eps|.
 
-The routine determines the ordinal number of some non-basic variable
-(among specified in \verb|ind[1]|, \dots, \verb|ind[len]|), whose
-reduced cost reaches its (zero) bound first before this happens for any
-other non-basic variables and which therefore should enter the basis
-instead the variable $y$ in order to keep dual feasibility, and returns
-it on exit. If the choice cannot be made (i.e. if the adjacent basic
-solution is dual unbounded due to $y$), the routine returns zero.
-
-\subsubsection*{Note}
-
-If the basic variable $y$ is presented in the LP problem object, the
-row (1) can be computed using the routine \verb|lpx_eval_tab_row|.
-Otherwise it can be computed using the routine \verb|lpx_transform_row|.
+The routine determines which non-basic variable (among those specified
+in \verb|ind[1]|, \dots, \verb|ind[len]|) should enter the basis in
+order to keep dual feasibility, because its reduced cost reaches the
+(zero) bound first before this occurs for any other non-basic variables.
 
 \subsubsection*{Returns}
 
-The routine \verb|lpx_dual_ratio_test| returns the ordinal number of
-some non-basic variable $(x_N)_j$, which should enter the basis instead
-the variable $y$ in order to keep dual feasibility. If the adjacent
-basic solution is dual unbounded and therefore the choice cannot be
-made, the routine returns zero.
+The routine \verb|glp_dual_rtest| returns the index, \verb|piv|, in the
+arrays \verb|ind| and \verb|val| corresponding to the pivot element
+chosen, $1\leq$ \verb|piv| $\leq$ \verb|len|. If the adjacent basic
+solution is dual unbounded, and therefore the choice cannot be made,
+the routine returns zero.
+
+\subsubsection*{Comments}
+
+If the basic variable $x$ is presented in the LP problem object, the
+input row can be computed with the routine \verb|glp_eval_tab_row|;
+otherwise, it can be computed with the routine \verb|glp_transform_row|.
 
 %* eof *%

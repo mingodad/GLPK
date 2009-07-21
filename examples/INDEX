@@ -23,6 +23,7 @@ maxcut.mod     Maximum cut problem
 maxflow.mod    Maximum flow problem
 mfasp.mod      Minimum feedback arc set problem
 mfvsp.mod      Minimum feedback vertex set problem
+min01ks.mod    Finding minimal equivalent 0-1 knapsack inequality
 misp.mod       Maximum independent set problem
 money.mod      A crypto-arithmetic puzzle
 mvcp.mod       Minimum vertex cover problem
@@ -44,5 +45,6 @@ train.mod      A model of railroad passenger car allocation
 transp.mod     A transportation problem
 trick.mod      A transportation design problem
 tsp.mod        Traveling salesman problem
+xyacfs.mod     Extended yet another curve fitting solution
 yacfs.mod      Yet another curve fitting solution
 zebra.mod      Who owns the zebra?

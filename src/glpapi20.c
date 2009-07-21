@@ -60,6 +60,11 @@ struct csa
       const char *out_dpy;
       /* name of output file to send display output; NULL means the
          display output is sent to the terminal */
+#if 1 /* 08/XII-2009 */
+      int seed;
+      /* seed value to be passed to the MathProg translator; initially
+         set to 1; 0x80000000 means the value is omitted */
+#endif
       int solution;
       /* solution type flag: */
 #define SOL_BASIC       1  /* basic */
@@ -101,6 +106,9 @@ struct csa
 #define USE_STD_BASIS   1  /* use standard basis */
 #define USE_ADV_BASIS   2  /* use advanced basis */
 #define USE_CPX_BASIS   3  /* use Bixby's basis */
+#define USE_INI_BASIS   4  /* use initial basis from ini_file */
+      const char *ini_file;
+      /* name of input file containing initial basis */
       int exact;
       /* flag to use glp_exact rather than glp_simplex */
       int xcheck;
@@ -137,6 +145,14 @@ static void print_help(const char *my_name)
          "r --math only);\n");
       xprintf("                     by default the output is sent to te"
          "rminal\n");
+#if 1 /* 08/XII-2009 */
+      xprintf("   --seed value      initialize pseudo-random number gen"
+         "erator used in\n");
+      xprintf("                     MathProg model with specified seed "
+         "(any integer);\n");
+      xprintf("                     if seed value is ?, some random see"
+         "d will be used\n");
+#endif
       xprintf("   --mincost         read min-cost flow problem in DIMAC"
          "S format\n");
       xprintf("   --maxflow         read maximum flow problem in DIMACS"
@@ -205,6 +221,9 @@ static void print_help(const char *my_name)
       xprintf("   --adv             use advanced initial basis (default"
          ")\n");
       xprintf("   --bib             use Bixby's initial basis\n");
+      xprintf("   --ini filename    use as initial basis previously sav"
+         "ed with -w\n");
+      xprintf("                     (disables LP presolver)\n");
       xprintf("   --steep           use steepest edge technique (defaul"
          "t)\n");
       xprintf("   --nosteep         use standard \"textbook\" pricing\n"
@@ -290,7 +309,7 @@ static void print_version(int briefly)
       xprintf("GLPSOL: GLPK LP/MIP Solver %s\n", glp_version());
       if (briefly) goto done;
       xprintf("\n");
-      xprintf("Copyright (C) 2008 Andrew Makhorin, Department for Appli"
+      xprintf("Copyright (C) 2009 Andrew Makhorin, Department for Appli"
          "ed Informatics,\n");
       xprintf("Moscow Aviation Institute, Moscow, Russia. All rights re"
          "served.\n");
@@ -341,6 +360,22 @@ static int parse_cmdline(struct csa *csa, int argc, const char *argv[])
             }
             csa->out_dpy = argv[k];
          }
+#if 1 /* 08/XII-2009 */
+         else if (p("--seed"))
+         {  k++;
+            if (k == argc || argv[k][0] == '\0' ||
+               argv[k][0] == '-' && !isdigit((unsigned char)argv[k][1]))
+            {  xprintf("No seed value specified\n");
+               return 1;
+            }
+            if (strcmp(argv[k], "?") == 0)
+               csa->seed = 0x80000000;
+            else if (str2int(argv[k], &csa->seed))
+            {  xprintf("Invalid seed value `%s'\n", argv[k]);
+               return 1;
+            }
+         }
+#endif
          else if (p("--mincost"))
             csa->format = FMT_MIN_COST;
          else if (p("--maxflow"))
@@ -545,6 +580,20 @@ static int parse_cmdline(struct csa *csa, int argc, const char *argv[])
             csa->crash = USE_ADV_BASIS;
          else if (p("--bib"))
             csa->crash = USE_CPX_BASIS;
+         else if (p("--ini"))
+         {  csa->crash = USE_INI_BASIS;
+            csa->smcp.presolve = GLP_OFF;
+            k++;
+            if (k == argc || argv[k][0] == '\0' || argv[k][0] == '-')
+            {  xprintf("No initial basis file specified\n");
+               return 1;
+            }
+            if (csa->ini_file != NULL)
+            {  xprintf("Only one initial basis file allowed\n");
+               return 1;
+            }
+            csa->ini_file = argv[k];
+         }
          else if (p("--steep"))
             csa->smcp.pricing = GLP_PT_PSE;
          else if (p("--nosteep"))
@@ -662,6 +711,9 @@ int glp_main(int argc, const char *argv[])
       csa->in_file = NULL;
       csa->ndf = 0;
       csa->out_dpy = NULL;
+#if 1 /* 08/XII-2009 */
+      csa->seed = 1;
+#endif
       csa->solution = SOL_BASIC;
       csa->in_res = NULL;
       csa->dir = 0;
@@ -678,6 +730,7 @@ int glp_main(int argc, const char *argv[])
       csa->out_npb = NULL;
       csa->log_file = NULL;
       csa->crash = USE_ADV_BASIS;
+      csa->ini_file = NULL;
       csa->exact = 0;
       csa->xcheck = 0;
       csa->nomip = 0;
@@ -716,7 +769,8 @@ int glp_main(int argc, const char *argv[])
       /* print version information */
       print_version(1);
       /*--------------------------------------------------------------*/
-      /* print parameters(s) specified in the command line */
+      /* print parameters specified in the command line */
+      if (argc > 1)
       {  int k, len = INT_MAX;
          xprintf("Parameter(s) specified in the command line:");
          for (k = 1; k < argc; k++)
@@ -761,6 +815,14 @@ err1:    {  xprintf("MPS file processing error\n");
       {  int k;
          /* allocate the translator workspace */
          csa->tran = glp_mpl_alloc_wksp();
+#if 1 /* 08/XII-2009 */
+         /* set seed value */
+         if (csa->seed == 0x80000000)
+         {  csa->seed = glp_time().lo;
+            xprintf("Seed value %d will be used\n", csa->seed);
+         }
+         _glp_mpl_init_rand(csa->tran, csa->seed);
+#endif
          /* read model section and optional data section */
          if (glp_mpl_read_model(csa->tran, csa->in_file, csa->ndf > 0))
 err2:    {  xprintf("MathProg model processing error\n");
@@ -910,6 +972,7 @@ err2:    {  xprintf("MathProg model processing error\n");
              csa->solution == SOL_INTEGER && !csa->iocp.presolve)
             glp_scale_prob(csa->prob, GLP_SF_AUTO);
       }
+      /*--------------------------------------------------------------*/
       /* construct starting LP basis */
       if (csa->solution == SOL_BASIC && !csa->smcp.presolve ||
           csa->solution == SOL_INTEGER && !csa->iocp.presolve)
@@ -919,6 +982,14 @@ err2:    {  xprintf("MathProg model processing error\n");
             glp_adv_basis(csa->prob, 0);
          else if (csa->crash == USE_CPX_BASIS)
             glp_cpx_basis(csa->prob);
+         else if (csa->crash == USE_INI_BASIS)
+         {  ret = glp_read_sol(csa->prob, csa->ini_file);
+            if (ret != 0)
+            {  xprintf("Unable to read initial basis\n");
+               ret = EXIT_FAILURE;
+               goto done;
+            }
+         }
          else
             xassert(csa != csa);
       }

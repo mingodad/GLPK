@@ -21,6 +21,7 @@
 *  along with GLPK. If not, see <http://www.gnu.org/licenses/>.
 ***********************************************************************/
 
+#include <ctype.h>
 #include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -115,6 +116,7 @@ static const struct errstring errstring[] =
 {     {CPXERR_ARRAY_NOT_ASCENDING, "Array entry %d not ascending"},
       {CPXERR_BAD_ARGUMENT, "Invalid argument"},
       {CPXERR_BAD_CTYPE, "Invalid ctype entry %d"},
+      {CPXERR_BAD_FILETYPE, "Invalid filetype"},
       {CPXERR_BAD_LUB, "Invalid bound change indicator entry %d"},
       {CPXERR_BAD_PARAM_NUM, "Invalid parameter number"},
       {CPXERR_BAD_SENSE, "Invalid sense entry %d"},
@@ -124,10 +126,12 @@ static const struct errstring errstring[] =
       {CPXERR_COUNT_RANGE, "Count entry %d negative or larger than allo"
          "wed"},
       {CPXERR_DUP_ENTRY, "Duplicate entry"},
+      {CPXERR_FAIL_OPEN_WRITE, "Could not open file '%s' for writing"},
       {CPXERR_INDEX_RANGE, "Index is outside range of valid values"},
       {CPXERR_NEGATIVE_SURPLUS, "Insufficient array length"},
       {CPXERR_NO_BASIC_SOLN, "No basic solution exists"},
       {CPXERR_NO_ENVIRONMENT, "No environment exists"},
+      {CPXERR_NO_FILENAME, "File name not specified"},
       {CPXERR_NO_MEMORY, "Out of memory"},
       {CPXERR_NO_PROBLEM, "No problem exists"},
       {CPXERR_NO_SOLN, "No solution exists"},
@@ -141,15 +145,13 @@ static const struct errstring errstring[] =
 
 /**********************************************************************/
 
-#define xassert(expr) \
-      ((void)((expr) || (_xassert(#expr, __FILE__, __LINE__), 1)))
+#define xassert glp_assert
+#define xprintf glp_printf
+#define xmalloc glp_malloc
+#define xcalloc glp_calloc
+#define xfree   glp_free
 
-static void _xassert(const char *expr, const char *file, int line)
-{     printf("Assertion failed: %s\n", expr);
-      printf("Error detected in file %s at line %d\n", file, line);
-      exit(EXIT_FAILURE);
-      /* no return */
-}
+/**********************************************************************/
 
 static int findintparam(int whichparam)
 {     int k, card;
@@ -241,9 +243,9 @@ static void enlargerflag(CPXLP *lp)
          {  lp->rflen += lp->rflen;
             xassert(lp->rflen > 0);
          }
-         lp->rflag = glp_calloc(lp->rflen, sizeof(char));
+         lp->rflag = xcalloc(lp->rflen, sizeof(char));
          memcpy(lp->rflag, rflag, rflen);
-         glp_free(rflag);
+         xfree(rflag);
       }
       return;
 }
@@ -251,12 +253,12 @@ static void enlargerflag(CPXLP *lp)
 static void enlargeiwork(CPXLP *lp, int len)
 {     xassert(len >= 0);
       if (lp->iwlen < len)
-      {  glp_free(lp->iwork);
+      {  xfree(lp->iwork);
          while (lp->iwlen < len)
          {  lp->iwlen += lp->iwlen;
             xassert(lp->iwlen > 0);
          }
-         lp->iwork = glp_calloc(lp->iwlen, sizeof(int));
+         lp->iwork = xcalloc(lp->iwlen, sizeof(int));
          memset(lp->iwork, 0, lp->iwlen * sizeof(int));
       }
       return;
@@ -475,7 +477,7 @@ done: return errcode;
 int CPXbaropt(CPXENV *env, CPXLP *lp)
 {     xassert(env == env);
       xassert(lp == lp);
-      printf("CPXbaropt: not implemented yet\n");
+      xprintf("CPXbaropt: not implemented yet\n");
       exit(EXIT_FAILURE);
       return -1;
 }
@@ -485,7 +487,7 @@ int CPXbinvrow(CPXENV *env, CPXLP *lp, int i, double y[])
       xassert(lp == lp);
       xassert(i == i);
       xassert(y == y);
-      printf("CPXbinvrow: not implemented yet\n");
+      xprintf("CPXbinvrow: not implemented yet\n");
       exit(EXIT_FAILURE);
       return -1;
 }
@@ -548,6 +550,181 @@ int CPXchgbds(CPXENV *env, CPXLP *lp, int cnt, const int indices[],
          glp_set_col_bnds(lp->prob, indices[j]+1, type, lbnd, ubnd);
       }
 done: return errcode;
+}
+
+int CPXchgcoeflist(CPXENV *env, CPXLP *lp, int numcoefs,
+      const int rowlist[], const int collist[], const double vallist[])
+{     int i, j, k, m, n, rcnt, ccnt, len, ptr, errcode;
+      int *head, *next, *ind;
+      double *val;
+      errcode = checklp(env, lp);
+      if (errcode) goto done;
+      if (numcoefs < 0)
+      {  errcode = error(env, CPXERR_BAD_ARGUMENT);
+         goto done;
+      }
+      if (numcoefs == 0)
+      {  errcode = 0;
+         goto done;
+      }
+      if (rowlist == NULL || collist == NULL || vallist == NULL)
+      {  errcode = error(env, CPXERR_NULL_POINTER);
+         goto done;
+      }
+      /* check triplets and determine the number of rows and columns
+         to be changed */
+      m = glp_get_num_rows(lp->prob);
+      n = glp_get_num_cols(lp->prob);
+      enlargeiwork(lp, m);
+      enlargeiwork(lp, n);
+      rcnt = ccnt = 0;
+      for (k = 0; k < numcoefs; k++)
+      {  i = rowlist[k];
+         if (!(0 <= i && i < m))
+         {  errcode = error(env, CPXERR_ROW_INDEX_RANGE, i);
+            goto done;
+         }
+         if (!(lp->iwork[i] & 0x01))
+            rcnt++, lp->iwork[i] |= 0x01;
+         j = collist[k];
+         if (!(0 <= j && j < n))
+         {  errcode = error(env, CPXERR_COL_INDEX_RANGE, j);
+            goto done;
+         }
+         if (!(lp->iwork[j] & 0x02))
+            ccnt++, lp->iwork[j] |= 0x02;
+      }
+      memset(lp->iwork, 0, m * sizeof(int));
+      memset(lp->iwork, 0, n * sizeof(int));
+      errcode = 0;
+      invalidate(lp);
+      if (rcnt <= ccnt)
+      {  /* change the matrix by rows */
+         /* build the linked list of triplets:
+            head[i] is a pointer to first triplet for row i
+            next[k] is a pointer to next triplet for the same row */
+         head = xcalloc(m, sizeof(int));
+         for (i = 0; i < m; i++)
+            head[i] = -1;
+         next = xcalloc(numcoefs, sizeof(int));
+         for (k = 0; k < numcoefs; k++)
+         {  i = rowlist[k];
+            next[k] = head[i];
+            head[i] = k;
+         }
+         /* check duplicate columns */
+         for (i = 0; i < m; i++)
+         {  for (k = head[i]; k >= 0; k = next[k])
+            {  j = collist[k];
+               if (lp->iwork[j])
+               {  xfree(head);
+                  xfree(next);
+                  errcode = error(env, CPXERR_DUP_ENTRY);
+                  goto done;
+               }
+               lp->iwork[j] = 1;
+            }
+            for (k = head[i]; k >= 0; k = next[k])
+               lp->iwork[collist[k]] = 0;
+         }
+         /* perform operation */
+         ind = xcalloc(1+n, sizeof(int));
+         val = xcalloc(1+n, sizeof(double));
+         for (i = 0; i < m; i++)
+         {  if (head[i] < 0) continue;
+            len = glp_get_mat_row(lp->prob, i+1, ind, val);
+            for (ptr = 1; ptr <= len; ptr++)
+            {  j = ind[ptr]-1;
+               xassert(lp->iwork[j] == 0);
+               lp->iwork[j] = ptr;
+            }
+            for (k = head[i]; k >= 0; k = next[k])
+            {  j = collist[k];
+               if (lp->iwork[j] == 0)
+                  lp->iwork[j] = ++len;
+               ptr = lp->iwork[j];
+               ind[ptr] = j+1, val[ptr] = vallist[k];
+            }
+            glp_set_mat_row(lp->prob, i+1, len, ind, val);
+            for (ptr = 1; ptr <= len; ptr++)
+               lp->iwork[ind[ptr]-1] = 0;
+         }
+      }
+      else
+      {  /* change the matrix by columns */
+         /* build the linked lists of triplets:
+            head[j] is a pointer to first triplet for column j
+            next[k] is a pointer to next triplet for the same column */
+         head = xcalloc(n, sizeof(int));
+         for (j = 0; j < n; j++)
+            head[j] = -1;
+         next = xcalloc(numcoefs, sizeof(int));
+         for (k = 0; k < numcoefs; k++)
+         {  j = collist[k];
+            next[k] = head[j];
+            head[j] = k;
+         }
+         /* check duplicate rows */
+         for (j = 0; j < n; j++)
+         {  for (k = head[j]; k >= 0; k = next[k])
+            {  i = rowlist[k];
+               if (lp->iwork[i])
+               {  xfree(head);
+                  xfree(next);
+                  errcode = error(env, CPXERR_DUP_ENTRY);
+                  goto done;
+               }
+               lp->iwork[i] = 1;
+            }
+            for (k = head[j]; k >= 0; k = next[k])
+               lp->iwork[rowlist[k]] = 0;
+         }
+         /* perform operation */
+         ind = xcalloc(1+m, sizeof(int));
+         val = xcalloc(1+m, sizeof(double));
+         for (j = 0; j < n; j++)
+         {  if (head[j] < 0) continue;
+            len = glp_get_mat_col(lp->prob, j+1, ind, val);
+            for (ptr = 1; ptr <= len; ptr++)
+            {  i = ind[ptr]-1;
+               xassert(lp->iwork[i] == 0);
+               lp->iwork[i] = ptr;
+            }
+            for (k = head[j]; k >= 0; k = next[k])
+            {  i = rowlist[k];
+               if (lp->iwork[i] == 0)
+                  lp->iwork[i] = ++len;
+               ptr = lp->iwork[i];
+               ind[ptr] = i+1, val[ptr] = vallist[k];
+            }
+            glp_set_mat_col(lp->prob, j+1, len, ind, val);
+            for (ptr = 1; ptr <= len; ptr++)
+               lp->iwork[ind[ptr]-1] = 0;
+         }
+      }
+      xfree(head);
+      xfree(next);
+      xfree(ind);
+      xfree(val);
+done: return errcode;
+}
+
+void CPXchgobjsen(CPXENV *env, CPXLP *lp, int maxormin)
+{     int errcode;
+      errcode = checklp(env, lp);
+      if (errcode) goto done;
+      if (!(maxormin == CPX_MIN || maxormin == CPX_MAX))
+      {  errcode = error(env, CPXERR_BAD_ARGUMENT);
+         goto done;
+      }
+      errcode = 0;
+      invalidate(lp);
+      if (maxormin == CPX_MIN)
+         glp_set_obj_dir(lp->prob, GLP_MIN);
+      else
+         glp_set_obj_dir(lp->prob, GLP_MAX);
+done: xassert(errcode == errcode);
+      return;
 }
 
 int CPXchgsense(CPXENV *env, CPXLP *lp, int cnt, const int indices[],
@@ -637,9 +814,9 @@ int CPXcloseCPLEX(CPXENV **_env)
          errcode = CPXfreeprob(env, &lp);
          xassert(!errcode);
       }
-      glp_free(env->intparam);
-      glp_free(env->dblparam);
-      glp_free(env);
+      xfree(env->intparam);
+      xfree(env->dblparam);
+      xfree(env);
       *_env = NULL;
       errcode = 0;
 done: return errcode;
@@ -890,14 +1067,14 @@ CPXLP *CPXcreateprob(CPXENV *env, int *status, const char *probname)
       int errcode;
       errcode = checkenv(env);
       if (errcode) goto done;
-      lp = glp_malloc(sizeof(struct CPXLP));
+      lp = xmalloc(sizeof(struct CPXLP));
       lp->env = env;
       lp->prob = glp_create_prob();
       glp_set_prob_name(lp->prob, probname);
       lp->rflen = 100;
-      lp->rflag = glp_calloc(lp->rflen, sizeof(char));
+      lp->rflag = xcalloc(lp->rflen, sizeof(char));
       lp->iwlen = 100;
-      lp->iwork = glp_calloc(lp->iwlen, sizeof(int));
+      lp->iwork = xcalloc(lp->iwlen, sizeof(int));
       memset(lp->iwork, 0, lp->iwlen * sizeof(int));
       lp->link = env->list;
       env->list = lp;
@@ -952,7 +1129,7 @@ int CPXdelsetcols(CPXENV *env, CPXLP *lp, int delstat[])
 {     xassert(env == env);
       xassert(lp == lp);
       xassert(delstat == delstat);
-      printf("CPXdelsetcols: not implemented yet\n");
+      xprintf("CPXdelsetcols: not implemented yet\n");
       exit(EXIT_FAILURE);
       return -1;
 }
@@ -1013,9 +1190,9 @@ int CPXfreeprob(CPXENV *env, CPXLP **_lp)
          pp->link = lp->link;
       }
       glp_delete_prob(lp->prob);
-      glp_free(lp->rflag);
-      glp_free(lp->iwork);
-      glp_free(lp);
+      xfree(lp->rflag);
+      xfree(lp->iwork);
+      xfree(lp);
       *_lp = NULL;
 done: return errcode;
 }
@@ -1081,7 +1258,7 @@ int CPXgetbhead(CPXENV *env, CPXLP *lp, int head[], double x[])
       xassert(lp == lp);
       xassert(head == head);
       xassert(x == x);
-      printf("CPXgetbhead: not implemented yet\n");
+      xprintf("CPXgetbhead: not implemented yet\n");
       exit(EXIT_FAILURE);
       return -1;
 }
@@ -1142,7 +1319,7 @@ int CPXgetijdiv(CPXENV *env, CPXLP *lp, int *idiv, int *jdiv)
       xassert(lp == lp);
       xassert(idiv == idiv);
       xassert(jdiv == jdiv);
-      printf("CPXgetijdiv: not implemented yet\n");
+      xprintf("CPXgetijdiv: not implemented yet\n");
       exit(EXIT_FAILURE);
       return -1;
 }
@@ -1168,7 +1345,7 @@ int CPXgetlb(CPXENV *env, CPXLP *lp, double lb[], int begin, int end)
       xassert(lb == lb);
       xassert(begin == begin);
       xassert(end == end);
-      printf("CPXgetlb: not implemented yet\n");
+      xprintf("CPXgetlb: not implemented yet\n");
       exit(EXIT_FAILURE);
       return -1;
 }
@@ -1259,7 +1436,7 @@ int CPXgetsense(CPXENV *env, CPXLP *lp, char sense[], int begin,
       xassert(sense == sense);
       xassert(begin == begin);
       xassert(end == end);
-      printf("CPXgetsense: not implemented yet\n");
+      xprintf("CPXgetsense: not implemented yet\n");
       exit(EXIT_FAILURE);
       return -1;
 }
@@ -1330,7 +1507,7 @@ int CPXgetub(CPXENV *env, CPXLP *lp, double ub[], int begin, int end)
       xassert(ub == ub);
       xassert(begin == begin);
       xassert(end == end);
-      printf("CPXgetub: not implemented yet\n");
+      xprintf("CPXgetub: not implemented yet\n");
       exit(EXIT_FAILURE);
       return -1;
 }
@@ -1346,7 +1523,7 @@ int CPXgetweight(CPXENV *env, CPXLP *lp, int rcnt, const int rmatbeg[],
       xassert(rmatval == rmatval);
       xassert(weight == weight);
       xassert(dpriind == dpriind);
-      printf("CPXgetweight: not implemented yet\n");
+      xprintf("CPXgetweight: not implemented yet\n");
       exit(EXIT_FAILURE);
       return -1;
 }
@@ -1431,6 +1608,70 @@ int CPXmdleave(const CPXENV *env, CPXLP *lp, const int goodlist[],
       return 0;
 }
 
+int CPXnewcols(CPXENV *env, CPXLP *lp, int ccnt, const double obj[],
+      const double lb[], const double ub[], const char ctype[],
+      char *colname[])
+{     int j, n, kind, type, errcode;
+      double lbnd, ubnd;
+      errcode = checklp(env, lp);
+      if (errcode) goto done;
+      if (ccnt < 0)
+      {  errcode = error(env, CPXERR_BAD_ARGUMENT);
+         goto done;
+      }
+      for (j = 0; j < ccnt; j++)
+      {  if (ctype != NULL)
+         {  if (!(ctype[j] == 'C' || ctype[j] == 'B' ||
+                  ctype[j] == 'I'))
+            {  errcode = error(env, CPXERR_BAD_CTYPE, j);
+               goto done;
+            }
+         }
+         if (colname != NULL)
+         {  if (colname[j] == NULL)
+            {  errcode = error(env, CPXERR_NULL_NAME, j);
+               goto done;
+            }
+         }
+      }
+      errcode = 0;
+      invalidate(lp);
+      n = glp_get_num_cols(lp->prob);
+      if (ccnt > 0)
+         glp_add_cols(lp->prob, ccnt);
+      for (j = 0; j < ccnt; j++)
+      {  if (colname != NULL)
+            glp_set_col_name(lp->prob, n+j+1, colname[j]);
+         if (obj != NULL)
+            glp_set_obj_coef(lp->prob, n+j+1, obj[j]);
+         lbnd = (lb == NULL ? 0.0 : lb[j]);
+         ubnd = (ub == NULL ? 0.0 : ub[j]);
+         if (lbnd <= -CPX_INFBOUND && ubnd >= +CPX_INFBOUND)
+            type = GLP_FR;
+         else if (ubnd >= +CPX_INFBOUND)
+            type = GLP_LO;
+         else if (lbnd <= -CPX_INFBOUND)
+            type = GLP_UP;
+         else if (lbnd != ubnd)
+            type = GLP_DB;
+         else
+            type = GLP_FX;
+         glp_set_col_bnds(lp->prob, n+j+1, type, lbnd, ubnd);
+         if (ctype != NULL)
+         {  if (ctype[j] == 'C')
+               kind = GLP_CV;
+            else if (ctype[j] == 'B')
+               kind = GLP_BV;
+            else if (ctype[j] == 'I')
+               kind = GLP_IV;
+            else
+               xassert(ctype != ctype);
+            glp_set_col_kind(lp->prob, n+j+1, kind);
+         }
+      }
+done: return errcode;
+}
+
 int CPXnewrows(CPXENV *env, CPXLP *lp, int rcnt, const double rhs[],
       const char sense[], const double rngval[], char *rowname[])
 {     int i, m, type, errcode;
@@ -1504,14 +1745,14 @@ done: return errcode;
 CPXENV *CPXopenCPLEX(int *status)
 {     CPXENV *env;
       int k, card;
-      env = glp_malloc(sizeof(CPXENV));
+      env = xmalloc(sizeof(CPXENV));
       env->list = NULL;
       card = sizeof(intparam) / sizeof(struct intparam);
-      env->intparam = glp_calloc(card, sizeof(int));
+      env->intparam = xcalloc(card, sizeof(int));
       for (k = 0; k < card; k++)
          env->intparam[k] = intparam[k].defv;
       card = sizeof(dblparam) / sizeof(struct dblparam);
-      env->dblparam = glp_calloc(card, sizeof(double));
+      env->dblparam = xcalloc(card, sizeof(double));
       for (k = 0; k < card; k++)
          env->dblparam[k] = dblparam[k].defv;
       if (status != NULL) *status = 0;
@@ -1588,7 +1829,7 @@ int CPXsavwrite(CPXENV *env, CPXLP *lp, const char *filename)
 {     xassert(env == env);
       xassert(lp == lp);
       xassert(filename == filename);
-      printf("CPXsavwrite: not implemented yet\n");
+      xprintf("CPXsavwrite: not implemented yet\n");
       exit(EXIT_FAILURE);
       return -1;
 }
@@ -1663,6 +1904,37 @@ int CPXsolninfo(CPXENV *env, CPXLP *lp, int *solnmethod, int *solntype,
 done: return errcode;
 }
 
+int CPXsolution(CPXENV *env, CPXLP *lp, int *lpstat, double *objval,
+      double x[], double pi[], double slack[], double dj[])
+{     int m, n, errcode;
+      errcode = checklp(env, lp);
+      if (errcode) goto done;
+      if (!lp->stat)
+      {  errcode = error(env, CPXERR_NO_SOLN);
+         goto done;
+      }
+      errcode = 0;
+      m = glp_get_num_rows(lp->prob);
+      n = glp_get_num_cols(lp->prob);
+      if (lp->meth == CPX_ALG_PRIMAL || lp->meth == CPX_ALG_DUAL)
+      {  if (lpstat != NULL)
+            *lpstat = CPXgetstat(env, lp);
+         if (objval != NULL)
+            xassert(CPXgetobjval(env, lp, objval) == 0);
+         if (x != NULL)
+            xassert(CPXgetx(env, lp, x, 0, n-1) == 0);
+         if (pi != NULL)
+            xassert(CPXgetpi(env, lp, pi, 0, m-1) == 0);
+         if (slack != NULL)
+            xassert(CPXgetslack(env, lp, slack, 0, m-1) == 0);
+         if (dj != NULL)
+            xassert(CPXgetdj(env, lp, dj, 0, n-1) == 0);
+      }
+      else
+         xassert(lp != lp);
+done: return errcode;
+}
+
 int CPXstrongbranch(CPXENV *env, CPXLP *lp, const int goodlist[],
       int goodlen, double downpen[], double uppen[], int itlim)
 {     int k;
@@ -1677,6 +1949,87 @@ int CPXstrongbranch(CPXENV *env, CPXLP *lp, const int goodlist[],
       for (k = 0; k < goodlen; k++)
          downpen[k] = uppen[k] = 0.0;
       return 0;
+}
+
+static int xstrcasecmp(const char *s1, const char *s2)
+{     int c1, c2;
+      for (;;)
+      {  c1 = toupper((unsigned char)*s1++);
+         c2 = toupper((unsigned char)*s2++);
+         if (c1 == '\0' || c1 != c2) break;
+      }
+      return c1 - c2;
+}
+
+static void getfiletype(const char *filename, char type[3+1])
+{     /* determine filetype from filename */
+      int beg, end;
+      beg = end = strlen(filename);
+      while (beg > 0 && filename[beg-1] != '.' && end - beg < 3)
+         beg--;
+      if (beg > 0 && filename[beg-1] == '.' &&
+          xstrcasecmp(&filename[beg], "gz") == 0)
+      {  end = --beg;
+         while (beg > 0 && filename[beg-1] != '.' && end - beg < 3)
+            beg--;
+      }
+      if (beg > 0 && filename[beg-1] == '.')
+      {  memcpy(type, &filename[beg], end - beg);
+         type[end - beg] = '\0';
+      }
+      else
+         type[0] = '\0';
+      return;
+}
+
+int CPXwriteprob(CPXENV *env, CPXLP *lp, const char *filename,
+      const char *filetype)
+{     glp_prob *copy;
+      int errcode;
+      char type[3+1];
+      errcode = checklp(env, lp);
+      if (errcode) goto done;
+      if (filename == NULL)
+      {  errcode = error(env, CPXERR_NO_FILENAME);
+         goto done;
+      }
+      if (filetype == NULL)
+         getfiletype(filename, type), filetype = type;
+      if (xstrcasecmp(filetype, "MPS") == 0)
+      {  glp_term_out(GLP_OFF);
+         errcode = glp_write_mps(lp->prob, GLP_MPS_FILE, NULL, filename)
+            ;
+         glp_term_out(GLP_ON);
+      }
+      else if (xstrcasecmp(filetype, "LP") == 0)
+      {  glp_term_out(GLP_OFF);
+         errcode = glp_write_lp(lp->prob, NULL, filename);
+         glp_term_out(GLP_ON);
+      }
+      else if (xstrcasecmp(filetype, "RMP") == 0 ||
+               xstrcasecmp(filetype, "REW") == 0)
+      {  copy = glp_create_prob();
+         glp_copy_prob(copy, lp->prob, GLP_OFF);
+         glp_term_out(GLP_OFF);
+         errcode = glp_write_mps(copy, GLP_MPS_DECK, NULL, filename);
+         glp_term_out(GLP_ON);
+         glp_delete_prob(copy);
+      }
+      else if (xstrcasecmp(filetype, "RLP") == 0)
+      {  copy = glp_create_prob();
+         glp_copy_prob(copy, lp->prob, GLP_OFF);
+         glp_term_out(GLP_OFF);
+         errcode = glp_write_lp(copy, NULL, filename);
+         glp_term_out(GLP_ON);
+         glp_delete_prob(copy);
+      }
+      else
+      {  errcode = error(env, CPXERR_BAD_FILETYPE);
+         goto done;
+      }
+      if (errcode)
+         errcode = error(env, CPXERR_FAIL_OPEN_WRITE, filename);
+done: return errcode;
 }
 
 /**********************************************************************/
@@ -1764,6 +2117,12 @@ int CPXprimopt(CPXENV *env, CPXLP *lp)
 int CPXdualopt(CPXENV *env, CPXLP *lp)
 {     int errcode;
       errcode = solvelp(env, lp, CPX_ALG_DUAL);
+      return errcode;
+}
+
+int CPXlpopt(CPXENV *env, CPXLP *lp)
+{     int errcode;
+      errcode = solvelp(env, lp, CPX_ALG_PRIMAL);
       return errcode;
 }
 

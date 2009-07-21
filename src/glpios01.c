@@ -58,27 +58,27 @@ glp_tree *ios_create_tree(glp_prob *mip, const glp_iocp *parm)
       tree->n = n;
       /* save original problem components */
       tree->orig_m = m;
-      tree->orig_type = xcalloc(1+m+n, sizeof(int));
+      tree->orig_type = xcalloc(1+m+n, sizeof(char));
       tree->orig_lb = xcalloc(1+m+n, sizeof(double));
       tree->orig_ub = xcalloc(1+m+n, sizeof(double));
-      tree->orig_stat = xcalloc(1+m+n, sizeof(int));
+      tree->orig_stat = xcalloc(1+m+n, sizeof(char));
       tree->orig_prim = xcalloc(1+m+n, sizeof(double));
       tree->orig_dual = xcalloc(1+m+n, sizeof(double));
       for (i = 1; i <= m; i++)
       {  GLPROW *row = mip->row[i];
-         tree->orig_type[i] = row->type;
+         tree->orig_type[i] = (char)row->type;
          tree->orig_lb[i] = row->lb;
          tree->orig_ub[i] = row->ub;
-         tree->orig_stat[i] = row->stat;
+         tree->orig_stat[i] = (char)row->stat;
          tree->orig_prim[i] = row->prim;
          tree->orig_dual[i] = row->dual;
       }
       for (j = 1; j <= n; j++)
       {  GLPCOL *col = mip->col[j];
-         tree->orig_type[m+j] = col->type;
+         tree->orig_type[m+j] = (char)col->type;
          tree->orig_lb[m+j] = col->lb;
          tree->orig_ub[m+j] = col->ub;
-         tree->orig_stat[m+j] = col->stat;
+         tree->orig_stat[m+j] = (char)col->stat;
          tree->orig_prim[m+j] = col->prim;
          tree->orig_dual[m+j] = col->dual;
       }
@@ -98,9 +98,9 @@ glp_tree *ios_create_tree(glp_prob *mip, const glp_iocp *parm)
       /* the current subproblem does not exist yet */
       tree->curr = NULL;
       tree->mip = mip;
-      tree->solved = 0;
-      tree->non_int = xcalloc(1+n, sizeof(int));
-      memset(&tree->non_int[1], 0, n * sizeof(int));
+      /*tree->solved = 0;*/
+      tree->non_int = xcalloc(1+n, sizeof(char));
+      memset(&tree->non_int[1], 0, n);
       /* arrays to save parent subproblem components will be allocated
          later */
       tree->pred_m = tree->pred_max = 0;
@@ -109,14 +109,15 @@ glp_tree *ios_create_tree(glp_prob *mip, const glp_iocp *parm)
       tree->pred_stat = NULL;
       /* cut generator */
       tree->local = ios_create_pool(tree);
-      tree->first_attempt = 1;
-      tree->max_added_cuts = 0;
-      tree->min_eff = 0.0;
-      tree->miss = 0;
-      tree->just_selected = 0;
+      /*tree->first_attempt = 1;*/
+      /*tree->max_added_cuts = 0;*/
+      /*tree->min_eff = 0.0;*/
+      /*tree->miss = 0;*/
+      /*tree->just_selected = 0;*/
       tree->mir_gen = NULL;
       tree->clq_gen = NULL;
-      tree->round = 0;
+      /*tree->round = 0;*/
+#if 0
       /* create the conflict graph */
       tree->n_ref = xcalloc(1+n, sizeof(int));
       memset(&tree->n_ref[1], 0, n * sizeof(int));
@@ -124,6 +125,7 @@ glp_tree *ios_create_tree(glp_prob *mip, const glp_iocp *parm)
       memset(&tree->c_ref[1], 0, n * sizeof(int));
       tree->g = scg_create_graph(0);
       tree->j_ref = xcalloc(1+tree->g->n_max, sizeof(int));
+#endif
       /* pseudocost branching */
       tree->pcost = NULL;
       tree->iwrk = xcalloc(1+n, sizeof(int));
@@ -139,8 +141,10 @@ glp_tree *ios_create_tree(glp_prob *mip, const glp_iocp *parm)
       tree->reinv = 0;
       tree->br_var = 0;
       tree->br_sel = 0;
-      tree->btrack = NULL;
-      tree->terminate = 0;
+      tree->child = 0;
+      tree->next_p = 0;
+      /*tree->btrack = NULL;*/
+      tree->stop = 0;
       /* create the root subproblem, which initially is identical to
          the original MIP */
       new_node(tree, NULL);
@@ -178,7 +182,7 @@ void ios_revive_node(glp_tree *tree, int p)
       xassert(tree->curr == NULL);
       /* the specified subproblem becomes current */
       tree->curr = node;
-      tree->solved = 0;
+      /*tree->solved = 0;*/
       /* obtain pointer to the root subproblem */
       root = tree->slot[1].node;
       xassert(root != NULL);
@@ -214,26 +218,26 @@ void ios_revive_node(glp_tree *tree, int p)
                if (tree->pred_ub != NULL) xfree(tree->pred_ub);
                if (tree->pred_stat != NULL) xfree(tree->pred_stat);
                tree->pred_max = new_size;
-               tree->pred_type = xcalloc(1+new_size, sizeof(int));
+               tree->pred_type = xcalloc(1+new_size, sizeof(char));
                tree->pred_lb = xcalloc(1+new_size, sizeof(double));
                tree->pred_ub = xcalloc(1+new_size, sizeof(double));
-               tree->pred_stat = xcalloc(1+new_size, sizeof(int));
+               tree->pred_stat = xcalloc(1+new_size, sizeof(char));
             }
             /* save row attributes */
             for (i = 1; i <= m; i++)
             {  GLPROW *row = mip->row[i];
-               tree->pred_type[i] = row->type;
+               tree->pred_type[i] = (char)row->type;
                tree->pred_lb[i] = row->lb;
                tree->pred_ub[i] = row->ub;
-               tree->pred_stat[i] = row->stat;
+               tree->pred_stat[i] = (char)row->stat;
             }
             /* save column attributes */
             for (j = 1; j <= n; j++)
             {  GLPCOL *col = mip->col[j];
-               tree->pred_type[mip->m+j] = col->type;
+               tree->pred_type[mip->m+j] = (char)col->type;
                tree->pred_lb[mip->m+j] = col->lb;
                tree->pred_ub[mip->m+j] = col->ub;
-               tree->pred_stat[mip->m+j] = col->stat;
+               tree->pred_stat[mip->m+j] = (char)col->stat;
             }
          }
          /* change bounds of rows and columns */
@@ -282,7 +286,7 @@ void ios_revive_node(glp_tree *tree, int p)
             xfree(ind);
             xfree(val);
          }
-#if 1
+#if 0
          /* add new edges to the conflict graph */
          /* add new cliques to the conflict graph */
          /* (not implemented yet) */
@@ -307,11 +311,22 @@ void ios_revive_node(glp_tree *tree, int p)
          node->s_ptr = s->next;
          dmp_free_atom(tree->pool, s, sizeof(IOSTAT));
       }
-#if 1
+#if 1 /* 20/XI-2009 */
       /* delete its row addition list (additional rows may appear, for
          example, due to branching on GUB constraints */
-      /* (not implemented yet) */
-      xassert(node->r_ptr == NULL);
+      while (node->r_ptr != NULL)
+      {  IOSROW *r;
+         r = node->r_ptr;
+         node->r_ptr = r->next;
+         xassert(r->name == NULL);
+         while (r->ptr != NULL)
+         {  IOSAIJ *a;
+            a = r->ptr;
+            r->ptr = a->next;
+            dmp_free_atom(tree->pool, a, sizeof(IOSAIJ));
+         }
+         dmp_free_atom(tree->pool, r, sizeof(IOSROW));
+      }
 #endif
 done: return;
 }
@@ -348,24 +363,24 @@ void ios_freeze_node(glp_tree *tree)
          xassert(tree->root_ub == NULL);
          xassert(tree->root_stat == NULL);
          tree->root_m = m;
-         tree->root_type = xcalloc(1+m+n, sizeof(int));
+         tree->root_type = xcalloc(1+m+n, sizeof(char));
          tree->root_lb = xcalloc(1+m+n, sizeof(double));
          tree->root_ub = xcalloc(1+m+n, sizeof(double));
-         tree->root_stat = xcalloc(1+m+n, sizeof(int));
+         tree->root_stat = xcalloc(1+m+n, sizeof(char));
          for (k = 1; k <= m+n; k++)
          {  if (k <= m)
             {  GLPROW *row = mip->row[k];
-               tree->root_type[k] = row->type;
+               tree->root_type[k] = (char)row->type;
                tree->root_lb[k] = row->lb;
                tree->root_ub[k] = row->ub;
-               tree->root_stat[k] = row->stat;
+               tree->root_stat[k] = (char)row->stat;
             }
             else
             {  GLPCOL *col = mip->col[k-m];
-               tree->root_type[k] = col->type;
+               tree->root_type[k] = (char)col->type;
                tree->root_lb[k] = col->lb;
                tree->root_ub[k] = col->ub;
-               tree->root_stat[k] = col->stat;
+               tree->root_stat[k] = (char)col->stat;
             }
          }
       }
@@ -407,7 +422,7 @@ void ios_freeze_node(glp_tree *tree)
             {  IOSBND *b;
                b = dmp_get_atom(tree->pool, sizeof(IOSBND));
                b->k = k;
-               b->type = type;
+               b->type = (unsigned char)type;
                b->lb = lb;
                b->ub = ub;
                b->next = node->b_ptr;
@@ -418,7 +433,7 @@ void ios_freeze_node(glp_tree *tree)
             {  IOSTAT *s;
                s = dmp_get_atom(tree->pool, sizeof(IOSTAT));
                s->k = k;
-               s->stat = stat;
+               s->stat = (unsigned char)stat;
                s->next = node->s_ptr;
                node->s_ptr = s;
             }
@@ -446,7 +461,7 @@ void ios_freeze_node(glp_tree *tree)
                r->origin = row->origin;
                r->klass = row->klass;
 #endif
-               r->type = row->type;
+               r->type = (unsigned char)row->type;
                r->lb = row->lb;
                r->ub = row->ub;
                r->ptr = NULL;
@@ -460,7 +475,7 @@ void ios_freeze_node(glp_tree *tree)
                   r->ptr = a;
                }
                r->rii = row->rii;
-               r->stat = row->stat;
+               r->stat = (unsigned char)row->stat;
                r->next = node->r_ptr;
                node->r_ptr = r;
             }
@@ -573,8 +588,11 @@ static IOSNPD *new_node(glp_tree *tree, IOSNPD *parent)
       node->b_ptr = NULL;
       node->s_ptr = NULL;
       node->r_ptr = NULL;
+      node->solved = 0;
+#if 0
       node->own_nn = node->own_nc = 0;
       node->e_ptr = NULL;
+#endif
 #if 1 /* 04/X-2008 */
       node->lp_obj = (parent == NULL ? (tree->mip->dir == GLP_MIN ?
          -DBL_MAX : +DBL_MAX) : parent->lp_obj);
@@ -585,6 +603,9 @@ static IOSNPD *new_node(glp_tree *tree, IOSNPD *parent)
       node->br_val = 0.0;
       node->ii_cnt = 0;
       node->ii_sum = 0.0;
+#if 1 /* 30/XI-2009 */
+      node->changed = 0;
+#endif
       if (tree->parm->cb_size == 0)
          node->data = NULL;
       else
@@ -715,7 +736,7 @@ loop: /* recursive deletion starts here */
          node->r_ptr = r->next;
          dmp_free_atom(tree->pool, r, sizeof(IOSROW));
       }
-#if 1
+#if 0
       /* delete the edge addition list */
       /* delete the clique addition list */
       /* (not implemented yet) */
@@ -824,13 +845,17 @@ void ios_delete_tree(glp_tree *tree)
       if (tree->root_ub != NULL) xfree(tree->root_ub);
       if (tree->root_stat != NULL) xfree(tree->root_stat);
       xfree(tree->non_int);
+#if 0
       xfree(tree->n_ref);
       xfree(tree->c_ref);
       xfree(tree->j_ref);
+#endif
       if (tree->pcost != NULL) ios_pcost_free(tree);
       xfree(tree->iwrk);
       xfree(tree->dwrk);
+#if 0
       scg_delete_graph(tree->g);
+#endif
       if (tree->pred_type != NULL) xfree(tree->pred_type);
       if (tree->pred_lb != NULL) xfree(tree->pred_lb);
       if (tree->pred_ub != NULL) xfree(tree->pred_ub);
@@ -890,7 +915,11 @@ void ios_eval_degrad(glp_tree *tree, int j, double *dn, double *up)
             x[j] will leave the basis and go to its new upper/lower
             bound; we need to know which non-basic variable x[k] should
             enter the basis to keep dual feasibility */
+#if 0 /* 23/XI-2009 */
          k = lpx_dual_ratio_test(mip, len, ind, val, kase, 1e-7);
+#else
+         k = lpx_dual_ratio_test(mip, len, ind, val, kase, 1e-9);
+#endif
          /* if no variable has been chosen, current basis being primal
             infeasible due to the new upper/lower bound of x[j] is dual
             unbounded, therefore, LP relaxation to corresponding branch
@@ -1299,6 +1328,7 @@ int ios_solve_node(glp_tree *tree)
       }
       /* try to solve/re-optimize the LP relaxation */
       ret = glp_simplex(mip, &parm);
+      tree->curr->solved++;
 #if 0
       xprintf("ret = %d; status = %d; pbs = %d; dbs = %d; some = %d\n",
          ret, glp_get_status(mip), mip->pbs_stat, mip->dbs_stat,
@@ -1371,7 +1401,7 @@ int ios_add_row(glp_tree *tree, IOSPOOL *pool,
       if (!(type == GLP_LO || type == GLP_UP || type == GLP_FX))
          xerror("glp_ios_add_row: type = %d; invalid cut type\n",
             type);
-      cut->type = type;
+      cut->type = (unsigned char)type;
       cut->rhs = rhs;
       cut->prev = pool->tail;
       cut->next = NULL;
@@ -1511,6 +1541,7 @@ void ios_delete_pool(glp_tree *tree, IOSPOOL *pool)
 
 /**********************************************************************/
 
+#if 0
 static int refer_to_node(glp_tree *tree, int j)
 {     /* determine node number corresponding to binary variable x[j] or
          its complement */
@@ -1540,7 +1571,9 @@ static int refer_to_node(glp_tree *tree, int j)
       }
       return ref[j];
 }
+#endif
 
+#if 0
 void ios_add_edge(glp_tree *tree, int j1, int j2)
 {     /* add new edge to the conflict graph */
       glp_prob *mip = tree->mip;
@@ -1572,5 +1605,6 @@ void ios_add_edge(glp_tree *tree, int j1, int j2)
       }
       return;
 }
+#endif
 
 /* eof */

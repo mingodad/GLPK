@@ -21,8 +21,16 @@
 *  along with GLPK. If not, see <http://www.gnu.org/licenses/>.
 ***********************************************************************/
 
+#if 0
+#define GLP_USE_NPP
+#endif
+
 #include "glpios.h"
+#ifdef GLP_USE_NPP
+#include "glpnpp.h"
+#else
 #include "glpipp.h"
+#endif
 
 /***********************************************************************
 *  NAME
@@ -282,7 +290,11 @@ static int driver2(glp_prob *orig, const glp_iocp *parm)
 {     /* extended driver which uses MIP presolver */
       LIBENV *env = lib_link_env();
       int term_out = env->term_out;
+#ifdef GLP_USE_NPP
+      NPP *npp;
+#else
       IPP *ipp;
+#endif
       glp_prob *prob = NULL;
       int j, i_stat, ret;
       /* the problem must have at least one row and one column */
@@ -290,15 +302,35 @@ static int driver2(glp_prob *orig, const glp_iocp *parm)
       /* reset the status of MIP solution */
       orig->mip_stat = GLP_UNDEF;
       /* create MIP presolver workspace */
+#ifdef GLP_USE_NPP
+      npp = npp_create_wksp();
+#else
       ipp = ipp_create_wksp();
+#endif
       /* load the original problem into the presolver workspace */
+#ifdef GLP_USE_NPP
+      npp_load_prob(npp, orig, GLP_OFF, GLP_MIP, GLP_OFF);
+#else
       ipp_load_orig(ipp, orig);
+#endif
       /* perform basic MIP presolve analysis */
       if (!term_out || parm->msg_lev < GLP_MSG_ALL)
          env->term_out = GLP_OFF;
       else
          env->term_out = GLP_ON;
+#ifdef GLP_USE_NPP
+      ret = npp_preprocess(npp);
+      if (ret == 0)
+         ret = 0;
+      else if (ret == GLP_ENOPFS)
+         ret = 1;
+      else if (ret == GLP_ENODFS)
+         ret = 2;
+      else
+         xassert(ret != ret);
+#else
       ret = ipp_basic_tech(ipp);
+#endif
       env->term_out = term_out;
       switch (ret)
       {  case 0:
@@ -317,32 +349,52 @@ nodfs:      /* dual infeasibility is detected */
             ret = GLP_ENODFS;
             goto done;
          default:
+#ifdef GLP_USE_NPP
+            xassert(npp != npp);
+#else
             xassert(ipp != ipp);
+#endif
       }
       /* reduce column bounds */
       if (!term_out || parm->msg_lev < GLP_MSG_ALL)
          env->term_out = GLP_OFF;
       else
          env->term_out = GLP_ON;
+#ifdef GLP_USE_NPP
+      ret = 0;
+#else
       ret = ipp_reduce_bnds(ipp);
+#endif
       env->term_out = term_out;
       switch (ret)
       {  case 0:  break;
          case 1:  goto nopfs;
+#ifdef GLP_USE_NPP
+         default: xassert(npp != npp);
+#else
          default: xassert(ipp != ipp);
+#endif
       }
       /* perform basic MIP presolve analysis */
       if (!term_out || parm->msg_lev < GLP_MSG_ALL)
          env->term_out = GLP_OFF;
       else
          env->term_out = GLP_ON;
+#ifdef GLP_USE_NPP
+      ret = 0;
+#else
       ret = ipp_basic_tech(ipp);
+#endif
       env->term_out = term_out;
       switch (ret)
       {  case 0:  break;
          case 1:  goto nopfs;
          case 2:  goto nodfs;
+#ifdef GLP_USE_NPP
+         default: xassert(npp != npp);
+#else
          default: xassert(ipp != ipp);
+#endif
       }
       /* replace general integer variables by sum of binary variables,
          if required */
@@ -351,7 +403,10 @@ nodfs:      /* dual infeasibility is detected */
             env->term_out = GLP_OFF;
          else
             env->term_out = GLP_ON;
+#ifdef GLP_USE_NPP
+#else
          ipp_binarize(ipp);
+#endif
          env->term_out = term_out;
       }
       /* perform coefficient reduction */
@@ -359,10 +414,31 @@ nodfs:      /* dual infeasibility is detected */
          env->term_out = GLP_OFF;
       else
          env->term_out = GLP_ON;
+#ifdef GLP_USE_NPP
+#else
       ipp_reduction(ipp);
+#endif
       env->term_out = term_out;
       /* if the resultant problem is empty, it has an empty solution,
          which is optimal */
+#ifdef GLP_USE_NPP
+      if (npp->r_head == NULL || npp->c_head == NULL)
+      {  xassert(npp->r_head == NULL);
+         xassert(npp->c_head == NULL);
+         if (parm->msg_lev >= GLP_MSG_ALL)
+         {  xprintf("Objective value = %.10g\n",
+               npp->orig_dir == GLP_MIN ? + npp->c0 : - npp->c0);
+            xprintf("INTEGER OPTIMAL SOLUTION FOUND BY MIP PRESOLVER\n")
+               ;
+         }
+         prob = glp_create_prob();
+         npp_build_prob(npp, prob);
+         xassert(prob->m == 0 && prob->n == 0);
+         prob->mip_stat = GLP_OPT;
+         prob->mip_obj = npp->c0;
+         goto post;
+      }
+#else
       if (ipp->row_ptr == NULL || ipp->col_ptr == NULL)
       {  xassert(ipp->row_ptr == NULL);
          xassert(ipp->col_ptr == NULL);
@@ -384,8 +460,14 @@ nodfs:      /* dual infeasibility is detected */
          ret = 0;
          goto done;
       }
+#endif
       /* build resultant MIP problem object */
+#ifdef GLP_USE_NPP
+      prob = glp_create_prob();
+      npp_build_prob(npp, prob);
+#else
       prob = ipp_build_prob(ipp);
+#endif
       {  glp_bfcp bfcp;
          glp_get_bfcp(orig, &bfcp);
          glp_set_bfcp(prob, &bfcp);
@@ -460,15 +542,23 @@ nodfs:      /* dual infeasibility is detected */
       /* determine status of MIP solution */
       i_stat = glp_mip_status(prob);
       if (i_stat == GLP_OPT || i_stat == GLP_FEAS)
+#ifdef GLP_USE_NPP
+post: {  npp_postprocess(npp, prob);
+#else
       {  /* load MIP solution of the resultant problem into presolver
             workspace */
          ipp_load_sol(ipp, prob);
          /* perform MIP postsolve processing */
          ipp_postsolve(ipp);
+#endif
          /* unload recovered MIP solution and store it in the original
             problem object */
+#ifdef GLP_USE_NPP
+         npp_unload_sol(npp, orig);
+#else
          ipp_unload_sol(ipp, orig,
             i_stat == GLP_OPT ? LPX_I_OPT : LPX_I_FEAS);
+#endif
       }
       else
       {  /* just set the status of MIP solution */
@@ -477,7 +567,11 @@ nodfs:      /* dual infeasibility is detected */
 done: /* delete the resultant problem object */
       if (prob != NULL) lpx_delete_prob(prob);
       /* delete MIP presolver workspace */
+#ifdef GLP_USE_NPP
+      if (npp != NULL) npp_delete_wksp(npp);
+#else
       if (ipp != NULL) ipp_delete_wksp(ipp);
+#endif
       return ret;
 }
 
@@ -710,10 +804,10 @@ int glp_mip_status(glp_prob *mip)
 *  for MIP solution. */
 
 double glp_mip_obj_val(glp_prob *mip)
-{     struct LPXCPS *cps = mip->cps;
+{     /*struct LPXCPS *cps = mip->cps;*/
       double z;
       z = mip->mip_obj;
-      if (cps->round && fabs(z) < 1e-9) z = 0.0;
+      /*if (cps->round && fabs(z) < 1e-9) z = 0.0;*/
       return z;
 }
 
@@ -732,13 +826,13 @@ double glp_mip_obj_val(glp_prob *mip)
 *  associated with i-th row. */
 
 double glp_mip_row_val(glp_prob *mip, int i)
-{     struct LPXCPS *cps = mip->cps;
+{     /*struct LPXCPS *cps = mip->cps;*/
       double mipx;
       if (!(1 <= i && i <= mip->m))
          xerror("glp_mip_row_val: i = %d; row number out of range\n", i)
             ;
       mipx = mip->row[i]->mipx;
-      if (cps->round && fabs(mipx) < 1e-9) mipx = 0.0;
+      /*if (cps->round && fabs(mipx) < 1e-9) mipx = 0.0;*/
       return mipx;
 }
 
@@ -757,13 +851,13 @@ double glp_mip_row_val(glp_prob *mip, int i)
 *  associated with j-th column. */
 
 double glp_mip_col_val(glp_prob *mip, int j)
-{     struct LPXCPS *cps = mip->cps;
+{     /*struct LPXCPS *cps = mip->cps;*/
       double mipx;
       if (!(1 <= j && j <= mip->n))
          xerror("glp_mip_col_val: j = %d; column number out of range\n",
             j);
       mipx = mip->col[j]->mipx;
-      if (cps->round && fabs(mipx) < 1e-9) mipx = 0.0;
+      /*if (cps->round && fabs(mipx) < 1e-9) mipx = 0.0;*/
       return mipx;
 }
 

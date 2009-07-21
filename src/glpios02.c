@@ -1,4 +1,4 @@
-/* glpios02.c */
+/* glpios02.c (preprocess current subproblem) */
 
 /***********************************************************************
 *  This code is part of GLPK (GNU Linear Programming Kit).

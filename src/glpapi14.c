@@ -293,7 +293,9 @@ FILE *glp_fopen(const char *fname, const char *mode)
       fp = xfopen(fname, mode);
       return fp;
 }
+#endif
 
+#if 0
 /***********************************************************************
 *  NAME
 *
@@ -312,6 +314,17 @@ FILE *glp_fopen(const char *fname, const char *mode)
 void glp_fclose(FILE *fp)
 {     xfclose(fp);
       return;
+}
+#endif
+
+#if 1 /* 08/XII-2009 */
+glp_long glp_time(void)
+{     /* determine current universal time */
+      xlong_t t;
+      glp_long t1;
+      t = xtime();
+      t1.lo = t.lo, t1.hi = t.hi;
+      return t1;
 }
 #endif
 

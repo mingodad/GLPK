@@ -1,5 +1,5 @@
 /*Arithmetic Mean of a large number of Integers
-  - or - solve a very large constrint matrix
+  - or - solve a very large constraint matrix
          over 1 million rows and columns
   Nigel_Galloway@operamail.com
   March 18th., 2008.

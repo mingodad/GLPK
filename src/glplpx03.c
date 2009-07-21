@@ -363,7 +363,11 @@ int lpx_print_sens_bnds(LPX *lp, const char *fname)
                         len = lpx_eval_tab_col(lp, what==1?ij:ij+m,
                            index, val);
                         k = lpx_prim_ratio_test(lp, len, index, val, 1,
+#if 0 /* by mao */
                            10e-7);
+#else
+                           1e-9);
+#endif
                         max_inc = DBL_MAX;
                         if (k != 0)
                         {  /*int stat;*/
@@ -395,7 +399,11 @@ int lpx_print_sens_bnds(LPX *lp, const char *fname)
                         }
                         /* now check lower bound */
                         k = lpx_prim_ratio_test(lp, len, index, val, -1,
+#if 0 /* by mao */
                            10e-7);
+#else
+                           1e-9);
+#endif
                         max_dec = DBL_MAX;
                         if (k != 0)
                         {  /*int stat;*/
@@ -470,7 +478,11 @@ int lpx_print_sens_bnds(LPX *lp, const char *fname)
                         len = lpx_eval_tab_col(lp, what==1?ij:ij+m,
                            index, val);
                         k = lpx_prim_ratio_test(lp, len, index, val, 1,
+#if 0 /* by mao */
                            10e-7);
+#else
+                           1e-9);
+#endif
                         max_inc = DBL_MAX;
                         if (k != 0)
                         {  /*int stat;*/
@@ -502,7 +514,11 @@ int lpx_print_sens_bnds(LPX *lp, const char *fname)
                         }
                         /* now check lower bound */
                         k = lpx_prim_ratio_test(lp, len, index, val, -1,
+#if 0 /* by mao */
                            10e-7);
+#else
+                           1e-9);
+#endif
                         max_dec = DBL_MAX;
                         if (k != 0)
                         {  /*int stat;*/

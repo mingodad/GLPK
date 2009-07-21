@@ -1,4 +1,4 @@
-/* glpnpp01.c */
+/* glpnpp01.c (LP/MIP preprocessor) */
 
 /***********************************************************************
 *  This code is part of GLPK (GNU Linear Programming Kit).
@@ -37,14 +37,17 @@ NPP *npp_create_wksp(void)
       npp->c_head = npp->c_tail = NULL;
       npp->stack = dmp_create_pool();
       npp->top = NULL;
+#if 0 /* 16/XII-2009 */
+      memset(&npp->count, 0, sizeof(npp->count));
+#endif
       npp->m = npp->n = npp->nnz = 0;
       npp->row_ref = npp->col_ref = NULL;
       npp->sol = npp->scaling = 0;
       npp->p_stat = npp->d_stat = npp->t_stat = npp->i_stat = 0;
       npp->r_stat = NULL;
-      npp->r_prim = npp->r_dual = NULL;
+      /*npp->r_prim =*/ npp->r_pi = NULL;
       npp->c_stat = NULL;
-      npp->c_prim = npp->c_dual = NULL;
+      npp->c_value = /*npp->c_dual =*/ NULL;
       return npp;
 }
 
@@ -86,6 +89,28 @@ void npp_remove_row(NPP *npp, NPPROW *row)
       return;
 }
 
+void npp_activate_row(NPP *npp, NPPROW *row)
+{     /* make row active */
+      if (!row->temp)
+      {  row->temp = 1;
+         /* move the row to the beginning of the row list */
+         npp_remove_row(npp, row);
+         npp_insert_row(npp, row, 0);
+      }
+      return;
+}
+
+void npp_deactivate_row(NPP *npp, NPPROW *row)
+{     /* make row inactive */
+      if (row->temp)
+      {  row->temp = 0;
+         /* move the row to the end of the row list */
+         npp_remove_row(npp, row);
+         npp_insert_row(npp, row, 1);
+      }
+      return;
+}
+
 void npp_insert_col(NPP *npp, NPPCOL *col, int where)
 {     /* insert column to the column list */
       if (where == 0)
@@ -124,6 +149,28 @@ void npp_remove_col(NPP *npp, NPPCOL *col)
       return;
 }
 
+void npp_activate_col(NPP *npp, NPPCOL *col)
+{     /* make column active */
+      if (!col->temp)
+      {  col->temp = 1;
+         /* move the column to the beginning of the column list */
+         npp_remove_col(npp, col);
+         npp_insert_col(npp, col, 0);
+      }
+      return;
+}
+
+void npp_deactivate_col(NPP *npp, NPPCOL *col)
+{     /* make column inactive */
+      if (col->temp)
+      {  col->temp = 0;
+         /* move the column to the end of the column list */
+         npp_remove_col(npp, col);
+         npp_insert_col(npp, col, 1);
+      }
+      return;
+}
+
 NPPROW *npp_add_row(NPP *npp)
 {     /* add new row to the transformed problem */
       NPPROW *row;
@@ -143,7 +190,11 @@ NPPCOL *npp_add_col(NPP *npp)
       col = dmp_get_atom(npp->pool, sizeof(NPPCOL));
       col->j = ++(npp->ncols);
       col->name = NULL;
+#if 0
       col->kind = GLP_CV;
+#else
+      col->is_int = 0;
+#endif
       col->lb = col->ub = col->coef = 0.0;
       col->ptr = NULL;
       col->temp = 0;
@@ -170,7 +221,7 @@ NPPAIJ *npp_add_aij(NPP *npp, NPPROW *row, NPPCOL *col, double val)
       return aij;
 }
 
-void *npp_push_tse(NPP *npp, void (*func)(NPP *npp, void *info),
+void *npp_push_tse(NPP *npp, int (*func)(NPP *npp, void *info),
       int size)
 {     /* push new entry to the transformation stack */
       NPPTSE *tse;
@@ -312,7 +363,11 @@ void npp_load_prob(NPP *npp, glp_prob *orig, int names, int sol,
             strcpy(col->name, ccc->name);
          }
          if (sol == GLP_MIP)
+#if 0
             col->kind = ccc->kind;
+#else
+            col->is_int = (char)(ccc->kind == GLP_IV);
+#endif
          if (!scaling)
          {  if (ccc->type == GLP_FR)
                col->lb = -DBL_MAX, col->ub = +DBL_MAX;
@@ -397,7 +452,11 @@ void npp_build_prob(NPP *npp, glp_prob *prob)
       for (col = npp->c_head; col != NULL; col = col->next)
       {  j = glp_add_cols(prob, 1);
          glp_set_col_name(prob, j, col->name);
+#if 0
          glp_set_col_kind(prob, j, col->kind);
+#else
+         glp_set_col_kind(prob, j, col->is_int ? GLP_IV : GLP_CV);
+#endif
          if (col->lb == -DBL_MAX && col->ub == +DBL_MAX)
             type = GLP_FR;
          else if (col->ub == +DBL_MAX)
@@ -478,23 +537,27 @@ void npp_postprocess(NPP *npp, glp_prob *prob)
          for (j = 1; j <= npp->ncols; j++)
             npp->c_stat[j] = 0;
       }
+#if 0
       if (npp->r_prim == NULL)
          npp->r_prim = xcalloc(1+npp->nrows, sizeof(double));
       for (i = 1; i <= npp->nrows; i++)
          npp->r_prim[i] = DBL_MAX;
-      if (npp->c_prim == NULL)
-         npp->c_prim = xcalloc(1+npp->ncols, sizeof(double));
+#endif
+      if (npp->c_value == NULL)
+         npp->c_value = xcalloc(1+npp->ncols, sizeof(double));
       for (j = 1; j <= npp->ncols; j++)
-         npp->c_prim[j] = DBL_MAX;
+         npp->c_value[j] = DBL_MAX;
       if (npp->sol != GLP_MIP)
-      {  if (npp->r_dual == NULL)
-            npp->r_dual = xcalloc(1+npp->nrows, sizeof(double));
+      {  if (npp->r_pi == NULL)
+            npp->r_pi = xcalloc(1+npp->nrows, sizeof(double));
          for (i = 1; i <= npp->nrows; i++)
-            npp->r_dual[i] = DBL_MAX;
+            npp->r_pi[i] = DBL_MAX;
+#if 0
          if (npp->c_dual == NULL)
             npp->c_dual = xcalloc(1+npp->ncols, sizeof(double));
          for (j = 1; j <= npp->ncols; j++)
             npp->c_dual[j] = DBL_MAX;
+#endif
       }
       /* copy solution components from the resultant problem */
       if (npp->sol == GLP_SOL)
@@ -502,41 +565,44 @@ void npp_postprocess(NPP *npp, glp_prob *prob)
          {  row = prob->row[i];
             k = npp->row_ref[i];
             npp->r_stat[k] = (char)row->stat;
-            npp->r_prim[k] = row->prim;
-            npp->r_dual[k] = dir * row->dual;
+            /*npp->r_prim[k] = row->prim;*/
+            npp->r_pi[k] = dir * row->dual;
          }
          for (j = 1; j <= npp->n; j++)
          {  col = prob->col[j];
             k = npp->col_ref[j];
             npp->c_stat[k] = (char)col->stat;
-            npp->c_prim[k] = col->prim;
-            npp->c_dual[k] = dir * col->dual;
+            npp->c_value[k] = col->prim;
+            /*npp->c_dual[k] = dir * col->dual;*/
          }
       }
       else if (npp->sol == GLP_IPT)
       {  for (i = 1; i <= npp->m; i++)
          {  row = prob->row[i];
             k = npp->row_ref[i];
-            npp->r_prim[k] = row->pval;
-            npp->r_dual[k] = dir * row->dval;
+            /*npp->r_prim[k] = row->pval;*/
+            npp->r_pi[k] = dir * row->dval;
          }
          for (j = 1; j <= npp->n; j++)
          {  col = prob->col[j];
             k = npp->col_ref[j];
-            npp->c_prim[k] = col->pval;
-            npp->c_dual[k] = dir * col->dval;
+            npp->c_value[k] = col->pval;
+            /*npp->c_dual[k] = dir * col->dval;*/
          }
       }
       else if (npp->sol == GLP_MIP)
-      {  for (i = 1; i <= npp->m; i++)
+      {
+#if 0
+         for (i = 1; i <= npp->m; i++)
          {  row = prob->row[i];
             k = npp->row_ref[i];
-            npp->r_prim[k] = row->mipx;
+            /*npp->r_prim[k] = row->mipx;*/
          }
+#endif
          for (j = 1; j <= npp->n; j++)
          {  col = prob->col[j];
             k = npp->col_ref[j];
-            npp->c_prim[k] = col->mipx;
+            npp->c_value[k] = col->mipx;
          }
       }
       else
@@ -545,7 +611,7 @@ void npp_postprocess(NPP *npp, glp_prob *prob)
          problem */
       for (tse = npp->top; tse != NULL; tse = tse->link)
       {  xassert(tse->func != NULL);
-         tse->func(npp, tse->info);
+         xassert(tse->func(npp, tse->info) == 0);
       }
       return;
 }
@@ -577,12 +643,12 @@ void npp_unload_sol(NPP *npp, glp_prob *orig)
          {  row = orig->row[i];
             row->stat = npp->r_stat[i];
             if (!npp->scaling)
-            {  row->prim = npp->r_prim[i];
-               row->dual = dir * npp->r_dual[i];
+            {  /*row->prim = npp->r_prim[i];*/
+               row->dual = dir * npp->r_pi[i];
             }
             else
-            {  row->prim = npp->r_prim[i] / row->rii;
-               row->dual = dir * npp->r_dual[i] * row->rii;
+            {  /*row->prim = npp->r_prim[i] / row->rii;*/
+               row->dual = dir * npp->r_pi[i] * row->rii;
             }
             if (row->stat == GLP_BS)
                row->dual = 0.0;
@@ -609,12 +675,12 @@ void npp_unload_sol(NPP *npp, glp_prob *orig)
          {  col = orig->col[j];
             col->stat = npp->c_stat[j];
             if (!npp->scaling)
-            {  col->prim = npp->c_prim[j];
-               col->dual = dir * npp->c_dual[j];
+            {  col->prim = npp->c_value[j];
+               /*col->dual = dir * npp->c_dual[j];*/
             }
             else
-            {  col->prim = npp->c_prim[j] * col->sjj;
-               col->dual = dir * npp->c_dual[j] / col->sjj;
+            {  col->prim = npp->c_value[j] * col->sjj;
+               /*col->dual = dir * npp->c_dual[j] / col->sjj;*/
             }
             if (col->stat == GLP_BS)
                col->dual = 0.0;
@@ -638,6 +704,32 @@ void npp_unload_sol(NPP *npp, glp_prob *orig)
                xassert(col != col);
             orig->obj_val += col->coef * col->prim;
          }
+#if 1
+         /* compute primal values of inactive rows */
+         for (i = 1; i <= orig->m; i++)
+         {  row = orig->row[i];
+            if (row->stat == GLP_BS)
+            {  GLPAIJ *aij;
+               double temp;
+               temp = 0.0;
+               for (aij = row->ptr; aij != NULL; aij = aij->r_next)
+                  temp += aij->val * aij->col->prim;
+               row->prim = temp;
+            }
+         }
+         /* compute reduced costs of active columns */
+         for (j = 1; j <= orig->n; j++)
+         {  col = orig->col[j];
+            if (col->stat != GLP_BS)
+            {  GLPAIJ *aij;
+               double temp;
+               temp = col->coef;
+               for (aij = col->ptr; aij != NULL; aij = aij->c_next)
+                  temp -= aij->val * aij->row->dual;
+               col->dual = temp;
+            }
+         }
+#endif
       }
       else if (npp->sol == GLP_IPT)
       {  /* store interior-point solution */
@@ -646,43 +738,84 @@ void npp_unload_sol(NPP *npp, glp_prob *orig)
          for (i = 1; i <= orig->m; i++)
          {  row = orig->row[i];
             if (!npp->scaling)
-            {  row->pval = npp->r_prim[i];
-               row->dval = dir * npp->r_dual[i];
+            {  /*row->pval = npp->r_prim[i];*/
+               row->dval = dir * npp->r_pi[i];
             }
             else
-            {  row->pval = npp->r_prim[i] / row->rii;
-               row->dval = dir * npp->r_dual[i] * row->rii;
+            {  /*row->pval = npp->r_prim[i] / row->rii;*/
+               row->dval = dir * npp->r_pi[i] * row->rii;
             }
          }
          for (j = 1; j <= orig->n; j++)
          {  col = orig->col[j];
             if (!npp->scaling)
-            {  col->pval = npp->c_prim[j];
-               col->dval = dir * npp->c_dual[j];
+            {  col->pval = npp->c_value[j];
+               /*col->dval = dir * npp->c_dual[j];*/
             }
             else
-            {  col->pval = npp->c_prim[j] * col->sjj;
-               col->dval = dir * npp->c_dual[j] / col->sjj;
+            {  col->pval = npp->c_value[j] * col->sjj;
+               /*col->dval = dir * npp->c_dual[j] / col->sjj;*/
             }
             orig->ipt_obj += col->coef * col->pval;
          }
+#if 1
+         /* compute row primal values */
+         for (i = 1; i <= orig->m; i++)
+         {  row = orig->row[i];
+            {  GLPAIJ *aij;
+               double temp;
+               temp = 0.0;
+               for (aij = row->ptr; aij != NULL; aij = aij->r_next)
+                  temp += aij->val * aij->col->pval;
+               row->pval = temp;
+            }
+         }
+         /* compute column dual values */
+         for (j = 1; j <= orig->n; j++)
+         {  col = orig->col[j];
+            {  GLPAIJ *aij;
+               double temp;
+               temp = col->coef;
+               for (aij = col->ptr; aij != NULL; aij = aij->c_next)
+                  temp -= aij->val * aij->row->dval;
+               col->dval = temp;
+            }
+         }
+/*xprintf("++++++++++++++++++\n");*/
+#endif
       }
       else if (npp->sol == GLP_MIP)
       {  /* store MIP solution */
          xassert(!npp->scaling);
          orig->mip_stat = npp->i_stat;
          orig->mip_obj = orig->c0;
+#if 0
          for (i = 1; i <= orig->m; i++)
          {  row = orig->row[i];
-            row->mipx = npp->r_prim[i];
+            /*row->mipx = npp->r_prim[i];*/
          }
+#endif
          for (j = 1; j <= orig->n; j++)
          {  col = orig->col[j];
-            col->mipx = npp->c_prim[j];
+            col->mipx = npp->c_value[j];
             if (col->kind == GLP_IV)
                xassert(col->mipx == floor(col->mipx));
             orig->mip_obj += col->coef * col->mipx;
          }
+#if 1
+         /* compute row primal values */
+         for (i = 1; i <= orig->m; i++)
+         {  row = orig->row[i];
+            {  GLPAIJ *aij;
+               double temp;
+               temp = 0.0;
+               for (aij = row->ptr; aij != NULL; aij = aij->r_next)
+                  temp += aij->val * aij->col->mipx;
+               row->mipx = temp;
+            }
+         }
+/*xprintf("iiiiiiiiiii\n");*/
+#endif
       }
       else
          xassert(npp != npp);
@@ -701,16 +834,20 @@ void npp_delete_wksp(NPP *npp)
          xfree(npp->col_ref);
       if (npp->r_stat != NULL)
          xfree(npp->r_stat);
+#if 0
       if (npp->r_prim != NULL)
          xfree(npp->r_prim);
-      if (npp->r_dual != NULL)
-         xfree(npp->r_dual);
+#endif
+      if (npp->r_pi != NULL)
+         xfree(npp->r_pi);
       if (npp->c_stat != NULL)
          xfree(npp->c_stat);
-      if (npp->c_prim != NULL)
-         xfree(npp->c_prim);
+      if (npp->c_value != NULL)
+         xfree(npp->c_value);
+#if 0
       if (npp->c_dual != NULL)
          xfree(npp->c_dual);
+#endif
       xfree(npp);
       return;
 }

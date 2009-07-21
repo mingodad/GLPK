@@ -62,21 +62,21 @@ am_libglpk_la_OBJECTS = glpapi01.lo glpapi02.lo glpapi03.lo \
 	glpcpx.lo glpdmp.lo glpdmx.lo glpfhv.lo glpgmp.lo glphbm.lo \
 	glpini01.lo glpini02.lo glpios01.lo glpios02.lo glpios03.lo \
 	glpios04.lo glpios05.lo glpios06.lo glpios07.lo glpios08.lo \
-	glpios09.lo glpios10.lo glpipm.lo glpipp01.lo glpipp02.lo \
-	glplib01.lo glplib02.lo glplib03.lo glplib04.lo glplib05.lo \
-	glplib06.lo glplib07.lo glplib08.lo glplib09.lo glplib10.lo \
-	glplib11.lo glplib12.lo glplpf.lo glplpx01.lo glplpx02.lo \
-	glplpx03.lo glplpx04.lo glpluf.lo glplux.lo glpmat.lo \
-	glpmpl01.lo glpmpl02.lo glpmpl03.lo glpmpl04.lo glpmpl05.lo \
-	glpmpl06.lo glpmps.lo glpnet01.lo glpnet02.lo glpnet03.lo \
-	glpnet04.lo glpnet05.lo glpnet06.lo glpnet07.lo glpnet08.lo \
-	glpnpp01.lo glpnpp02.lo glpnpp03.lo glpqmd.lo glprgr.lo \
-	glprng01.lo glprng02.lo glpscf.lo glpscg.lo glpscl.lo \
-	glpsdf.lo glpspm.lo glpspx01.lo glpspx02.lo glpsql.lo \
-	glpssx01.lo glpssx02.lo glptsp.lo amd_1.lo amd_2.lo amd_aat.lo \
-	amd_control.lo amd_defaults.lo amd_dump.lo amd_info.lo \
-	amd_order.lo amd_post_tree.lo amd_postorder.lo \
-	amd_preprocess.lo amd_valid.lo colamd.lo
+	glpios09.lo glpios10.lo glpios11.lo glpios12.lo glpipm.lo \
+	glpipp01.lo glpipp02.lo glplib01.lo glplib02.lo glplib03.lo \
+	glplib04.lo glplib05.lo glplib06.lo glplib07.lo glplib08.lo \
+	glplib09.lo glplib10.lo glplib11.lo glplib12.lo glplpf.lo \
+	glplpx01.lo glplpx02.lo glplpx03.lo glplpx04.lo glpluf.lo \
+	glplux.lo glpmat.lo glpmpl01.lo glpmpl02.lo glpmpl03.lo \
+	glpmpl04.lo glpmpl05.lo glpmpl06.lo glpmps.lo glpnet01.lo \
+	glpnet02.lo glpnet03.lo glpnet04.lo glpnet05.lo glpnet06.lo \
+	glpnet07.lo glpnet08.lo glpnpp01.lo glpnpp02.lo glpnpp03.lo \
+	glpnpp04.lo glpqmd.lo glprgr.lo glprng01.lo glprng02.lo \
+	glpscf.lo glpscl.lo glpsdf.lo glpspm.lo glpspx01.lo \
+	glpspx02.lo glpsql.lo glpssx01.lo glpssx02.lo glptsp.lo \
+	amd_1.lo amd_2.lo amd_aat.lo amd_control.lo amd_defaults.lo \
+	amd_dump.lo amd_info.lo amd_order.lo amd_post_tree.lo \
+	amd_postorder.lo amd_preprocess.lo amd_valid.lo colamd.lo
 libglpk_la_OBJECTS = $(am_libglpk_la_OBJECTS)
 libglpk_la_LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) \
 	$(LIBTOOLFLAGS) --mode=link $(CCLD) $(AM_CFLAGS) $(CFLAGS) \
@@ -216,7 +216,7 @@ top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
 INCLUDES = -I$(srcdir)/../include
 lib_LTLIBRARIES = libglpk.la
-libglpk_la_LDFLAGS = -version-info 25:0:25 \
+libglpk_la_LDFLAGS = -version-info 26:0:26 \
 -export-symbols-regex '^(glp_|_glp_lpx_).*'
 
 libglpk_la_SOURCES = \
@@ -261,6 +261,8 @@ glpios07.c \
 glpios08.c \
 glpios09.c \
 glpios10.c \
+glpios11.c \
+glpios12.c \
 glpipm.c \
 glpipp01.c \
 glpipp02.c \
@@ -302,12 +304,12 @@ glpnet08.c \
 glpnpp01.c \
 glpnpp02.c \
 glpnpp03.c \
+glpnpp04.c \
 glpqmd.c \
 glprgr.c \
 glprng01.c \
 glprng02.c \
 glpscf.c \
-glpscg.c \
 glpscl.c \
 glpsdf.c \
 glpspm.c \
@@ -454,6 +456,8 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/glpios08.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/glpios09.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/glpios10.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/glpios11.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/glpios12.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/glpipm.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/glpipp01.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/glpipp02.Plo@am__quote@
@@ -495,12 +499,12 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/glpnpp01.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/glpnpp02.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/glpnpp03.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/glpnpp04.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/glpqmd.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/glprgr.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/glprng01.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/glprng02.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/glpscf.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/glpscg.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/glpscl.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/glpsdf.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/glpspm.Plo@am__quote@

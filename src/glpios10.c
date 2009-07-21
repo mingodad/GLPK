@@ -77,7 +77,7 @@ void ios_feas_pump(glp_tree *T)
       double dist, tol;
       xassert(glp_get_status(P) == GLP_OPT);
       /* this heuristic is applied only once on the root level */
-      if (!(T->curr->level == 0 && T->solved == 1)) goto done;
+      if (!(T->curr->level == 0 && T->curr->solved == 1)) goto done;
       /* determine number of binary variables */
       nv = 0;
       for (j = 1; j <= n; j++)

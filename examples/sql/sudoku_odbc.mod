@@ -4,9 +4,9 @@
 
 /* This example shows how to use the table statement.
    The sudoku to be solves is read from file sudoku_in.csv.
-   The solution is written to sudoku_out.csv. 
-   The file format is CSV as defined in 
-     RFC 4180 - Common Format and MIME Type for 
+   The solution is written to sudoku_out.csv.
+   The file format is CSV as defined in
+     RFC 4180 - Common Format and MIME Type for
      Comma-Separated Values (CSV) Files */
 
 /* Sudoku, also known as Number Place, is a logic-based placement
@@ -42,7 +42,8 @@ param givens{1..9, 1..9}, integer, >= 0, <= 9, default 0;
 
 table ti IN 'iODBC'
   'DSN=glpk;UID=glpk;PWD=gnu'
-  'SELECT * FROM sudoku WHERE ID = ' & id :
+  'SELECT * FROM sudoku'
+  'WHERE ID = ' & id :
   fields <- [COL, LIN], givens ~ VAL;
 
 var x{i in 1..9, j in 1..9, k in 1..9}, binary;
@@ -70,10 +71,13 @@ s.t. fe{I in 1..9 by 3, J in 1..9 by 3, k in 1..9}:
 
 solve;
 
-table ta {(i, j) in {i1 in 1..9} cross {i2 in 1..9}} OUT 
+table ta {(i, j) in {i1 in 1..9} cross {i2 in 1..9}} OUT
   'iODBC' 'DSN=glpk;UID=glpk;PWD=gnu'
-  'DELETE FROM sudoku_solution WHERE ID = ' & id
-  'sudoku_solution' :
+  'DELETE FROM sudoku_solution'
+  'WHERE ID = ' & id & ';'
+  'INSERT INTO sudoku_solution'
+  '(ID, COL, LIN, VAL)'
+  'VALUES(?, ?, ?, ?);' :
   id ~ ID, i ~ COL, j ~ LIN, (sum{k in 1..9} x[i,j,k] * k) ~ VAL;
 
 printf "\nSudoku to be solved\n";

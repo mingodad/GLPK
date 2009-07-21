@@ -1,3 +1,38 @@
+GLPK 4.41 (release date: Dec 21, 2009)
+
+        The following new API routies were added:
+
+        glp_transform_row     transform explicitly specified row
+        glp_transform_col     transform explicitly specified column
+        glp_prim_rtest        perform primal ratio test
+        glp_dual_rtest        perform dual ratio test
+
+        For description of these new routines see a new edition of the
+        reference manual included in the distribution.
+
+        The following API routines are deprecated: lpx_transform_row,
+        lpx_transform_col, lpx_prim_ratio_test, lpx_dual_ratio_test.
+
+        Some improvements were made in the MIP solver (glp_intopt).
+
+        The SQL table driver used to read/write data in MathProg models
+        was changed to allow multiple arguments separated by semicolon
+        in SQL statements. Thanks to Xypron <xypron.glpk@gmx.de>.
+
+        Two new options were added to the glpsol stand-alone solver:
+        --seed value (to initialize the pseudo-random number generator
+        used in MathProg models with specified value), and
+        --ini filename (to use a basis previously saved with -w option
+        as an initial basis on solving similar LP's).
+
+        Two new MathProg example models were included. Thanks to
+        Nigel Galloway <nigel_galloway@operamail.com> and Noli Sicad
+        <nsicad@gmail.com> for contribution.
+
+        Scripts to build GLPK with Microsoft Visual Studio 2010 for
+        both 32-bit and 64-bit Windows were included. Thanks to Xypron
+        <xypron.glpk@gmx.de> for contribution and testing.
+
 GLPK 4.40 (release date: Nov 03, 2009)
 
         The following new API routines were added:

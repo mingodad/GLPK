@@ -24,20 +24,19 @@
 #ifndef GLPK_H
 #define GLPK_H
 
+#include <stdarg.h>
+#include <stddef.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-#include <stdarg.h>
-#include <stddef.h>
-
 /* library version numbers: */
 #define GLP_MAJOR_VERSION  4
-#define GLP_MINOR_VERSION  40
+#define GLP_MINOR_VERSION  41
 
-#ifndef GLP_PROB
-#define GLP_PROB
-typedef struct { double _opaque_prob; } glp_prob;
+#ifndef GLPAPI_H
+typedef struct { double _opaque_prob[100]; } glp_prob;
 /* LP/MIP problem object */
 #endif
 
@@ -84,12 +83,7 @@ typedef struct { double _opaque_prob; } glp_prob;
 #define GLP_OPT            5  /* solution is optimal */
 #define GLP_UNBND          6  /* solution is unbounded */
 
-#ifndef GLP_BFCP
-#define GLP_BFCP
-typedef struct glp_bfcp glp_bfcp;
-#endif
-
-struct glp_bfcp
+typedef struct
 {     /* basis factorization control parameters */
       int msg_lev;            /* (reserved) */
       int type;               /* factorization type: */
@@ -107,7 +101,7 @@ struct glp_bfcp
       int nrs_max;            /* lpf.n_max */
       int rs_size;            /* lpf.v_size */
       double foo_bar[38];     /* (reserved) */
-};
+} glp_bfcp;
 
 typedef struct
 {     /* simplex method control parameters */
@@ -151,9 +145,8 @@ typedef struct
       double foo_bar[48];     /* (reserved) */
 } glp_iptcp;
 
-#ifndef GLP_TREE
-#define GLP_TREE
-typedef struct { double _opaque_tree; } glp_tree;
+#ifndef GLPIOS_H
+typedef struct { double _opaque_tree[100]; } glp_tree;
 /* branch-and-bound tree */
 #endif
 
@@ -200,12 +193,12 @@ typedef struct
       int level;
       /* subproblem level at which the row was added */
       int origin;
-      /* the row origin flag: */
+      /* row origin flag: */
 #define GLP_RF_REG         0  /* regular constraint */
 #define GLP_RF_LAZY        1  /* "lazy" constraint */
 #define GLP_RF_CUT         2  /* cutting plane constraint */
       int klass;
-      /* the row class descriptor: */
+      /* row class descriptor: */
 #define GLP_RF_GMI         1  /* Gomory's mixed integer cut */
 #define GLP_RF_MIR         2  /* mixed integer rounding cut */
 #define GLP_RF_COV         3  /* mixed cover cut */
@@ -282,9 +275,8 @@ typedef struct
       /* (reserved for use in the future) */
 } glp_cpxcp;
 
-#ifndef GLP_TRAN
-#define GLP_TRAN
-typedef struct { double _opaque_tran; } glp_tran;
+#ifndef GLPMPL_H
+typedef struct { double _opaque_tran[100]; } glp_tran;
 /* MathProg translator workspace */
 #endif
 
@@ -607,6 +599,20 @@ int glp_eval_tab_row(glp_prob *P, int k, int ind[], double val[]);
 
 int glp_eval_tab_col(glp_prob *P, int k, int ind[], double val[]);
 /* compute column of the simplex tableau */
+
+int glp_transform_row(glp_prob *P, int len, int ind[], double val[]);
+/* transform explicitly specified row */
+
+int glp_transform_col(glp_prob *P, int len, int ind[], double val[]);
+/* transform explicitly specified column */
+
+int glp_prim_rtest(glp_prob *P, int len, const int ind[],
+      const double val[], int dir, double eps);
+/* perform primal ratio test */
+
+int glp_dual_rtest(glp_prob *P, int len, const int ind[],
+      const double val[], int dir, double eps);
+/* perform dual ratio test */
 
 int glp_ios_reason(glp_tree *T);
 /* determine reason for calling the callback routine */
@@ -962,14 +968,16 @@ void glp_mem_usage(int *count, int *cpeak, glp_long *total,
 void glp_mem_limit(int limit);
 /* set memory usage limit */
 
+glp_long glp_time(void);
+/* determine current universal time */
+
 void glp_free_env(void);
 /* free GLPK library environment */
 
 /**********************************************************************/
 
-#ifndef GLP_DATA
-#define GLP_DATA
-typedef struct { double _opaque_data; } glp_data;
+#ifndef GLPSDF_H
+typedef struct { double _opaque_data[100]; } glp_data;
 /* plain data file */
 #endif
 

@@ -315,7 +315,11 @@ static int simplex2(glp_prob *orig, const glp_smcp *parm)
 #endif
       /* perform LP presolve analysis */
 #ifdef GLP_USE_NPP
+#if 0 /* 20/XII-2009 */
       ret = npp_preprocess(npp);
+#else
+      ret = npp_simplex(npp);
+#endif
 #else
       ret = lpp_presolve(lpp);
 #endif
@@ -713,10 +717,10 @@ int glp_get_dual_stat(glp_prob *lp)
 *  for basic solution. */
 
 double glp_get_obj_val(glp_prob *lp)
-{     struct LPXCPS *cps = lp->cps;
+{     /*struct LPXCPS *cps = lp->cps;*/
       double z;
       z = lp->obj_val;
-      if (cps->round && fabs(z) < 1e-9) z = 0.0;
+      /*if (cps->round && fabs(z) < 1e-9) z = 0.0;*/
       return z;
 }
 
@@ -762,13 +766,13 @@ int glp_get_row_stat(glp_prob *lp, int i)
 *  variable associated with i-th row. */
 
 double glp_get_row_prim(glp_prob *lp, int i)
-{     struct LPXCPS *cps = lp->cps;
+{     /*struct LPXCPS *cps = lp->cps;*/
       double prim;
       if (!(1 <= i && i <= lp->m))
          xerror("glp_get_row_prim: i = %d; row number out of range\n",
             i);
       prim = lp->row[i]->prim;
-      if (cps->round && fabs(prim) < 1e-9) prim = 0.0;
+      /*if (cps->round && fabs(prim) < 1e-9) prim = 0.0;*/
       return prim;
 }
 
@@ -787,13 +791,13 @@ double glp_get_row_prim(glp_prob *lp, int i)
 *  of the auxiliary variable associated with i-th row. */
 
 double glp_get_row_dual(glp_prob *lp, int i)
-{     struct LPXCPS *cps = lp->cps;
+{     /*struct LPXCPS *cps = lp->cps;*/
       double dual;
       if (!(1 <= i && i <= lp->m))
          xerror("glp_get_row_dual: i = %d; row number out of range\n",
             i);
       dual = lp->row[i]->dual;
-      if (cps->round && fabs(dual) < 1e-9) dual = 0.0;
+      /*if (cps->round && fabs(dual) < 1e-9) dual = 0.0;*/
       return dual;
 }
 
@@ -839,13 +843,13 @@ int glp_get_col_stat(glp_prob *lp, int j)
 *  variable associated with j-th column. */
 
 double glp_get_col_prim(glp_prob *lp, int j)
-{     struct LPXCPS *cps = lp->cps;
+{     /*struct LPXCPS *cps = lp->cps;*/
       double prim;
       if (!(1 <= j && j <= lp->n))
          xerror("glp_get_col_prim: j = %d; column number out of range\n"
             , j);
       prim = lp->col[j]->prim;
-      if (cps->round && fabs(prim) < 1e-9) prim = 0.0;
+      /*if (cps->round && fabs(prim) < 1e-9) prim = 0.0;*/
       return prim;
 }
 
@@ -864,13 +868,13 @@ double glp_get_col_prim(glp_prob *lp, int j)
 *  of the structural variable associated with j-th column. */
 
 double glp_get_col_dual(glp_prob *lp, int j)
-{     struct LPXCPS *cps = lp->cps;
+{     /*struct LPXCPS *cps = lp->cps;*/
       double dual;
       if (!(1 <= j && j <= lp->n))
          xerror("glp_get_col_dual: j = %d; column number out of range\n"
             , j);
       dual = lp->col[j]->dual;
-      if (cps->round && fabs(dual) < 1e-9) dual = 0.0;
+      /*if (cps->round && fabs(dual) < 1e-9) dual = 0.0;*/
       return dual;
 }
 

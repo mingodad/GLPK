@@ -24,33 +24,27 @@
 #ifndef GLPAPI_H
 #define GLPAPI_H
 
+typedef struct glp_prob glp_prob;
+
+#include "glpk.h"
 #include "glpavl.h"
 #include "glpbfd.h"
 
-#define GLP_PROB
-#define GLP_BFCP
-
-typedef struct glp_prob glp_prob;
 typedef struct GLPROW GLPROW;
 typedef struct GLPCOL GLPCOL;
 typedef struct GLPAIJ GLPAIJ;
-typedef struct glp_bfcp glp_bfcp;
 
 struct glp_prob
 {     /* LP/MIP problem object */
+      int magic;
+      /* magic value used for debugging */
       DMP *pool;
       /* memory pool to store problem object components */
-      void *cps; /* struct LPXCPS *cps; */
-      /* reserved for downward compatibility */
-      void *tree; /* glp_tree *tree */
-      /* pointer to the branch-and-bound tree; set by the MIP solver
-         when this object is used in the tree as a core MIP object */
-#if 1 /* 19/X-2008 */
-      int lwa;
-      /* length of the working array (enlarged automatically) */
-      char *cwa; /* char cwa[1+lwa]; */
-      /* working array; normally it contains binary zeros */
-#endif
+      glp_tree *tree;
+      /* pointer to the search tree; set by the MIP solver when this
+         object is used in the tree as a core MIP object */
+      void *parms;
+      /* reserved for backward compatibility */
       /*--------------------------------------------------------------*/
       /* LP/MIP data */
       char *name;
@@ -275,150 +269,6 @@ struct GLPAIJ
       /* pointer to next coefficient in the same column */
 };
 
-#include "glpk.h"
-
-/**********************************************************************/
-
-struct LPXCPS
-{     /* control parameters and statistics */
-      int msg_lev;
-      /* level of messages output by the solver:
-         0 - no output
-         1 - error messages only
-         2 - normal output
-         3 - full output (includes informational messages) */
-      int scale;
-      /* scaling option:
-         0 - no scaling
-         1 - equilibration scaling
-         2 - geometric mean scaling
-         3 - geometric mean scaling, then equilibration scaling */
-      int dual;
-      /* dual simplex option:
-         0 - use primal simplex
-         1 - use dual simplex */
-      int price;
-      /* pricing option (for both primal and dual simplex):
-         0 - textbook pricing
-         1 - steepest edge pricing */
-      double relax;
-      /* relaxation parameter used in the ratio test; if it is zero,
-         the textbook ratio test is used; if it is non-zero (should be
-         positive), Harris' two-pass ratio test is used; in the latter
-         case on the first pass basic variables (in the case of primal
-         simplex) or reduced costs of non-basic variables (in the case
-         of dual simplex) are allowed to slightly violate their bounds,
-         but not more than (relax * tol_bnd) or (relax * tol_dj) (thus,
-         relax is a percentage of tol_bnd or tol_dj) */
-      double tol_bnd;
-      /* relative tolerance used to check if the current basic solution
-         is primal feasible */
-      double tol_dj;
-      /* absolute tolerance used to check if the current basic solution
-         is dual feasible */
-      double tol_piv;
-      /* relative tolerance used to choose eligible pivotal elements of
-         the simplex table in the ratio test */
-      int round;
-      /* solution rounding option:
-         0 - report all computed values and reduced costs "as is"
-         1 - if possible (allowed by the tolerances), replace computed
-             values and reduced costs which are close to zero by exact
-             zeros */
-      double obj_ll;
-      /* lower limit of the objective function; if on the phase II the
-         objective function reaches this limit and continues decreasing,
-         the solver stops the search */
-      double obj_ul;
-      /* upper limit of the objective function; if on the phase II the
-         objective function reaches this limit and continues increasing,
-         the solver stops the search */
-      int it_lim;
-      /* simplex iterations limit; if this value is positive, it is
-         decreased by one each time when one simplex iteration has been
-         performed, and reaching zero value signals the solver to stop
-         the search; negative value means no iterations limit */
-      double tm_lim;
-      /* searching time limit, in seconds; if this value is positive,
-         it is decreased each time when one simplex iteration has been
-         performed by the amount of time spent for the iteration, and
-         reaching zero value signals the solver to stop the search;
-         negative value means no time limit */
-      int out_frq;
-      /* output frequency, in iterations; this parameter specifies how
-         frequently the solver sends information about the solution to
-         the standard output */
-      double out_dly;
-      /* output delay, in seconds; this parameter specifies how long
-         the solver should delay sending information about the solution
-         to the standard output; zero value means no delay */
-      int branch; /* MIP */
-      /* branching heuristic:
-         0 - branch on first variable
-         1 - branch on last variable
-         2 - branch using heuristic by Driebeck and Tomlin
-         3 - branch on most fractional variable */
-      int btrack; /* MIP */
-      /* backtracking heuristic:
-         0 - select most recent node (depth first search)
-         1 - select earliest node (breadth first search)
-         2 - select node using the best projection heuristic
-         3 - select node with best local bound */
-      double tol_int; /* MIP */
-      /* absolute tolerance used to check if the current basic solution
-         is integer feasible */
-      double tol_obj; /* MIP */
-      /* relative tolerance used to check if the value of the objective
-         function is not better than in the best known integer feasible
-         solution */
-      int mps_info; /* lpx_write_mps */
-      /* if this flag is set, the routine lpx_write_mps outputs several
-         comment cards that contains some information about the problem;
-         otherwise the routine outputs no comment cards */
-      int mps_obj; /* lpx_write_mps */
-      /* this parameter tells the routine lpx_write_mps how to output
-         the objective function row:
-         0 - never output objective function row
-         1 - always output objective function row
-         2 - output objective function row if and only if the problem
-             has no free rows */
-      int mps_orig; /* lpx_write_mps */
-      /* if this flag is set, the routine lpx_write_mps uses original
-         row and column symbolic names; otherwise the routine generates
-         plain names using ordinal numbers of rows and columns */
-      int mps_wide; /* lpx_write_mps */
-      /* if this flag is set, the routine lpx_write_mps uses all data
-         fields; otherwise the routine keeps fields 5 and 6 empty */
-      int mps_free; /* lpx_write_mps */
-      /* if this flag is set, the routine lpx_write_mps omits column
-         and vector names everytime if possible (free style); otherwise
-         the routine never omits these names (pedantic style) */
-      int mps_skip; /* lpx_write_mps */
-      /* if this flag is set, the routine lpx_write_mps skips empty
-         columns (i.e. which has no constraint coefficients); otherwise
-         the routine outputs all columns */
-      int lpt_orig; /* lpx_write_lpt */
-      /* if this flag is set, the routine lpx_write_lpt uses original
-         row and column symbolic names; otherwise the routine generates
-         plain names using ordinal numbers of rows and columns */
-      int presol; /* lpx_simplex */
-      /* LP presolver option:
-         0 - do not use LP presolver
-         1 - use LP presolver */
-      int binarize; /* lpx_intopt */
-      /* if this flag is set, the routine lpx_intopt replaces integer
-         columns by binary ones */
-      int use_cuts; /* lpx_intopt */
-      /* if this flag is set, the routine lpx_intopt tries generating
-         cutting planes:
-         LPX_C_COVER  - mixed cover cuts
-         LPX_C_CLIQUE - clique cuts
-         LPX_C_GOMORY - Gomory's mixed integer cuts
-         LPX_C_ALL    - all cuts */
-      double mip_gap; /* MIP */
-      /* relative MIP gap tolerance */
-};
-
 void _glp_check_kkt(glp_prob *P, int sol, int cond, double *ae_max,
       int *ae_ind, double *re_max, int *re_ind);
 /* check feasibility and optimality conditions */
@@ -438,6 +288,17 @@ void lpx_put_solution(glp_prob *lp, int inval, const int *p_stat,
 void lpx_put_mip_soln(LPX *lp, int i_stat, double row_mipx[],
       double col_mipx[]);
 /* store mixed integer solution components */
+
+#if 1 /* 28/XI-2009 */
+int _glp_analyze_row(glp_prob *P, int len, const int ind[],
+      const double val[], int type, double rhs, double eps, int *_piv,
+      double *_x, double *_dx, double *_y, double *_dy, double *_dz);
+/* simulate one iteration of dual simplex method */
+#endif
+
+#if 1 /* 08/XII-2009 */
+void _glp_mpl_init_rand(glp_tran *tran, int seed);
+#endif
 
 #endif
 

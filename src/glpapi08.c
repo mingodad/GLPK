@@ -77,14 +77,14 @@ static void transform(NPP *npp)
          if (row->lb == -DBL_MAX && row->ub == +DBL_MAX)
             npp_free_row(npp, row);
          else if (row->lb == -DBL_MAX)
-            npp_lteq_row(npp, row);
+            npp_leq_row(npp, row);
          else if (row->ub == +DBL_MAX)
-            npp_gteq_row(npp, row);
+            npp_geq_row(npp, row);
          else if (row->lb != row->ub)
          {  if (fabs(row->lb) < fabs(row->ub))
-               npp_gteq_row(npp, row);
+               npp_geq_row(npp, row);
             else
-               npp_lteq_row(npp, row);
+               npp_leq_row(npp, row);
          }
       }
       for (col = npp->c_tail; col != NULL; col = prev_col)
@@ -99,7 +99,9 @@ static void transform(NPP *npp)
          }
          else if (col->lb != col->ub)
          {  if (fabs(col->lb) < fabs(col->ub))
-               npp_lbnd_col(npp, col);
+            {  if (col->lb != 0.0)
+                  npp_lbnd_col(npp, col);
+            }
             else
                npp_ubnd_col(npp, col);
             npp_dbnd_col(npp, col);
@@ -275,10 +277,10 @@ int glp_ipt_status(glp_prob *lp)
 *  for interior-point solution. */
 
 double glp_ipt_obj_val(glp_prob *lp)
-{     struct LPXCPS *cps = lp->cps;
+{     /*struct LPXCPS *cps = lp->cps;*/
       double z;
       z = lp->ipt_obj;
-      if (cps->round && fabs(z) < 1e-9) z = 0.0;
+      /*if (cps->round && fabs(z) < 1e-9) z = 0.0;*/
       return z;
 }
 
@@ -297,13 +299,13 @@ double glp_ipt_obj_val(glp_prob *lp)
 *  variable associated with i-th row. */
 
 double glp_ipt_row_prim(glp_prob *lp, int i)
-{     struct LPXCPS *cps = lp->cps;
+{     /*struct LPXCPS *cps = lp->cps;*/
       double pval;
       if (!(1 <= i && i <= lp->m))
          xerror("glp_ipt_row_prim: i = %d; row number out of range\n",
             i);
       pval = lp->row[i]->pval;
-      if (cps->round && fabs(pval) < 1e-9) pval = 0.0;
+      /*if (cps->round && fabs(pval) < 1e-9) pval = 0.0;*/
       return pval;
 }
 
@@ -322,13 +324,13 @@ double glp_ipt_row_prim(glp_prob *lp, int i)
 *  of the auxiliary variable associated with i-th row. */
 
 double glp_ipt_row_dual(glp_prob *lp, int i)
-{     struct LPXCPS *cps = lp->cps;
+{     /*struct LPXCPS *cps = lp->cps;*/
       double dval;
       if (!(1 <= i && i <= lp->m))
          xerror("glp_ipt_row_dual: i = %d; row number out of range\n",
             i);
       dval = lp->row[i]->dval;
-      if (cps->round && fabs(dval) < 1e-9) dval = 0.0;
+      /*if (cps->round && fabs(dval) < 1e-9) dval = 0.0;*/
       return dval;
 }
 
@@ -347,13 +349,13 @@ double glp_ipt_row_dual(glp_prob *lp, int i)
 *  variable associated with j-th column. */
 
 double glp_ipt_col_prim(glp_prob *lp, int j)
-{     struct LPXCPS *cps = lp->cps;
+{     /*struct LPXCPS *cps = lp->cps;*/
       double pval;
       if (!(1 <= j && j <= lp->n))
          xerror("glp_ipt_col_prim: j = %d; column number out of range\n"
             , j);
       pval = lp->col[j]->pval;
-      if (cps->round && fabs(pval) < 1e-9) pval = 0.0;
+      /*if (cps->round && fabs(pval) < 1e-9) pval = 0.0;*/
       return pval;
 }
 
@@ -373,13 +375,13 @@ double glp_ipt_col_prim(glp_prob *lp, int j)
 *  of the structural variable associated with j-th column. */
 
 double glp_ipt_col_dual(glp_prob *lp, int j)
-{     struct LPXCPS *cps = lp->cps;
+{     /*struct LPXCPS *cps = lp->cps;*/
       double dval;
       if (!(1 <= j && j <= lp->n))
          xerror("glp_ipt_col_dual: j = %d; column number out of range\n"
             , j);
       dval = lp->col[j]->dval;
-      if (cps->round && fabs(dval) < 1e-9) dval = 0.0;
+      /*if (cps->round && fabs(dval) < 1e-9) dval = 0.0;*/
       return dval;
 }
 

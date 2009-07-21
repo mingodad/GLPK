@@ -285,21 +285,23 @@ struct MPL
          of the problem, 1 <= j <= n */
       /*--------------------------------------------------------------*/
       /* input/output segment */
-      FILE *in_fp;
+      XFILE *in_fp;
       /* stream assigned to the input text file */
       char *in_file;
       /* name of the input text file */
-      FILE *out_fp;
+      XFILE *out_fp;
       /* stream assigned to the output text file used to write all data
          produced by display and printf statements; NULL means the data
-         should be sent to stdout via the routine print */
+         should be sent to stdout via the routine xprintf */
       char *out_file;
       /* name of the output text file */
+#if 0 /* 08/XI-2009 */
       char *out_buf; /* char out_buf[OUTBUF_SIZE] */
       /* buffer to accumulate output data */
       int out_cnt;
       /* count of data bytes stored in the output buffer */
-      FILE *prt_fp;
+#endif
+      XFILE *prt_fp;
       /* stream assigned to the print text file; may be NULL */
       char *prt_file;
       /* name of the output print file */

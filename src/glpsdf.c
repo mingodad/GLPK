@@ -21,9 +21,11 @@
 *  along with GLPK. If not, see <http://www.gnu.org/licenses/>.
 ***********************************************************************/
 
-#include "glplib.h"
+#define GLPSDF_H
 
 typedef struct glp_data glp_data;
+
+#include "glpapi.h"
 
 struct glp_data
 {     /* plain data file */
@@ -40,9 +42,6 @@ struct glp_data
       char item[255+1];
       /* current data item */
 };
-
-#define GLP_DATA
-#include "glpapi.h"
 
 static void next_char(glp_data *data);
 

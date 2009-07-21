@@ -38,6 +38,34 @@ typedef struct CPXLP CPXLP, *CPXLPptr;
 
 #define CPX_INFBOUND                1e20
 
+/* error codes: */
+#define CPXERR_NO_MEMORY            1001
+#define CPXERR_NO_ENVIRONMENT       1002
+#define CPXERR_BAD_ARGUMENT         1003
+#define CPXERR_NULL_POINTER         1004
+#define CPXERR_NO_PROBLEM           1009
+#define CPXERR_BAD_PARAM_NUM        1013
+#define CPXERR_PARAM_TOO_SMALL      1014
+#define CPXERR_PARAM_TOO_BIG        1015
+#define CPXERR_INDEX_RANGE          1200
+#define CPXERR_COL_INDEX_RANGE      1201
+#define CPXERR_ROW_INDEX_RANGE      1203
+#define CPXERR_NEGATIVE_SURPLUS     1207
+#define CPXERR_BAD_SENSE            1215
+#define CPXERR_NO_SOLN              1217
+#define CPXERR_NOT_FIXED            1221
+#define CPXERR_DUP_ENTRY            1222
+#define CPXERR_NULL_NAME            1224
+#define CPXERR_ARRAY_NOT_ASCENDING  1226
+#define CPXERR_COUNT_RANGE          1227
+#define CPXERR_BAD_LUB              1229
+#define CPXERR_BAD_STATUS           1253
+#define CPXERR_NO_BASIC_SOLN        1261
+#define CPXERR_NO_FILENAME          1421
+#define CPXERR_FAIL_OPEN_WRITE      1422
+#define CPXERR_BAD_FILETYPE         1424
+#define CPXERR_BAD_CTYPE            3021
+
 /* control parameters: */
 #define CPX_PARAM_ADVIND            1001
 #define CPX_PARAM_AGGIND            1003
@@ -73,30 +101,13 @@ typedef struct CPXLP CPXLP, *CPXLPptr;
 #define CPX_PPRIIND_STEEPQSTART     3
 #define CPX_PPRIIND_FULL            4
 
-/* error codes: */
-#define CPXERR_NO_MEMORY            1001
-#define CPXERR_NO_ENVIRONMENT       1002
-#define CPXERR_BAD_ARGUMENT         1003
-#define CPXERR_NULL_POINTER         1004
-#define CPXERR_NO_PROBLEM           1009
-#define CPXERR_BAD_PARAM_NUM        1013
-#define CPXERR_PARAM_TOO_SMALL      1014
-#define CPXERR_PARAM_TOO_BIG        1015
-#define CPXERR_INDEX_RANGE          1200
-#define CPXERR_COL_INDEX_RANGE      1201
-#define CPXERR_ROW_INDEX_RANGE      1203
-#define CPXERR_NEGATIVE_SURPLUS     1207
-#define CPXERR_BAD_SENSE            1215
-#define CPXERR_NO_SOLN              1217
-#define CPXERR_NOT_FIXED            1221
-#define CPXERR_DUP_ENTRY            1222
-#define CPXERR_NULL_NAME            1224
-#define CPXERR_ARRAY_NOT_ASCENDING  1226
-#define CPXERR_COUNT_RANGE          1227
-#define CPXERR_BAD_LUB              1229
-#define CPXERR_BAD_STATUS           1253
-#define CPXERR_NO_BASIC_SOLN        1261
-#define CPXERR_BAD_CTYPE            3021
+/* CPXgetprobtype: */
+#define CPXPROB_LP                  0
+#define CPXPROB_MIP                 1
+#define CPXPROB_RELAXED             2
+#define CPXPROB_FIXED               3
+#define CPXPROB_QP                  5
+#define CPXPROB_ZEROEDQP            6
 
 /* CPXgetobjsen: */
 #define CPX_MIN                     1
@@ -145,6 +156,11 @@ int CPXbinvrow(CPXENV *env, CPXLP *lp, int i, double y[]);
 
 int CPXchgbds(CPXENV *env, CPXLP *lp, int cnt, const int indices[],
       const char lu[], const double bd[]);
+
+int CPXchgcoeflist(CPXENV *env, CPXLP *lp, int numcoefs,
+      const int rowlist[], const int collist[], const double vallist[]);
+
+void CPXchgobjsen(CPXENV *env, CPXLP *lp, int maxormin);
 
 int CPXchgsense(CPXENV *env, CPXLP *lp, int cnt, const int indices[],
       const char sense[]);
@@ -237,8 +253,14 @@ int CPXinfodblparam(CPXENV *env, int whichparam, double *defvalue,
 int CPXinfointparam(CPXENV *env, int whichparam, int *defvalue,
       int *minvalue, int *maxvalue);
 
+int CPXlpopt(CPXENV *env, CPXLP *lp);
+
 int CPXmdleave(const CPXENV *env, CPXLP *lp, const int goodlist[],
       int goodlen, double downratio[], double upratio[]);
+
+int CPXnewcols(CPXENV *env, CPXLP *lp, int ccnt, const double obj[],
+      const double lb[], const double ub[], const char ctype[],
+      char *colname[]);
 
 int CPXnewrows(CPXENV *env, CPXLP *lp, int rcnt, const double rhs[],
       const char sense[], const double rngval[], char *rowname[]);
@@ -260,8 +282,14 @@ int CPXsetintparam(CPXENV *env, int whichparam, int newvalue);
 int CPXsolninfo(CPXENV *env, CPXLP *lp, int *solnmethod, int *solntype,
       int *pfeasind, int *dfeasind);
 
+int CPXsolution(CPXENV *env, CPXLP *lp, int *lpstat, double *objval,
+      double x[], double pi[], double slack[], double dj[]);
+
 int CPXstrongbranch(CPXENV *env, CPXLP *lp, const int goodlist[],
       int goodlen, double downpen[], double uppen[], int itlim);
+
+int CPXwriteprob(CPXENV *env, CPXLP *lp, const char *filename,
+      const char *filetype);
 
 #ifdef __cplusplus
 }

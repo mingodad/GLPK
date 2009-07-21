@@ -55,11 +55,17 @@
 
 static void create_prob(glp_prob *lp)
 {     lp->pool = dmp_create_pool();
+#if 0 /* 17/XI-2009 */
       lp->cps = xmalloc(sizeof(struct LPXCPS));
       lpx_reset_parms(lp);
+#else
+      lp->parms = NULL;
+#endif
       lp->tree = NULL;
+#if 0
       lp->lwa = 0;
       lp->cwa = NULL;
+#endif
       /* LP/MIP data */
       lp->name = NULL;
       lp->obj = NULL;
@@ -1370,9 +1376,15 @@ void glp_erase_prob(glp_prob *lp)
 
 static void delete_prob(glp_prob *lp)
 {     dmp_delete_pool(lp->pool);
+#if 0 /* 17/XI-2009 */
       xfree(lp->cps);
+#else
+      if (lp->parms != NULL) xfree(lp->parms);
+#endif
       xassert(lp->tree == NULL);
+#if 0
       if (lp->cwa != NULL) xfree(lp->cwa);
+#endif
       xfree(lp->row);
       xfree(lp->col);
       if (lp->r_tree != NULL) avl_delete_tree(lp->r_tree);

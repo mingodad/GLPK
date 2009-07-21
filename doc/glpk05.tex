@@ -95,17 +95,17 @@ algorithm as it is implemented in the GLPK MIP solver.
 Set $L:=\{P_0\}$, where $L$ is the {\it active list} (i.e. the list of
 active subproblems), $P_0$ is the original MIP problem to be solved.
 
-Set $\overline{z}:=+\infty$ (in case of minimization) or
-$\overline{z}:=-\infty$ (in case of maximization), where $\overline{z}$
+Set $z^{\it best}:=+\infty$ (in case of minimization) or
+$z^{\it best}:=-\infty$ (in case of maximization), where $z^{\it best}$
 is {\it incumbent value}, i.e. an upper (minimization) or lower
-(maximization) global bound for $z^*$, the optimal objective value for
-$P^0$.
+(maximization) global bound for $z^{\it opt}$, the optimal objective
+value for $P^0$.
 
 \medskip
 
 {\it 2. Subproblem selection}
 
-If $L=\emptyset$ then GO TO 9.
+If $L=\varnothing$ then GO TO 9.
 
 Select $P\in L$, i.e. make active subproblem $P$ current.
 
@@ -113,66 +113,68 @@ Select $P\in L$, i.e. make active subproblem $P$ current.
 
 {\it 3. Solving LP relaxation}
 
-Solve $P_{LP}$, which is LP relaxation of $P$.
+Solve $P^{\it LP}$, which is LP relaxation of $P$.
 
-If $P_{LP}$ has no primal feasible solution then GO TO 8.
+If $P^{\it LP}$ has no primal feasible solution then GO TO 8.
 
-Let $z_{LP}^*$ be the optimal objective value for $P_{LP}$.
+Let $z^{\it LP}$ be the optimal objective value for $P^{\it LP}$.
 
-If $z_{LP}^*\geq\overline{z}$ (in case of minimization) or
-$z_{LP}^*\leq\overline{z}$ (in case of maximization) then GO TO 8.
+If $z^{\it LP}\geq z^{\it best}$ (in case of minimization) or
+$z^{\it LP}\leq z^{\rm best}$ (in case of maximization) then GO TO 8.
 
 \medskip
 
 {\it 4. Adding ``lazy'' constraints}
 
-Let $x_{LP}^*$ be the optimal solution to $P_{LP}$.
+Let $x^{\it LP}$ be the optimal solution to $P^{\it LP}$.
 
 If there are ``lazy'' constraints (i.e. essential constraints not
 included in the original MIP problem $P_0$), which are violated at the
-optimal point $x_{LP}^*$, add them to $P$, and GO TO 3.
+optimal point $x^{\it LP}$, add them to $P$, and GO TO 3.
 
 \medskip
 
 {\it 5. Check for integrality}
 
 Let $x_j$ be a variable, which is required to be integer, and let
-$x_j^*\in x_{LP}^*$ be its value in the optimal solution to $P_{LP}$.
+$x^{\it LP}_j\in x^{\it LP}$ be its value in the optimal solution to
+$P^{\it LP}$.
 
-If $x_j^*$ is integral for all integer variables, then a better integer
-feasible solution is found. Store its components, set
-$\overline{z}:=z_{LP}^*$, and GO TO 8.
+If $x^{\it LP}_j$ are integral for all integer variables, then a better
+integer feasible solution is found. Store its components, set
+$z^{\it best}:=z^{\it LP}$, and GO TO 8.
 
 \medskip
 
 {\it 6. Adding cutting planes}
 
-If there are cutting planes (i.e. valid constraints for $P$), which are
-violated at the optimal point $x_{LP}^*$, add them to $P$, and GO TO 3.
+If there are cutting planes (i.e. valid constraints for $P$),
+which are violated at the optimal point $x^{\it LP}$, add them to $P$,
+and GO TO 3.
 
 \medskip
 
 {\it 7. Branching}
 
 Select {\it branching variable} $x_j$, i.e. a variable, which is
-required to be integer, and whose value $x_j^*\in x_{LP}^*$ is
-fractional in the optimal solution to $P_{LP}$.
+required to be integer, and whose value $x^{\it LP}_j\in x^{\it LP}$ is
+fractional in the optimal solution to $P^{\it LP}$.
 
-Create new subproblem $P_D$ (so called {\it down branch}), which is
+Create new subproblem $P^D$ (so called {\it down branch}), which is
 identical to the current subproblem $P$ with exception that the upper
-bound of $x_j$ is replaced by $\lfloor x_j^*\rfloor$. (For example,
-if $x_j^*=3.14$, the new upper bound of $x_j$ in the down branch will
-be $\lfloor 3.14\rfloor=3$.)
+bound of $x_j$ is replaced by $\lfloor x^{\it LP}_j\rfloor$. (For
+example, if $x^{\it LP}_j=3.14$, the new upper bound of $x_j$ in the
+down branch will be $\lfloor 3.14\rfloor=3$.)
 
-Create new subproblem $P_U$ (so called {\it up branch}), which is
+Create new subproblem $P^U$ (so called {\it up branch}), which is
 identical to the current subproblem $P$ with exception that the lower
-bound of $x_j$ is replaced by $\lceil x_j^*\rceil$. (For example, if
-$x_j^*=3.14$, the new lower bound of $x_j$ in the up branch will be
-$\lceil 3.14\rceil=4$.)
+bound of $x_j$ is replaced by $\lceil x^{\it LP}_j\rceil$. (For example,
+if $x^{\it LP}_j=3.14$, the new lower bound of $x_j$ in the up branch
+will be $\lceil 3.14\rceil=4$.)
 
-Set $L:=L\backslash\{P\}\cup\{P_D,P_U\}$, i.e. remove the current
-subproblem $P$ from the active list and add two new subproblems $P_D$
-and $P_U$ to the active list. Then GO TO 2.
+Set $L:=(L\backslash\{P\})\cup\{P^D,P^U\}$, i.e. remove the current
+subproblem $P$ from the active list $L$ and add two new subproblems
+$P^D$ and $P^U$ to it. Then GO TO 2.
 
 \medskip
 
@@ -180,9 +182,9 @@ and $P_U$ to the active list. Then GO TO 2.
 
 Remove from the active list $L$ all subproblems (including the current
 one), whose local bound $\widetilde{z}$ is not better than the global
-bound $\overline{z}$, i.e. set $L:=L\backslash\{P\}$ for all $P$, where
-$\widetilde{z}\geq\overline{z}$ (in case of minimization) or
-$\widetilde{z}\leq\overline{z}$ (in case of maximization), and then
+bound $z^{\it best}$, i.e. set $L:=L\backslash\{P\}$ for all $P$, where
+$\widetilde{z}\geq z^{\it best}$ (in case of minimization) or
+$\widetilde{z}\leq z^{\it best}$ (in case of maximization), and then
 GO TO 2.
 
 The local bound $\widetilde{z}$ for subproblem $P$ is an lower
@@ -191,17 +193,17 @@ solution to {\it this} subproblem (not to the original problem). This
 bound is local in the sense that only subproblems in the subtree rooted
 at node $P$ cannot have better integer feasible solutions. Note that
 the local bound is not necessarily the optimal objective value to LP
-relaxation $P_{LP}$.
+relaxation $P^{\it LP}$.
 
 \medskip
 
 {\it 9. Termination}
 
-If $\overline{z}=+\infty$ (in case of minimization) or
-$\overline{z}=-\infty$ (in case of maximization), the original problem
+If $z^{\it best}=+\infty$ (in case of minimization) or
+$z^{\it best}=-\infty$ (in case of maximization), the original problem
 $P_0$ has no integer feasible solution. Otherwise, the last integer
 feasible solution stored on step 5 is the integer optimal solution to
-the original problem $P_0$. STOP.
+the original problem $P_0$ with $z^{\it opt}=z^{\it best}$. STOP.
 
 \subsection{The search tree}
 
@@ -217,55 +219,31 @@ search tree corresponds to a subproblem, so the terms `node' and
 
 \newpage
 
-\setlength{\unitlength}{1mm}
-
 \begin{figure}[t]
-\begin{center}
-\begin{picture}(120,105)(0,-35)
-\put(65,65){\circle{10}\circle{8}}\put(63.5,64){$A$}
-\put(30,45){\circle{10}\circle{8}}\put(28.5,44){$B$}
-\put(80,45){\circle{10}\circle{8}}\put(78.5,44){$C$}
-\put(115,45){\circle{10}}\put(112.5,43.5){\huge$\times$}
-\put(20,25){\circle{10}}\put(17.5,23.5){\huge$\times$}
-\put(40,25){\circle{10}}\put(38.5,24){$D$}
-\put(60,25){\circle{10}\circle{8}}\put(58.5,24){$E$}
-\put(95,25){\circle{10}\circle{8}}\put(93.5,24){$F$}
-\put(115,25){\circle{10}}\put(113.5,24){$G$}
-\put(5,5){\circle{10}}\put(2.5,3.5){\huge$\times$}
-\put(20,5){\circle{10}}\put(17.5,3.5){\huge$\times$}
-\put(35,5){\circle{10}}\put(32.5,3.5){\huge$\times$}
-\put(45,0){\framebox(10,10){$H$}}
-\put(70,5){\circle{10}}\put(69,4){$I$}
-\put(85,5){\circle{10}}\put(82.5,3.5){\huge$\times$}
-\put(105,5){\circle{10}}\put(103.5,4){$J$}
-\qbezier(5,10)(12.5,15)(20,20)
-\qbezier(20,10)(20,15)(20,20)
-\qbezier(35,10)(27.5,15)(20,20)
-\qbezier(50,10)(55,15)(60,20)
-\qbezier(70,10)(65,15)(60,20)
-\qbezier(85,10)(90,15)(95,20)
-\qbezier(105,10)(100,15)(95,20)
-\qbezier(20,30)(25,35)(30,40)
-\qbezier(40,30)(35,35)(30,40)
-\qbezier(60,30)(70,35)(80,40)
-\qbezier(95,30)(87.5,35)(80,40)
-\qbezier(115,30)(97.5,35)(80,40)
-\qbezier(30,50)(47.5,55)(65,60)
-\qbezier(80,50)(72.5,55)(65,60)
-\qbezier(115,50)(90,55)(65,60)
-\put(15,-20){\framebox(10,10){}}
-\put(28,-16){Current}
-\put(20,-30){\circle{10}}
-\put(28,-31){Active}
-\put(80,-15){\circle{10}\circle{8}}
-\put(88,-16){Non-active}
-\put(80,-30){\circle{10}}\put(77.5,-31.5){\huge$\times$}
-\put(88,-31){Fathomed}
-\end{picture}
+\noindent\hfil
+\xymatrix @R=20pt @C=10pt
+{&&&&&&*+<14pt>[o][F=]{A}\ar@{-}[dllll]\ar@{-}[dr]\ar@{-}[drrrr]&&&&\\
+&&*+<14pt>[o][F=]{B}\ar@{-}[dl]\ar@{-}[dr]&&&&&*+<14pt>[o][F=]{C}
+\ar@{-}[dll]\ar@{-}[dr]\ar@{-}[drrr]&&&*+<14pt>[o][F-]{\times}\\
+&*+<14pt>[o][F-]{\times}\ar@{-}[dl]\ar@{-}[d]\ar@{-}[dr]&&
+*+<14pt>[o][F-]{D}&&*+<14pt>[o][F=]{E}\ar@{-}[dl]\ar@{-}[dr]&&&
+*+<14pt>[o][F=]{F}\ar@{-}[dl]\ar@{-}[dr]&&*+<14pt>[o][F-]{G}\\
+*+<14pt>[o][F-]{\times}&*+<14pt>[o][F-]{\times}&*+<14pt>[o][F-]{\times}
+&&*+<14pt>[][F-]{H}&&*+<14pt>[o][F-]{I}&*+<14pt>[o][F-]{\times}&&
+*+<14pt>[o][F-]{J}&\\}
 
 \bigskip
 
-Fig. 1. An example of the search tree
+\noindent\hspace{.8in}
+\xymatrix @R=11pt
+{*+<20pt>[][F-]{}&*\txt{\makebox[1in][l]{Current}}&&
+*+<20pt>[o][F-]{}&*\txt{\makebox[1in][l]{Active}}\\
+*+<20pt>[o][F=]{}&*\txt{\makebox[1in][l]{Non-active}}&&
+*+<14pt>[o][F-]{\times}&*\txt{\makebox[1in][l]{Fathomed}}\\
+}
+
+\begin{center}
+Fig. 1. An example of the search tree.
 \end{center}
 \end{figure}
 

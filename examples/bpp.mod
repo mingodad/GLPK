@@ -21,9 +21,9 @@ param c, > 0;
 /* We need to estimate an upper bound of the number of bins sufficient
    to contain all items. The number of items m can be used, however, it
    is not a good idea. To obtain a more suitable estimation an easy
-   heuristic is used: we put items into a bin until it is possible, and
-   if the bin is full, we use another bin. Thus, the number of bin used
-   in this way gives us a more appropriate estimation. */
+   heuristic is used: we put items into a bin while it is possible, and
+   if the bin is full, we use another bin. The number of bins used in
+   this way gives us a more appropriate estimation. */
 
 param z{i in I, j in 1..m} :=
 /* z[i,j] = 1 if item i is in bin j, otherwise z[i,j] = 0 */

@@ -14,9 +14,10 @@ set I;
 param a{i in I};
 /* capacity of plant i in cases */
 
-table plants IN "iODBC" 
-  'DSN=glpk;UID=glpk;PWD=gnu' 
-  'SELECT PLANT, CAPA AS CAPACITY FROM transp_capa' : 
+table plants IN "iODBC"
+  'DSN=glpk;UID=glpk;PWD=gnu'
+  'SELECT PLANT, CAPA AS CAPACITY'
+  'FROM transp_capa' :
    I <- [ PLANT ], a ~ CAPACITY;
 
 set J;
@@ -25,17 +26,17 @@ set J;
 param b{j in J};
 /* demand at market j in cases */
 
-table markets IN "iODBC" 
-  'DSN=glpk;UID=glpk;PWD=gnu' 
-  'transp_demand' : 
+table markets IN "iODBC"
+  'DSN=glpk;UID=glpk;PWD=gnu'
+  'transp_demand' :
   J <- [ MARKET ], b ~ DEMAND;
 
 param d{i in I, j in J};
 /* distance in thousands of miles */
 
-table dist IN "iODBC" 
-  'DSN=glpk;UID=glpk;PWD=gnu' 
-  'transp_dist' : 
+table dist IN "iODBC"
+  'DSN=glpk;UID=glpk;PWD=gnu'
+  'transp_dist' :
   [ LOC1, LOC2 ], d ~ DIST;
 
 param f;
@@ -58,10 +59,9 @@ s.t. demand{j in J}: sum{i in I} x[i,j] >= b[j];
 
 solve;
 
-table result{i in I, j in J: x[i,j]} OUT "iODBC" 
-  'DSN=glpk;UID=glpk;PWD=gnu' 
-  'DELETE FROM transp_result'
-# 'transp_result'  
+table result{i in I, j in J: x[i,j]} OUT "iODBC"
+  'DSN=glpk;UID=glpk;PWD=gnu'
+  'DELETE FROM transp_result;'
   'INSERT INTO transp_result VALUES (?,?,?)' :
   i ~ LOC1, j ~ LOC2, x[i,j] ~ QUANTITY;
 

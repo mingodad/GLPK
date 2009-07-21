@@ -41,6 +41,11 @@ obtained to an output text file.
 
 \noindent
 \begin{tabular}{@{}p{30mm}p{92.3mm}@{}}
+\verb|--seed| {\it value}
+                  &  initialize pseudo-random number generator used in
+                     MathProg model with specified seed (any integer);
+                     if the seed value is specified as \verb|?|
+                     (question mark), some random seed will be used\\
 \verb|--mincost|  &  read min-cost flow problem in DIMACS format\\
 \verb|--maxflow|  &  read maximum flow problem in DIMACS format\\
 \verb|--simplex|  &  use simplex method (default) \\
@@ -111,6 +116,10 @@ obtained to an output text file.
 \verb|--std|      &  use standard initial basis of all slacks \\
 \verb|--adv|      &  use advanced initial basis (default) \\
 \verb|--bib|      &  use Bixby's initial basis\\
+\verb|--ini| {\it filename}
+                  &  use as initial basis previously saved with
+                     \verb|-w| \\
+                  & (disables LP presolver) \\
 \verb|--steep|    &  use steepest edge technique (default) \\
 \verb|--nosteep|  &  use standard ``textbook'' pricing \\
 \verb|--relax|    &  use Harris' two-pass ratio test (default) \\
@@ -141,6 +150,10 @@ obtained to an output text file.
 \verb|--first|    &  branch on first integer variable \\
 \verb|--last|     &  branch on last integer variable \\
 \verb|--mostf|    &  branch on most fractional variable \\
+\end{tabular}
+
+\noindent
+\begin{tabular}{@{}p{30mm}p{92.3mm}@{}}
 \verb|--drtom|    &  branch using heuristic by Driebeck and Tomlin
                      (default) \\
 \verb|--pcost|    &  branch using hybrid pseudocost heuristic (may be

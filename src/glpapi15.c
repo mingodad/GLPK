@@ -21,10 +21,9 @@
 *  along with GLPK. If not, see <http://www.gnu.org/licenses/>.
 ***********************************************************************/
 
-#define _GLPSTD_STDIO
+typedef struct MPL glp_tran;
+
 #include "glpmpl.h"
-typedef MPL glp_tran;
-#define GLP_TRAN
 #include "glpapi.h"
 
 glp_tran *glp_mpl_alloc_wksp(void)
@@ -33,6 +32,15 @@ glp_tran *glp_mpl_alloc_wksp(void)
       tran = mpl_initialize();
       return tran;
 }
+
+#if 1 /* 08/XII-2009 */
+void _glp_mpl_init_rand(glp_tran *tran, int seed)
+{     if (tran->phase != 0)
+         xerror("glp_mpl_init_rand: invalid call sequence\n");
+      rng_init_rand(tran->rand, seed);
+      return;
+}
+#endif
 
 int glp_mpl_read_model(glp_tran *tran, const char *fname, int skip)
 {     /* read and translate model section */

@@ -32,7 +32,6 @@ typedef struct NPPCOL NPPCOL;
 typedef struct NPPAIJ NPPAIJ;
 typedef struct NPPTSE NPPTSE;
 typedef struct NPPLFE NPPLFE;
-typedef struct NPPLFX NPPLFX;
 
 struct NPP
 {     /* LP/MIP preprocessor workspace */
@@ -79,11 +78,15 @@ struct NPP
       NPPCOL *c_tail;
       /* pointer to the end of the column list */
       /*--------------------------------------------------------------*/
-      /* transformation history segment */
+      /* transformation history */
       DMP *stack;
       /* memory pool to store transformation entries */
       NPPTSE *top;
       /* pointer to most recent transformation entry */
+#if 0 /* 16/XII-2009 */
+      int count[1+25];
+      /* transformation statistics */
+#endif
       /*--------------------------------------------------------------*/
       /* resultant (preprocessed) problem segment */
       int m;
@@ -132,27 +135,25 @@ struct NPP
          GLP_FEAS   - integer solution is feasible
          GLP_NOFEAS - no integer solution exists */
       char *r_stat; /* char r_stat[1+nrows]; */
-      /* r_stat[i], 1 <= i <= nrows, is the status of i-th row:
+      /* r_stat[i], 1 <= i <= nrows, is status of i-th row:
          GLP_BS - inactive constraint
          GLP_NL - active constraint on lower bound
          GLP_NU - active constraint on upper bound
          GLP_NF - active free row
          GLP_NS - active equality constraint */
-      double *r_prim; /* double r_prim[1+nrows]; */
-      /* r_prim[i], 1 <= i <= nrows, is a primal value of i-th row */
-      double *r_dual; /* double r_dual[1+nrows]; */
-      /* r_dual[i], 1 <= i <= nrows, is a dual value of i-th row */
       char *c_stat; /* char c_stat[1+nrows]; */
-      /* c_stat[j], 1 <= j <= nrows, is the status of j-th column:
+      /* c_stat[j], 1 <= j <= nrows, is status of j-th column:
          GLP_BS - basic variable
          GLP_NL - non-basic variable on lower bound
          GLP_NU - non-basic variable on upper bound
          GLP_NF - non-basic free variable
          GLP_NS - non-basic fixed variable */
-      double *c_prim; /* double c_prim[1+ncols]; */
-      /* c_prim[j], 1 <= j <= ncols, is a primal value of j-th column */
-      double *c_dual; /* double c_dual[1+ncols]; */
-      /* c_dual[j], 1 <= j <= ncols, is a dual value of j-th column */
+      double *r_pi; /* double r_pi[1+nrows]; */
+      /* r_pi[i], 1 <= i <= nrows, is Lagrange multiplier (dual value)
+         for i-th row (constraint) */
+      double *c_value; /* double c_value[1+ncols]; */
+      /* c_value[j], 1 <= j <= ncols, is primal value of j-th column
+         (structural variable) */
 };
 
 struct NPPROW
@@ -183,10 +184,8 @@ struct NPPCOL
       char *name;
       /* column name (1 to 255 chars); NULL means no name is assigned
          to the column */
-      int kind;
-      /* column kind:
-         GLP_CV - continuous variable
-         GLP_IV - integer variable */
+      char is_int;
+      /* 0 means continuous variable; 1 means integer variable */
       double lb;
       /* lower bound; -DBL_MAX means the column has no lower bound */
       double ub;
@@ -197,6 +196,10 @@ struct NPPCOL
       /* pointer to the linked list of constraint coefficients */
       int temp;
       /* working field used by preprocessor routines */
+#if 1 /* 18/XII-2009 */
+      double ll, uu;
+      /* column implied bounds */
+#endif
       NPPCOL *prev;
       /* pointer to previous column in the column list */
       NPPCOL *next;
@@ -223,7 +226,7 @@ struct NPPAIJ
 
 struct NPPTSE
 {     /* transformation stack entry */
-      void (*func)(NPP *npp, void *info);
+      int (*func)(NPP *npp, void *info);
       /* pointer to routine performing back transformation */
       void *info;
       /* pointer to specific info (depends on the transformation) */
@@ -241,18 +244,6 @@ struct NPPLFE
       /* pointer to another element */
 };
 
-struct NPPLFX
-{     /* extended linear form element */
-      int ref;
-      /* row/column reference number */
-      char flag;
-      /* row/column flag */
-      double val;
-      /* (non-zero) coefficient value */
-      NPPLFX *next;
-      /* pointer to another element */
-};
-
 #define npp_create_wksp _glp_npp_create_wksp
 NPP *npp_create_wksp(void);
 /* create LP/MIP preprocessor workspace */
@@ -265,6 +256,14 @@ void npp_insert_row(NPP *npp, NPPROW *row, int where);
 void npp_remove_row(NPP *npp, NPPROW *row);
 /* remove row from the row list */
 
+#define npp_activate_row _glp_npp_activate_row
+void npp_activate_row(NPP *npp, NPPROW *row);
+/* make row active */
+
+#define npp_deactivate_row _glp_npp_deactivate_row
+void npp_deactivate_row(NPP *npp, NPPROW *row);
+/* make row inactive */
+
 #define npp_insert_col _glp_npp_insert_col
 void npp_insert_col(NPP *npp, NPPCOL *col, int where);
 /* insert column to the column list */
@@ -272,6 +271,14 @@ void npp_insert_col(NPP *npp, NPPCOL *col, int where);
 #define npp_remove_col _glp_npp_remove_col
 void npp_remove_col(NPP *npp, NPPCOL *col);
 /* remove column from the column list */
+
+#define npp_activate_col _glp_npp_activate_col
+void npp_activate_col(NPP *npp, NPPCOL *col);
+/* make column active */
+
+#define npp_deactivate_col _glp_npp_deactivate_col
+void npp_deactivate_col(NPP *npp, NPPCOL *col);
+/* make column inactive */
 
 #define npp_add_row _glp_npp_add_row
 NPPROW *npp_add_row(NPP *npp);
@@ -286,7 +293,7 @@ NPPAIJ *npp_add_aij(NPP *npp, NPPROW *row, NPPCOL *col, double val);
 /* add new element to the constraint matrix */
 
 #define npp_push_tse _glp_npp_push_tse
-void *npp_push_tse(NPP *npp, void (*func)(NPP *npp, void *info),
+void *npp_push_tse(NPP *npp, int (*func)(NPP *npp, void *info),
       int size);
 /* push new entry to the transformation stack */
 
@@ -319,81 +326,119 @@ void npp_unload_sol(NPP *npp, glp_prob *orig);
 void npp_delete_wksp(NPP *npp);
 /* delete LP/MIP preprocessor workspace */
 
+#define npp_error()
+
 #define npp_free_row _glp_npp_free_row
-void npp_free_row(NPP *npp, NPPROW *row);
-/* process free row */
+void npp_free_row(NPP *npp, NPPROW *p);
+/* process free (unbounded) row */
 
-#define npp_gteq_row _glp_npp_gteq_row
-void npp_gteq_row(NPP *npp, NPPROW *row);
-/* process row of 'greater than or equal to' type */
+#define npp_geq_row _glp_npp_geq_row
+void npp_geq_row(NPP *npp, NPPROW *p);
+/* process row of 'not less than' type */
 
-#define npp_lteq_row _glp_npp_lteq_row
-void npp_lteq_row(NPP *npp, NPPROW *row);
-/* process row of 'less than or equal to' type */
+#define npp_leq_row _glp_npp_leq_row
+void npp_leq_row(NPP *npp, NPPROW *p);
+/* process row of 'not greater than' type */
 
 #define npp_free_col _glp_npp_free_col
-void npp_free_col(NPP *npp, NPPCOL *col);
-/* process free column */
+void npp_free_col(NPP *npp, NPPCOL *q);
+/* process free (unbounded) column */
 
 #define npp_lbnd_col _glp_npp_lbnd_col
-void npp_lbnd_col(NPP *npp, NPPCOL *col);
-/* process column with lower bound */
+void npp_lbnd_col(NPP *npp, NPPCOL *q);
+/* process column with (non-zero) lower bound */
 
 #define npp_ubnd_col _glp_npp_ubnd_col
-void npp_ubnd_col(NPP *npp, NPPCOL *col);
+void npp_ubnd_col(NPP *npp, NPPCOL *q);
 /* process column with upper bound */
 
 #define npp_dbnd_col _glp_npp_dbnd_col
-void npp_dbnd_col(NPP *npp, NPPCOL *col);
-/* process double-bounded column */
+void npp_dbnd_col(NPP *npp, NPPCOL *q);
+/* process non-negative column with upper bound */
 
 #define npp_fixed_col _glp_npp_fixed_col
-void npp_fixed_col(NPP *npp, NPPCOL *col);
+void npp_fixed_col(NPP *npp, NPPCOL *q);
 /* process fixed column */
 
+#define npp_make_equality _glp_npp_make_equality
+int npp_make_equality(NPP *npp, NPPROW *p);
+/* process row with almost identical bounds */
+
+#define npp_make_fixed _glp_npp_make_fixed
+int npp_make_fixed(NPP *npp, NPPCOL *q);
+/* process column with almost identical bounds */
+
 #define npp_empty_row _glp_npp_empty_row
-int npp_empty_row(NPP *npp, NPPROW *row);
+int npp_empty_row(NPP *npp, NPPROW *p);
 /* process empty row */
 
 #define npp_empty_col _glp_npp_empty_col
-int npp_empty_col(NPP *npp, NPPCOL *col);
+int npp_empty_col(NPP *npp, NPPCOL *q);
 /* process empty column */
 
-#define npp_implied_fixed _glp_npp_implied_fixed
-int npp_implied_fixed(NPP *npp, NPPCOL *col, double val);
-/* process implied fixed value of column */
+#define npp_implied_value _glp_npp_implied_value
+int npp_implied_value(NPP *npp, NPPCOL *q, double s);
+/* process implied column value */
 
-#define npp_row_sngtn1 _glp_npp_row_sngtn1
-int npp_row_sngtn1(NPP *npp, NPPROW *row);
+#define npp_eq_singlet _glp_npp_eq_singlet
+int npp_eq_singlet(NPP *npp, NPPROW *p);
 /* process row singleton (equality constraint) */
 
 #define npp_implied_lower _glp_npp_implied_lower
-int npp_implied_lower(NPP *npp, NPPCOL *col, double bnd);
-/* process implied lower bound of column */
+int npp_implied_lower(NPP *npp, NPPCOL *q, double l);
+/* process implied column lower bound */
 
 #define npp_implied_upper _glp_npp_implied_upper
-int npp_implied_upper(NPP *npp, NPPCOL *col, double bnd);
+int npp_implied_upper(NPP *npp, NPPCOL *q, double u);
 /* process implied upper bound of column */
 
-#define npp_row_sngtn2 _glp_npp_row_sngtn2
-int npp_row_sngtn2(NPP *npp, NPPROW *row);
+#define npp_ineq_singlet _glp_npp_ineq_singlet
+int npp_ineq_singlet(NPP *npp, NPPROW *p);
 /* process row singleton (inequality constraint) */
 
-#define npp_col_sngtn1 _glp_npp_col_sngtn1
-void npp_col_sngtn1(NPP *npp, NPPCOL *col);
+#define npp_implied_slack _glp_npp_implied_slack
+void npp_implied_slack(NPP *npp, NPPCOL *q);
 /* process column singleton (implied slack variable) */
 
-#define npp_col_sngtn2 _glp_npp_col_sngtn2
-int npp_col_sngtn2(NPP *npp, NPPCOL *col);
+#define npp_implied_free _glp_npp_implied_free
+int npp_implied_free(NPP *npp, NPPCOL *q);
 /* process column singleton (implied free variable) */
 
 #define npp_forcing_row _glp_npp_forcing_row
-int npp_forcing_row(NPP *npp, NPPROW *row, int at);
+int npp_forcing_row(NPP *npp, NPPROW *p, int at);
 /* process forcing row */
 
-#define npp_preprocess _glp_npp_preprocess
-int npp_preprocess(NPP *npp);
-/* preprocess LP/MIP instance */
+#define npp_analyze_row _glp_npp_analyze_row
+int npp_analyze_row(NPP *npp, NPPROW *p);
+/* perform general row analysis */
+
+#define npp_inactive_bound _glp_npp_inactive_bound
+void npp_inactive_bound(NPP *npp, NPPROW *p, int which);
+/* remove row lower/upper inactive bound */
+
+#define npp_implied_bounds _glp_npp_implied_bounds
+void npp_implied_bounds(NPP *npp, NPPROW *p);
+/* determine implied column bounds */
+
+#define npp_clean_prob _glp_npp_clean_prob
+void npp_clean_prob(NPP *npp);
+/* perform initial LP/MIP processing */
+
+#define npp_process_row _glp_npp_process_row
+int npp_process_row(NPP *npp, NPPROW *row);
+/* perform basic row processing */
+
+#define npp_process_col _glp_npp_process_col
+int npp_process_col(NPP *npp, NPPCOL *col);
+/* perform basic column processing */
+
+#define npp_process_prob _glp_npp_process_prob
+int npp_process_prob(NPP *npp);
+/* perform basic LP/MIP processing */
+
+#define npp_simplex _glp_npp_simplex
+int npp_simplex(NPP *npp);
+/* process LP prior to applying primal/dual simplex method */
 
 #endif
 
