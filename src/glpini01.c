@@ -21,7 +21,7 @@
 *  along with GLPK. If not, see <http://www.gnu.org/licenses/>.
 ***********************************************************************/
 
-#include "glpini.h"
+#include "glpapi.h"
 
 /*----------------------------------------------------------------------
 -- triang - find maximal triangular part of a rectangular matrix.
@@ -445,18 +445,25 @@ static int mat(void *info, int k, int ndx[])
       return len;
 }
 
-void adv_basis(glp_prob *lp)
+static void adv_basis(glp_prob *lp)
 {     int m = lpx_get_num_rows(lp);
       int n = lpx_get_num_cols(lp);
       int i, j, jj, k, size;
       int *rn, *cn, *rn_inv, *cn_inv;
       int typx, *tagx = xcalloc(1+m+n, sizeof(int));
       double lb, ub;
-      xprintf("Crashing...\n");
+      xprintf("Constructing initial basis...\n");
+#if 0 /* 13/V-2009 */
       if (m == 0)
          xerror("glp_adv_basis: problem has no rows\n");
       if (n == 0)
          xerror("glp_adv_basis: problem has no columns\n");
+#else
+      if (m == 0 || n == 0)
+      {  glp_std_basis(lp);
+         return;
+      }
+#endif
       /* use the routine triang (see above) to find maximal triangular
          part of the augmented constraint matrix A~ = (I|-A); in order
          to prevent columns of fixed variables to be included in the
@@ -536,6 +543,33 @@ void adv_basis(glp_prob *lp)
             lpx_set_col_stat(lp, k-m, tagx[k]);
       }
       xfree(tagx);
+      return;
+}
+
+/***********************************************************************
+*  NAME
+*
+*  glp_adv_basis - construct advanced initial LP basis
+*
+*  SYNOPSIS
+*
+*  void glp_adv_basis(glp_prob *lp, int flags);
+*
+*  DESCRIPTION
+*
+*  The routine glp_adv_basis constructs an advanced initial basis for
+*  the specified problem object.
+*
+*  The parameter flags is reserved for use in the future and must be
+*  specified as zero. */
+
+void glp_adv_basis(glp_prob *lp, int flags)
+{     if (flags != 0)
+         xerror("glp_adv_basis: flags = %d; invalid flags\n", flags);
+      if (lp->m == 0 || lp->n == 0)
+         glp_std_basis(lp);
+      else
+         adv_basis(lp);
       return;
 }
 

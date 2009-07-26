@@ -225,9 +225,9 @@ void glp_get_bfcp(glp_prob *lp, glp_bfcp *parm)
          parm->suhl = GLP_ON;
          parm->eps_tol = 1e-15;
          parm->max_gro = 1e+10;
-         parm->nfs_max = 50;
+         parm->nfs_max = 100;
          parm->upd_tol = 1e-6;
-         parm->nrs_max = 50;
+         parm->nrs_max = 100;
          parm->rs_size = 0;
       }
       else
@@ -538,6 +538,197 @@ void glp_btran(glp_prob *lp, double x[])
       for (i = 1; i <= m; i++)
          x[i] *= row[i]->rii;
       return;
+}
+
+/***********************************************************************
+*  NAME
+*
+*  glp_warm_up - "warm up" LP basis
+*
+*  SYNOPSIS
+*
+*  int glp_warm_up(glp_prob *P);
+*
+*  DESCRIPTION
+*
+*  The routine glp_warm_up "warms up" the LP basis for the specified
+*  problem object using current statuses assigned to rows and columns
+*  (that is, to auxiliary and structural variables).
+*
+*  This operation includes computing factorization of the basis matrix
+*  (if it does not exist), computing primal and dual components of basic
+*  solution, and determining the solution status.
+*
+*  RETURNS
+*
+*  0  The operation has been successfully performed.
+*
+*  GLP_EBADB
+*     The basis matrix is invalid, i.e. the number of basic (auxiliary
+*     and structural) variables differs from the number of rows in the
+*     problem object.
+*
+*  GLP_ESING
+*     The basis matrix is singular within the working precision.
+*
+*  GLP_ECOND
+*     The basis matrix is ill-conditioned. */
+
+int glp_warm_up(glp_prob *P)
+{     GLPROW *row;
+      GLPCOL *col;
+      GLPAIJ *aij;
+      int i, j, type, ret;
+      double eps, *work;
+      /* invalidate basic solution */
+      P->pbs_stat = P->dbs_stat = GLP_UNDEF;
+      P->obj_val = 0.0;
+      P->some = 0;
+      for (i = 1; i <= P->m; i++)
+      {  row = P->row[i];
+         row->prim = row->dual = 0.0;
+      }
+      for (j = 1; j <= P->n; j++)
+      {  col = P->col[j];
+         col->prim = col->dual = 0.0;
+      }
+      /* compute the basis factorization, if necessary */
+      if (!glp_bf_exists(P))
+      {  ret = glp_factorize(P);
+         if (ret != 0) goto done;
+      }
+      /* allocate working array */
+      work = xcalloc(1+P->m, sizeof(double));
+      /* determine and store values of non-basic variables, compute
+         vector (- N * xN) */
+      for (i = 1; i <= P->m; i++)
+         work[i] = 0.0;
+      for (i = 1; i <= P->m; i++)
+      {  row = P->row[i];
+         if (row->stat == GLP_BS)
+            continue;
+         else if (row->stat == GLP_NL)
+            row->prim = row->lb;
+         else if (row->stat == GLP_NU)
+            row->prim = row->ub;
+         else if (row->stat == GLP_NF)
+            row->prim = 0.0;
+         else if (row->stat == GLP_NS)
+            row->prim = row->lb;
+         else
+            xassert(row != row);
+         /* N[j] is i-th column of matrix (I|-A) */
+         work[i] -= row->prim;
+      }
+      for (j = 1; j <= P->n; j++)
+      {  col = P->col[j];
+         if (col->stat == GLP_BS)
+            continue;
+         else if (col->stat == GLP_NL)
+            col->prim = col->lb;
+         else if (col->stat == GLP_NU)
+            col->prim = col->ub;
+         else if (col->stat == GLP_NF)
+            col->prim = 0.0;
+         else if (col->stat == GLP_NS)
+            col->prim = col->lb;
+         else
+            xassert(col != col);
+         /* N[j] is (m+j)-th column of matrix (I|-A) */
+         if (col->prim != 0.0)
+         {  for (aij = col->ptr; aij != NULL; aij = aij->c_next)
+               work[aij->row->i] += aij->val * col->prim;
+         }
+      }
+      /* compute vector of basic variables xB = - inv(B) * N * xN */
+      glp_ftran(P, work);
+      /* store values of basic variables, check primal feasibility */
+      P->pbs_stat = GLP_FEAS;
+      for (i = 1; i <= P->m; i++)
+      {  row = P->row[i];
+         if (row->stat != GLP_BS)
+            continue;
+         row->prim = work[row->bind];
+         type = row->type;
+         if (type == GLP_LO || type == GLP_DB || type == GLP_FX)
+         {  eps = 1e-6 + 1e-9 * fabs(row->lb);
+            if (row->prim < row->lb - eps)
+               P->pbs_stat = GLP_INFEAS;
+         }
+         if (type == GLP_UP || type == GLP_DB || type == GLP_FX)
+         {  eps = 1e-6 + 1e-9 * fabs(row->ub);
+            if (row->prim > row->ub + eps)
+               P->pbs_stat = GLP_INFEAS;
+         }
+      }
+      for (j = 1; j <= P->n; j++)
+      {  col = P->col[j];
+         if (col->stat != GLP_BS)
+            continue;
+         col->prim = work[col->bind];
+         type = col->type;
+         if (type == GLP_LO || type == GLP_DB || type == GLP_FX)
+         {  eps = 1e-6 + 1e-9 * fabs(col->lb);
+            if (col->prim < col->lb - eps)
+               P->pbs_stat = GLP_INFEAS;
+         }
+         if (type == GLP_UP || type == GLP_DB || type == GLP_FX)
+         {  eps = 1e-6 + 1e-9 * fabs(col->ub);
+            if (col->prim > col->ub + eps)
+               P->pbs_stat = GLP_INFEAS;
+         }
+      }
+      /* compute value of the objective function */
+      P->obj_val = P->c0;
+      for (j = 1; j <= P->n; j++)
+      {  col = P->col[j];
+         P->obj_val += col->coef * col->prim;
+      }
+      /* build vector cB of objective coefficients at basic variables */
+      for (i = 1; i <= P->m; i++)
+         work[i] = 0.0;
+      for (j = 1; j <= P->n; j++)
+      {  col = P->col[j];
+         if (col->stat == GLP_BS)
+            work[col->bind] = col->coef;
+      }
+      /* compute vector of simplex multipliers pi = inv(B') * cB */
+      glp_btran(P, work);
+      /* compute and store reduced costs of non-basic variables d[j] =
+         c[j] - N'[j] * pi, check dual feasibility */
+      P->dbs_stat = GLP_FEAS;
+      for (i = 1; i <= P->m; i++)
+      {  row = P->row[i];
+         if (row->stat == GLP_BS)
+         {  row->dual = 0.0;
+            continue;
+         }
+         /* N[j] is i-th column of matrix (I|-A) */
+         row->dual = - work[i];
+         type = row->type;
+         if ((type == GLP_FR || type == GLP_LO) && row->dual < -1e-5 ||
+             (type == GLP_FR || type == GLP_UP) && row->dual > +1e-5)
+            P->dbs_stat = GLP_INFEAS;
+      }
+      for (j = 1; j <= P->n; j++)
+      {  col = P->col[j];
+         if (col->stat == GLP_BS)
+         {  col->dual = 0.0;
+            continue;
+         }
+         /* N[j] is (m+j)-th column of matrix (I|-A) */
+         col->dual = col->coef;
+         for (aij = col->ptr; aij != NULL; aij = aij->c_next)
+            col->dual += aij->val * work[aij->row->i];
+         type = col->type;
+         if ((type == GLP_FR || type == GLP_LO) && col->dual < -1e-5 ||
+             (type == GLP_FR || type == GLP_UP) && col->dual > +1e-5)
+            P->dbs_stat = GLP_INFEAS;
+      }
+      /* free working array */
+      xfree(work);
+      ret = 0;
+done: return ret;
 }
 
 /***********************************************************************

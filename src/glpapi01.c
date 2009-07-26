@@ -1097,8 +1097,17 @@ void glp_del_rows(glp_prob *lp, int nrs, const int num[])
                "\n", k, i);
          row = lp->row[i];
          if (tree != NULL && tree->reason != 0)
-         {  xassert(tree->curr != NULL);
-            xassert(row->level == tree->curr->level);
+         {  if (!(tree->reason == GLP_IROWGEN ||
+                  tree->reason == GLP_ICUTGEN))
+               xerror("glp_del_rows: operation not allowed\n");
+            xassert(tree->curr != NULL);
+            if (row->level != tree->curr->level)
+               xerror("glp_del_rows: num[%d] = %d; invalid attempt to d"
+                  "elete row created not in current subproblem\n", k,i);
+            if (row->stat != GLP_BS)
+               xerror("glp_del_rows: num[%d] = %d; invalid attempt to d"
+                  "elete active row (constraint)\n", k, i);
+            tree->reinv = 1;
          }
          /* check that the row is not marked yet */
          if (row->i == 0)

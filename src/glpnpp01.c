@@ -48,6 +48,82 @@ NPP *npp_create_wksp(void)
       return npp;
 }
 
+void npp_insert_row(NPP *npp, NPPROW *row, int where)
+{     /* insert row to the row list */
+      if (where == 0)
+      {  /* insert row to the beginning of the row list */
+         row->prev = NULL;
+         row->next = npp->r_head;
+         if (row->next == NULL)
+            npp->r_tail = row;
+         else
+            row->next->prev = row;
+         npp->r_head = row;
+      }
+      else
+      {  /* insert row to the end of the row list */
+         row->prev = npp->r_tail;
+         row->next = NULL;
+         if (row->prev == NULL)
+            npp->r_head = row;
+         else
+            row->prev->next = row;
+         npp->r_tail = row;
+      }
+      return;
+}
+
+void npp_remove_row(NPP *npp, NPPROW *row)
+{     /* remove row from the row list */
+      if (row->prev == NULL)
+         npp->r_head = row->next;
+      else
+         row->prev->next = row->next;
+      if (row->next == NULL)
+         npp->r_tail = row->prev;
+      else
+         row->next->prev = row->prev;
+      return;
+}
+
+void npp_insert_col(NPP *npp, NPPCOL *col, int where)
+{     /* insert column to the column list */
+      if (where == 0)
+      {  /* insert column to the beginning of the column list */
+         col->prev = NULL;
+         col->next = npp->c_head;
+         if (col->next == NULL)
+            npp->c_tail = col;
+         else
+            col->next->prev = col;
+         npp->c_head = col;
+      }
+      else
+      {  /* insert column to the end of the column list */
+         col->prev = npp->c_tail;
+         col->next = NULL;
+         if (col->prev == NULL)
+            npp->c_head = col;
+         else
+            col->prev->next = col;
+         npp->c_tail = col;
+      }
+      return;
+}
+
+void npp_remove_col(NPP *npp, NPPCOL *col)
+{     /* remove column from the column list */
+      if (col->prev == NULL)
+         npp->c_head = col->next;
+      else
+         col->prev->next = col->next;
+      if (col->next == NULL)
+         npp->c_tail = col->prev;
+      else
+         col->next->prev = col->prev;
+      return;
+}
+
 NPPROW *npp_add_row(NPP *npp)
 {     /* add new row to the transformed problem */
       NPPROW *row;
@@ -57,13 +133,7 @@ NPPROW *npp_add_row(NPP *npp)
       row->lb = -DBL_MAX, row->ub = +DBL_MAX;
       row->ptr = NULL;
       row->temp = 0;
-      row->prev = npp->r_tail;
-      row->next = NULL;
-      if (row->prev == NULL)
-         npp->r_head = row;
-      else
-         row->prev->next = row;
-      npp->r_tail = row;
+      npp_insert_row(npp, row, 1);
       return row;
 }
 
@@ -76,13 +146,8 @@ NPPCOL *npp_add_col(NPP *npp)
       col->kind = GLP_CV;
       col->lb = col->ub = col->coef = 0.0;
       col->ptr = NULL;
-      col->prev = npp->c_tail;
-      col->next = NULL;
-      if (col->prev == NULL)
-         npp->c_head = col;
-      else
-         col->prev->next = col;
-      npp->c_tail = col;
+      col->temp = 0;
+      npp_insert_col(npp, col, 1);
       return col;
 }
 
@@ -135,14 +200,7 @@ void npp_del_row(NPP *npp, NPPROW *row)
             aij->c_next->c_prev = aij->c_prev;
          dmp_free_atom(npp->pool, aij, sizeof(NPPAIJ));
       }
-      if (row->prev == NULL)
-         npp->r_head = row->next;
-      else
-         row->prev->next = row->next;
-      if (row->next == NULL)
-         npp->r_tail = row->prev;
-      else
-         row->next->prev = row->prev;
+      npp_remove_row(npp, row);
       dmp_free_atom(npp->pool, row, sizeof(NPPROW));
       return;
 }
@@ -165,14 +223,7 @@ void npp_del_col(NPP *npp, NPPCOL *col)
             aij->r_next->r_prev = aij->r_prev;
          dmp_free_atom(npp->pool, aij, sizeof(NPPAIJ));
       }
-      if (col->prev == NULL)
-         npp->c_head = col->next;
-      else
-         col->prev->next = col->next;
-      if (col->next == NULL)
-         npp->c_tail = col->prev;
-      else
-         col->next->prev = col->prev;
+      npp_remove_col(npp, col);
       dmp_free_atom(npp->pool, col, sizeof(NPPCOL));
       return;
 }

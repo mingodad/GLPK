@@ -24,7 +24,6 @@ OBJSET = \
 ..\src\glpapi17.obj \
 ..\src\glpapi18.obj \
 ..\src\glpapi19.obj \
-..\src\glpapi20.obj \
 ..\src\glpavl.obj \
 ..\src\glpbfd.obj \
 ..\src\glpbfx.obj \
@@ -62,13 +61,10 @@ OBJSET = \
 ..\src\glplib11.obj \
 ..\src\glplib12.obj \
 ..\src\glplpf.obj \
-..\src\glplpp01.obj \
-..\src\glplpp02.obj \
 ..\src\glplpx01.obj \
 ..\src\glplpx02.obj \
 ..\src\glplpx03.obj \
 ..\src\glplpx04.obj \
-..\src\glplpx05.obj \
 ..\src\glpluf.obj \
 ..\src\glplux.obj \
 ..\src\glpmat.obj \
@@ -88,6 +84,7 @@ OBJSET = \
 ..\src\glpnet07.obj \
 ..\src\glpnpp01.obj \
 ..\src\glpnpp02.obj \
+..\src\glpnpp03.obj \
 ..\src\glpqmd.obj \
 ..\src\glprgr.obj \
 ..\src\glprng01.obj \
@@ -95,7 +92,7 @@ OBJSET = \
 ..\src\glpscf.obj \
 ..\src\glpscg.obj \
 ..\src\glpscl.obj \
-..\src\glpsds.obj \
+..\src\glpsdf.obj \
 ..\src\glpspm.obj \
 ..\src\glpspx01.obj \
 ..\src\glpspx02.obj \

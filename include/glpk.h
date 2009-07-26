@@ -28,9 +28,12 @@
 extern "C" {
 #endif
 
+#include <stdarg.h>
+#include <stddef.h>
+
 /* library version numbers: */
 #define GLP_MAJOR_VERSION  4
-#define GLP_MINOR_VERSION  38
+#define GLP_MINOR_VERSION  39
 
 #ifndef GLP_PROB
 #define GLP_PROB
@@ -262,7 +265,7 @@ typedef struct
 #define GLP_MPS_FILE       2  /* free (modern) */
 
 typedef struct
-{     /* MPS input/output control parameters */
+{     /* MPS format control parameters */
       int blank;
       /* character code to replace blanks in symbolic names */
       char *obj_name;
@@ -272,6 +275,12 @@ typedef struct
       double foo_bar[17];
       /* (reserved for use in the future) */
 } glp_mpscp;
+
+typedef struct
+{     /* CPLEX LP format control parameters */
+      double foo_bar[20];
+      /* (reserved for use in the future) */
+} glp_cpxcp;
 
 #ifndef GLP_TRAN
 #define GLP_TRAN
@@ -590,6 +599,9 @@ void glp_ftran(glp_prob *P, double x[]);
 void glp_btran(glp_prob *P, double x[]);
 /* perform backward transformation (solve system B'*x = b) */
 
+int glp_warm_up(glp_prob *P);
+/* "warm up" LP basis */
+
 int glp_eval_tab_row(glp_prob *P, int k, int ind[], double val[]);
 /* compute row of the simplex tableau */
 
@@ -676,10 +688,13 @@ int glp_write_mps(glp_prob *P, int fmt, const glp_mpscp *parm,
       const char *fname);
 /* write problem data in MPS format */
 
-int glp_read_lp(glp_prob *P, const void *parm, const char *fname);
+void glp_init_cpxcp(glp_cpxcp *parm);
+/* initialize CPLEX LP format control parameters */
+
+int glp_read_lp(glp_prob *P, const glp_cpxcp *parm, const char *fname);
 /* read problem data in CPLEX LP format */
 
-int glp_write_lp(glp_prob *P, const void *parm, const char *fname);
+int glp_write_lp(glp_prob *P, const glp_cpxcp *parm, const char *fname);
 /* write problem data in CPLEX LP format */
 
 glp_tran *glp_mpl_alloc_wksp(void);
@@ -786,6 +801,9 @@ void glp_set_graph_name(glp_graph *G, const char *name);
 int glp_add_vertices(glp_graph *G, int nadd);
 /* add new vertices to graph */
 
+void glp_set_vertex_name(glp_graph *G, int i, const char *name);
+/* assign (change) vertex name */
+
 glp_arc *glp_add_arc(glp_graph *G, int i, int j);
 /* add new arc to graph */
 
@@ -794,6 +812,15 @@ void glp_erase_graph(glp_graph *G, int v_size, int a_size);
 
 void glp_delete_graph(glp_graph *G);
 /* delete graph */
+
+void glp_create_v_index(glp_graph *G);
+/* create vertex name index */
+
+int glp_find_vertex(glp_graph *G, const char *name);
+/* find vertex by its name */
+
+void glp_delete_v_index(glp_graph *G);
+/* delete vertex name index */
 
 int glp_read_graph(glp_graph *G, const char *fname);
 /* read graph from plain text file */
@@ -817,6 +844,25 @@ int glp_maxflow_ffalg(glp_graph *G, int s, int t, int a_cap,
       double *sol, int a_x, int v_cut);
 /* find maximal flow with Ford-Fulkerson algorithm */
 
+int glp_check_asnprob(glp_graph *G, int v_set);
+/* check correctness of assignment problem data */
+
+/* assignment problem formulation: */
+#define GLP_ASN_MIN        1  /* perfect matching (minimization) */
+#define GLP_ASN_MAX        2  /* perfect matching (maximization) */
+#define GLP_ASN_MMP        3  /* maximum matching */
+
+int glp_asnprob_lp(glp_prob *P, int form, glp_graph *G, int names,
+      int v_set, int a_cost);
+/* convert assignment problem to LP */
+
+int glp_asnprob_okalg(int form, glp_graph *G, int v_set, int a_cost,
+      double *sol, int a_x);
+/* solve assignment problem with out-of-kilter algorithm */
+
+int glp_asnprob_hall(glp_graph *G, int v_set, int a_x);
+/* find bipartite matching of maximum cardinality */
+
 int glp_read_mincost(glp_graph *G, int v_rhs, int a_low, int a_cap,
       int a_cost, const char *fname);
 /* read min-cost flow problem data in DIMACS format */
@@ -832,6 +878,20 @@ int glp_read_maxflow(glp_graph *G, int *s, int *t, int a_cap,
 int glp_write_maxflow(glp_graph *G, int s, int t, int a_cap,
       const char *fname);
 /* write maximum flow problem data in DIMACS format */
+
+int glp_read_asnprob(glp_graph *G, int v_set, int a_cost, const char
+      *fname);
+/* read assignment problem data in DIMACS format */
+
+int glp_write_asnprob(glp_graph *G, int v_set, int a_cost, const char
+      *fname);
+/* write assignment problem data in DIMACS format */
+
+int glp_read_ccformat(glp_graph *G, int v_wgt, const char *fname);
+/* read graph in DIMACS clique/coloring format */
+
+int glp_write_ccformat(glp_graph *G, int v_wgt, const char *fname);
+/* write graph in DIMACS clique/coloring format */
 
 int glp_netgen(glp_graph *G, int v_rhs, int a_cap, int a_cost,
       const int parm[1+15]);
@@ -862,7 +922,16 @@ const char *glp_version(void);
 void glp_printf(const char *fmt, ...);
 /* write formatted output to terminal */
 
-void glp_term_out(int flag);
+void glp_vprintf(const char *fmt, va_list arg);
+/* write formatted output to terminal */
+
+#define glp_assert(expr) \
+      ((void)((expr) || (glp_assert_(#expr, __FILE__, __LINE__), 1)))
+
+void glp_assert_(const char *expr, const char *file, int line);
+/* check for logical condition */
+
+int glp_term_out(int flag);
 /* enable/disable terminal output */
 
 void glp_term_hook(int (*func)(void *info, const char *s), void *info);
@@ -891,20 +960,39 @@ void glp_free_env(void);
 
 #ifndef GLP_DATA
 #define GLP_DATA
-typedef struct { double _opaque_data; } _glp_data;
-/* plain data set */
+typedef struct { double _opaque_data; } glp_data;
+/* plain data file */
 #endif
 
-_glp_data *_glp_sds_open(const char *fname);
-void _glp_sds_jump(_glp_data *data, void *jump);
-void _glp_sds_error(_glp_data *data, const char *fmt, ...);
-void _glp_sds_warning(_glp_data *data, const char *fmt, ...);
-int _glp_sds_int(_glp_data *data);
-double _glp_sds_num(_glp_data *data);
-const char *_glp_sds_item(_glp_data *data);
-const char *_glp_sds_text(_glp_data *data);
-int _glp_sds_line(_glp_data *data);
-void _glp_sds_close(_glp_data *data);
+glp_data *glp_sdf_open_file(const char *fname);
+/* open plain data file */
+
+void glp_sdf_set_jump(glp_data *data, void *jump);
+/* set up error handling */
+
+void glp_sdf_error(glp_data *data, const char *fmt, ...);
+/* print error message */
+
+void glp_sdf_warning(glp_data *data, const char *fmt, ...);
+/* print warning message */
+
+int glp_sdf_read_int(glp_data *data);
+/* read integer number */
+
+double glp_sdf_read_num(glp_data *data);
+/* read floating-point number */
+
+const char *glp_sdf_read_item(glp_data *data);
+/* read data item */
+
+const char *glp_sdf_read_text(glp_data *data);
+/* read text until end of line */
+
+int glp_sdf_line(glp_data *data);
+/* determine current line number */
+
+void glp_sdf_close_file(glp_data *data);
+/* close plain data file */
 
 /**********************************************************************/
 

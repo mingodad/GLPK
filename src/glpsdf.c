@@ -1,4 +1,4 @@
-/* glpsds.c (plain data set) */
+/* glpsdf.c (plain data file reading routines) */
 
 /***********************************************************************
 *  This code is part of GLPK (GNU Linear Programming Kit).
@@ -23,14 +23,14 @@
 
 #include "glplib.h"
 
-typedef struct _glp_data _glp_data;
+typedef struct glp_data glp_data;
 
-struct _glp_data
-{     /* plain data set */
+struct glp_data
+{     /* plain data file */
       char *fname;
-      /* name of input text file */
+      /* name of data file */
       XFILE *fp;
-      /* stream assigned to input text file */
+      /* stream assigned to data file */
       void *jump; /* jmp_buf jump; */
       /* label for go to in case of error */
       int count;
@@ -44,11 +44,11 @@ struct _glp_data
 #define GLP_DATA
 #include "glpapi.h"
 
-static void next_char(_glp_data *data);
+static void next_char(glp_data *data);
 
-_glp_data *_glp_sds_open(const char *fname)
-{     /* open plain data set */
-      _glp_data *data = NULL;
+glp_data *glp_sdf_open_file(const char *fname)
+{     /* open plain data file */
+      glp_data *data = NULL;
       XFILE *fp;
       jmp_buf jump;
       fp = xfopen(fname, "r");
@@ -56,7 +56,7 @@ _glp_data *_glp_sds_open(const char *fname)
       {  xprintf("Unable to open `%s' - %s\n", fname, xerrmsg());
          goto done;
       }
-      data = xmalloc(sizeof(_glp_data));
+      data = xmalloc(sizeof(glp_data));
       data->fname = xmalloc(strlen(fname)+1);
       strcpy(data->fname, fname);
       data->fp = fp;
@@ -66,7 +66,7 @@ _glp_data *_glp_sds_open(const char *fname)
       data->item[0] = '\0';
       /* read the very first character */
       if (setjmp(jump))
-      {  _glp_sds_close(data);
+      {  glp_sdf_close_file(data);
          data = NULL;
          goto done;
       }
@@ -76,14 +76,14 @@ _glp_data *_glp_sds_open(const char *fname)
 done: return data;
 }
 
-void _glp_sds_jump(_glp_data *data, void *jump)
+void glp_sdf_set_jump(glp_data *data, void *jump)
 {     /* set up error handling */
       data->jump = jump;
       return;
 }
 
-void _glp_sds_error(_glp_data *data, const char *fmt, ...)
-{     /* print error message and terminate processing */
+void glp_sdf_error(glp_data *data, const char *fmt, ...)
+{     /* print error message */
       va_list arg;
       xprintf("%s:%d: ", data->fname, data->count);
       va_start(arg, fmt);
@@ -96,8 +96,8 @@ void _glp_sds_error(_glp_data *data, const char *fmt, ...)
       /* no return */
 }
 
-void _glp_sds_warning(_glp_data *data, const char *fmt, ...)
-{     /* print warning message and continue processing */
+void glp_sdf_warning(glp_data *data, const char *fmt, ...)
+{     /* print warning message */
       va_list arg;
       xprintf("%s:%d: warning: ", data->fname, data->count);
       va_start(arg, fmt);
@@ -106,21 +106,21 @@ void _glp_sds_warning(_glp_data *data, const char *fmt, ...)
       return;
 }
 
-static void next_char(_glp_data *data)
+static void next_char(glp_data *data)
 {     /* read next character */
       int c;
       if (data->c == XEOF)
-         _glp_sds_error(data, "unexpected end of file\n");
+         glp_sdf_error(data, "unexpected end of file\n");
       else if (data->c == '\n')
          data->count++;
       c = xfgetc(data->fp);
       if (c < 0)
       {  if (xferror(data->fp))
-            _glp_sds_error(data, "read error - %s\n", xerrmsg());
+            glp_sdf_error(data, "read error - %s\n", xerrmsg());
          else if (data->c == '\n')
             c = XEOF;
          else
-         {  _glp_sds_warning(data, "missing final end of line\n");
+         {  glp_sdf_warning(data, "missing final end of line\n");
             c = '\n';
          }
       }
@@ -129,19 +129,19 @@ static void next_char(_glp_data *data)
       else if (isspace(c))
          c = ' ';
       else if (iscntrl(c))
-         _glp_sds_error(data, "invalid control character 0x%02X\n", c);
+         glp_sdf_error(data, "invalid control character 0x%02X\n", c);
       data->c = c;
       return;
 }
 
-static void skip_pad(_glp_data *data)
+static void skip_pad(glp_data *data)
 {     /* skip uninteresting characters and comments */
 loop: while (data->c == ' ' || data->c == '\n')
          next_char(data);
       if (data->c == '/')
       {  next_char(data);
          if (data->c != '*')
-            _glp_sds_error(data, "invalid use of slash\n");
+            glp_sdf_error(data, "invalid use of slash\n");
          next_char(data);
          for (;;)
          {  if (data->c == '*')
@@ -158,7 +158,7 @@ loop: while (data->c == ' ' || data->c == '\n')
       return;
 }
 
-static void next_item(_glp_data *data)
+static void next_item(glp_data *data)
 {     /* read next item */
       int len;
       skip_pad(data);
@@ -166,7 +166,7 @@ static void next_item(_glp_data *data)
       while (!(data->c == ' ' || data->c == '\n'))
       {  data->item[len++] = (char)data->c;
          if (len == sizeof(data->item))
-            _glp_sds_error(data, "data item `%.31s...' too long\n",
+            glp_sdf_error(data, "data item `%.31s...' too long\n",
                data->item);
          next_char(data);
       }
@@ -174,18 +174,18 @@ static void next_item(_glp_data *data)
       return;
 }
 
-int _glp_sds_int(_glp_data *data)
-{     /* read integer number from plain data set */
+int glp_sdf_read_int(glp_data *data)
+{     /* read integer number */
       int x;
       next_item(data);
       switch (str2int(data->item, &x))
       {  case 0:
             break;
          case 1:
-            _glp_sds_error(data, "integer `%s' out of range\n",
+            glp_sdf_error(data, "integer `%s' out of range\n",
                data->item);
          case 2:
-            _glp_sds_error(data, "cannot convert `%s' to integer\n",
+            glp_sdf_error(data, "cannot convert `%s' to integer\n",
                data->item);
          default:
             xassert(data != data);
@@ -193,18 +193,18 @@ int _glp_sds_int(_glp_data *data)
       return x;
 }
 
-double _glp_sds_num(_glp_data *data)
-{     /* read floating-point number from plain data set */
+double glp_sdf_read_num(glp_data *data)
+{     /* read floating-point number */
       double x;
       next_item(data);
       switch (str2num(data->item, &x))
       {  case 0:
             break;
          case 1:
-            _glp_sds_error(data, "number `%s' out of range\n",
+            glp_sdf_error(data, "number `%s' out of range\n",
                data->item);
          case 2:
-            _glp_sds_error(data, "cannot convert `%s' to number\n",
+            glp_sdf_error(data, "cannot convert `%s' to number\n",
                data->item);
          default:
             xassert(data != data);
@@ -212,14 +212,14 @@ double _glp_sds_num(_glp_data *data)
       return x;
 }
 
-const char *_glp_sds_item(_glp_data *data)
-{     /* read data item from plain data set */
+const char *glp_sdf_read_item(glp_data *data)
+{     /* read data item */
       next_item(data);
       return data->item;
 }
 
-const char *_glp_sds_text(_glp_data *data)
-{     /* read text from plain data set until end of line */
+const char *glp_sdf_read_text(glp_data *data)
+{     /* read text until end of line */
       int c, len = 0;
       for (;;)
       {  c = data->c;
@@ -239,19 +239,19 @@ const char *_glp_sds_text(_glp_data *data)
          /* add current character to the buffer */
          data->item[len++] = (char)c;
          if (len == sizeof(data->item))
-            _glp_sds_error(data, "line too long\n", data->item);
+            glp_sdf_error(data, "line too long\n", data->item);
       }
       data->item[len] = '\0';
       return data->item;
 }
 
-int _glp_sds_line(_glp_data *data)
+int glp_sdf_line(glp_data *data)
 {     /* determine current line number */
       return data->count;
 }
 
-void _glp_sds_close(_glp_data *data)
-{     /* close plain data set */
+void glp_sdf_close_file(glp_data *data)
+{     /* close plain data file */
       xfclose(data->fp);
       xfree(data->fname);
       xfree(data);

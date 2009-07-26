@@ -55,6 +55,18 @@ void glp_printf(const char *fmt, ...)
       return;
 }
 
+void glp_vprintf(const char *fmt, va_list arg)
+{     /* write formatted output to terminal */
+      xvprintf(fmt, arg);
+      return;
+}
+
+void glp_assert_(const char *expr, const char *file, int line)
+{     /* check for logical condition */
+      lib_xassert(expr, file, line);
+      /* no return */
+}
+
 /***********************************************************************
 *  NAME
 *
@@ -62,7 +74,7 @@ void glp_printf(const char *fmt, ...)
 *
 *  SYNOPSIS
 *
-*  void glp_term_out(int flag);
+*  int glp_term_out(int flag);
 *
 *  DESCRIPTION
 *
@@ -72,13 +84,14 @@ void glp_printf(const char *fmt, ...)
 *  GLP_ON  - enable terminal output;
 *  GLP_OFF - disable terminal output. */
 
-void glp_term_out(int flag)
+int glp_term_out(int flag)
 {     LIBENV *env = lib_link_env();
+      int old = env->term_out;
       env->term_out = GLP_ON;
       if (!(flag == GLP_ON || flag == GLP_OFF))
          xerror("glp_term_out: flag = %d; invalid value\n", flag);
       env->term_out = flag;
-      return;
+      return old;
 }
 
 /***********************************************************************

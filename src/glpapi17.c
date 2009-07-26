@@ -1,4 +1,4 @@
-/* glpapi17.c (basic graph and network routines) */
+/* glpapi17.c (graph and network analysis routines) */
 
 /***********************************************************************
 *  This code is part of GLPK (GNU Linear Programming Kit).
@@ -22,379 +22,211 @@
 ***********************************************************************/
 
 #include "glpapi.h"
-
-/* CAUTION: DO NOT CHANGE THE LIMITS BELOW */
-
-#define NV_MAX 100000000 /* = 100*10^6 */
-/* maximal number of vertices in the graph */
-
-#define NA_MAX 500000000 /* = 500*10^6 */
-/* maximal number of arcs in the graph */
+#include "glpnet.h"
 
 /***********************************************************************
 *  NAME
 *
-*  glp_create_graph - create graph
+*  glp_weak_comp - find all weakly connected components of graph
 *
 *  SYNOPSIS
 *
-*  glp_graph *glp_create_graph(int v_size, int a_size);
+*  int glp_weak_comp(glp_graph *G, int v_num);
 *
 *  DESCRIPTION
 *
-*  The routine creates a new graph, which initially is empty, i.e. has
-*  no vertices and arcs.
+*  The routine glp_weak_comp finds all weakly connected components of
+*  the specified graph.
 *
-*  The parameter v_size specifies the size of data associated with each
-*  vertex of the graph (0 to 256 bytes).
+*  The parameter v_num specifies an offset of the field of type int
+*  in the vertex data block, to which the routine stores the number of
+*  a (weakly) connected component containing that vertex. If v_num < 0,
+*  no component numbers are stored.
 *
-*  The parameter a_size specifies the size of data associated with each
-*  arc of the graph (0 to 256 bytes).
+*  The components are numbered in arbitrary order from 1 to nc, where
+*  nc is the total number of components found, 0 <= nc <= |V|.
 *
 *  RETURNS
 *
-*  The routine returns a pointer to the graph created. */
+*  The routine returns nc, the total number of components found. */
 
-static void create_graph(glp_graph *G, int v_size, int a_size)
-{     G->pool = dmp_create_pool();
-      G->name = NULL;
-      G->nv_max = 50;
-      G->nv = G->na = 0;
-      G->v = xcalloc(1+G->nv_max, sizeof(glp_vertex *));
-      G->index = NULL;
-      G->v_size = v_size;
-      G->a_size = a_size;
-      return;
-}
-
-glp_graph *glp_create_graph(int v_size, int a_size)
-{     glp_graph *G;
-      if (!(0 <= v_size && v_size <= 256))
-         xerror("glp_create_graph: v_size = %d; invalid size of vertex "
-            "data\n", v_size);
-      if (!(0 <= a_size && a_size <= 256))
-         xerror("glp_create_graph: a_size = %d; invalid size of arc dat"
-            "a\n", a_size);
-      G = xmalloc(sizeof(glp_graph));
-      create_graph(G, v_size, a_size);
-      return G;
-}
-
-/***********************************************************************
-*  NAME
-*
-*  glp_set_graph_name - assign (change) graph name
-*
-*  SYNOPSIS
-*
-*  void glp_set_graph_name(glp_graph *G, const char *name);
-*
-*  DESCRIPTION
-*
-*  The routine glp_set_graph_name assigns a symbolic name specified by
-*  the character string name (1 to 255 chars) to the graph.
-*
-*  If the parameter name is NULL or an empty string, the routine erases
-*  the existing symbolic name of the graph. */
-
-void glp_set_graph_name(glp_graph *G, const char *name)
-{     if (G->name != NULL)
-      {  dmp_free_atom(G->pool, G->name, strlen(G->name)+1);
-         G->name = NULL;
-      }
-      if (!(name == NULL || name[0] == '\0'))
-      {  int j;
-         for (j = 0; name[j] != '\0'; j++)
-         {  if (j == 256)
-               xerror("glp_set_graph_name: graph name too long\n");
-            if (iscntrl((unsigned char)name[j]))
-               xerror("glp_set_graph_name: graph name contains invalid "
-                  "character(s)\n");
-         }
-         G->name = dmp_get_atom(G->pool, strlen(name)+1);
-         strcpy(G->name, name);
-      }
-      return;
-}
-
-/***********************************************************************
-*  NAME
-*
-*  glp_add_vertices - add new vertices to graph
-*
-*  SYNOPSIS
-*
-*  int glp_add_vertices(glp_graph *G, int nadd);
-*
-*  DESCRIPTION
-*
-*  The routine glp_add_vertices adds nadd vertices to the specified
-*  graph. New vertices are always added to the end of the vertex list,
-*  so ordinal numbers of existing vertices remain unchanged.
-*
-*  Being added each new vertex is isolated (has no incident arcs).
-*
-*  RETURNS
-*
-*  The routine glp_add_vertices returns an ordinal number of the first
-*  new vertex added to the graph. */
-
-int glp_add_vertices(glp_graph *G, int nadd)
-{     int i, nv_new;
-      if (nadd < 1)
-         xerror("glp_add_vertices: nadd = %d; invalid number of vertice"
-            "s\n", nadd);
-      if (nadd > NV_MAX - G->nv)
-         xerror("glp_add_vertices: nadd = %d; too many vertices\n",
-            nadd);
-      /* determine new number of vertices */
-      nv_new = G->nv + nadd;
-      /* increase the room, if necessary */
-      if (G->nv_max < nv_new)
-      {  glp_vertex **save = G->v;
-         while (G->nv_max < nv_new)
-         {  G->nv_max += G->nv_max;
-            xassert(G->nv_max > 0);
-         }
-         G->v = xcalloc(1+G->nv_max, sizeof(glp_vertex *));
-         memcpy(&G->v[1], &save[1], G->nv * sizeof(glp_vertex *));
-         xfree(save);
-      }
-      /* add new vertices to the end of the vertex list */
-      for (i = G->nv+1; i <= nv_new; i++)
-      {  glp_vertex *v;
-         G->v[i] = v = dmp_get_atom(G->pool, sizeof(glp_vertex));
-         v->i = i;
-         v->name = NULL;
-         v->entry = NULL;
-         if (G->v_size == 0)
-            v->data = NULL;
-         else
-         {  v->data = dmp_get_atom(G->pool, G->v_size);
-            memset(v->data, 0, G->v_size);
-         }
-         v->temp = NULL;
-         v->in = v->out = NULL;
-      }
-      /* set new number of vertices */
-      G->nv = nv_new;
-      /* return the ordinal number of the first vertex added */
-      return nv_new - nadd + 1;
-}
-
-/***********************************************************************
-*  NAME
-*
-*  glp_add_arc - add new arc to graph
-*
-*  SYNOPSIS
-*
-*  glp_arc *glp_add_arc(glp_graph *G, int i, int j);
-*
-*  DESCRIPTION
-*
-*  The routine glp_add_arc adds a new arc to the specified graph.
-*
-*  The parameters i and j specify the ordinal numbers of, resp., tail
-*  and head vertices of the arc. Note that self-loops and multiple arcs
-*  are allowed.
-*
-*  RETURNS
-*
-*  The routine glp_add_arc returns a pointer to the arc added. */
-
-glp_arc *glp_add_arc(glp_graph *G, int i, int j)
-{     glp_arc *a;
-      if (!(1 <= i && i <= G->nv))
-         xerror("glp_add_arc: i = %d; tail vertex number out of range\n"
-            , i);
-      if (!(1 <= j && j <= G->nv))
-         xerror("glp_add_arc: j = %d; head vertex number out of range\n"
-            , j);
-      if (G->na == NA_MAX)
-         xerror("glp_add_arc: too many arcs\n");
-      a = dmp_get_atom(G->pool, sizeof(glp_arc));
-      a->tail = G->v[i];
-      a->head = G->v[j];
-      if (G->a_size == 0)
-         a->data = NULL;
-      else
-      {  a->data = dmp_get_atom(G->pool, G->a_size);
-         memset(a->data, 0, G->a_size);
-      }
-      a->temp = NULL;
-      a->t_prev = NULL;
-      a->t_next = G->v[i]->out;
-      if (a->t_next != NULL) a->t_next->t_prev = a;
-      a->h_prev = NULL;
-      a->h_next = G->v[j]->in;
-      if (a->h_next != NULL) a->h_next->h_prev = a;
-      G->v[i]->out = G->v[j]->in = a;
-      G->na++;
-      return a;
-}
-
-/***********************************************************************
-*  NAME
-*
-*  glp_erase_graph - erase graph content
-*
-*  SYNOPSIS
-*
-*  void glp_erase_graph(glp_graph *G, int v_size, int a_size);
-*
-*  DESCRIPTION
-*
-*  The routine glp_erase_graph erases the content of the specified
-*  graph. The effect of this operation is the same as if the graph
-*  would be deleted with the routine glp_delete_graph and then created
-*  anew with the routine glp_create_graph, with exception that the
-*  handle (pointer) to the graph remains valid. */
-
-static void delete_graph(glp_graph *G)
-{     dmp_delete_pool(G->pool);
-      xfree(G->v);
-      if (G->index != NULL) avl_delete_tree(G->index);
-      return;
-}
-
-void glp_erase_graph(glp_graph *G, int v_size, int a_size)
-{     if (!(0 <= v_size && v_size <= 256))
-         xerror("glp_erase_graph: v_size = %d; invalid size of vertex d"
-            "ata\n", v_size);
-      if (!(0 <= a_size && a_size <= 256))
-         xerror("glp_erase_graph: a_size = %d; invalid size of arc data"
-            "\n", a_size);
-      delete_graph(G);
-      create_graph(G, v_size, a_size);
-      return;
-}
-
-/***********************************************************************
-*  NAME
-*
-*  glp_delete_graph - delete graph
-*
-*  SYNOPSIS
-*
-*  void glp_delete_graph(glp_graph *G);
-*
-*  DESCRIPTION
-*
-*  The routine glp_delete_graph deletes the specified graph and frees
-*  all the memory allocated to this program object. */
-
-void glp_delete_graph(glp_graph *G)
-{     delete_graph(G);
-      xfree(G);
-      return;
-}
-
-/***********************************************************************
-*  NAME
-*
-*  glp_read_graph - read graph from plain text file
-*
-*  SYNOPSIS
-*
-*  int glp_read_graph(glp_graph *G, const char *fname);
-*
-*  DESCRIPTION
-*
-*  The routine glp_read_graph reads a graph from a plain text file.
-*
-*  RETURNS
-*
-*  If the operation was successful, the routine returns zero. Otherwise
-*  it prints an error message and returns non-zero. */
-
-int glp_read_graph(glp_graph *G, const char *fname)
-{     _glp_data *data;
-      jmp_buf jump;
-      int nv, na, i, j, k, ret;
-      glp_erase_graph(G, G->v_size, G->a_size);
-      xprintf("Reading graph from `%s'...\n", fname);
-      data = _glp_sds_open(fname);
-      if (data == NULL)
-      {  ret = 1;
-         goto done;
-      }
-      if (setjmp(jump))
-      {  ret = 1;
-         goto done;
-      }
-      _glp_sds_jump(data, jump);
-      nv = _glp_sds_int(data);
-      if (nv < 0)
-         _glp_sds_error(data, "invalid number of vertices\n");
-      na = _glp_sds_int(data);
-      if (na < 0)
-         _glp_sds_error(data, "invalid number of arcs\n");
-      xprintf("Graph has %d vert%s and %d arc%s\n",
-         nv, nv == 1 ? "ex" : "ices", na, na == 1 ? "" : "s");
-      if (nv > 0) glp_add_vertices(G, nv);
-      for (k = 1; k <= na; k++)
-      {  i = _glp_sds_int(data);
-         if (!(1 <= i && i <= nv))
-            _glp_sds_error(data, "tail vertex number out of range\n");
-         j = _glp_sds_int(data);
-         if (!(1 <= j && j <= nv))
-            _glp_sds_error(data, "head vertex number out of range\n");
-         glp_add_arc(G, i, j);
-      }
-      xprintf("%d lines were read\n", _glp_sds_line(data));
-      ret = 0;
-done: if (data != NULL) _glp_sds_close(data);
-      return ret;
-}
-
-/***********************************************************************
-*  NAME
-*
-*  glp_write_graph - write graph to plain text file
-*
-*  SYNOPSIS
-*
-*  int glp_write_graph(glp_graph *G, const char *fname).
-*
-*  DESCRIPTION
-*
-*  The routine glp_write_graph writes the specified graph to a plain
-*  text file.
-*
-*  RETURNS
-*
-*  If the operation was successful, the routine returns zero. Otherwise
-*  it prints an error message and returns non-zero. */
-
-int glp_write_graph(glp_graph *G, const char *fname)
-{     XFILE *fp;
-      glp_vertex *v;
+int glp_weak_comp(glp_graph *G, int v_num)
+{     glp_vertex *v;
       glp_arc *a;
-      int i, count, ret;
-      xprintf("Writing graph to `%s'...\n", fname);
-      fp = xfopen(fname, "w"), count = 0;
-      if (fp == NULL)
-      {  xprintf("Unable to create `%s' - %s\n", fname, xerrmsg());
-         ret = 1;
+      int f, i, j, nc, nv, pos1, pos2, *prev, *next, *list;
+      if (v_num >= 0 && v_num > G->v_size - (int)sizeof(int))
+         xerror("glp_weak_comp: v_num = %d; invalid offset\n", v_num);
+      nv = G->nv;
+      if (nv == 0)
+      {  nc = 0;
          goto done;
       }
-      xfprintf(fp, "%d %d\n", G->nv, G->na), count++;
-      for (i = 1; i <= G->nv; i++)
+      /* allocate working arrays */
+      prev = xcalloc(1+nv, sizeof(int));
+      next = xcalloc(1+nv, sizeof(int));
+      list = xcalloc(1+nv, sizeof(int));
+      /* if vertex i is unlabelled, prev[i] is the index of previous
+         unlabelled vertex, and next[i] is the index of next unlabelled
+         vertex; if vertex i is labelled, then prev[i] < 0, and next[i]
+         is the connected component number */
+      /* initially all vertices are unlabelled */
+      f = 1;
+      for (i = 1; i <= nv; i++)
+         prev[i] = i - 1, next[i] = i + 1;
+      next[nv] = 0;
+      /* main loop (until all vertices have been labelled) */
+      nc = 0;
+      while (f != 0)
+      {  /* take an unlabelled vertex */
+         i = f;
+         /* and remove it from the list of unlabelled vertices */
+         f = next[i];
+         if (f != 0) prev[f] = 0;
+         /* label the vertex; it begins a new component */
+         prev[i] = -1, next[i] = ++nc;
+         /* breadth first search */
+         list[1] = i, pos1 = pos2 = 1;
+         while (pos1 <= pos2)
+         {  /* dequeue vertex i */
+            i = list[pos1++];
+            /* consider all arcs incoming to vertex i */
+            for (a = G->v[i]->in; a != NULL; a = a->h_next)
+            {  /* vertex j is adjacent to vertex i */
+               j = a->tail->i;
+               if (prev[j] >= 0)
+               {  /* vertex j is unlabelled */
+                  /* remove it from the list of unlabelled vertices */
+                  if (prev[j] == 0)
+                     f = next[j];
+                  else
+                     next[prev[j]] = next[j];
+                  if (next[j] == 0)
+                     ;
+                  else
+                     prev[next[j]] = prev[j];
+                  /* label the vertex */
+                  prev[j] = -1, next[j] = nc;
+                  /* and enqueue it for further consideration */
+                  list[++pos2] = j;
+               }
+            }
+            /* consider all arcs outgoing from vertex i */
+            for (a = G->v[i]->out; a != NULL; a = a->t_next)
+            {  /* vertex j is adjacent to vertex i */
+               j = a->head->i;
+               if (prev[j] >= 0)
+               {  /* vertex j is unlabelled */
+                  /* remove it from the list of unlabelled vertices */
+                  if (prev[j] == 0)
+                     f = next[j];
+                  else
+                     next[prev[j]] = next[j];
+                  if (next[j] == 0)
+                     ;
+                  else
+                     prev[next[j]] = prev[j];
+                  /* label the vertex */
+                  prev[j] = -1, next[j] = nc;
+                  /* and enqueue it for further consideration */
+                  list[++pos2] = j;
+               }
+            }
+         }
+      }
+      /* store component numbers */
+      if (v_num >= 0)
+      {  for (i = 1; i <= nv; i++)
+         {  v = G->v[i];
+            memcpy((char *)v->data + v_num, &next[i], sizeof(int));
+         }
+      }
+      /* free working arrays */
+      xfree(prev);
+      xfree(next);
+      xfree(list);
+done: return nc;
+}
+
+/***********************************************************************
+*  NAME
+*
+*  glp_strong_comp - find all strongly connected components of graph
+*
+*  SYNOPSIS
+*
+*  int glp_strong_comp(glp_graph *G, int v_num);
+*
+*  DESCRIPTION
+*
+*  The routine glp_strong_comp finds all strongly connected components
+*  of the specified graph.
+*
+*  The parameter v_num specifies an offset of the field of type int
+*  in the vertex data block, to which the routine stores the number of
+*  a strongly connected component containing that vertex. If v_num < 0,
+*  no component numbers are stored.
+*
+*  The components are numbered in arbitrary order from 1 to nc, where
+*  nc is the total number of components found, 0 <= nc <= |V|. However,
+*  the component numbering has the property that for every arc (i->j)
+*  in the graph the condition num(i) >= num(j) holds.
+*
+*  RETURNS
+*
+*  The routine returns nc, the total number of components found. */
+
+int glp_strong_comp(glp_graph *G, int v_num)
+{     glp_vertex *v;
+      glp_arc *a;
+      int i, k, last, n, na, nc, *icn, *ip, *lenr, *ior, *ib, *lowl,
+         *numb, *prev;
+      if (v_num >= 0 && v_num > G->v_size - (int)sizeof(int))
+         xerror("glp_strong_comp: v_num = %d; invalid offset\n",
+            v_num);
+      n = G->nv;
+      if (n == 0)
+      {  nc = 0;
+         goto done;
+      }
+      na = G->na;
+      icn = xcalloc(1+na, sizeof(int));
+      ip = xcalloc(1+n, sizeof(int));
+      lenr = xcalloc(1+n, sizeof(int));
+      ior = xcalloc(1+n, sizeof(int));
+      ib = xcalloc(1+n, sizeof(int));
+      lowl = xcalloc(1+n, sizeof(int));
+      numb = xcalloc(1+n, sizeof(int));
+      prev = xcalloc(1+n, sizeof(int));
+      k = 1;
+      for (i = 1; i <= n; i++)
       {  v = G->v[i];
+         ip[i] = k;
          for (a = v->out; a != NULL; a = a->t_next)
-            xfprintf(fp, "%d %d\n", a->tail->i, a->head->i), count++;
+            icn[k++] = a->head->i;
+         lenr[i] = k - ip[i];
       }
-      xfflush(fp);
-      if (xferror(fp))
-      {  xprintf("Write error on `%s' - %s\n", fname, xerrmsg());
-         ret = 1;
-         goto done;
+      xassert(na == k-1);
+      nc = mc13d(n, icn, ip, lenr, ior, ib, lowl, numb, prev);
+      if (v_num >= 0)
+      {  xassert(ib[1] == 1);
+         for (k = 1; k <= nc; k++)
+         {  last = (k < nc ? ib[k+1] : n+1);
+            xassert(ib[k] < last);
+            for (i = ib[k]; i < last; i++)
+            {  v = G->v[ior[i]];
+               memcpy((char *)v->data + v_num, &k, sizeof(int));
+            }
+         }
       }
-      xprintf("%d lines were written\n", count);
-      ret = 0;
-done: if (fp != NULL) xfclose(fp);
-      return ret;
+      xfree(icn);
+      xfree(ip);
+      xfree(lenr);
+      xfree(ior);
+      xfree(ib);
+      xfree(lowl);
+      xfree(numb);
+      xfree(prev);
+done: return nc;
 }
 
 /* eof */

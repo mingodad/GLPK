@@ -22,27 +22,6 @@
 ***********************************************************************/
 
 #include "glpapi.h"
-#define PDS _glp_data
-#define pds_open_file _glp_sds_open
-#define pds_set_jump _glp_sds_jump
-#define pds_error _glp_sds_error
-#define pds_scan_int _glp_sds_int
-#define pds_scan_num _glp_sds_num
-#define pds_close_file _glp_sds_close
-#undef FILE
-#define FILE XFILE
-#undef fopen
-#define fopen xfopen
-#undef strerror
-#define strerror(errno) xerrmsg()
-#undef fprintf
-#define fprintf xfprintf
-#undef fflush
-#define fflush xfflush
-#undef ferror
-#define ferror xferror
-#undef fclose
-#define fclose xfclose
 
 int glp_print_sol(glp_prob *P, const char *fname)
 {     /* write basic solution in printable format */
@@ -236,12 +215,12 @@ done: if (fp != NULL) xfclose(fp);
 *  On success the routine returns zero, otherwise non-zero. */
 
 int glp_read_sol(glp_prob *lp, const char *fname)
-{     PDS *pds;
+{     glp_data *data;
       jmp_buf jump;
       int i, j, k, ret = 0;
       xprintf("Reading basic solution from `%s'...\n", fname);
-      pds = pds_open_file(fname);
-      if (pds == NULL)
+      data = glp_sdf_open_file(fname);
+      if (data == NULL)
       {  ret = 1;
          goto done;
       }
@@ -249,53 +228,53 @@ int glp_read_sol(glp_prob *lp, const char *fname)
       {  ret = 1;
          goto done;
       }
-      pds_set_jump(pds, jump);
+      glp_sdf_set_jump(data, jump);
       /* number of rows, number of columns */
-      k = pds_scan_int(pds);
+      k = glp_sdf_read_int(data);
       if (k != lp->m)
-         pds_error(pds, "wrong number of rows\n");
-      k = pds_scan_int(pds);
+         glp_sdf_error(data, "wrong number of rows\n");
+      k = glp_sdf_read_int(data);
       if (k != lp->n)
-         pds_error(pds, "wrong number of columns\n");
+         glp_sdf_error(data, "wrong number of columns\n");
       /* primal status, dual status, objective value */
-      k = pds_scan_int(pds);
+      k = glp_sdf_read_int(data);
       if (!(k == GLP_UNDEF || k == GLP_FEAS || k == GLP_INFEAS ||
             k == GLP_NOFEAS))
-         pds_error(pds, "invalid primal status\n");
+         glp_sdf_error(data, "invalid primal status\n");
       lp->pbs_stat = k;
-      k = pds_scan_int(pds);
+      k = glp_sdf_read_int(data);
       if (!(k == GLP_UNDEF || k == GLP_FEAS || k == GLP_INFEAS ||
             k == GLP_NOFEAS))
-         pds_error(pds, "invalid dual status\n");
+         glp_sdf_error(data, "invalid dual status\n");
       lp->dbs_stat = k;
-      lp->obj_val = pds_scan_num(pds);
+      lp->obj_val = glp_sdf_read_num(data);
       /* rows (auxiliary variables) */
       for (i = 1; i <= lp->m; i++)
       {  GLPROW *row = lp->row[i];
          /* status, primal value, dual value */
-         k = pds_scan_int(pds);
+         k = glp_sdf_read_int(data);
          if (!(k == GLP_BS || k == GLP_NL || k == GLP_NU ||
                k == GLP_NF || k == GLP_NS))
-            pds_error(pds, "invalid row status\n");
+            glp_sdf_error(data, "invalid row status\n");
          glp_set_row_stat(lp, i, k);
-         row->prim = pds_scan_num(pds);
-         row->dual = pds_scan_num(pds);
+         row->prim = glp_sdf_read_num(data);
+         row->dual = glp_sdf_read_num(data);
       }
       /* columns (structural variables) */
       for (j = 1; j <= lp->n; j++)
       {  GLPCOL *col = lp->col[j];
          /* status, primal value, dual value */
-         k = pds_scan_int(pds);
+         k = glp_sdf_read_int(data);
          if (!(k == GLP_BS || k == GLP_NL || k == GLP_NU ||
                k == GLP_NF || k == GLP_NS))
-            pds_error(pds, "invalid column status\n");
+            glp_sdf_error(data, "invalid column status\n");
          glp_set_col_stat(lp, j, k);
-         col->prim = pds_scan_num(pds);
-         col->dual = pds_scan_num(pds);
+         col->prim = glp_sdf_read_num(data);
+         col->dual = glp_sdf_read_num(data);
       }
-      xprintf("%d lines were read\n", _glp_sds_line(pds));
+      xprintf("%d lines were read\n", glp_sdf_line(data));
 done: if (ret) lp->pbs_stat = lp->dbs_stat = GLP_UNDEF;
-      if (pds != NULL) pds_close_file(pds);
+      if (data != NULL) glp_sdf_close_file(data);
       return ret;
 }
 
@@ -350,43 +329,42 @@ done: if (ret) lp->pbs_stat = lp->dbs_stat = GLP_UNDEF;
 *  c_dual[j], j = 1,...,n, is the dual value of j-th column. */
 
 int glp_write_sol(glp_prob *lp, const char *fname)
-{     FILE *fp;
+{     XFILE *fp;
       int i, j, ret = 0;
       xprintf("Writing basic solution to `%s'...\n", fname);
-      fp = fopen(fname, "w");
+      fp = xfopen(fname, "w");
       if (fp == NULL)
-      {  xprintf("Unable to create `%s' - %s\n", fname,
-            strerror(errno));
+      {  xprintf("Unable to create `%s' - %s\n", fname, xerrmsg());
          ret = 1;
          goto done;
       }
       /* number of rows, number of columns */
-      fprintf(fp, "%d %d\n", lp->m, lp->n);
+      xfprintf(fp, "%d %d\n", lp->m, lp->n);
       /* primal status, dual status, objective value */
-      fprintf(fp, "%d %d %.*g\n", lp->pbs_stat, lp->dbs_stat, DBL_DIG,
+      xfprintf(fp, "%d %d %.*g\n", lp->pbs_stat, lp->dbs_stat, DBL_DIG,
          lp->obj_val);
       /* rows (auxiliary variables) */
       for (i = 1; i <= lp->m; i++)
       {  GLPROW *row = lp->row[i];
          /* status, primal value, dual value */
-         fprintf(fp, "%d %.*g %.*g\n", row->stat, DBL_DIG, row->prim,
+         xfprintf(fp, "%d %.*g %.*g\n", row->stat, DBL_DIG, row->prim,
             DBL_DIG, row->dual);
       }
       /* columns (structural variables) */
       for (j = 1; j <= lp->n; j++)
       {  GLPCOL *col = lp->col[j];
          /* status, primal value, dual value */
-         fprintf(fp, "%d %.*g %.*g\n", col->stat, DBL_DIG, col->prim,
+         xfprintf(fp, "%d %.*g %.*g\n", col->stat, DBL_DIG, col->prim,
             DBL_DIG, col->dual);
       }
-      fflush(fp);
-      if (ferror(fp))
-      {  xprintf("Write error on `%s' - %s\n", fname, strerror(errno));
+      xfflush(fp);
+      if (xferror(fp))
+      {  xprintf("Write error on `%s' - %s\n", fname, xerrmsg());
          ret = 1;
          goto done;
       }
       xprintf("%d lines were written\n", 2 + lp->m + lp->n);
-done: if (fp != NULL) fclose(fp);
+done: if (fp != NULL) xfclose(fp);
       return ret;
 }
 
@@ -569,12 +547,12 @@ done: if (fp != NULL) xfclose(fp);
 *  On success the routine returns zero, otherwise non-zero. */
 
 int glp_read_ipt(glp_prob *lp, const char *fname)
-{     PDS *pds;
+{     glp_data *data;
       jmp_buf jump;
       int i, j, k, ret = 0;
       xprintf("Reading interior-point solution from `%s'...\n", fname);
-      pds = pds_open_file(fname);
-      if (pds == NULL)
+      data = glp_sdf_open_file(fname);
+      if (data == NULL)
       {  ret = 1;
          goto done;
       }
@@ -582,37 +560,37 @@ int glp_read_ipt(glp_prob *lp, const char *fname)
       {  ret = 1;
          goto done;
       }
-      pds_set_jump(pds, jump);
+      glp_sdf_set_jump(data, jump);
       /* number of rows, number of columns */
-      k = pds_scan_int(pds);
+      k = glp_sdf_read_int(data);
       if (k != lp->m)
-         pds_error(pds, "wrong number of rows\n");
-      k = pds_scan_int(pds);
+         glp_sdf_error(data, "wrong number of rows\n");
+      k = glp_sdf_read_int(data);
       if (k != lp->n)
-         pds_error(pds, "wrong number of columns\n");
+         glp_sdf_error(data, "wrong number of columns\n");
       /* solution status, objective value */
-      k = pds_scan_int(pds);
+      k = glp_sdf_read_int(data);
       if (!(k == GLP_UNDEF || k == GLP_OPT))
-         pds_error(pds, "invalid solution status\n");
+         glp_sdf_error(data, "invalid solution status\n");
       lp->ipt_stat = k;
-      lp->ipt_obj = pds_scan_num(pds);
+      lp->ipt_obj = glp_sdf_read_num(data);
       /* rows (auxiliary variables) */
       for (i = 1; i <= lp->m; i++)
       {  GLPROW *row = lp->row[i];
          /* primal value, dual value */
-         row->pval = pds_scan_num(pds);
-         row->dval = pds_scan_num(pds);
+         row->pval = glp_sdf_read_num(data);
+         row->dval = glp_sdf_read_num(data);
       }
       /* columns (structural variables) */
       for (j = 1; j <= lp->n; j++)
       {  GLPCOL *col = lp->col[j];
          /* primal value, dual value */
-         col->pval = pds_scan_num(pds);
-         col->dval = pds_scan_num(pds);
+         col->pval = glp_sdf_read_num(data);
+         col->dval = glp_sdf_read_num(data);
       }
-      xprintf("%d lines were read\n", _glp_sds_line(pds));
+      xprintf("%d lines were read\n", glp_sdf_line(data));
 done: if (ret) lp->ipt_stat = GLP_UNDEF;
-      if (pds != NULL) pds_close_file(pds);
+      if (data != NULL) glp_sdf_close_file(data);
       return ret;
 }
 
@@ -660,42 +638,41 @@ done: if (ret) lp->ipt_stat = GLP_UNDEF;
 *  c_dual[j], j = 1,...,n, is the dual value of j-th column. */
 
 int glp_write_ipt(glp_prob *lp, const char *fname)
-{     FILE *fp;
+{     XFILE *fp;
       int i, j, ret = 0;
       xprintf("Writing interior-point solution to `%s'...\n", fname);
-      fp = fopen(fname, "w");
+      fp = xfopen(fname, "w");
       if (fp == NULL)
-      {  xprintf("Unable to create `%s' - %s\n", fname,
-            strerror(errno));
+      {  xprintf("Unable to create `%s' - %s\n", fname, xerrmsg());
          ret = 1;
          goto done;
       }
       /* number of rows, number of columns */
-      fprintf(fp, "%d %d\n", lp->m, lp->n);
+      xfprintf(fp, "%d %d\n", lp->m, lp->n);
       /* solution status, objective value */
-      fprintf(fp, "%d %.*g\n", lp->ipt_stat, DBL_DIG, lp->ipt_obj);
+      xfprintf(fp, "%d %.*g\n", lp->ipt_stat, DBL_DIG, lp->ipt_obj);
       /* rows (auxiliary variables) */
       for (i = 1; i <= lp->m; i++)
       {  GLPROW *row = lp->row[i];
          /* primal value, dual value */
-         fprintf(fp, "%.*g %.*g\n", DBL_DIG, row->pval, DBL_DIG,
+         xfprintf(fp, "%.*g %.*g\n", DBL_DIG, row->pval, DBL_DIG,
             row->dval);
       }
       /* columns (structural variables) */
       for (j = 1; j <= lp->n; j++)
       {  GLPCOL *col = lp->col[j];
          /* primal value, dual value */
-         fprintf(fp, "%.*g %.*g\n", DBL_DIG, col->pval, DBL_DIG,
+         xfprintf(fp, "%.*g %.*g\n", DBL_DIG, col->pval, DBL_DIG,
             col->dval);
       }
-      fflush(fp);
-      if (ferror(fp))
-      {  xprintf("Write error on `%s' - %s\n", fname, strerror(errno));
+      xfflush(fp);
+      if (xferror(fp))
+      {  xprintf("Write error on `%s' - %s\n", fname, xerrmsg());
          ret = 1;
          goto done;
       }
       xprintf("%d lines were written\n", 2 + lp->m + lp->n);
-done: if (fp != NULL) fclose(fp);
+done: if (fp != NULL) xfclose(fp);
       return ret;
 }
 
@@ -846,12 +823,12 @@ done: if (fp != NULL) xfclose(fp);
 *  On success the routine returns zero, otherwise non-zero. */
 
 int glp_read_mip(glp_prob *mip, const char *fname)
-{     PDS *pds;
+{     glp_data *data;
       jmp_buf jump;
       int i, j, k, ret = 0;
       xprintf("Reading MIP solution from `%s'...\n", fname);
-      pds = pds_open_file(fname);
-      if (pds == NULL)
+      data = glp_sdf_open_file(fname);
+      if (data == NULL)
       {  ret = 1;
          goto done;
       }
@@ -859,36 +836,36 @@ int glp_read_mip(glp_prob *mip, const char *fname)
       {  ret = 1;
          goto done;
       }
-      pds_set_jump(pds, jump);
+      glp_sdf_set_jump(data, jump);
       /* number of rows, number of columns */
-      k = pds_scan_int(pds);
+      k = glp_sdf_read_int(data);
       if (k != mip->m)
-         pds_error(pds, "wrong number of rows\n");
-      k = pds_scan_int(pds);
+         glp_sdf_error(data, "wrong number of rows\n");
+      k = glp_sdf_read_int(data);
       if (k != mip->n)
-         pds_error(pds, "wrong number of columns\n");
+         glp_sdf_error(data, "wrong number of columns\n");
       /* solution status, objective value */
-      k = pds_scan_int(pds);
+      k = glp_sdf_read_int(data);
       if (!(k == GLP_UNDEF || k == GLP_OPT || k == GLP_FEAS ||
             k == GLP_NOFEAS))
-         pds_error(pds, "invalid solution status\n");
+         glp_sdf_error(data, "invalid solution status\n");
       mip->mip_stat = k;
-      mip->mip_obj = pds_scan_num(pds);
+      mip->mip_obj = glp_sdf_read_num(data);
       /* rows (auxiliary variables) */
       for (i = 1; i <= mip->m; i++)
       {  GLPROW *row = mip->row[i];
-         row->mipx = pds_scan_num(pds);
+         row->mipx = glp_sdf_read_num(data);
       }
       /* columns (structural variables) */
       for (j = 1; j <= mip->n; j++)
       {  GLPCOL *col = mip->col[j];
-         col->mipx = pds_scan_num(pds);
+         col->mipx = glp_sdf_read_num(data);
          if (col->kind == GLP_IV && col->mipx != floor(col->mipx))
-            pds_error(pds, "non-integer column value");
+            glp_sdf_error(data, "non-integer column value");
       }
-      xprintf("%d lines were read\n", _glp_sds_line(pds));
+      xprintf("%d lines were read\n", glp_sdf_line(data));
 done: if (ret) mip->mip_stat = GLP_UNDEF;
-      if (pds != NULL) pds_close_file(pds);
+      if (data != NULL) glp_sdf_close_file(data);
       return ret;
 }
 
@@ -935,34 +912,33 @@ done: if (ret) mip->mip_stat = GLP_UNDEF;
 *  c_val[j], j = 1,...,n, is the value of j-th column. */
 
 int glp_write_mip(glp_prob *mip, const char *fname)
-{     FILE *fp;
+{     XFILE *fp;
       int i, j, ret = 0;
       xprintf("Writing MIP solution to `%s'...\n", fname);
-      fp = fopen(fname, "w");
+      fp = xfopen(fname, "w");
       if (fp == NULL)
-      {  xprintf("Unable to create `%s' - %s\n", fname,
-            strerror(errno));
+      {  xprintf("Unable to create `%s' - %s\n", fname, xerrmsg());
          ret = 1;
          goto done;
       }
       /* number of rows, number of columns */
-      fprintf(fp, "%d %d\n", mip->m, mip->n);
+      xfprintf(fp, "%d %d\n", mip->m, mip->n);
       /* solution status, objective value */
-      fprintf(fp, "%d %.*g\n", mip->mip_stat, DBL_DIG, mip->mip_obj);
+      xfprintf(fp, "%d %.*g\n", mip->mip_stat, DBL_DIG, mip->mip_obj);
       /* rows (auxiliary variables) */
       for (i = 1; i <= mip->m; i++)
-         fprintf(fp, "%.*g\n", DBL_DIG, mip->row[i]->mipx);
+         xfprintf(fp, "%.*g\n", DBL_DIG, mip->row[i]->mipx);
       /* columns (structural variables) */
       for (j = 1; j <= mip->n; j++)
-         fprintf(fp, "%.*g\n", DBL_DIG, mip->col[j]->mipx);
-      fflush(fp);
-      if (ferror(fp))
-      {  xprintf("Write error on `%s' - %s\n", fname, strerror(errno));
+         xfprintf(fp, "%.*g\n", DBL_DIG, mip->col[j]->mipx);
+      xfflush(fp);
+      if (xferror(fp))
+      {  xprintf("Write error on `%s' - %s\n", fname, xerrmsg());
          ret = 1;
          goto done;
       }
       xprintf("%d lines were written\n", 2 + mip->m + mip->n);
-done: if (fp != NULL) fclose(fp);
+done: if (fp != NULL) xfclose(fp);
       return ret;
 }
 

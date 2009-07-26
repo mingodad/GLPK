@@ -232,7 +232,7 @@ incoming arcs.
 
 \section{Basic graph routines}
 
-\subsection{glp\_create\_graph: create graph}
+\subsection{glp\_create\_graph---create graph}
 
 \subsubsection*{Synopsis}
 
@@ -255,7 +255,7 @@ bytes, $0\leq a\_size\leq 256$.
 
 The routine returns a pointer to the graph created.
 
-\subsection{glp\_set\_graph\_name: assign (change) graph name}
+\subsection{glp\_set\_graph\_name---assign (change) graph name}
 
 \subsubsection*{Synopsis}
 
@@ -273,7 +273,7 @@ routine erases the existing symbolic name of the graph.
 
 \newpage
 
-\subsection{glp\_add\_vertices: add new vertices to graph}
+\subsection{glp\_add\_vertices---add new vertices to graph}
 
 \subsubsection*{Synopsis}
 
@@ -302,11 +302,25 @@ if the block size is zero, the field \verb|data| is set to \verb|NULL|.
 The routine \verb|glp_add_vertices| returns the ordinal number of the
 first new vertex added to the graph.
 
-\subsection{glp\_set\_vertex\_name: assign (change) vertex name}
+\subsection{glp\_set\_vertex\_name---assign (change) vertex name}
 
-[This routine is not implemented yet.]
+\subsubsection*{Synopsis}
 
-\subsection{glp\_add\_arc: add new arc to graph}
+\begin{verbatim}
+void glp_set_vertex_name(glp_graph *G, int i, const char *name);
+\end{verbatim}
+
+\subsubsection*{Description}
+
+The routine \verb|glp_set_vertex_name| assigns a given symbolic name
+(1 up to 255 characters) to \verb|i|-th vertex of the specified graph.
+
+If the parameter \verb|name| is \verb|NULL| or empty string, the
+routine erases an existing name of \verb|i|-th vertex.
+
+\newpage
+
+\subsection{glp\_add\_arc---add new arc to graph}
 
 \subsubsection*{Synopsis}
 
@@ -328,15 +342,15 @@ it by binary zeros, and stores a pointer to it in the field \verb|data|
 of the struct \verb|glp_arc|. Otherwise, if the block size is zero, the
 field \verb|data| is set to \verb|NULL|.
 
-\subsection{glp\_remove\_vertices: remove vertices from graph}
+\subsection{glp\_remove\_vertices---remove vertices from graph}
 
 [This routine is not implemented yet.]
 
-\subsection{glp\_remove\_arc: remove arc from graph}
+\subsection{glp\_remove\_arc---remove arc from graph}
 
 [This routine is not implemented yet.]
 
-\subsection{glp\_erase\_graph: erase graph content}
+\subsection{glp\_erase\_graph---erase graph content}
 
 \subsubsection*{Synopsis}
 
@@ -355,7 +369,7 @@ with the routine \verb|glp_create_graph|, with exception that the handle
 The parameters \verb|v_size| and \verb|a_size| have the same meaning as
 for the routine \verb|glp_create_graph|.
 
-\subsection{glp\_delete\_graph: delete graph}
+\subsection{glp\_delete\_graph---delete graph}
 
 \subsubsection*{Synopsis}
 
@@ -370,7 +384,63 @@ frees all the memory allocated to this program object.
 
 \newpage
 
-\subsection{glp\_read\_graph: read graph from plain text file}
+\section{Graph searching routines}
+
+\subsection{glp\_create\_v\_index---create vertex name index}
+
+\subsubsection*{Synopsis}
+
+\begin{verbatim}
+void glp_create_v_index(glp_graph *G);
+\end{verbatim}
+
+\subsubsection*{Description}
+
+The routine \verb|glp_create_v_index| creates the name index for the
+specified graph. The name index is an auxiliary data structure, which
+is intended to quickly (i.e. for logarithmic time) find vertices by
+their names.
+
+This routine can be called at any time. If the name index already
+exists, the routine does nothing.
+
+\subsection{glp\_find\_vertex---find vertex by its name}
+
+\subsubsection*{Synopsis}
+
+\begin{verbatim}
+int glp_find_vertex(glp_graph *G, const char *name);
+\end{verbatim}
+
+\subsubsection*{Returns}
+
+The routine \verb|glp_find_vertex| returns the ordinal number of
+a vertex, which is assigned (by the routine \verb|glp_set_vertex_name|)
+the specified symbolic \verb|name|. If no such vertex exists, the
+routine returns 0.
+
+\subsection{glp\_delete\_v\_index---delete vertex name index}
+
+\subsubsection*{Synopsis}
+
+\begin{verbatim}
+void glp_delete_v_index(glp_graph *G);
+\end{verbatim}
+
+\subsubsection*{Description}
+
+The routine \verb|glp_delete_v_index| deletes the name index previously
+created by the routine \verb|glp_create_v_index| and frees the memory
+allocated to this auxiliary data structure.
+
+This routine can be called at any time. If the name index does not
+exist, the routine does nothing.
+
+\newpage
+
+\section{Graph reading/writing routines}
+
+\subsection{glp\_read\_graph---read graph from plain text file}
 
 \subsubsection*{Synopsis}
 
@@ -393,7 +463,7 @@ For the file format see description of the routine
 If the operation was successful, the routine returns zero. Otherwise
 it prints an error message and returns non-zero.
 
-\subsection{glp\_write\_graph: write graph to plain text file}
+\subsection{glp\_write\_graph---write graph to plain text file}
 
 \subsubsection*{Synopsis}
 
@@ -443,7 +513,7 @@ where:
 
 \section{Graph analysis routines}
 
-\subsection{glp\_weak\_comp: find all weakly connected components of
+\subsection{glp\_weak\_comp---find all weakly connected components of
 graph}
 
 \subsubsection*{Synopsis}
@@ -470,7 +540,7 @@ $0\leq$ \verb|nc| $\leq|V|$.
 
 The routine returns \verb|nc|, the total number of components found.
 
-\subsection{glp\_strong\_comp: find all strongly connected components
+\subsection{glp\_strong\_comp---find all strongly connected components
 of graph}
 
 \subsubsection*{Synopsis}
@@ -509,6 +579,7 @@ form, ACM Trans. on Math. Softw. 4 (1978), 189-92.
 The following program reads a graph from a plain text file
 `\verb|graph.txt|' and finds all its strongly connected components.
 
+\begin{footnotesize}
 \begin{verbatim}
 #include <stddef.h>
 #include <stdio.h>
@@ -532,6 +603,7 @@ int main(void)
       return 0;
 }
 \end{verbatim}
+\end{footnotesize}
 
 \noindent
 If the file `\verb|graph.txt|' contains the graph shown below:
@@ -552,6 +624,7 @@ If the file `\verb|graph.txt|' contains the graph shown below:
 \noindent
 the program output may look like follows:
 
+\begin{footnotesize}
 \begin{verbatim}
 Reading graph from `graph.txt'...
 Graph has 15 vertices and 30 arcs
@@ -573,6 +646,7 @@ num[13] = 4
 num[14] = 1
 num[15] = 1
 \end{verbatim}
+\end{footnotesize}
 
 \newpage
 
@@ -663,7 +737,7 @@ $$\sum_{(i,j)\in A}x_{ij}-\sum_{(j,i)\in A}x_{ji}=b_i\ \ \ \hbox
 $$l_{ij}\leq x_{ij}\leq u_{ij}\ \ \ \hbox{for all}\ (i,j)\in A
 \eqno(3)$$
 
-\subsection{glp\_read\_mincost: read minimum cost flow problem\\data
+\subsection{glp\_read\_mincost---read minimum cost flow problem\\data
 in DIMACS format}
 
 \subsubsection*{Synopsis}
@@ -715,6 +789,7 @@ it prints an error message and returns non-zero.
 
 \subsubsection*{Example}
 
+\begin{footnotesize}
 \begin{verbatim}
 typedef struct
 {     /* vertex data block */
@@ -741,6 +816,7 @@ int main(void)
       ...
 }
 \end{verbatim}
+\end{footnotesize}
 
 \subsubsection*{DIMACS minimum cost flow problem format\footnote{This
 material is based on the paper ``The First DIMACS International
@@ -758,6 +834,8 @@ identify the line type.
 Note that DIMACS requires all numerical quantities to be integers in
 the range $[-2^{31},\ 2^{31}-1]$ while GLPK allows the quantities to be
 floating-point numbers.
+
+\newpage
 
 \paragraph{Comment lines.} Comment lines give human-readable information
 about the file and are ignored by programs. Comment lines can appear
@@ -805,7 +883,7 @@ amount of supply (if positive) or demand (if negative) at node
 arc in the network. Arc descriptor lines are of the following format:
 
 \begin{verbatim}
-a SRC DST LOW CAP COST
+   a SRC DST LOW CAP COST
 \end{verbatim}
 
 \noindent
@@ -824,6 +902,7 @@ $(i,j)$.
 DIMACS format corresponding to the minimum cost flow problem shown on
 Fig~1.
 
+\begin{footnotesize}
 \begin{verbatim}
 c sample.min
 c
@@ -852,10 +931,11 @@ a 8 9 0 20 9
 c
 c eof
 \end{verbatim}
+\end{footnotesize}
 
 \newpage
 
-\subsection{glp\_write\_mincost: write minimum cost flow problem\\data
+\subsection{glp\_write\_mincost---write minimum cost flow problem\\data
 in DIMACS format}
 
 \subsubsection*{Synopsis}
@@ -907,7 +987,7 @@ it prints an error message and returns non-zero.
 
 \newpage
 
-\subsection{glp\_mincost\_lp: convert minimum cost flow problem\\to LP}
+\subsection{glp\_mincost\_lp---convert minimum cost flow problem\\to LP}
 
 \subsubsection*{Synopsis}
 
@@ -964,6 +1044,7 @@ LP, and then writes the resultant LP in CPLEX format to file
 
 \newpage
 
+\begin{footnotesize}
 \begin{verbatim}
 #include <stddef.h>
 #include <glpk.h>
@@ -988,11 +1069,13 @@ int main(void)
       return 0;
 }
 \end{verbatim}
+\end{footnotesize}
 
 If `\verb|sample.min|' is the example data file from the subsection
 describing the routine \verb|glp_read_mincost|, file `\verb|mincost.lp|'
 may look like follows:
 
+\begin{footnotesize}
 \begin{verbatim}
 Minimize
  obj: + 3 x(2,4) + 2 x(2,3) + x(3,5) + 7 x(5,7) + 5 x(5,6)
@@ -1027,8 +1110,9 @@ Bounds
 
 End
 \end{verbatim}
+\end{footnotesize}
 
-\subsection{glp\_mincost\_okalg: solve minimum cost flow problem with
+\subsection{glp\_mincost\_okalg---solve minimum cost flow problem with
 out-of-kilter algorithm}
 
 \subsubsection*{Synopsis}
@@ -1152,8 +1236,7 @@ DIMACS format from file `\verb|sample.min|', solves it by using the
 routine \verb|glp_mincost_okalg|, and writes the solution found to the
 standard output.
 
-\newpage
-
+\begin{footnotesize}
 \begin{verbatim}
 #include <stddef.h>
 #include <stdio.h>
@@ -1195,13 +1278,13 @@ int main(void)
       return 0;
 }
 \end{verbatim}
-
-\newpage
+\end{footnotesize}
 
 If `\verb|sample.min|' is the example data file from the subsection
 describing the routine \verb|glp_read_mincost|, the output may look like
 follows:
 
+\begin{footnotesize}
 \begin{verbatim}
 Reading min-cost flow problem data from `sample.min'...
 Flow network has 9 nodes and 14 arcs
@@ -1231,10 +1314,9 @@ node 8:    pi =   -14
 arc  8->9: x  =     9; lambda =     0
 node 9:    pi =   -23
 \end{verbatim}
+\end{footnotesize}
 
-\newpage
-
-\subsection{glp\_netgen: Klingman's network problem generator}
+\subsection{glp\_netgen---Klingman's network problem generator}
 
 \subsubsection*{Synopsis}
 
@@ -1321,7 +1403,7 @@ If the instance was successfully generated, the routine
 \verb|glp_netgen| returns zero; otherwise, if specified parameters are
 inconsistent, the routine returns a non-zero error code.
 
-\subsection{glp\_gridgen: grid-like network problem generator}
+\subsection{glp\_gridgen---grid-like network problem generator}
 
 \subsubsection*{Synopsis}
 
@@ -1434,6 +1516,8 @@ The source and sink nodes are selected uniformly in the network, and
 the imbalances of each source/sink node are also assigned by uniform
 distribution.
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
 \newpage
 
 \section{Maximum flow problem}
@@ -1528,7 +1612,7 @@ $$
 $$0\leq x_{ij}\leq u_{ij}\ \ \ \hbox{for all}\ (i,j)\in A
 \eqno(9)$$
 
-\subsection{glp\_read\_maxflow: read maximum flow problem data\\in
+\subsection{glp\_read\_maxflow---read maximum flow problem data\\in
 DIMACS format}
 
 \subsubsection*{Synopsis}
@@ -1573,6 +1657,7 @@ it prints an error message and returns non-zero.
 
 \subsubsection*{Example}
 
+\begin{footnotesize}
 \begin{verbatim}
 typedef struct
 {     /* arc data block */
@@ -1591,6 +1676,7 @@ int main(void)
       ...
 }
 \end{verbatim}
+\end{footnotesize}
 
 \subsubsection*{DIMACS maximum flow problem format\footnote{This
 material is based on the paper ``The First DIMACS International
@@ -1609,8 +1695,6 @@ Note that DIMACS requires all numerical quantities to be integers in
 the range $[-2^{31},\ 2^{31}-1]$ while GLPK allows the quantities to be
 floating-point numbers.
 
-\newpage
-
 \paragraph{Comment lines.} Comment lines give human-readable information
 about the file and are ignored by programs. Comment lines can appear
 anywhere in the file. Each comment line begins with a lower-case
@@ -1619,6 +1703,8 @@ character \verb|c|.
 \begin{verbatim}
    c This is a comment line
 \end{verbatim}
+
+\newpage
 
 \paragraph{Problem line.} There is one problem line per data file. The
 problem line must appear before any node or arc descriptor lines. It has
@@ -1655,7 +1741,7 @@ respectively.
 arc in the network. Arc descriptor lines are of the following format:
 
 \begin{verbatim}
-a SRC DST CAP
+   a SRC DST CAP
 \end{verbatim}
 
 \noindent
@@ -1667,11 +1753,12 @@ Identification numbers are integers between 1 and \verb|NODES|. The
 \verb|CAP| field gives the arc capacity, i.e. maximum amount of flow
 that can be sent along arc $(i,j)$ in a feasible flow.
 
-\newpage
-
 \paragraph{Example.} Below here is an example of the data file in
 DIMACS format corresponding to the maximum flow problem shown on Fig~2.
 
+\newpage
+
+\begin{footnotesize}
 \begin{verbatim}
 c sample.max
 c
@@ -1700,10 +1787,9 @@ a 8 9 20
 c
 c eof
 \end{verbatim}
+\end{footnotesize}
 
-\newpage
-
-\subsection{glp\_write\_maxflow: write maximum flow problem data\\
+\subsection{glp\_write\_maxflow---write maximum flow problem data\\
 in DIMACS format}
 
 \subsubsection*{Synopsis}
@@ -1742,7 +1828,7 @@ automatic compression on writing it.)
 If the operation was successful, the routine returns zero. Otherwise,
 it prints an error message and returns non-zero.
 
-\subsection{glp\_maxflow\_lp: convert maximum flow problem to LP}
+\subsection{glp\_maxflow\_lp---convert maximum flow problem to LP}
 
 \subsubsection*{Synopsis}
 
@@ -1786,6 +1872,7 @@ format from file `\verb|sample.max|', converts the instance to LP, and
 then writes the resultant LP in CPLEX format to file
 `\verb|maxflow.lp|'.
 
+\begin{footnotesize}
 \begin{verbatim}
 #include <stddef.h>
 #include <glpk.h>
@@ -1804,12 +1891,12 @@ int main(void)
       return 0;
 }
 \end{verbatim}
-
-\newpage
+\end{footnotesize}
 
 If `\verb|sample.max|' is the example data file from the previous
 subsection, the output `\verb|maxflow.lp|' may look like follows:
 
+\begin{footnotesize}
 \begin{verbatim}
 Maximize
  obj: + x(1,4) + x(1,2)
@@ -1843,10 +1930,9 @@ Bounds
 
 End
 \end{verbatim}
+\end{footnotesize}
 
-\newpage
-
-\subsection{glp\_maxflow\_ffalg: solve maximum flow problem with
+\subsection{glp\_maxflow\_ffalg---solve maximum flow problem with
 Ford-Fulkerson algorithm}
 
 \subsubsection*{Synopsis}
@@ -1900,8 +1986,6 @@ stored.
 Note that all solution components (the objective value and arc flows)
 computed by the routine are always integer-valued.
 
-\newpage
-
 \subsubsection*{Returns}
 
 \def\arraystretch{1}
@@ -1919,6 +2003,7 @@ in DIMACS format from file `\verb|sample.max|', solves it using the
 routine \verb|glp_maxflow_ffalg|, and write the solution found to the
 standard output.
 
+\begin{footnotesize}
 \begin{verbatim}
 #include <stddef.h>
 #include <stdio.h>
@@ -1955,11 +2040,13 @@ int main(void)
       return 0;
 }
 \end{verbatim}
+\end{footnotesize}
 
 If `\verb|sample.max|' is the example data file from the subsection
 describing the routine \verb|glp_read_maxflow|, the output may look like
 follows:
 
+\begin{footnotesize}
 \begin{verbatim}
 Reading maximum flow problem data from `sample.max'...
 Flow network has 9 nodes and 14 arcs
@@ -1980,10 +2067,11 @@ x[6->7] =     7 (1)
 x[7->9] =    11 (0)
 x[8->9] =    18 (0)
 \end{verbatim}
+\end{footnotesize}
 
 \newpage
 
-\subsection{glp\_rmfgen: Goldfarb's maximum flow problem generator}
+\subsection{glp\_rmfgen---Goldfarb's maximum flow problem generator}
 
 \subsubsection*{Synopsis}
 
@@ -2071,5 +2159,888 @@ the upper right vertex of the $b$-th frame.
 The capacities are randomly chosen integers from the range of
 $[c_1,c_2]$  in the case of interconnecting edges, and $c_2\cdot a^2$
 for the in-frame edges.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\newpage
+
+\section{Assignment problem}
+
+\subsection{Background}
+
+Let there be given an undirected bipartite graph $G=(R\cup S,E)$, where
+$R$ and $S$ are disjoint sets of vertices (nodes), and
+$E\subseteq R\times S$ is a set of edges. Let also for each edge
+$e=(i,j)\in E$ there be given its cost $c_{ij}$. A {\it matching}
+(which in case of bipartite graph is also called {\it assignment})
+$M\subseteq E$ in $G$ is a set of pairwise non-adjacent edges, that is,
+no two edges in $M$ share a common vertex. A matching, which matches
+all vertices of the graph, is called a {\it perfect matching}.
+Obviously, a perfect matching in bipartite graph $G=(R\cup S,E)$
+defines some bijection $R\leftrightarrow S$.
+
+The {\it assignment problem} has two different variants. In the first
+variant the problem is to find matching (assignment) $M$, which
+maximizes the sum:
+$$\sum_{(i,j)\in M}c_{ij}\eqno(10)$$
+(so this variant is also called the {\it maximum weighted bipartite
+matching problem} or, if all $c_{ij}=1$, the {\it maximum cardinality
+bipartite matching problem}). In the second, classic variant the
+problem is to find {\it perfect} matching (assignment) $M$, which
+minimizes or maximizes the sum (10).
+
+An example of the assignment problem, which is the maximum weighted
+bipartite matching problem, is shown on Fig. 3.
+
+The maximum weighted bipartite matching problem can be naturally
+formulated as the following LP problem:
+
+\medskip
+
+\noindent
+\hspace{.5in}maximize
+$$z=\sum_{(i,j)\in E}c_{ij}x_{ij}\eqno(11)$$
+\hspace{.5in}subject to
+$$\sum_{(i,j)\in E}x_{ij}\leq 1\ \ \ \hbox{for all}\ i\in R\eqno(12)$$
+$$\sum_{(i,j)\in E}x_{ij}\leq 1\ \ \ \hbox{for all}\ j\in S\eqno(13)$$
+$$\ \ \ \ \ \ \ \ 0\leq x_{ij}\leq 1\ \ \ \hbox{for all}\ (i,j)\in E
+\eqno(14)$$
+
+\medskip
+
+\noindent
+where $x_{ij}=1$ means that $(i,j)\in M$, and $x_{ij}=0$ means that
+$(i,j)\notin M$.\footnote{The constraint matrix of LP formulation
+(11)---(14) is totally unimodular, due to which $x_{ij}\in\{0,1\}$ for
+any basic solution.}
+
+\newpage
+
+\bigskip
+
+\noindent\hfil
+\xymatrix @C=48pt
+{v_1\ar@{-}[rr]|{_{13}}\ar@{-}[rrd]|{_{21}}\ar@{-}[rrddd]|(.2){_{20}}&&
+v_9\\
+v_2\ar@{-}[rr]|{_{12}}\ar@{-}[rrdd]|(.3){_{8}}
+\ar@{-}[rrddd]|(.4){_{26}}&&v_{10}\\
+v_3\ar@{-}[rr]|(.2){_{22}}\ar@{-}[rrdd]|(.3){_{11}}&&v_{11}\\
+v_4\ar@{-}[rruuu]|(.6){_{12}}\ar@{-}[rr]|(.2){_{36}}
+\ar@{-}[rrdd]|(.7){_{25}}&&v_{12}\\
+v_5\ar@{-}[rruu]|(.42){_{41}}\ar@{-}[rru]|(.4){_{40}}
+\ar@{-}[rr]|(.75){_{11}}\ar@{-}[rrd]|(.6){_{4}}\ar@{-}[rrdd]|{_{8}}
+\ar@{-}[rrddd]|{_{35}}\ar@{-}[rrdddd]|{_{32}}&&v_{13}\\
+v_6\ar@{-}[rruuuuu]|(.7){_{13}}&&v_{14}\\
+v_7\ar@{-}[rruuuuu]|(.15){_{19}}&&v_{15}\\
+v_8\ar@{-}[rruuuuuu]|(.25){_{39}}\ar@{-}[rruuuuu]|(.65){_{15}}&&
+v_{16}\\
+&&v_{17}\\
+}
+
+\bigskip
+
+\noindent\hfil
+Fig.~3. An example of the assignment problem.
+
+\bigskip
+
+Similarly, the perfect assignment problem can be naturally formulated
+as the following LP problem:
+
+\medskip
+
+\noindent
+\hspace{.5in}minimize (or maximize)
+$$z=\sum_{(i,j)\in E}c_{ij}x_{ij}\eqno(15)$$
+\hspace{.5in}subject to
+$$\sum_{(i,j)\in E}x_{ij}=1\ \ \ \hbox{for all}\ i\in R\eqno(16)$$
+$$\sum_{(i,j)\in E}x_{ij}=1\ \ \ \hbox{for all}\ j\in S\eqno(17)$$
+$$\ \ \ \ \ \ \ \ 0\leq x_{ij}\leq 1\ \ \ \hbox{for all}\ (i,j)\in E
+\eqno(18)$$
+
+\medskip
+
+\noindent
+where variables $x_{ij}$ have the same meaning as for (11)---(14)
+above.
+
+\newpage
+
+In GLPK an undirected bipartite graph $G=(R\cup S,E)$ is represented as
+directed graph $\overline{G}=(V,A)$, where $V=R\cup S$ and
+$A=\{(i,j):(i,j)\in E\}$, i.e. every edge $(i,j)\in E$ in $G$
+corresponds to arc $(i\rightarrow j)\in A$ in $\overline{G}$.
+
+\subsection{glp\_read\_asnprob---read assignment problem data in\\DIMACS
+format}
+
+\subsubsection*{Synopsis}
+
+\begin{verbatim}
+int glp_read_asnprob(glp_graph *G, int v_set, int a_cost,
+      const char *fname);
+\end{verbatim}
+
+\subsubsection*{Description}
+
+The routine \verb|glp_read_asnprob| reads the assignment problem data
+from a text file in DIMACS format.
+
+The parameter \verb|G| specifies the graph object, to which the problem
+data have to be stored. Note that before reading data the current
+content of the graph object is completely erased with the routine
+\verb|glp_erase_graph|.
+
+The parameter \verb|v_set| specifies an offset of the field of type
+\verb|int| in the vertex data block, to which the routine stores the
+node set indicator:
+
+0 --- the node is in set $R$;
+
+1 --- the node is in set $S$.
+
+\noindent
+If \verb|v_set| $<0$, the node set indicator is not stored.
+
+The parameter \verb|a_cost| specifies an offset of the field of type
+\verb|double| in the arc data block, to which the routine stores the
+edge cost $c_{ij}$. If \verb|a_cost| $<0$, the edge cost is not stored.
+
+The character string \verb|fname| specifies the name of a text file to
+be read in. (If the file name name ends with the suffix `\verb|.gz|',
+the file is assumed to be compressed, in which case the routine
+decompresses it ``on the fly''.)
+
+\subsubsection*{Returns}
+
+If the operation was successful, the routine returns zero. Otherwise,
+it prints an error message and returns non-zero.
+
+\newpage
+
+\subsubsection*{Example}
+
+\begin{footnotesize}
+\begin{verbatim}
+typedef struct
+{     /* vertex data block */
+      ...
+      int set;
+      ...
+} v_data;
+
+typedef struct
+{     /* arc data block */
+      ...
+      double cost;
+      ...
+} a_data;
+
+int main(void)
+{     glp_graph *G;
+      int ret;
+      G = glp_create_graph(sizeof(v_data), sizeof(a_data));
+      ret = glp_read_asnprob(G, offsetof(v_data, set),
+         offsetof(a_data, cost), "sample.asn");
+      if (ret != 0) goto ...
+      ...
+}
+\end{verbatim}
+\end{footnotesize}
+
+\subsubsection*{DIMACS assignment problem format\footnote{This
+material is based on the paper ``The First DIMACS International
+Algorithm Implementation Challenge: Problem Definitions and
+Specifications'', which is publically available at
+{\tt http://dimacs.rutgers.edu/Challenges/}.}}
+\label{subsecasnprob}
+
+The DIMACS input file is a plain ASCII text file. It contains
+{\it lines} of several types described below. A line is terminated with
+an end-of-line character. Fields in each line are separated by at least
+one blank space. Each line begins with a one-character designator to
+identify the line type.
+
+Note that DIMACS requires all numerical quantities to be integers in
+the range $[-2^{31},\ 2^{31}-1]$ while GLPK allows the quantities to be
+floating-point numbers.
+
+\paragraph{Comment lines.} Comment lines give human-readable information
+about the file and are ignored by programs. Comment lines can appear
+anywhere in the file. Each comment line begins with a lower-case
+character \verb|c|.
+
+\begin{verbatim}
+   c This is a comment line
+\end{verbatim}
+
+\newpage
+
+\paragraph{Problem line.} There is one problem line per data file. The
+problem line must appear before any node or arc descriptor lines. It has
+the following format:
+
+\begin{verbatim}
+   p asn NODES EDGES
+\end{verbatim}
+
+\noindent
+The lower-case character \verb|p| signifies that this is a problem line.
+The three-character problem designator \verb|asn| identifies the file as
+containing specification information for the assignment problem.
+The \verb|NODES| field contains an integer value specifying the total
+number of nodes in the graph (i.e. in both sets $R$ and $S$). The
+\verb|EDGES| field contains an integer value specifying the number of
+edges in the graph.
+
+\paragraph{Node descriptors.} All node descriptor lines must appear
+before all edge descriptor lines. The node descriptor lines lists the
+nodes in set $R$ only, and all other nodes are assumed to be in set
+$S$. There is one node descriptor line for each such node, with the
+following format:
+
+\begin{verbatim}
+   n ID
+\end{verbatim}
+
+\noindent
+The lower-case character \verb|n| signifies that this is a node
+descriptor line. The \verb|ID| field gives a node identification number,
+an integer between 1 and \verb|NODES|.
+
+\paragraph{Edge descriptors.} There is one edge descriptor line for
+each edge in the graph. Edge descriptor lines are of the following
+format:
+
+\begin{verbatim}
+   a SRC DST COST
+\end{verbatim}
+
+\noindent
+The lower-case character \verb|a| signifies that this is an edge
+descriptor line. For each edge $(i,j)$, where $i\in R$ and $j\in S$,
+the \verb|SRC| field gives the identification number of vertex $i$, and
+the \verb|DST| field gives the identification number of vertex $j$.
+Identification numbers are integers between 1 and \verb|NODES|. The
+\verb|COST| field contains the cost of edge $(i,j)$.
+
+\paragraph{Example.} Below here is an example of the data file in
+DIMACS format corresponding to the assignment problem shown on Fig~3.
+
+\newpage
+
+\begin{footnotesize}
+\begin{verbatim}
+c sample.asn
+c
+c This is an example of the assignment problem data
+c in DIMACS format.
+c
+p asn 17 22
+c
+n 1
+n 2
+n 3
+n 4
+n 5
+n 6
+n 7
+n 8
+c
+a 1  9 13
+a 1 10 21
+a 1 12 20
+a 2 10 12
+a 2 12  8
+a 2 13 26
+a 3 11 22
+a 3 13 11
+a 4  9 12
+a 4 12 36
+a 4 14 25
+a 5 11 41
+a 5 12 40
+a 5 13 11
+a 5 14  4
+a 5 15  8
+a 5 16 35
+a 5 17 32
+a 6  9 13
+a 7 10 19
+a 8 10 39
+a 8 11 15
+c
+c eof
+\end{verbatim}
+\end{footnotesize}
+
+\newpage
+
+\subsection{glp\_write\_asnprob---write assignment problem data in\\
+DIMACS format}
+
+\subsubsection*{Synopsis}
+
+\begin{verbatim}
+int glp_write_asnprob(glp_graph *G, int v_set, int a_cost,
+      const char *fname);
+\end{verbatim}
+
+\subsubsection*{Description}
+
+The routine \verb|glp_write_asnprob| writes the assignment problem data
+to a text file in DIMACS format.
+
+The parameter \verb|G| is the graph program object, which specifies the
+assignment problem instance.
+
+The parameter \verb|v_set| specifies an offset of the field of type
+\verb|int| in the vertex data block, which contains the node set
+indicator:
+
+0 --- the node is in set $R$;
+
+1 --- the node is in set $S$.
+
+\noindent
+If \verb|v_set| $<0$, it is assumed that a node having no incoming arcs
+is in set $R$, and a node having no outgoing arcs is in set $S$.
+
+The parameter \verb|a_cost| specifies an offset of the field of type
+\verb|double| in the arc data block, which contains $c_{ij}$, the edge
+cost. If \verb|a_cost| $<0$, it is assumed that $c_{ij}=1$ for all
+edges.
+
+The character string \verb|fname| specifies a name of the text file to
+be written out. (If the file name ends with suffix `\verb|.gz|', the
+file is assumed to be compressed, in which case the routine performs
+automatic compression on writing it.)
+
+\subsubsection*{Note}
+
+The routine \verb|glp_write_asnprob| does not check that the specified
+graph object correctly represents a bipartite graph. To make sure that
+the problem data are correct, use the routine \verb|glp_check_asnprob|.
+
+\subsubsection*{Returns}
+
+If the operation was successful, the routine returns zero. Otherwise,
+it prints an error message and returns non-zero.
+
+\newpage
+
+\subsection{glp\_check\_asnprob---check correctness of assignment
+problem data}
+
+\subsubsection*{Synopsis}
+
+\begin{verbatim}
+int glp_check_asnprob(glp_graph *G, int v_set);
+\end{verbatim}
+
+\subsubsection*{Description}
+
+The routine \verb|glp_check_asnprob| checks that the specified graph
+object \verb|G| correctly represents a bipartite graph.
+
+The parameter \verb|v_set| specifies an offset of the field of type
+\verb|int| in the vertex data block, which contains the node set
+indicator:
+
+0 --- the node is in set $R$;
+
+1 --- the node is in set $S$.
+
+\noindent
+If \verb|v_set| $<0$, it is assumed that a node having no incoming arcs
+is in set $R$, and a node having no outgoing arcs is in set $S$.
+
+\subsubsection*{Returns}
+
+The routine \verb|glp_check_asnprob| may return the following codes:
+
+0 --- the data are correct;
+
+1 --- the set indicator of some node is 0, however, that node has one
+or more incoming arcs;
+
+2 --- the set indicator of some node is 1, however, that node has one
+or more outgoing arcs;
+
+3 --- the set indicator of some node is invalid (neither 0 nor 1);
+
+4 --- some node has both incoming and outgoing arcs.
+
+\subsection{glp\_asnprob\_lp---convert assignment problem to LP}
+
+\subsubsection*{Synopsis}
+
+\begin{verbatim}
+int glp_asnprob_lp(glp_prob *P, int form, glp_graph *G,
+      int names, int v_set, int a_cost);
+\end{verbatim}
+
+\subsubsection*{Description}
+
+The routine \verb|glp_asnprob_lp| builds LP problem, which corresponds
+to the specified assignment problem.
+
+The parameter \verb|lp| is the resultant LP problem object to be built.
+Note that on entry its current content is erased with the routine
+\verb|glp_erase_prob|.
+
+The parameter \verb|form| defines which LP formulation should be used:
+
+\verb|GLP_ASN_MIN| --- perfect matching (15)---(18), minimization;
+
+\verb|GLP_ASN_MAX| --- perfect matching (15)---(18), maximization;
+
+\verb|GLP_ASN_MMP| --- maximum weighted matching (11)---(14).
+
+The parameter \verb|G| is the graph program object, which specifies the
+assignment problem instance.
+
+The parameter \verb|names| is a flag. If it is \verb|GLP_ON|, the
+routine uses symbolic names of the graph object components to assign
+symbolic names to the LP problem object components. If the \verb|flag|
+is \verb|GLP_OFF|, no symbolic names are assigned.
+
+The parameter \verb|v_set| specifies an offset of the field of type
+\verb|int| in the vertex data block, which contains the node set
+indicator:
+
+0 --- the node is in set $R$;
+
+1 --- the node is in set $S$.
+
+\noindent
+If \verb|v_set| $<0$, it is assumed that a node having no incoming arcs
+is in set $R$, and a node having no outgoing arcs is in set $S$.
+
+The parameter \verb|a_cost| specifies an offset of the field of type
+\verb|double| in the arc data block, which contains $c_{ij}$, the edge
+cost. If \verb|a_cost| $<0$, it is assumed that $c_{ij}=1$ for all
+edges.
+
+\subsubsection*{Returns}
+
+If the LP problem has been successfully built, the routine
+\verb|glp_asnprob_lp| returns zero, otherwise, non-zero (see the
+routine \verb|glp_check_asnprob|).
+
+\subsubsection*{Example}
+
+The example program below reads the assignment problem instance in
+DIMACS format from file `\verb|sample.asn|', converts the instance to
+LP (11)---(14), and writes the resultant LP in CPLEX format to file
+`\verb|matching.lp|'.
+
+\begin{footnotesize}
+\begin{verbatim}
+#include <stddef.h>
+#include <glpk.h>
+
+typedef struct { int set; } v_data;
+typedef struct { double cost; } a_data;
+
+int main(void)
+{     glp_graph *G;
+      glp_prob *P;
+      G = glp_create_graph(sizeof(v_data), sizeof(a_data));
+      glp_read_asnprob(G, offsetof(v_data, set),
+         offsetof(a_data, cost), "sample.asn");
+      P = glp_create_prob();
+      glp_asnprob_lp(P, GLP_ASN_MMP, G, GLP_ON,
+         offsetof(v_data, set), offsetof(a_data, cost));
+      glp_delete_graph(G);
+      glp_write_lp(P, NULL, "matching.lp");
+      glp_delete_prob(P);
+      return 0;
+}
+\end{verbatim}
+\end{footnotesize}
+
+If `\verb|sample.asn|' is the example data file from the subsection
+describing the routine \verb|glp_read_asnprob|, file
+`\verb|matching.lp|' may look like follows:
+
+\begin{footnotesize}
+\begin{verbatim}
+Maximize
+ obj: + 20 x(1,12) + 21 x(1,10) + 13 x(1,9) + 26 x(2,13) + 8 x(2,12)
+ + 12 x(2,10) + 11 x(3,13) + 22 x(3,11) + 25 x(4,14) + 36 x(4,12)
+ + 12 x(4,9) + 32 x(5,17) + 35 x(5,16) + 8 x(5,15) + 4 x(5,14)
+ + 11 x(5,13) + 40 x(5,12) + 41 x(5,11) + 13 x(6,9) + 19 x(7,10)
+ + 15 x(8,11) + 39 x(8,10)
+
+Subject To
+ r_1: + x(1,9) + x(1,10) + x(1,12) <= 1
+ r_2: + x(2,10) + x(2,12) + x(2,13) <= 1
+ r_3: + x(3,11) + x(3,13) <= 1
+ r_4: + x(4,9) + x(4,12) + x(4,14) <= 1
+ r_5: + x(5,11) + x(5,12) + x(5,13) + x(5,14) + x(5,15) + x(5,16)
+ + x(5,17) <= 1
+ r_6: + x(6,9) <= 1
+ r_7: + x(7,10) <= 1
+ r_8: + x(8,10) + x(8,11) <= 1
+ r_9: + x(6,9) + x(4,9) + x(1,9) <= 1
+ r_10: + x(8,10) + x(7,10) + x(2,10) + x(1,10) <= 1
+ r_11: + x(8,11) + x(5,11) + x(3,11) <= 1
+ r_12: + x(5,12) + x(4,12) + x(2,12) + x(1,12) <= 1
+ r_13: + x(5,13) + x(3,13) + x(2,13) <= 1
+ r_14: + x(5,14) + x(4,14) <= 1
+ r_15: + x(5,15) <= 1
+ r_16: + x(5,16) <= 1
+ r_17: + x(5,17) <= 1
+
+Bounds
+ 0 <= x(1,12) <= 1
+ 0 <= x(1,10) <= 1
+ 0 <= x(1,9) <= 1
+ 0 <= x(2,13) <= 1
+ 0 <= x(2,12) <= 1
+ 0 <= x(2,10) <= 1
+ 0 <= x(3,13) <= 1
+ 0 <= x(3,11) <= 1
+ 0 <= x(4,14) <= 1
+ 0 <= x(4,12) <= 1
+ 0 <= x(4,9) <= 1
+ 0 <= x(5,17) <= 1
+ 0 <= x(5,16) <= 1
+ 0 <= x(5,15) <= 1
+ 0 <= x(5,14) <= 1
+ 0 <= x(5,13) <= 1
+ 0 <= x(5,12) <= 1
+ 0 <= x(5,11) <= 1
+ 0 <= x(6,9) <= 1
+ 0 <= x(7,10) <= 1
+ 0 <= x(8,11) <= 1
+ 0 <= x(8,10) <= 1
+
+End
+\end{verbatim}
+\end{footnotesize}
+
+\subsection{glp\_asnprob\_okalg---solve assignment problem with
+out-of-kilter algorithm}
+
+\subsubsection*{Synopsis}
+
+\begin{verbatim}
+int glp_asnprob_okalg(int form, glp_graph *G, int v_set,
+      int a_cost, double *sol, int a_x);
+\end{verbatim}
+
+\subsubsection*{Description}
+
+The routine \verb|glp_mincost_okalg| finds optimal solution to the
+assignment problem with the out-of-kilter
+algorithm.\footnote{GLPK implementation of the out-of-kilter algorithm
+is based on the following book: L.~R.~Ford,~Jr., and D.~R.~Fulkerson,
+``Flows in Networks,'' The RAND Corp., Report R-375-PR (August 1962),
+Chap. III ``Minimal Cost Flow Problems,'' pp.~113-26.} Note that this
+routine requires all the problem data to be integer-valued.
+
+The parameter \verb|form| defines which LP formulation should be used:
+
+\verb|GLP_ASN_MIN| --- perfect matching (15)---(18), minimization;
+
+\verb|GLP_ASN_MAX| --- perfect matching (15)---(18), maximization;
+
+\verb|GLP_ASN_MMP| --- maximum weighted matching (11)---(14).
+
+The parameter \verb|G| is the graph program object, which specifies the
+assignment problem instance.
+
+The parameter \verb|v_set| specifies an offset of the field of type
+\verb|int| in the vertex data block, which contains the node set
+indicator:
+
+0 --- the node is in set $R$;
+
+1 --- the node is in set $S$.
+
+\newpage
+
+\noindent
+If \verb|v_set| $<0$, it is assumed that a node having no incoming arcs
+is in set $R$, and a node having no outgoing arcs is in set $S$.
+
+The parameter \verb|a_cost| specifies an offset of the field of type
+\verb|double| in the arc data block, which contains $c_{ij}$, the edge
+cost. This value must be integer in the range [\verb|-INT_MAX|,
+\verb|+INT_MAX|]. If \verb|a_cost| $<0$, it is assumed that $c_{ij}=1$
+for all edges.
+
+The parameter \verb|sol| specifies a location, to which the routine
+stores the objective value (that is, the total cost) found.
+If \verb|sol| is \verb|NULL|, the objective value is not stored.
+
+The parameter \verb|a_x| specifies an offset of the field of type
+\verb|int| in the arc data block, to which the routine stores $x_{ij}$.
+If \verb|a_x| $<0$, this value is not stored.
+
+\subsubsection*{Returns}
+
+\def\arraystretch{1}
+
+\begin{tabular}{@{}p{25mm}p{97.3mm}@{}}
+0 & Optimal solution found.\\
+\verb|GLP_ENOPFS| & No (primal) feasible solution exists.\\
+\verb|GLP_EDATA| & Unable to start the search, because the assignment
+problem data are either incorrect (this error is detected by the
+routine \verb|glp_check_asnprob|), not integer-valued or out of range.\\
+\verb|GLP_ERANGE| & The search was prematurely terminated because of
+integer overflow.\\
+\verb|GLP_EFAIL| & An error has been detected in the program logic.
+(If this code is returned for your problem instance, please report to
+\verb|<bug-glpk@gnu.org>|.)\\
+\end{tabular}
+
+\subsubsection*{Comments}
+
+Since the out-of-kilter algorithm is designed to find a minimal cost
+circulation, the routine \verb|glp_asnprob_okalg| converts the original
+graph to a network suitable for this algorithm in the following
+way:\footnote{The conversion is performed internally and does not change
+the original graph program object passed to the routine.}
+
+1) it replaces each edge $(i,j)$ by arc $(i\rightarrow j)$,
+flow $x_{ij}$ through which has zero lower bound ($l_{ij}=0$), unity
+upper bound ($u_{ij}=1$), and per-unit cost $+c_{ij}$ (in case of
+\verb|GLP_ASN_MIN|), or $-c_{ij}$ (in case of \verb|GLP_ASN_MAX| and
+\verb|GLP_ASN_MMP|);
+
+2) then it adds one auxiliary feedback node $k$;
+
+\newpage
+
+3) for each original node $i\in R$ the routine adds auxiliary supply
+arc $(k\rightarrow i)$, flow $x_{ki}$ through which is costless
+($c_{ki}=0$) and either fixed at 1 ($l_{ki}=u_{ki}=1$, in case of
+\verb|GLP_ASN_MIN| and \verb|GLP_ASN_MAX|) or has zero lower bound and
+unity upper bound ($l_{ij}=0$, $u_{ij}=1$, in case of
+\verb|GLP_ASN_MMP|);
+
+4) similarly, for each original node $j\in S$ the routine adds
+auxiliary demand arc $(j\rightarrow k)$, flow $x_{jk}$ through which is
+costless ($c_{jk}=0$) and either fixed at 1 ($l_{jk}=u_{jk}=1$, in case
+of \verb|GLP_ASN_MIN| and \verb|GLP_ASN_MAX|) or has zero lower bound
+and unity upper bound ($l_{jk}=0$, $u_{jk}=1$, in case of
+\verb|GLP_ASN_MMP|).
+
+\subsubsection*{Example}
+
+The example program shown below reads the assignment problem instance
+in DIMACS format from file `\verb|sample.asn|', solves it by using the
+routine \verb|glp_asnprob_okalg|, and writes the solution found to the
+standard output.
+
+\begin{footnotesize}
+\begin{verbatim}
+#include <stddef.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <glpk.h>
+
+typedef struct { int set; } v_data;
+typedef struct { double cost; int x; } e_data;
+
+#define node(v) ((v_data *)((v)->data))
+#define edge(e) ((e_data *)((e)->data))
+
+int main(void)
+{     glp_graph *G;
+      glp_vertex *v;
+      glp_arc *e;
+      int i, ret;
+      double sol;
+      G = glp_create_graph(sizeof(v_data), sizeof(e_data));
+      glp_read_asnprob(G, offsetof(v_data, set),
+         offsetof(e_data, cost), "sample.asn");
+      ret = glp_asnprob_okalg(GLP_ASN_MMP, G,
+         offsetof(v_data, set), offsetof(e_data, cost), &sol,
+         offsetof(e_data, x));
+      printf("ret = %d; sol = %5g\n", ret, sol);
+      for (i = 1; i <= G->nv; i++)
+      {  v = G->v[i];
+         for (e = v->out; e != NULL; e = e->t_next)
+            printf("edge %2d %2d: x = %d; c = %g\n",
+               e->tail->i, e->head->i, edge(e)->x, edge(e)->cost);
+      }
+      glp_delete_graph(G);
+      return 0;
+}
+\end{verbatim}
+\end{footnotesize}
+
+If `\verb|sample.asn|' is the example data file from the subsection
+describing the routine \verb|glp_read_asnprob|, the output may look
+like follows:
+
+\begin{footnotesize}
+\begin{verbatim}
+Reading assignment problem data from `sample.asn'...
+Assignment problem has 8 + 9 = 17 nodes and 22 arcs
+38 lines were read
+ret = 0; sol =   180
+edge  1 12: x = 1; c = 20
+edge  1 10: x = 0; c = 21
+edge  1  9: x = 0; c = 13
+edge  2 13: x = 1; c = 26
+edge  2 12: x = 0; c = 8
+edge  2 10: x = 0; c = 12
+edge  3 13: x = 0; c = 11
+edge  3 11: x = 1; c = 22
+edge  4 14: x = 1; c = 25
+edge  4 12: x = 0; c = 36
+edge  4  9: x = 0; c = 12
+edge  5 17: x = 0; c = 32
+edge  5 16: x = 1; c = 35
+edge  5 15: x = 0; c = 8
+edge  5 14: x = 0; c = 4
+edge  5 13: x = 0; c = 11
+edge  5 12: x = 0; c = 40
+edge  5 11: x = 0; c = 41
+edge  6  9: x = 1; c = 13
+edge  7 10: x = 0; c = 19
+edge  8 11: x = 0; c = 15
+edge  8 10: x = 1; c = 39
+\end{verbatim}
+\end{footnotesize}
+
+\newpage
+
+\subsection{glp\_asnprob\_hall---find bipartite matching of maximum
+cardinality}
+
+\subsubsection*{Synopsis}
+
+\begin{verbatim}
+int glp_asnprob_hall(glp_graph *G, int v_set, int a_x);
+\end{verbatim}
+
+\subsubsection*{Description}
+
+The routine \verb|glp_asnprob_hall| finds a matching of maximal
+cardinality in the specified bipartite graph. It uses a version of the
+Fortran routine \verb|MC21A| developed by
+I.~S.~Duff\footnote{I.~S.~Duff, Algorithm 575: Permutations for
+zero-free diagonal, ACM Trans. on Math. Softw. 7 (1981), pp.~387-390.},
+which implements Hall's algorithm.\footnote{M.~Hall, ``An Algorithm for
+Distinct Representatives,'' Am. Math. Monthly 63 (1956), pp.~716-717.}
+
+The parameter \verb|G| is a pointer to the graph program object.
+
+The parameter \verb|v_set| specifies an offset of the field of type
+\verb|int| in the vertex data block, which contains the node set
+indicator:
+
+0 --- the node is in set $R$;
+
+1 --- the node is in set $S$.
+
+\noindent
+If \verb|v_set| $<0$, it is assumed that a node having no incoming arcs
+is in set $R$, and a node having no outgoing arcs is in set $S$.
+
+The parameter \verb|a_x| specifies an offset of the field of type
+\verb|int| in the arc data block, to which the routine stores $x_{ij}$.
+If \verb|a_x| $<0$, this value is not stored.
+
+\subsubsection*{Returns}
+
+The routine \verb|glp_asnprob_hall| returns the cardinality of the
+matching found. However, if the specified graph is incorrect (as
+detected by the routine \verb|glp_check_asnprob|), this routine returns
+a negative value.
+
+\subsubsection*{Comments}
+
+The same solution may be obtained with the routine
+\verb|glp_asnprob_okalg| (for LP formulation \verb|GLP_ASN_MMP| and
+all edge costs equal to 1). However, the routine \verb|glp_asnprob_hall|
+is much faster.
+
+\newpage
+
+\subsubsection*{Example}
+
+The example program shown below reads the assignment problem instance
+in DIMACS format from file `\verb|sample.asn|', finds a bipartite
+matching of maximal cardinality by using the routine
+\verb|glp_asnprob_hall|, and writes the solution found to the standard
+output.
+
+\begin{footnotesize}
+\begin{verbatim}
+#include <stddef.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <glpk.h>
+
+typedef struct { int set; } v_data;
+typedef struct { int x;   } e_data;
+
+#define node(v) ((v_data *)((v)->data))
+#define edge(e) ((e_data *)((e)->data))
+
+int main(void)
+{     glp_graph *G;
+      glp_vertex *v;
+      glp_arc *e;
+      int i, card;
+      G = glp_create_graph(sizeof(v_data), sizeof(e_data));
+      glp_read_asnprob(G, offsetof(v_data, set), -1,
+         "sample.asn");
+      card = glp_asnprob_hall(G, offsetof(v_data, set),
+         offsetof(e_data, x));
+      printf("card = %d\n", card);
+      for (i = 1; i <= G->nv; i++)
+      {  v = G->v[i];
+         for (e = v->out; e != NULL; e = e->t_next)
+            printf("edge %2d %2d: x = %d\n",
+               e->tail->i, e->head->i, edge(e)->x);
+      }
+      glp_delete_graph(G);
+      return 0;
+}
+\end{verbatim}
+\end{footnotesize}
+
+If `\verb|sample.asn|' is the example data file from the subsection
+describing the routine \verb|glp_read_asnprob|, the output may look
+like follows:
+
+\begin{footnotesize}
+\begin{verbatim}
+Reading assignment problem data from `sample.asn'...
+Assignment problem has 8 + 9 = 17 nodes and 22 arcs
+38 lines were read
+card = 7
+edge  1 12: x = 1
+edge  1 10: x = 0
+edge  1  9: x = 0
+edge  2 13: x = 1
+edge  2 12: x = 0
+edge  2 10: x = 0
+edge  3 13: x = 0
+edge  3 11: x = 1
+edge  4 14: x = 1
+edge  4 12: x = 0
+edge  4  9: x = 0
+edge  5 17: x = 1
+edge  5 16: x = 0
+edge  5 15: x = 0
+edge  5 14: x = 0
+edge  5 13: x = 0
+edge  5 12: x = 0
+edge  5 11: x = 0
+edge  6  9: x = 1
+edge  7 10: x = 1
+edge  8 11: x = 0
+edge  8 10: x = 0
+\end{verbatim}
+\end{footnotesize}
 
 %* eof *%

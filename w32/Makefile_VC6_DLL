@@ -23,7 +23,6 @@ OBJSET = \
 ..\src\glpapi17.obj \
 ..\src\glpapi18.obj \
 ..\src\glpapi19.obj \
-..\src\glpapi20.obj \
 ..\src\glpavl.obj \
 ..\src\glpbfd.obj \
 ..\src\glpbfx.obj \
@@ -61,13 +60,10 @@ OBJSET = \
 ..\src\glplib11.obj \
 ..\src\glplib12.obj \
 ..\src\glplpf.obj \
-..\src\glplpp01.obj \
-..\src\glplpp02.obj \
 ..\src\glplpx01.obj \
 ..\src\glplpx02.obj \
 ..\src\glplpx03.obj \
 ..\src\glplpx04.obj \
-..\src\glplpx05.obj \
 ..\src\glpluf.obj \
 ..\src\glplux.obj \
 ..\src\glpmat.obj \
@@ -87,6 +83,7 @@ OBJSET = \
 ..\src\glpnet07.obj \
 ..\src\glpnpp01.obj \
 ..\src\glpnpp02.obj \
+..\src\glpnpp03.obj \
 ..\src\glpqmd.obj \
 ..\src\glprgr.obj \
 ..\src\glprng01.obj \
@@ -94,7 +91,7 @@ OBJSET = \
 ..\src\glpscf.obj \
 ..\src\glpscg.obj \
 ..\src\glpscl.obj \
-..\src\glpsds.obj \
+..\src\glpsdf.obj \
 ..\src\glpspm.obj \
 ..\src\glpspx01.obj \
 ..\src\glpspx02.obj \
@@ -119,15 +116,15 @@ OBJSET = \
 .c.obj:
         cl.exe $(CFLAGS) /Fo$*.obj /c $*.c
 
-all: glpk_4_38.dll glpsol.exe
+all: glpk_4_39.dll glpsol.exe
 
-glpk_4_38.dll: $(OBJSET)
-        cl.exe $(CFLAGS) /LD /Feglpk_4_38.dll ..\src\*.obj \
-                ..\src\amd\*.obj ..\src\colamd\*.obj glpk_4_38.def
+glpk_4_39.dll: $(OBJSET)
+        cl.exe $(CFLAGS) /LD /Feglpk_4_39.dll ..\src\*.obj \
+                ..\src\amd\*.obj ..\src\colamd\*.obj glpk_4_39.def
 
-glpsol.exe: ..\examples\glpsol.obj glpk_4_38.dll
+glpsol.exe: ..\examples\glpsol.obj glpk_4_39.dll
         cl.exe $(CFLAGS) /Feglpsol.exe ..\examples\glpsol.obj \
-                glpk_4_38.lib
+                glpk_4_39.lib
 
 check: glpsol.exe
         .\glpsol.exe --mps ..\examples\plan.mps

@@ -63,9 +63,9 @@ BFD *bfd_create_it(void)
       bfd->suhl = 1;
       bfd->eps_tol = 1e-15;
       bfd->max_gro = 1e+10;
-      bfd->nfs_max = 50;
+      bfd->nfs_max = 100;
       bfd->upd_tol = 1e-6;
-      bfd->nrs_max = 50;
+      bfd->nrs_max = 100;
       bfd->rs_size = 1000;
       bfd->upd_lim = -1;
       bfd->upd_cnt = 0;

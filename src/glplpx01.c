@@ -574,6 +574,23 @@ void lpx_check_kkt(LPX *lp, int scaled, LPXKKT *kkt)
       return;
 }
 
+int lpx_warm_up(LPX *lp)
+{     /* "warm up" LP basis */
+      int ret;
+      ret = glp_warm_up(lp);
+      if (ret == 0)
+         ret = LPX_E_OK;
+      else if (ret == GLP_EBADB)
+         ret = LPX_E_BADB;
+      else if (ret == GLP_ESING)
+         ret = LPX_E_SING;
+      else if (ret == GLP_ECOND)
+         ret = LPX_E_SING;
+      else
+         xassert(ret != ret);
+      return ret;
+}
+
 int lpx_eval_tab_row(LPX *lp, int k, int ind[], double val[])
 {     /* compute row of the simplex tableau */
       return glp_eval_tab_row(lp, k, ind, val);

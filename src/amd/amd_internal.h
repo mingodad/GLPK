@@ -47,7 +47,11 @@
 #define AMD_preprocess amd_preprocess
 
 #define amd_malloc xmalloc
+#if 0 /* 24/V-2009 */
 #define amd_free xfree
+#else
+#define amd_free(ptr) { if ((ptr) != NULL) xfree(ptr); } 
+#endif
 #define amd_printf xprintf
 
 #define PRINTF(params) { amd_printf params; }

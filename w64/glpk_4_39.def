@@ -1,5 +1,5 @@
-LIBRARY glpk_4_38
-VERSION 4.38
+LIBRARY glpk_4_39
+VERSION 4.39
 DESCRIPTION "GNU Linear Programming Kit"
 EXPORTS
 ;; from amd_1 ;;
@@ -78,13 +78,10 @@ EXPORTS
 ;; from glpapi04 ;;
  glp_get_rii
  glp_get_sjj
- glp_scale_prob
  glp_set_rii
  glp_set_sjj
  glp_unscale_prob
 ;; from glpapi05 ;;
- glp_adv_basis
- glp_cpx_basis
  glp_set_col_stat
  glp_set_row_stat
  glp_std_basis
@@ -149,6 +146,7 @@ EXPORTS
  glp_get_col_bind
  glp_get_row_bind
  glp_set_bfcp
+ glp_warm_up
 ;; from glpapi13 ;;
  glp_ios_add_row
  glp_ios_best_node
@@ -173,6 +171,7 @@ EXPORTS
  glp_ios_tree_size
  glp_ios_up_node
 ;; from glpapi14 ;;
+ glp_assert_
  glp_calloc
  glp_free
  glp_free_env
@@ -183,10 +182,8 @@ EXPORTS
  glp_term_hook
  glp_term_out
  glp_version
+ glp_vprintf
 ;; from glpapi15 ;;
- glp_read_lp
- glp_write_lp
-;; from glpapi16 ;;
  glp_mpl_alloc_wksp
  glp_mpl_build_prob
  glp_mpl_free_wksp
@@ -194,24 +191,32 @@ EXPORTS
  glp_mpl_postsolve
  glp_mpl_read_data
  glp_mpl_read_model
-;; from glpapi17 ;;
+;; from glpapi16 ;;
  glp_add_arc
  glp_add_vertices
  glp_create_graph
+ glp_create_v_index
  glp_delete_graph
+ glp_delete_v_index
  glp_erase_graph
+ glp_find_vertex
  glp_read_graph
  glp_set_graph_name
+ glp_set_vertex_name
  glp_write_graph
-;; from glpapi18 ;;
+;; from glpapi17 ;;
  glp_strong_comp
  glp_weak_comp
-;; from glpapi19 ;;
+;; from glpapi18 ;;
+ glp_asnprob_hall
+ glp_asnprob_lp
+ glp_asnprob_okalg
+ glp_check_asnprob
  glp_maxflow_ffalg
  glp_maxflow_lp
  glp_mincost_lp
  glp_mincost_okalg
-;; from glpapi20 ;;
+;; from glpapi19 ;;
  glp_main
 ;; from glpavl ;;
  _glp_avl_create_tree
@@ -239,8 +244,9 @@ EXPORTS
  _glp_bfx_ftran
  _glp_bfx_update
 ;; from glpcpx ;;
- _glp_read_cpxlp
- _glp_write_cpxlp
+ glp_init_cpxcp
+ glp_read_lp
+ glp_write_lp
 ;; from glpdmp ;;
  _glp_dmp_create_pool
  _glp_dmp_delete_pool
@@ -248,8 +254,12 @@ EXPORTS
  _glp_dmp_get_atom
  _glp_dmp_in_use
 ;; from glpdmx ;;
+ glp_read_asnprob
+ glp_read_ccformat
  glp_read_maxflow
  glp_read_mincost
+ glp_write_asnprob
+ glp_write_ccformat
  glp_write_maxflow
  glp_write_mincost
 ;; from glpfhv ;;
@@ -303,9 +313,9 @@ EXPORTS
  _glp_hbm_free_mat
  _glp_hbm_read_mat
 ;; from glpini01 ;;
- _glp_adv_basis
+ glp_adv_basis
 ;; from glpini02 ;;
- _glp_cpx_basis
+ glp_cpx_basis
 ;; from glpios01 ;;
  _glp_ios_add_edge
  _glp_ios_add_row
@@ -477,27 +487,6 @@ EXPORTS
  _glp_lpf_factorize
  _glp_lpf_ftran
  _glp_lpf_update_it
-;; from glplpp01 ;;
- _glp_lpp_add_aij
- _glp_lpp_add_col
- _glp_lpp_add_row
- _glp_lpp_alloc_sol
- _glp_lpp_append_tqe
- _glp_lpp_build_prob
- _glp_lpp_create_wksp
- _glp_lpp_delete_wksp
- _glp_lpp_deque_col
- _glp_lpp_deque_row
- _glp_lpp_enque_col
- _glp_lpp_enque_row
- _glp_lpp_load_orig
- _glp_lpp_load_sol
- _glp_lpp_remove_col
- _glp_lpp_remove_row
- _glp_lpp_unload_sol
-;; from glplpp02 ;;
- _glp_lpp_postsolve
- _glp_lpp_presolve
 ;; from glplpx01 ;;
  _glp_lpx_add_cols
  _glp_lpx_add_rows
@@ -600,25 +589,22 @@ EXPORTS
  _glp_lpx_simplex
  _glp_lpx_std_basis
  _glp_lpx_unscale_prob
+ _glp_lpx_warm_up
  _glp_lpx_write_bas
  _glp_lpx_write_cpxlp
  _glp_lpx_write_freemps
  _glp_lpx_write_mps
 ;; from glplpx02 ;;
- _glp_1px_order_matrix
- _glp_1px_put_mip_soln
- _glp_1px_put_solution
-;; from glplpx03 ;;
- _glp_1px_eval_b_dual
- _glp_1px_eval_b_prim
  _glp_lpx_dual_ratio_test
  _glp_lpx_prim_ratio_test
  _glp_lpx_transform_col
  _glp_lpx_transform_row
- _glp_lpx_warm_up
-;; from glplpx04 ;;
+ _glp_order_matrix
+ _glp_put_mip_soln
+ _glp_put_solution
+;; from glplpx03 ;;
  _glp_lpx_print_sens_bnds
-;; from glplpx05 ;;
+;; from glplpx04 ;;
  _glp_lpx_write_pb
 ;; from glpluf ;;
  _glp_luf_a_solve
@@ -942,22 +928,35 @@ EXPORTS
  _glp_npp_del_col
  _glp_npp_del_row
  _glp_npp_delete_wksp
+ _glp_npp_insert_col
+ _glp_npp_insert_row
  _glp_npp_load_prob
  _glp_npp_postprocess
  _glp_npp_push_tse
+ _glp_npp_remove_col
+ _glp_npp_remove_row
  _glp_npp_unload_sol
 ;; from glpnpp02 ;;
+ _glp_npp_col_sngtn1
+ _glp_npp_col_sngtn2
  _glp_npp_dbnd_col
  _glp_npp_empty_col
  _glp_npp_empty_row
  _glp_npp_fixed_col
+ _glp_npp_forcing_row
  _glp_npp_free_col
  _glp_npp_free_row
  _glp_npp_gteq_row
+ _glp_npp_implied_fixed
+ _glp_npp_implied_lower
+ _glp_npp_implied_upper
  _glp_npp_lbnd_col
  _glp_npp_lteq_row
- _glp_npp_sngl_row
+ _glp_npp_row_sngtn1
+ _glp_npp_row_sngtn2
  _glp_npp_ubnd_col
+;; from glpnpp03 ;;
+ _glp_npp_preprocess
 ;; from glpqmd ;;
  _glp_qmd_genqmd
  _glp_qmd_qmdmrg
@@ -989,18 +988,18 @@ EXPORTS
  _glp_scg_delete_graph
  _glp_scg_max_clique
 ;; from glpscl ;;
- _glp_scale_prob
-;; from glpsds ;;
- _glp_sds_close
- _glp_sds_error
- _glp_sds_int
- _glp_sds_item
- _glp_sds_jump
- _glp_sds_line
- _glp_sds_num
- _glp_sds_open
- _glp_sds_text
- _glp_sds_warning
+ glp_scale_prob
+;; from glpsdf ;;
+ glp_sdf_close_file
+ glp_sdf_error
+ glp_sdf_line
+ glp_sdf_open_file
+ glp_sdf_read_int
+ glp_sdf_read_item
+ glp_sdf_read_num
+ glp_sdf_read_text
+ glp_sdf_set_jump
+ glp_sdf_warning
 ;; from glpspm ;;
  _glp_spm_add_mat
  _glp_spm_add_num

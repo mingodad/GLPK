@@ -21,7 +21,7 @@
 *  along with GLPK. If not, see <http://www.gnu.org/licenses/>.
 ***********************************************************************/
 
-#include "glpscl.h"
+#include "glpapi.h"
 
 /***********************************************************************
 *  min_row_aij - determine minimal |a[i,j]| in i-th row
@@ -386,7 +386,7 @@ static void gm_iterate(glp_prob *lp, int it_max, double tau)
 *  The routine scale_prob performs automatic scaling of problem data
 *  for the specified problem object. */
 
-void scale_prob(glp_prob *lp, int flags)
+static void scale_prob(glp_prob *lp, int flags)
 {     static const char *fmt =
          "%s: min|aij| = %10.3e  max|aij| = %10.3e  ratio = %10.3e\n";
       double min_aij, max_aij, ratio;
@@ -433,6 +433,43 @@ void scale_prob(glp_prob *lp, int flags)
          xprintf(fmt, "2N", min_aij, max_aij, ratio);
       }
 done: return;
+}
+
+/***********************************************************************
+*  NAME
+*
+*  glp_scale_prob - scale problem data
+*
+*  SYNOPSIS
+*
+*  void glp_scale_prob(glp_prob *lp, int flags);
+*
+*  DESCRIPTION
+*
+*  The routine glp_scale_prob performs automatic scaling of problem
+*  data for the specified problem object.
+*
+*  The parameter flags specifies scaling options used by the routine.
+*  Options can be combined with the bitwise OR operator and may be the
+*  following:
+*
+*  GLP_SF_GM      perform geometric mean scaling;
+*  GLP_SF_EQ      perform equilibration scaling;
+*  GLP_SF_2N      round scale factors to nearest power of two;
+*  GLP_SF_SKIP    skip scaling, if the problem is well scaled.
+*
+*  The parameter flags may be specified as GLP_SF_AUTO, in which case
+*  the routine chooses scaling options automatically. */
+
+void glp_scale_prob(glp_prob *lp, int flags)
+{     if (flags & ~(GLP_SF_GM | GLP_SF_EQ | GLP_SF_2N | GLP_SF_SKIP |
+                    GLP_SF_AUTO))
+         xerror("glp_scale_prob: flags = 0x%02X; invalid scaling option"
+            "s\n", flags);
+      if (flags & GLP_SF_AUTO)
+         flags = (GLP_SF_GM | GLP_SF_EQ | GLP_SF_SKIP);
+      scale_prob(lp, flags);
+      return;
 }
 
 /* eof */

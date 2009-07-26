@@ -4,7 +4,7 @@
 
 \section{Problem data reading/writing routines}
 
-\subsection{glp\_read\_mps: read problem data in MPS format}
+\subsection{glp\_read\_mps---read problem data in MPS format}
 
 \subsubsection*{Synopsis}
 
@@ -43,7 +43,7 @@ If the operation was successful, the routine \verb|glp_read_mps|
 returns zero. Otherwise, it prints an error message and returns
 non-zero.
 
-\subsection{glp\_write\_mps: write problem data in MPS format}
+\subsection{glp\_write\_mps---write problem data in MPS format}
 
 \subsubsection*{Synopsis}
 
@@ -79,7 +79,7 @@ If the operation was successful, the routine \verb|glp_write_mps|
 returns zero. Otherwise, it prints an error message and returns
 non-zero.
 
-\subsection{glp\_read\_lp: read problem data in CPLEX LP format}
+\subsection{glp\_read\_lp---read problem data in CPLEX LP format}
 
 \subsubsection*{Synopsis}
 
@@ -110,7 +110,7 @@ is completely erased with the routine \verb|glp_erase_prob|.
 If the operation was successful, the routine \verb|glp_read_lp| returns
 zero. Otherwise, it prints an error message and returns non-zero.
 
-\subsection{glp\_write\_lp: write problem data in CPLEX LP format}
+\subsection{glp\_write\_lp---write problem data in CPLEX LP format}
 
 \subsubsection*{Synopsis}
 
@@ -294,7 +294,7 @@ skip: glp_mpl_free_wksp(tran);
 \end{verbatim}
 \end{small}
 
-\subsection{glp\_mpl\_alloc\_wksp: allocate the translator workspace}
+\subsection{glp\_mpl\_alloc\_wksp---allocate the translator workspace}
 
 \subsubsection*{Synopsis}
 
@@ -313,7 +313,7 @@ allocated, if necessary.)
 The routine returns a pointer to the workspace, which should be used in
 all subsequent operations.
 
-\subsection{glp\_mpl\_read\_model: read and translate model section}
+\subsection{glp\_mpl\_read\_model---read and translate model section}
 
 \subsubsection*{Synopsis}
 
@@ -340,7 +340,7 @@ allows reading data section(s) from other file(s).
 If the operation is successful, the routine returns zero. Otherwise
 the routine prints an error message and returns non-zero.
 
-\subsection{glp\_mpl\_read\_data: read and translate data section}
+\subsection{glp\_mpl\_read\_data---read and translate data section}
 
 \subsubsection*{Synopsis}
 
@@ -360,7 +360,7 @@ workspace. If necessary, this routine may be called more than once.
 If the operation is successful, the routine returns zero. Otherwise
 the routine prints an error message and returns non-zero.
 
-\subsection{glp\_mpl\_generate: generate the model}
+\subsection{glp\_mpl\_generate---generate the model}
 
 \subsubsection*{Synopsis}
 
@@ -385,7 +385,7 @@ If \verb|fname| is \verb|NULL|, the output is sent to the terminal.
 If the operation is successful, the routine returns zero. Otherwise
 the routine prints an error message and returns non-zero.
 
-\subsection{glp\_mpl\_build\_prob: build problem instance from the
+\subsection{glp\_mpl\_build\_prob---build problem instance from the
 model}
 
 \subsubsection*{Synopsis}
@@ -401,7 +401,7 @@ from the translator workspace and stores it in the specified problem
 object \verb|prob|. Note that before building the current content of
 the problem object is erased with the routine \verb|glp_erase_prob|.
 
-\subsection{glp\_mpl\_postsolve: postsolve the model}
+\subsection{glp\_mpl\_postsolve---postsolve the model}
 
 \subsubsection*{Synopsis}
 
@@ -431,7 +431,7 @@ from the problem object to the workspace as follows:
 If the operation is successful, the routine returns zero. Otherwise
 the routine prints an error message and returns non-zero.
 
-\subsection{glp\_mpl\_free\_wksp: free the translator workspace}
+\subsection{glp\_mpl\_free\_wksp---free the translator workspace}
 
 \subsubsection*{Synopsis}
 
@@ -451,7 +451,7 @@ still used by the translator.
 
 \section{Problem solution reading/writing routines}
 
-\subsection{glp\_print\_sol: write basic solution in printable format}
+\subsection{glp\_print\_sol---write basic solution in printable format}
 
 \subsubsection*{Synopsis}
 
@@ -474,7 +474,7 @@ mainly for visual analysis.
 If no errors occurred, the routine returns zero. Otherwise the routine
 prints an error message and returns non-zero.
 
-\subsection{glp\_read\_sol: read basic solution from text file}
+\subsection{glp\_read\_sol---read basic solution from text file}
 
 \subsubsection*{Synopsis}
 
@@ -496,7 +496,7 @@ On success the routine returns zero, otherwise non-zero.
 
 \newpage
 
-\subsection{glp\_write\_sol: write basic solution to text file}
+\subsection{glp\_write\_sol---write basic solution to text file}
 
 \subsubsection*{Synopsis}
 
@@ -574,7 +574,7 @@ $n$ is the number of columns (structural variables);
 \noindent
 \verb|c_dual[j]|, $j=1,\dots,n$, is the dual value of $j$-th column.
 
-\subsection{lpx\_print\_sens\_bnds: write bounds sensitivity
+\subsection{lpx\_print\_sens\_bnds---write bounds sensitivity
 information}
 
 \subsubsection*{Synopsis}
@@ -602,7 +602,7 @@ intended mainly for visual analysis.
 If no errors occurred, the routine returns zero. Otherwise the routine
 prints an error message and returns non-zero.
 
-\subsection{glp\_print\_ipt: write interior-point solution in
+\subsection{glp\_print\_ipt---write interior-point solution in
 printable format}
 
 \subsubsection*{Synopsis}
@@ -626,7 +626,7 @@ mainly for visual analysis.
 If no errors occurred, the routine returns zero. Otherwise the routine
 prints an error message and returns non-zero.
 
-\subsection{glp\_read\_ipt: read interior-point solution from text
+\subsection{glp\_read\_ipt---read interior-point solution from text
 file}
 
 \subsubsection*{Synopsis}
@@ -647,7 +647,7 @@ For the file format see description of the routine \verb|glp_write_ipt|.
 
 On success the routine returns zero, otherwise non-zero.
 
-\subsection{glp\_write\_ipt: write interior-point solution to text
+\subsection{glp\_write\_ipt---write interior-point solution to text
 file}
 
 \subsubsection*{Synopsis}
@@ -711,7 +711,7 @@ $n$ is the number of columns (structural variables);
 \noindent
 \verb|c_dual[j]|, $j=1,\dots,n$, is the dual value of $j$-th column.
 
-\subsection{glp\_print\_mip: write MIP solution in printable format}
+\subsection{glp\_print\_mip---write MIP solution in printable format}
 
 \subsubsection*{Synopsis}
 
@@ -736,7 +736,7 @@ prints an error message and returns non-zero.
 
 \newpage
 
-\subsection{glp\_read\_mip: read MIP solution from text file}
+\subsection{glp\_read\_mip---read MIP solution from text file}
 
 \subsubsection*{Synopsis}
 
@@ -756,7 +756,7 @@ For the file format see description of the routine \verb|glp_write_mip|.
 
 On success the routine returns zero, otherwise non-zero.
 
-\subsection{glp\_write\_mip: write MIP solution to text file}
+\subsection{glp\_write\_mip---write MIP solution to text file}
 
 \subsubsection*{Synopsis}
 

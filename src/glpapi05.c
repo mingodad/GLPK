@@ -22,7 +22,6 @@
 ***********************************************************************/
 
 #include "glpapi.h"
-#include "glpini.h"
 
 /***********************************************************************
 *  NAME
@@ -162,60 +161,6 @@ void glp_std_basis(glp_prob *lp)
          else
             glp_set_col_stat(lp, j, GLP_NL);
       }
-      return;
-}
-
-/***********************************************************************
-*  NAME
-*
-*  glp_adv_basis - construct advanced initial LP basis
-*
-*  SYNOPSIS
-*
-*  void glp_adv_basis(glp_prob *lp, int flags);
-*
-*  DESCRIPTION
-*
-*  The routine glp_adv_basis constructs an advanced initial basis for
-*  the specified problem object.
-*
-*  The parameter flags is reserved for use in the future and must be
-*  specified as zero. */
-
-void glp_adv_basis(glp_prob *lp, int flags)
-{     if (flags != 0)
-         xerror("glp_adv_basis: flags = %d; invalid flags\n", flags);
-      if (lp->m == 0 || lp->n == 0)
-         glp_std_basis(lp);
-      else
-         adv_basis(lp);
-      return;
-}
-
-/***********************************************************************
-*  NAME
-*
-*  glp_cpx_basis - construct Bixby's initial LP basis
-*
-*  SYNOPSIS
-*
-*  void glp_cpx_basis(glp_prob *lp);
-*
-*  DESCRIPTION
-*
-*  The routine glp_cpx_basis constructs an advanced initial basis for
-*  the specified problem object.
-*
-*  The routine is based on Bixby's algorithm described in the paper:
-*
-*  Robert E. Bixby. Implementing the Simplex Method: The Initial Basis.
-*  ORSA Journal on Computing, Vol. 4, No. 3, 1992, pp. 267-84. */
-
-void glp_cpx_basis(glp_prob *lp)
-{     if (lp->m == 0 || lp->n == 0)
-         glp_std_basis(lp);
-      else
-         cpx_basis(lp);
       return;
 }
 

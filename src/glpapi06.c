@@ -21,8 +21,16 @@
 *  along with GLPK. If not, see <http://www.gnu.org/licenses/>.
 ***********************************************************************/
 
+#if 1
+#define GLP_USE_NPP
+#endif
+
 #include "glpapi.h"
+#ifdef GLP_USE_NPP
+#include "glpnpp.h"
+#else
 #include "glplpp.h"
+#endif
 #include "glpspx.h"
 
 /***********************************************************************
@@ -273,7 +281,11 @@ done: return ret;
 
 static int simplex2(glp_prob *orig, const glp_smcp *parm)
 {     /* extended driver which uses LP presolver */
+#ifdef GLP_USE_NPP
+      NPP *npp;
+#else
       LPP *lpp;
+#endif
       glp_prob *prob;
       glp_bfcp bfcp;
       int orig_m, orig_n, orig_nnz, ret;
@@ -281,8 +293,8 @@ static int simplex2(glp_prob *orig, const glp_smcp *parm)
       orig_n = glp_get_num_cols(orig);
       orig_nnz = glp_get_num_nz(orig);
       if (parm->msg_lev >= GLP_MSG_ALL)
-      {  xprintf("glp_simplex: original LP has %d row%s, %d column%s, %"
-            "d non-zero%s\n",
+      {  xprintf(
+            "Original LP has %d row%s, %d column%s, %d non-zero%s\n",
             orig_m, orig_m == 1 ? "" : "s",
             orig_n, orig_n == 1 ? "" : "s",
             orig_nnz, orig_nnz == 1 ? "" : "s");
@@ -290,32 +302,77 @@ static int simplex2(glp_prob *orig, const glp_smcp *parm)
       /* the problem must have at least one row and one column */
       xassert(orig_m > 0 && orig_n > 0);
       /* create LP presolver workspace */
+#ifdef GLP_USE_NPP
+      npp = npp_create_wksp();
+#else
       lpp = lpp_create_wksp();
+#endif
       /* load the original problem into LP presolver workspace */
+#ifdef GLP_USE_NPP
+      npp_load_prob(npp, orig, GLP_OFF, GLP_SOL, GLP_OFF);
+#else
       lpp_load_orig(lpp, orig);
+#endif
       /* perform LP presolve analysis */
+#ifdef GLP_USE_NPP
+      ret = npp_preprocess(npp);
+#else
       ret = lpp_presolve(lpp);
+#endif
       switch (ret)
       {  case 0:
             /* presolving has been successfully completed */
             break;
+#ifdef GLP_USE_NPP
+         case GLP_ENOPFS:
+#else
          case 1:
+#endif
             /* the original problem is primal infeasible */
             if (parm->msg_lev >= GLP_MSG_ALL)
                xprintf("PROBLEM HAS NO PRIMAL FEASIBLE SOLUTION\n");
+#ifdef GLP_USE_NPP
+            npp_delete_wksp(npp);
+#else
             lpp_delete_wksp(lpp);
+#endif
             return GLP_ENOPFS;
+#ifdef GLP_USE_NPP
+         case GLP_ENODFS:
+#else
          case 2:
+#endif
             /* the original problem is dual infeasible */
             if (parm->msg_lev >= GLP_MSG_ALL)
                xprintf("PROBLEM HAS NO DUAL FEASIBLE SOLUTION\n");
+#ifdef GLP_USE_NPP
+            npp_delete_wksp(npp);
+#else
             lpp_delete_wksp(lpp);
+#endif
             return GLP_ENODFS;
          default:
             xassert(ret != ret);
       }
       /* if the resultant problem is empty, it has an empty solution,
          which is optimal */
+#ifdef GLP_USE_NPP
+      if (npp->r_head == NULL || npp->c_head == NULL)
+      {  xassert(npp->r_head == NULL);
+         xassert(npp->c_head == NULL);
+         if (parm->msg_lev >= GLP_MSG_ALL)
+         {  xprintf("Objective value = %.10g\n",
+               npp->orig_dir == GLP_MIN ? + npp->c0 : - npp->c0);
+            xprintf("OPTIMAL SOLUTION FOUND BY LP PRESOLVER\n");
+         }
+         prob = glp_create_prob();
+         npp_build_prob(npp, prob);
+         xassert(prob->m == 0 && prob->n == 0);
+         prob->pbs_stat = prob->dbs_stat = GLP_FEAS;
+         prob->obj_val = prob->c0;
+         goto post;
+      }
+#else
       if (lpp->row_ptr == NULL || lpp->col_ptr == NULL)
       {  xassert(lpp->row_ptr == NULL);
          xassert(lpp->col_ptr == NULL);
@@ -328,15 +385,23 @@ static int simplex2(glp_prob *orig, const glp_smcp *parm)
          lpp_alloc_sol(lpp);
          goto post;
       }
+#endif
       /* build resultant LP problem object */
+#ifdef GLP_USE_NPP
+      prob = glp_create_prob();
+      npp_build_prob(npp, prob);
+#else
       prob = lpp_build_prob(lpp);
+#endif
       if (parm->msg_lev >= GLP_MSG_ALL)
       {  int m = glp_get_num_rows(prob);
          int n = glp_get_num_cols(prob);
          int nnz = glp_get_num_nz(prob);
-         xprintf("glp_simplex: presolved LP has %d row%s, %d column%s, "
-            "%d non-zero%s\n", m, m == 1 ? "" : "s",
-            n, n == 1 ? "" : "s", nnz, nnz == 1 ? "" : "s");
+         xprintf(
+            "Presolved LP has %d row%s, %d column%s, %d non-zero%s\n",
+            m, m == 1 ? "" : "s",
+            n, n == 1 ? "" : "s",
+            nnz, nnz == 1 ? "" : "s");
       }
       /* inherit basis factorization control parameters */
       glp_get_bfcp(orig, &bfcp);
@@ -368,8 +433,8 @@ static int simplex2(glp_prob *orig, const glp_smcp *parm)
       /* check if the optimal solution has been found */
       if (glp_get_status(prob) != GLP_OPT)
       {  if (parm->msg_lev >= GLP_MSG_ERR)
-            xprintf("glp_simplex: cannot recover undefined or non-optim"
-               "al solution\n");
+            xprintf("glp_simplex: unable to recover undefined or non-op"
+               "timal solution\n");
          if (ret == 0)
          {  if (glp_get_prim_stat(prob) == GLP_NOFEAS)
                ret = GLP_ENOPFS;
@@ -377,16 +442,28 @@ static int simplex2(glp_prob *orig, const glp_smcp *parm)
                ret = GLP_ENODFS;
          }
          glp_delete_prob(prob);
+#ifdef GLP_USE_NPP
+         npp_delete_wksp(npp);
+#else
          lpp_delete_wksp(lpp);
+#endif
          return ret;
       }
+#ifdef GLP_USE_NPP
+post: npp_postprocess(npp, prob);
+#else
       /* allocate recovered solution segment */
       lpp_alloc_sol(lpp);
       /* load basic solution of the resultant problem into LP presolver
          workspace */
       lpp_load_sol(lpp, prob);
+#endif
       /* the resultant problem object is no longer needed */
       glp_delete_prob(prob);
+#ifdef GLP_USE_NPP
+      npp_unload_sol(npp, orig);
+      npp_delete_wksp(npp);
+#else
 post: /* perform LP postsolve processing */
       lpp_postsolve(lpp);
       /* unload recovered basic solution and store it into the original
@@ -394,6 +471,7 @@ post: /* perform LP postsolve processing */
       lpp_unload_sol(lpp, orig);
       /* delete LP presolver workspace */
       lpp_delete_wksp(lpp);
+#endif
       /* the original problem has been successfully solved */
       return 0;
 }

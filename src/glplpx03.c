@@ -1,7 +1,9 @@
-/* glplpx03.c (LP basis and simplex table routines) */
+/* glplpx03.c (bounds sensitivity analysis routine) */
 
 /***********************************************************************
 *  This code is part of GLPK (GNU Linear Programming Kit).
+*
+*  Author: Brady Hunsaker <bkh@member.fsf.org>.
 *
 *  Copyright (C) 2000,01,02,03,04,05,06,07,08,2009 Andrew Makhorin,
 *  Department for Applied Informatics, Moscow Aviation Institute,
@@ -21,976 +23,559 @@
 *  along with GLPK. If not, see <http://www.gnu.org/licenses/>.
 ***********************************************************************/
 
+#define _GLPSTD_ERRNO
+#define _GLPSTD_STDIO
 #include "glpapi.h"
 #include "glplib.h"
-#define xfault xerror
-#define lpx_get_b_info glp_get_bhead
-#define lpx_get_row_b_ind glp_get_row_bind
-#define lpx_get_col_b_ind glp_get_col_bind
-#define lpx_ftran glp_ftran
-#define lpx_btran glp_btran
 
 /*----------------------------------------------------------------------
--- lpx_eval_b_prim - compute primal basic solution components.
+-- lpx_print_sens_bnds - write bounds sensitivity information.
 --
 -- *Synopsis*
 --
 -- #include "glplpx.h"
--- void lpx_eval_b_prim(LPX *lp, double row_prim[], double col_prim[]);
+-- int lpx_print_sens_bnds(LPX *lp, char *fname);
 --
 -- *Description*
 --
--- The routine lpx_eval_b_prim computes primal values of all auxiliary
--- and structural variables for the specified problem object.
+-- The routine lpx_print_sens_bnds writes the bounds for objective
+-- coefficients, right-hand-sides of constraints, and variable bounds
+-- for which the current optimal basic solution remains optimal (for LP
+-- only).
 --
--- NOTE: This routine is intended for internal use only.
+-- The LP is given by the pointer lp, and the output is written to the
+-- file specified by fname.  The current contents of the file will be
+-- overwritten.
 --
--- *Background*
---
--- By definition (see glplpx.h):
---
---    B * xB + N * xN = 0,                                           (1)
---
--- where the (basis) matrix B and the matrix N are built of columns of
--- the augmented constraint matrix A~ = (I | -A).
---
--- The formula (1) allows computing primal values of basic variables xB
--- as follows:
---
---    xB = - inv(B) * N * xN,                                        (2)
---
--- where values of non-basic variables xN are defined by corresponding
--- settings for the current basis. */
-
-void lpx_eval_b_prim(LPX *lp, double row_prim[], double col_prim[])
-{     int i, j, k, m, n, stat, len, *ind;
-      double xN, *NxN, *xB, *val;
-      if (!lpx_is_b_avail(lp))
-         xfault("lpx_eval_b_prim: LP basis is not available\n");
-      m = lpx_get_num_rows(lp);
-      n = lpx_get_num_cols(lp);
-      /* store values of non-basic auxiliary and structural variables
-         and compute the right-hand side vector (-N*xN) */
-      NxN = xcalloc(1+m, sizeof(double));
-      for (i = 1; i <= m; i++) NxN[i] = 0.0;
-      /* walk through auxiliary variables */
-      for (i = 1; i <= m; i++)
-      {  /* obtain status of i-th auxiliary variable */
-         stat = lpx_get_row_stat(lp, i);
-         /* if it is basic, skip it */
-         if (stat == LPX_BS) continue;
-         /* i-th auxiliary variable is non-basic; get its value */
-         switch (stat)
-         {  case LPX_NL: xN = lpx_get_row_lb(lp, i); break;
-            case LPX_NU: xN = lpx_get_row_ub(lp, i); break;
-            case LPX_NF: xN = 0.0; break;
-            case LPX_NS: xN = lpx_get_row_lb(lp, i); break;
-            default: xassert(lp != lp);
-         }
-         /* store the value of non-basic auxiliary variable */
-         row_prim[i] = xN;
-         /* and add corresponding term to the right-hand side vector */
-         NxN[i] -= xN;
-      }
-      /* walk through structural variables */
-      ind = xcalloc(1+m, sizeof(int));
-      val = xcalloc(1+m, sizeof(double));
-      for (j = 1; j <= n; j++)
-      {  /* obtain status of j-th structural variable */
-         stat = lpx_get_col_stat(lp, j);
-         /* if it basic, skip it */
-         if (stat == LPX_BS) continue;
-         /* j-th structural variable is non-basic; get its value */
-         switch (stat)
-         {  case LPX_NL: xN = lpx_get_col_lb(lp, j); break;
-            case LPX_NU: xN = lpx_get_col_ub(lp, j); break;
-            case LPX_NF: xN = 0.0; break;
-            case LPX_NS: xN = lpx_get_col_lb(lp, j); break;
-            default: xassert(lp != lp);
-         }
-         /* store the value of non-basic structural variable */
-         col_prim[j] = xN;
-         /* and add corresponding term to the right-hand side vector */
-         if (xN != 0.0)
-         {  len = lpx_get_mat_col(lp, j, ind, val);
-            for (k = 1; k <= len; k++) NxN[ind[k]] += val[k] * xN;
-         }
-      }
-      xfree(ind);
-      xfree(val);
-      /* solve the system B*xB = (-N*xN) to compute the vector xB */
-      xB = NxN, lpx_ftran(lp, xB);
-      /* store values of basic auxiliary and structural variables */
-      for (i = 1; i <= m; i++)
-      {  k = lpx_get_b_info(lp, i);
-         xassert(1 <= k && k <= m+n);
-         if (k <= m)
-            row_prim[k] = xB[i];
-         else
-            col_prim[k-m] = xB[i];
-      }
-      xfree(NxN);
-      return;
-}
-
-/*----------------------------------------------------------------------
--- lpx_eval_b_dual - compute dual basic solution components.
---
--- *Synopsis*
---
--- #include "glplpx.h"
--- void lpx_eval_b_dual(LPX *lp, double row_dual[], double col_dual[]);
---
--- *Description*
---
--- The routine lpx_eval_b_dual computes dual values (that is reduced
--- costs) of all auxiliary and structural variables for the specified
--- problem object.
---
--- NOTE: This routine is intended for internal use only.
---
--- *Background*
---
--- By definition (see glplpx.h):
---
---    B * xB + N * xN = 0,                                           (1)
---
--- where the (basis) matrix B and the matrix N are built of columns of
--- the augmented constraint matrix A~ = (I | -A).
---
--- The objective function can be written as:
---
---    Z = cB' * xB + cN' * xN + c0,                                  (2)
---
--- where cB and cN are objective coefficients at, respectively, basic
--- and non-basic variables.
---
--- From (1) it follows that:
---
---    xB = - inv(B) * N * xN,                                        (3)
---
--- so substituting xB from (3) to (2) we have:
---
---    Z = - cB' * inv(B) * N * xN + cN' * xN + c0 =
---
---      = (cN' - cB' * inv(B) * N) * xN + c0 =
---                                                                   (4)
---      = (cN - N' * inv(B') * cB)' * xN + c0 =
---
---      = d' * xN + c0,
---
--- where
---
---    d = cN - N' * inv(B') * cB                                     (5)
---
--- is the vector of dual values (reduced costs) of non-basic variables.
---
--- The routine first computes the vector pi:
---
---    pi = inv(B') * cB,                                             (6)
---
--- and then computes the vector d as follows:
---
---    d = cN - N' * pi.                                              (7)
---
--- Note that dual values of basic variables are zero by definition. */
-
-void lpx_eval_b_dual(LPX *lp, double row_dual[], double col_dual[])
-{     int i, j, k, m, n, len, *ind;
-      double dj, *cB, *pi, *val;
-      if (!lpx_is_b_avail(lp))
-         xfault("lpx_eval_b_dual: LP basis is not available\n");
-      m = lpx_get_num_rows(lp);
-      n = lpx_get_num_cols(lp);
-      /* store zero reduced costs of basic auxiliary and structural
-         variables and build the vector cB of objective coefficients at
-         basic variables */
-      cB = xcalloc(1+m, sizeof(double));
-      for (i = 1; i <= m; i++)
-      {  k = lpx_get_b_info(lp, i);
-         /* xB[i] is k-th original variable */
-         xassert(1 <= k && k <= m+n);
-         if (k <= m)
-         {  row_dual[k] = 0.0;
-            cB[i] = 0.0;
-         }
-         else
-         {  col_dual[k-m] = 0.0;
-            cB[i] = lpx_get_obj_coef(lp, k-m);
-         }
-      }
-      /* solve the system B'*pi = cB to compute the vector pi */
-      pi = cB, lpx_btran(lp, pi);
-      /* compute reduced costs of non-basic auxiliary variables */
-      for (i = 1; i <= m; i++)
-      {  if (lpx_get_row_stat(lp, i) != LPX_BS)
-            row_dual[i] = - pi[i];
-      }
-      /* compute reduced costs of non-basic structural variables */
-      ind = xcalloc(1+m, sizeof(int));
-      val = xcalloc(1+m, sizeof(double));
-      for (j = 1; j <= n; j++)
-      {  if (lpx_get_col_stat(lp, j) != LPX_BS)
-         {  dj = lpx_get_obj_coef(lp, j);
-            len = lpx_get_mat_col(lp, j, ind, val);
-            for (k = 1; k <= len; k++) dj += val[k] * pi[ind[k]];
-            col_dual[j] = dj;
-         }
-      }
-      xfree(ind);
-      xfree(val);
-      xfree(cB);
-      return;
-}
-
-/*----------------------------------------------------------------------
--- lpx_warm_up - "warm up" LP basis.
---
--- *Synopsis*
---
--- #include "glplpx.h"
--- int lpx_warm_up(LPX *lp);
---
--- *Description*
---
--- The routine lpx_warm_up "warms up" the LP basis for the specified
--- problem object using current statuses assigned to rows and columns
--- (i.e. to auxiliary and structural variables).
---
--- "Warming up" includes reinverting (factorizing) the basis matrix (if
--- neccesary), computing primal and dual components of basic solution,
--- and determining primal and dual statuses of the basic solution.
+-- Information reported by the routine lpx_print_sens_bnds is intended
+-- mainly for visual analysis.
 --
 -- *Returns*
 --
--- The routine lpx_warm_up returns one of the following exit codes:
---
--- LPX_E_OK       the LP basis has been successfully "warmed up".
---
--- LPX_E_EMPTY    the problem has no rows and/or columns.
---
--- LPX_E_BADB     the LP basis is invalid, because the number of basic
---                variables is not the same as the number of rows.
---
--- LPX_E_SING     the basis matrix is singular or ill-conditioned. */
+-- If the operation was successful, the routine returns zero. Otherwise
+-- the routine prints an error message and returns non-zero. */
 
-int lpx_warm_up(LPX *lp)
-{     int m, n, j, k, ret, type, stat, p_stat, d_stat;
-      double lb, ub, prim, dual, tol_bnd, tol_dj, dir;
-      double *row_prim, *row_dual, *col_prim, *col_dual, sum;
-      m = lpx_get_num_rows(lp);
-      n = lpx_get_num_cols(lp);
-      /* reinvert the basis matrix, if necessary */
-      if (lpx_is_b_avail(lp))
-         ret = LPX_E_OK;
-      else
-      {  if (m == 0 || n == 0)
-         {  ret = LPX_E_EMPTY;
-            goto done;
-         }
-#if 0
-         ret = lpx_invert(lp);
-         switch (ret)
-         {  case 0:
-               ret = LPX_E_OK;
-               break;
-            case 1:
-            case 2:
-               ret = LPX_E_SING;
-               goto done;
-            case 3:
-               ret = LPX_E_BADB;
-               goto done;
-            default:
-               xassert(ret != ret);
-         }
-#else
-         switch (glp_factorize(lp))
-         {  case 0:
-               ret = LPX_E_OK;
-               break;
-            case GLP_EBADB:
-               ret = LPX_E_BADB;
-               goto done;
-            case GLP_ESING:
-            case GLP_ECOND:
-               ret = LPX_E_SING;
-               goto done;
-            default:
-               xassert(lp != lp);
-         }
+int lpx_print_sens_bnds(LPX *lp, const char *fname)
+{     FILE *fp = NULL;
+      int what, round;
+      xprintf("lpx_print_sens_bnds: writing LP problem solution bounds "
+         "to `%s'...\n", fname);
+#if 1
+      /* added by mao */
+      /* this routine needs factorization of the current basis matrix
+         which, however, does not exist if the basic solution was
+         obtained by the lp presolver; therefore we should warm up the
+         basis to be sure that the factorization is valid (note that if
+         the factorization exists, lpx_warm_up does nothing) */
+      lpx_warm_up(lp);
 #endif
-      }
-      /* allocate working arrays */
-      row_prim = xcalloc(1+m, sizeof(double));
-      row_dual = xcalloc(1+m, sizeof(double));
-      col_prim = xcalloc(1+n, sizeof(double));
-      col_dual = xcalloc(1+n, sizeof(double));
-      /* compute primal basic solution components */
-      lpx_eval_b_prim(lp, row_prim, col_prim);
-      /* determine primal status of basic solution */
-      tol_bnd = 3.0 * lpx_get_real_parm(lp, LPX_K_TOLBND);
-      p_stat = LPX_P_FEAS;
-      for (k = 1; k <= m+n; k++)
-      {  if (k <= m)
-         {  type = lpx_get_row_type(lp, k);
-            lb = lpx_get_row_lb(lp, k);
-            ub = lpx_get_row_ub(lp, k);
-            prim = row_prim[k];
-         }
-         else
-         {  type = lpx_get_col_type(lp, k-m);
-            lb = lpx_get_col_lb(lp, k-m);
-            ub = lpx_get_col_ub(lp, k-m);
-            prim = col_prim[k-m];
-         }
-         if (type == LPX_LO || type == LPX_DB || type == LPX_FX)
-         {  /* variable x[k] has lower bound */
-            if (prim < lb - tol_bnd * (1.0 + fabs(lb)))
-            {  p_stat = LPX_P_INFEAS;
-               break;
-            }
-         }
-         if (type == LPX_UP || type == LPX_DB || type == LPX_FX)
-         {  /* variable x[k] has upper bound */
-            if (prim > ub + tol_bnd * (1.0 + fabs(ub)))
-            {  p_stat = LPX_P_INFEAS;
-               break;
-            }
-         }
-      }
-      /* compute dual basic solution components */
-      lpx_eval_b_dual(lp, row_dual, col_dual);
-      /* determine dual status of basic solution */
-      tol_dj = 3.0 * lpx_get_real_parm(lp, LPX_K_TOLDJ);
-      dir = (lpx_get_obj_dir(lp) == LPX_MIN ? +1.0 : -1.0);
-      d_stat = LPX_D_FEAS;
-      for (k = 1; k <= m+n; k++)
-      {  if (k <= m)
-         {  stat = lpx_get_row_stat(lp, k);
-            dual = row_dual[k];
-         }
-         else
-         {  stat = lpx_get_col_stat(lp, k-m);
-            dual = col_dual[k-m];
-         }
-         if (stat == LPX_BS || stat == LPX_NL || stat == LPX_NF)
-         {  /* reduced cost of x[k] must be non-negative (minimization)
-               or non-positive (maximization) */
-            if (dir * dual < - tol_dj)
-            {  d_stat = LPX_D_INFEAS;
-               break;
-            }
-         }
-         if (stat == LPX_BS || stat == LPX_NU || stat == LPX_NF)
-         {  /* reduced cost of x[k] must be non-positive (minimization)
-               or non-negative (maximization) */
-            if (dir * dual > + tol_dj)
-            {  d_stat = LPX_D_INFEAS;
-               break;
-            }
-         }
-      }
-      /* store basic solution components */
-      p_stat = p_stat - LPX_P_UNDEF + GLP_UNDEF;
-      d_stat = d_stat - LPX_D_UNDEF + GLP_UNDEF;
-      sum = lpx_get_obj_coef(lp, 0);
-      for (j = 1; j <= n; j++)
-         sum += lpx_get_obj_coef(lp, j) * col_prim[j];
-      lpx_put_solution(lp, 0, &p_stat, &d_stat, &sum,
-         NULL, row_prim, row_dual, NULL, col_prim, col_dual);
-      xassert(lpx_is_b_avail(lp));
-      /* free working arrays */
-      xfree(row_prim);
-      xfree(row_dual);
-      xfree(col_prim);
-      xfree(col_dual);
-done: /* return to the calling program */
-      return ret;
-}
-
-/*----------------------------------------------------------------------
--- lpx_transform_row - transform explicitly specified row.
---
--- *Synopsis*
---
--- #include "glplpx.h"
--- int lpx_transform_row(LPX *lp, int len, int ind[], double val[]);
---
--- *Description*
---
--- The routine lpx_transform_row performs the same operation as the
--- routine lpx_eval_tab_row with exception that the transformed row is
--- specified explicitly as a sparse vector.
---
--- The explicitly specified row may be thought as a linear form:
---
---    x = a[1]*x[m+1] + a[2]*x[m+2] + ... + a[n]*x[m+n],             (1)
---
--- where x is an auxiliary variable for this row, a[j] are coefficients
--- of the linear form, x[m+j] are structural variables.
---
--- On entry column indices and numerical values of non-zero elements of
--- the row should be stored in locations ind[1], ..., ind[len] and
--- val[1], ..., val[len], where len is the number of non-zero elements.
---
--- This routine uses the system of equality constraints and the current
--- basis in order to express the auxiliary variable x in (1) through the
--- current non-basic variables (as if the transformed row were added to
--- the problem object and its auxiliary variable were basic), i.e. the
--- resultant row has the form:
---
---    x = alfa[1]*xN[1] + alfa[2]*xN[2] + ... + alfa[n]*xN[n],       (2)
---
--- where xN[j] are non-basic (auxiliary or structural) variables, n is
--- the number of columns in the LP problem object.
---
--- On exit the routine stores indices and numerical values of non-zero
--- elements of the resultant row (2) in locations ind[1], ..., ind[len']
--- and val[1], ..., val[len'], where 0 <= len' <= n is the number of
--- non-zero elements in the resultant row returned by the routine. Note
--- that indices (numbers) of non-basic variables stored in the array ind
--- correspond to original ordinal numbers of variables: indices 1 to m
--- mean auxiliary variables and indices m+1 to m+n mean structural ones.
---
--- *Returns*
---
--- The routine returns len', which is the number of non-zero elements in
--- the resultant row stored in the arrays ind and val.
---
--- *Background*
---
--- The explicitly specified row (1) is transformed in the same way as
--- it were the objective function row.
---
--- From (1) it follows that:
---
---    x = aB * xB + aN * xN,                                         (3)
---
--- where xB is the vector of basic variables, xN is the vector of
--- non-basic variables.
---
--- The simplex table, which corresponds to the current basis, is:
---
---    xB = [-inv(B) * N] * xN.                                       (4)
---
--- Therefore substituting xB from (4) to (3) we have:
---
---    x = aB * [-inv(B) * N] * xN + aN * xN =
---                                                                   (5)
---      = rho * (-N) * xN + aN * xN = alfa * xN,
---
--- where:
---
---    rho = inv(B') * aB,                                            (6)
---
--- and
---
---    alfa = aN + rho * (-N)                                         (7)
---
--- is the resultant row computed by the routine. */
-
-int lpx_transform_row(LPX *lp, int len, int ind[], double val[])
-{     int i, j, k, m, n, t, lll, *iii;
-      double alfa, *a, *aB, *rho, *vvv;
+#if 0 /* 21/XII-2003 by mao */
+      if (lp->b_stat == LPX_B_UNDEF)
+#else
       if (!lpx_is_b_avail(lp))
-         xfault("lpx_transform_row: LP basis is not available\n");
-      m = lpx_get_num_rows(lp);
-      n = lpx_get_num_cols(lp);
-      /* unpack the row to be transformed to the array a */
-      a = xcalloc(1+n, sizeof(double));
-      for (j = 1; j <= n; j++) a[j] = 0.0;
-      if (!(0 <= len && len <= n))
-         xfault("lpx_transform_row: len = %d; invalid row length\n",
-            len);
-      for (t = 1; t <= len; t++)
-      {  j = ind[t];
-         if (!(1 <= j && j <= n))
-            xfault("lpx_transform_row: ind[%d] = %d; column index out o"
-               "f range\n", t, j);
-         if (val[t] == 0.0)
-            xfault("lpx_transform_row: val[%d] = 0; zero coefficient no"
-               "t allowed\n", t);
-         if (a[j] != 0.0)
-            xfault("lpx_transform_row: ind[%d] = %d; duplicate column i"
-               "ndices not allowed\n", t, j);
-         a[j] = val[t];
+#endif
+      {  xprintf("lpx_print_sens_bnds: basis information not available "
+            "(may be a presolve issue)\n");
+         goto fail;
       }
-      /* construct the vector aB */
-      aB = xcalloc(1+m, sizeof(double));
-      for (i = 1; i <= m; i++)
-      {  k = lpx_get_b_info(lp, i);
-         /* xB[i] is k-th original variable */
-         xassert(1 <= k && k <= m+n);
-         aB[i] = (k <= m ? 0.0 : a[k-m]);
+      fp = fopen(fname, "w");
+      if (fp == NULL)
+      {  xprintf("lpx_print_sens_bnds: can't create `%s' - %s\n",
+            fname, strerror(errno));
+         goto fail;
       }
-      /* solve the system B'*rho = aB to compute the vector rho */
-      rho = aB, lpx_btran(lp, rho);
-      /* compute coefficients at non-basic auxiliary variables */
-      len = 0;
-      for (i = 1; i <= m; i++)
-      {  if (lpx_get_row_stat(lp, i) != LPX_BS)
-         {  alfa = - rho[i];
-            if (alfa != 0.0)
-            {  len++;
-               ind[len] = i;
-               val[len] = alfa;
+      /* problem name */
+      {  const char *name;
+         name = lpx_get_prob_name(lp);
+         if (name == NULL) name = "";
+         fprintf(fp, "%-12s%s\n", "Problem:", name);
+      }
+      /* number of rows (auxiliary variables) */
+      {  int nr;
+         nr = lpx_get_num_rows(lp);
+         fprintf(fp, "%-12s%d\n", "Rows:", nr);
+      }
+      /* number of columns (structural variables) */
+      {  int nc;
+         nc = lpx_get_num_cols(lp);
+         fprintf(fp, "%-12s%d\n", "Columns:", nc);
+      }
+      /* number of non-zeros (constraint coefficients) */
+      {  int nz;
+         nz = lpx_get_num_nz(lp);
+         fprintf(fp, "%-12s%d\n", "Non-zeros:", nz);
+      }
+      /* solution status */
+      {  int status;
+         status = lpx_get_status(lp);
+         fprintf(fp, "%-12s%s\n", "Status:",
+            status == LPX_OPT    ? "OPTIMAL" :
+            status == LPX_FEAS   ? "FEASIBLE" :
+            status == LPX_INFEAS ? "INFEASIBLE (INTERMEDIATE)" :
+            status == LPX_NOFEAS ? "INFEASIBLE (FINAL)" :
+            status == LPX_UNBND  ? "UNBOUNDED" :
+            status == LPX_UNDEF  ? "UNDEFINED" : "???");
+      }
+      /* explanation/warning */
+      {  fprintf(fp, "\nExplanation:  This file presents amounts by whi"
+            "ch objective coefficients,\n");
+         fprintf(fp, "constraint bounds, and variable bounds may be cha"
+            "nged in the original problem\n");
+         fprintf(fp, "while the optimal basis remains the same.  Note t"
+            "hat the optimal solution\n");
+         fprintf(fp, "and objective value may change even though the ba"
+            "sis remains the same.\n");
+         fprintf(fp, "These bounds assume that all parameters remain fi"
+            "xed except the one in\n");
+         fprintf(fp, "question.  If more than one parameter is changed,"
+            " it is possible for the\n");
+         fprintf(fp, "optimal basis to change even though each paramete"
+            "r stays within its bounds.\n");
+         fprintf(fp, "For more details, consult a text on linear progra"
+            "mming.\n");
+      }
+      /* Sensitivity ranges if solution was optimal */
+      {  int status;
+         status = lpx_get_status(lp);
+         if (status == LPX_OPT)
+         {  int i,j,k,m,n;
+            int dir;
+            double max_inc, max_dec;
+            int *index;
+            double *val;
+            fprintf(fp, "\nObjective Coefficient Analysis\n");
+            fprintf(fp, "   No.  Column name St    Value       Max incr"
+               "ease  Max decrease\n");
+            fprintf(fp, "------ ------------ -- ------------- ---------"
+               "---- ------------- \n");
+            n = lpx_get_num_cols(lp);
+            m = lpx_get_num_rows(lp);
+            dir = lpx_get_obj_dir(lp);
+            /* allocate memory for index and val arrays */
+            index = xcalloc(1+n+m, sizeof(int));
+            val   = xcalloc(1+n+m, sizeof(double));
+            for (j = 1; j <= n; j++)
+            {  const char *name;
+               int typx, tagx;
+               double lb, ub, vx, dx;
+               name = lpx_get_col_name(lp, j);
+               if (name == NULL) name = "";
+               lpx_get_col_bnds(lp, j, &typx, &lb, &ub);
+#if 0 /* 21/XII-2003 by mao */
+               round = lp->round, lp->round = 1;
+               lpx_get_col_info(lp, j, &tagx, &vx, &dx);
+               lp->round = round;
+#else
+               round = lpx_get_int_parm(lp, LPX_K_ROUND);
+               lpx_set_int_parm(lp, LPX_K_ROUND, 1);
+               lpx_get_col_info(lp, j, &tagx, &vx, &dx);
+               lpx_set_int_parm(lp, LPX_K_ROUND, round);
+#endif
+               /* row/column ordinal number */
+               fprintf(fp, "%6d ", j);
+               /* row column/name */
+               if (strlen(name) <= 12)
+                  fprintf(fp, "%-12s ", name);
+               else
+                  fprintf(fp, "%s\n%20s", name, "");
+               /* row/column status */
+               fprintf(fp, "%s ",
+                  tagx == LPX_BS ? "B " :
+                  tagx == LPX_NL ? "NL" :
+                  tagx == LPX_NU ? "NU" :
+                  tagx == LPX_NF ? "NF" :
+                  tagx == LPX_NS ? "NS" : "??");
+               /* objective coefficient */
+               fprintf(fp, "%13.6g ", lpx_get_obj_coef(lp, j));
+               if (tagx == LPX_NL)
+               {  if (dir==LPX_MIN)
+                  {  /* reduced cost must be positive */
+                     max_inc = DBL_MAX; /* really represents infinity */
+                     max_dec = dx;
+                  }
+                  else
+                  {  /* reduced cost must be negative */
+                     max_inc = -dx;
+                     max_dec = DBL_MAX; /* means infinity */
+                  }
+               }
+               if (tagx == LPX_NU)
+               {  if (dir==LPX_MIN)
+                  {  /* reduced cost must be negative */
+                     max_inc = -dx;
+                     max_dec = DBL_MAX;
+                  }
+                  else
+                  {  max_inc = DBL_MAX;
+                     max_dec = dx;
+                  }
+               }
+               if (tagx == LPX_NF)
+               {  /* can't change nonbasic free variables' cost */
+                  max_inc = 0.0;
+                  max_dec = 0.0;
+               }
+               if (tagx == LPX_NS)
+               {  /* doesn't matter what happens to the cost */
+                  max_inc = DBL_MAX;
+                  max_dec = DBL_MAX;
+               }
+               if (tagx == LPX_BS)
+               {  int len;
+                  /* We need to see how this objective coefficient
+                     affects reduced costs of other variables */
+                  len = lpx_eval_tab_row(lp, m+j, index, val);
+                  max_inc = DBL_MAX;
+                  max_dec = DBL_MAX;
+                  for (i = 1; i <= len; i++)
+                  {  /*int stat;*/
+                     int tagx2;
+                     double vx2, dx2;
+                     double delta;
+                     if (index[i]>m)
+                        lpx_get_col_info(lp, index[i]-m, &tagx2, &vx2,
+                           &dx2);
+                     else
+                        lpx_get_row_info(lp, index[i], &tagx2, &vx2,
+                           &dx2);
+                     if (tagx2 == LPX_NL)
+                     {  if (val[i] != 0.0)
+                        {  delta = dx2 / val[i];
+                           if (delta < 0 && -delta < max_inc)
+                              max_inc = -delta;
+                           else if (delta >0 && delta < max_dec)
+                              max_dec = delta;
+                        }
+                     }
+                     if (tagx2 == LPX_NU)
+                     {  if (val[i] != 0.0)
+                        {  delta = dx2 / val[i];
+                           if (delta < 0 && -delta < max_inc)
+                              max_inc = -delta;
+                           else if (delta > 0 && delta < max_dec)
+                              max_dec = delta;
+                        }
+                     }
+                     if (tagx2 == LPX_NF)
+                     {  if (val[i] != 0.0)
+                        {  max_inc = 0.0;
+                           max_dec = 0.0;
+                        }
+                     }
+                  }
+               }
+               if (max_inc == -0.0) max_inc = 0.0;
+               if (max_dec == -0.0) max_dec = 0.0;
+               if (max_inc == DBL_MAX)
+                  fprintf(fp, "%13s ", "infinity");
+               else if (max_inc < 1.0e-12 && max_inc > 0)
+                  fprintf(fp, "%13s ", "< eps");
+               else
+                  fprintf(fp, "%13.6g ", max_inc);
+               if (max_dec == DBL_MAX)
+                  fprintf(fp, "%13s ", "infinity");
+               else if (max_dec < 1.0e-12 && max_dec > 0)
+                  fprintf(fp, "%13s ", "< eps");
+               else
+                  fprintf(fp, "%13.6g ", max_dec);
+               fprintf(fp, "\n");
             }
-         }
-      }
-      /* compute coefficients at non-basic structural variables */
-      iii = xcalloc(1+m, sizeof(int));
-      vvv = xcalloc(1+m, sizeof(double));
-      for (j = 1; j <= n; j++)
-      {  if (lpx_get_col_stat(lp, j) != LPX_BS)
-         {  alfa = a[j];
-            lll = lpx_get_mat_col(lp, j, iii, vvv);
-            for (t = 1; t <= lll; t++) alfa += vvv[t] * rho[iii[t]];
-            if (alfa != 0.0)
-            {  len++;
-               ind[len] = m+j;
-               val[len] = alfa;
+            for (what = 1; what <= 2; what++)
+            {  int ij, mn;
+               fprintf(fp, "\n");
+               fprintf(fp, "%s Analysis\n",
+                  what==1? "Constraint Bounds":"Variable Bounds");
+               fprintf(fp, "   No. %12s St    Value       Max increase "
+                  " Max decrease\n",
+                  what==1 ? " Row name":"Column name");
+               fprintf(fp, "------ ------------ -- ------------- ------"
+                  "------- ------------- \n");
+               mn = what==1 ? m : n;
+               for (ij = 1; ij <= mn; ij++)
+               {  const char *name;
+                  int typx, tagx;
+                  double lb, ub, vx, dx;
+                  if (what==1)
+                     name = lpx_get_row_name(lp, ij);
+                  else
+                     name = lpx_get_col_name(lp, ij);
+                  if (name == NULL) name = "";
+#if 0 /* 21/XII-2003 by mao */
+                  if (what==1)
+                  {  lpx_get_row_bnds(lp, ij, &typx, &lb, &ub);
+                     round = lp->round, lp->round = 1;
+                     lpx_get_row_info(lp, ij, &tagx, &vx, &dx);
+                     lp->round = round;
+                  }
+                  else
+                  {  lpx_get_col_bnds(lp, ij, &typx, &lb, &ub);
+                     round = lp->round, lp->round = 1;
+                     lpx_get_col_info(lp, ij, &tagx, &vx, &dx);
+                     lp->round = round;
+                  }
+#else
+                  round = lpx_get_int_parm(lp, LPX_K_ROUND);
+                  lpx_set_int_parm(lp, LPX_K_ROUND, 1);
+                  if (what==1)
+                  {  lpx_get_row_bnds(lp, ij, &typx, &lb, &ub);
+                     lpx_get_row_info(lp, ij, &tagx, &vx, &dx);
+                  }
+                  else
+                  {  lpx_get_col_bnds(lp, ij, &typx, &lb, &ub);
+                     lpx_get_col_info(lp, ij, &tagx, &vx, &dx);
+                  }
+                  lpx_set_int_parm(lp, LPX_K_ROUND, round);
+#endif
+                  /* row/column ordinal number */
+                  fprintf(fp, "%6d ", ij);
+                  /* row column/name */
+                  if (strlen(name) <= 12)
+                     fprintf(fp, "%-12s ", name);
+                  else
+                     fprintf(fp, "%s\n%20s", name, "");
+                  /* row/column status */
+                  fprintf(fp, "%s ",
+                     tagx == LPX_BS ? "B " :
+                     tagx == LPX_NL ? "NL" :
+                     tagx == LPX_NU ? "NU" :
+                     tagx == LPX_NF ? "NF" :
+                     tagx == LPX_NS ? "NS" : "??");
+                  fprintf(fp, "\n");
+                  /* first check lower bound */
+                  if (typx == LPX_LO || typx == LPX_DB ||
+                      typx == LPX_FX)
+                  {  int at_lower;
+                     at_lower = 0;
+                     if (tagx == LPX_BS || tagx == LPX_NU)
+                     {  max_inc = vx - lb;
+                        max_dec = DBL_MAX;
+                     }
+                     if (tagx == LPX_NS)
+                     {  max_inc = 0.0;
+                        max_dec = 0.0;
+                        if (dir == LPX_MIN && dx > 0) at_lower = 1;
+                        if (dir == LPX_MAX && dx < 0) at_lower = 1;
+                     }
+                     if (tagx == LPX_NL || at_lower == 1)
+                     {  int len;
+                        /* we have to see how it affects basic
+                           variables */
+                        len = lpx_eval_tab_col(lp, what==1?ij:ij+m,
+                           index, val);
+                        k = lpx_prim_ratio_test(lp, len, index, val, 1,
+                           10e-7);
+                        max_inc = DBL_MAX;
+                        if (k != 0)
+                        {  /*int stat;*/
+                           int tagx2, typx2;
+                           double vx2, dx2, lb2, ub2;
+                           /*double delta;*/
+                           double alpha;
+                           int l;
+                           for (l = 1; l <= len; l++)
+                              if (index[l] == k) alpha = val[l];
+                           if (k>m)
+                           {  lpx_get_col_info(lp, k-m, &tagx2, &vx2,
+                                 &dx2);
+                              lpx_get_col_bnds(lp, k-m, &typx2, &lb2,
+                                 &ub2);
+                           }
+                           else
+                           {  lpx_get_row_info(lp, k, &tagx2, &vx2,
+                                 &dx2);
+                              lpx_get_row_bnds(lp, k, &typx2, &lb2,
+                                 &ub2);
+                           }
+                           /* Check which direction;
+                              remember this is upper bound */
+                           if (alpha > 0)
+                              max_inc = (ub2 - vx2)/ alpha;
+                           else
+                              max_inc = (lb2 - vx2)/ alpha;
+                        }
+                        /* now check lower bound */
+                        k = lpx_prim_ratio_test(lp, len, index, val, -1,
+                           10e-7);
+                        max_dec = DBL_MAX;
+                        if (k != 0)
+                        {  /*int stat;*/
+                           int tagx2, typx2;
+                           double vx2, dx2, lb2, ub2;
+                           /*double delta;*/
+                           double alpha;
+                           int l;
+                           for (l = 1; l <= len; l++)
+                              if (index[l] == k) alpha = val[l];
+                           if (k>m)
+                           {  lpx_get_col_info(lp, k-m, &tagx2, &vx2,
+                                 &dx2);
+                              lpx_get_col_bnds(lp, k-m, &typx2, &lb2,
+                                 &ub2);
+                           }
+                           else
+                           {  lpx_get_row_info(lp, k, &tagx2, &vx2,
+                                 &dx2);
+                              lpx_get_row_bnds(lp, k, &typx2, &lb2,
+                                 &ub2);
+                           }
+                           /* Check which direction;
+                              remember this is lower bound */
+                           if (alpha > 0)
+                              max_dec = (vx2 - lb2)/ alpha;
+                           else
+                              max_dec = (vx2 - ub2)/ alpha;
+                        }
+                     }
+                     /* bound */
+                     if (typx == LPX_DB || typx == LPX_FX)
+                     {  if (max_inc > ub - lb)
+                           max_inc = ub - lb;
+                     }
+                     fprintf(fp, "         LOWER         %13.6g ", lb);
+                     if (max_inc == -0.0) max_inc = 0.0;
+                     if (max_dec == -0.0) max_dec = 0.0;
+                     if (max_inc == DBL_MAX)
+                        fprintf(fp, "%13s ", "infinity");
+                     else if (max_inc < 1.0e-12 && max_inc > 0)
+                        fprintf(fp, "%13s ", "< eps");
+                     else
+                        fprintf(fp, "%13.6g ", max_inc);
+                     if (max_dec == DBL_MAX)
+                        fprintf(fp, "%13s ", "infinity");
+                     else if (max_dec < 1.0e-12 && max_dec > 0)
+                        fprintf(fp, "%13s ", "< eps");
+                     else
+                        fprintf(fp, "%13.6g ", max_dec);
+                     fprintf(fp, "\n");
+                  }
+                  /* now check upper bound */
+                  if (typx == LPX_UP || typx == LPX_DB ||
+                     typx == LPX_FX)
+                  {  int at_upper;
+                     at_upper = 0;
+                     if (tagx == LPX_BS || tagx == LPX_NL)
+                     {  max_inc = DBL_MAX;
+                        max_dec = ub - vx;
+                     }
+                     if (tagx == LPX_NS)
+                     {  max_inc = 0.0;
+                        max_dec = 0.0;
+                        if (dir == LPX_MIN && dx < 0) at_upper = 1;
+                        if (dir == LPX_MAX && dx > 0) at_upper = 1;
+                     }
+                     if (tagx == LPX_NU || at_upper == 1)
+                     {  int len;
+                        /* we have to see how it affects basic
+                           variables */
+                        len = lpx_eval_tab_col(lp, what==1?ij:ij+m,
+                           index, val);
+                        k = lpx_prim_ratio_test(lp, len, index, val, 1,
+                           10e-7);
+                        max_inc = DBL_MAX;
+                        if (k != 0)
+                        {  /*int stat;*/
+                           int tagx2, typx2;
+                           double vx2, dx2, lb2, ub2;
+                           /*double delta;*/
+                           double alpha;
+                           int l;
+                           for (l = 1; l <= len; l++)
+                              if (index[l] == k) alpha = val[l];
+                           if (k>m)
+                           {  lpx_get_col_info(lp, k-m, &tagx2, &vx2,
+                                 &dx2);
+                              lpx_get_col_bnds(lp, k-m, &typx2, &lb2,
+                                 &ub2);
+                           }
+                           else
+                           {  lpx_get_row_info(lp, k, &tagx2, &vx2,
+                                 &dx2);
+                              lpx_get_row_bnds(lp, k, &typx2, &lb2,
+                                 &ub2);
+                           }
+                           /* Check which direction;
+                              remember this is upper bound */
+                           if (alpha > 0)
+                              max_inc = (ub2 - vx2)/ alpha;
+                           else
+                              max_inc = (lb2 - vx2)/ alpha;
+                        }
+                        /* now check lower bound */
+                        k = lpx_prim_ratio_test(lp, len, index, val, -1,
+                           10e-7);
+                        max_dec = DBL_MAX;
+                        if (k != 0)
+                        {  /*int stat;*/
+                           int tagx2, typx2;
+                           double vx2, dx2, lb2, ub2;
+                           /*double delta;*/
+                           double alpha;
+                           int l;
+                           for (l = 1; l <= len; l++)
+                              if (index[l] == k) alpha = val[l];
+                           if (k>m)
+                           {  lpx_get_col_info(lp, k-m, &tagx2, &vx2,
+                                 &dx2);
+                              lpx_get_col_bnds(lp, k-m, &typx2, &lb2,
+                                 &ub2);
+                           }
+                           else
+                           {  lpx_get_row_info(lp, k, &tagx2, &vx2,
+                                 &dx2);
+                              lpx_get_row_bnds(lp, k, &typx2, &lb2,
+                                 &ub2);
+                           }
+                           /* Check which direction;
+                              remember this is lower bound */
+                           if (alpha > 0)
+                              max_dec = (vx2 - lb2)/ alpha;
+                           else
+                              max_dec = (vx2 - ub2)/ alpha;
+                        }
+                     }
+                     if (typx == LPX_DB || typx == LPX_FX)
+                     {  if (max_dec > ub - lb)
+                           max_dec = ub - lb;
+                     }
+                     /* bound */
+                     fprintf(fp, "         UPPER         %13.6g ", ub);
+                     if (max_inc == -0.0) max_inc = 0.0;
+                     if (max_dec == -0.0) max_dec = 0.0;
+                     if (max_inc == DBL_MAX)
+                        fprintf(fp, "%13s ", "infinity");
+                     else if (max_inc < 1.0e-12 && max_inc > 0)
+                        fprintf(fp, "%13s ", "< eps");
+                     else
+                        fprintf(fp, "%13.6g ", max_inc);
+                     if (max_dec == DBL_MAX)
+                        fprintf(fp, "%13s ", "infinity");
+                     else if (max_dec < 1.0e-12 && max_dec > 0)
+                        fprintf(fp, "%13s ", "< eps");
+                     else
+                        fprintf(fp, "%13.6g ", max_dec);
+                     fprintf(fp, "\n");
+                  }
+               }
             }
+            /* free the memory we used */
+            xfree(index);
+            xfree(val);
          }
+         else fprintf(fp, "No range information since solution is not o"
+            "ptimal.\n");
       }
-      xassert(len <= n);
-      xfree(iii);
-      xfree(vvv);
-      xfree(aB);
-      xfree(a);
-      return len;
-}
-
-/*----------------------------------------------------------------------
--- lpx_transform_col - transform explicitly specified column.
---
--- *Synopsis*
---
--- #include "glplpx.h"
--- int lpx_transform_col(LPX *lp, int len, int ind[], double val[]);
---
--- *Description*
---
--- The routine lpx_transform_col performs the same operation as the
--- routine lpx_eval_tab_col with exception that the transformed column
--- is specified explicitly as a sparse vector.
---
--- The explicitly specified column may be thought as if it were added
--- to the original system of equality constraints:
---
---    x[1] = a[1,1]*x[m+1] + ... + a[1,n]*x[m+n] + a[1]*x
---    x[2] = a[2,1]*x[m+1] + ... + a[2,n]*x[m+n] + a[2]*x            (1)
---       .  .  .  .  .  .  .  .  .  .  .  .  .  .  .
---    x[m] = a[m,1]*x[m+1] + ... + a[m,n]*x[m+n] + a[m]*x
---
--- where x[i] are auxiliary variables, x[m+j] are structural variables,
--- x is a structural variable for the explicitly specified column, a[i]
--- are constraint coefficients for x.
---
--- On entry row indices and numerical values of non-zero elements of
--- the column should be stored in locations ind[1], ..., ind[len] and
--- val[1], ..., val[len], where len is the number of non-zero elements.
---
--- This routine uses the system of equality constraints and the current
--- basis in order to express the current basic variables through the
--- structural variable x in (1) (as if the transformed column were added
--- to the problem object and the variable x were non-basic), i.e. the
--- resultant column has the form:
---
---    xB[1] = ... + alfa[1]*x
---    xB[2] = ... + alfa[2]*x                                        (2)
---       .  .  .  .  .  .
---    xB[m] = ... + alfa[m]*x
---
--- where xB are basic (auxiliary and structural) variables, m is the
--- number of rows in the problem object.
---
--- On exit the routine stores indices and numerical values of non-zero
--- elements of the resultant column (2) in locations ind[1], ...,
--- ind[len'] and val[1], ..., val[len'], where 0 <= len' <= m is the
--- number of non-zero element in the resultant column returned by the
--- routine. Note that indices (numbers) of basic variables stored in
--- the array ind correspond to original ordinal numbers of variables:
--- indices 1 to m mean auxiliary variables and indices m+1 to m+n mean
--- structural ones.
---
--- *Returns*
---
--- The routine returns len', which is the number of non-zero elements
--- in the resultant column stored in the arrays ind and val.
---
--- *Background*
---
--- The explicitly specified column (1) is transformed in the same way
--- as any other column of the constraint matrix using the formula:
---
---    alfa = inv(B) * a,                                             (3)
---
--- where alfa is the resultant column computed by the routine. */
-
-int lpx_transform_col(LPX *lp, int len, int ind[], double val[])
-{     int i, m, t;
-      double *a, *alfa;
-      if (!lpx_is_b_avail(lp))
-         xfault("lpx_transform_col: LP basis is not available\n");
-      m = lpx_get_num_rows(lp);
-      /* unpack the column to be transformed to the array a */
-      a = xcalloc(1+m, sizeof(double));
-      for (i = 1; i <= m; i++) a[i] = 0.0;
-      if (!(0 <= len && len <= m))
-         xfault("lpx_transform_col: len = %d; invalid column length\n",
-            len);
-      for (t = 1; t <= len; t++)
-      {  i = ind[t];
-         if (!(1 <= i && i <= m))
-            xfault("lpx_transform_col: ind[%d] = %d; row index out of r"
-               "ange\n", t, i);
-         if (val[t] == 0.0)
-            xfault("lpx_transform_col: val[%d] = 0; zero coefficient no"
-               "t allowed\n", t);
-         if (a[i] != 0.0)
-            xfault("lpx_transform_col: ind[%d] = %d; duplicate row indi"
-               "ces not allowed\n", t, i);
-         a[i] = val[t];
+      fprintf(fp, "\n");
+      fprintf(fp, "End of output\n");
+      fflush(fp);
+      if (ferror(fp))
+      {  xprintf("lpx_print_sens_bnds: can't write to `%s' - %s\n",
+            fname, strerror(errno));
+         goto fail;
       }
-      /* solve the system B*a = alfa to compute the vector alfa */
-      alfa = a, lpx_ftran(lp, alfa);
-      /* store resultant coefficients */
-      len = 0;
-      for (i = 1; i <= m; i++)
-      {  if (alfa[i] != 0.0)
-         {  len++;
-            ind[len] = lpx_get_b_info(lp, i);
-            val[len] = alfa[i];
-         }
-      }
-      xfree(a);
-      return len;
-}
-
-/*----------------------------------------------------------------------
--- lpx_prim_ratio_test - perform primal ratio test.
---
--- *Synopsis*
---
--- #include "glplpx.h"
--- int lpx_prim_ratio_test(LPX *lp, int len, int ind[], double val[],
---    int how, double tol);
---
--- *Description*
---
--- The routine lpx_prim_ratio_test performs the primal ratio test for
--- an explicitly specified column of the simplex table.
---
--- The primal basic solution associated with an LP problem object,
--- which the parameter lp points to, should be feasible. No components
--- of the LP problem object are changed by the routine.
---
--- The explicitly specified column of the simplex table shows how the
--- basic variables xB depend on some non-basic variable y (which is not
--- necessarily presented in the problem object):
---
---    xB[1] = ... + alfa[1]*y + ...
---    xB[2] = ... + alfa[2]*y + ...                                  (*)
---       .  .  .  .  .  .  .  .
---    xB[m] = ... + alfa[m]*y + ...
---
--- The column (*) is specifed on entry to the routine using the sparse
--- format. Ordinal numbers of basic variables xB[i] should be placed in
--- locations ind[1], ..., ind[len], where ordinal number 1 to m denote
--- auxiliary variables, and ordinal numbers m+1 to m+n denote structural
--- variables. The corresponding non-zero coefficients alfa[i] should be
--- placed in locations val[1], ..., val[len]. The arrays ind and val are
--- not changed on exit.
---
--- The parameter how specifies in which direction the variable y changes
--- on entering the basis: +1 means increasing, -1 means decreasing.
---
--- The parameter tol is a relative tolerance (small positive number)
--- used by the routine to skip small alfa[i] of the column (*).
---
--- The routine determines the ordinal number of some basic variable
--- (specified in ind[1], ..., ind[len]), which should leave the basis
--- instead the variable y in order to keep primal feasibility, and
--- returns it on exit. If the choice cannot be made (i.e. if the
--- adjacent basic solution is primal unbounded), the routine returns
--- zero.
---
--- *Note*
---
--- If the non-basic variable y is presented in the LP problem object,
--- the column (*) can be computed using the routine lpx_eval_tab_col.
--- Otherwise it can be computed using the routine lpx_transform_col.
---
--- *Returns*
---
--- The routine lpx_prim_ratio_test returns the ordinal number of some
--- basic variable xB[i], which should leave the basis instead the
--- variable y in order to keep primal feasibility. If the adjacent basic
--- solution is primal unbounded and therefore the choice cannot be made,
--- the routine returns zero. */
-
-int lpx_prim_ratio_test(LPX *lp, int len, const int ind[],
-      const double val[], int how, double tol)
-{     int i, k, m, n, p, t, typx, tagx;
-      double alfa_i, abs_alfa_i, big, eps, bbar_i, lb_i, ub_i, temp,
-         teta;
-      if (!lpx_is_b_avail(lp))
-         xfault("lpx_prim_ratio_test: LP basis is not available\n");
-      if (lpx_get_prim_stat(lp) != LPX_P_FEAS)
-         xfault("lpx_prim_ratio_test: current basic solution is not pri"
-            "mal feasible\n");
-      if (!(how == +1 || how == -1))
-         xfault("lpx_prim_ratio_test: how = %d; invalid parameter\n",
-            how);
-      m = lpx_get_num_rows(lp);
-      n = lpx_get_num_cols(lp);
-      /* compute the largest absolute value of the specified influence
-         coefficients */
-      big = 0.0;
-      for (t = 1; t <= len; t++)
-      {  temp = val[t];
-         if (temp < 0.0) temp = - temp;
-         if (big < temp) big = temp;
-      }
-      /* compute the absolute tolerance eps used to skip small entries
-         of the column */
-      if (!(0.0 < tol && tol < 1.0))
-         xfault("lpx_prim_ratio_test: tol = %g; invalid tolerance\n",
-            tol);
-      eps = tol * (1.0 + big);
-      /* initial settings */
-      p = 0, teta = DBL_MAX, big = 0.0;
-      /* walk through the entries of the specified column */
-      for (t = 1; t <= len; t++)
-      {  /* get the ordinal number of basic variable */
-         k = ind[t];
-         if (!(1 <= k && k <= m+n))
-            xfault("lpx_prim_ratio_test: ind[%d] = %d; variable number "
-               "out of range\n", t, k);
-         if (k <= m)
-            tagx = lpx_get_row_stat(lp, k);
-         else
-            tagx = lpx_get_col_stat(lp, k-m);
-         if (tagx != LPX_BS)
-            xfault("lpx_prim_ratio_test: ind[%d] = %d; non-basic variab"
-               "le not allowed\n", t, k);
-         /* determine index of the variable x[k] in the vector xB */
-         if (k <= m)
-            i = lpx_get_row_b_ind(lp, k);
-         else
-            i = lpx_get_col_b_ind(lp, k-m);
-         xassert(1 <= i && i <= m);
-         /* determine unscaled bounds and value of the basic variable
-            xB[i] in the current basic solution */
-         if (k <= m)
-         {  typx = lpx_get_row_type(lp, k);
-            lb_i = lpx_get_row_lb(lp, k);
-            ub_i = lpx_get_row_ub(lp, k);
-            bbar_i = lpx_get_row_prim(lp, k);
-         }
-         else
-         {  typx = lpx_get_col_type(lp, k-m);
-            lb_i = lpx_get_col_lb(lp, k-m);
-            ub_i = lpx_get_col_ub(lp, k-m);
-            bbar_i = lpx_get_col_prim(lp, k-m);
-         }
-         /* determine influence coefficient for the basic variable
-            x[k] = xB[i] in the explicitly specified column and turn to
-            the case of increasing the variable y in order to simplify
-            the program logic */
-         alfa_i = (how > 0 ? +val[t] : -val[t]);
-         abs_alfa_i = (alfa_i > 0.0 ? +alfa_i : -alfa_i);
-         /* analyze main cases */
-         switch (typx)
-         {  case LPX_FR:
-               /* xB[i] is free variable */
-               continue;
-            case LPX_LO:
-lo:            /* xB[i] has an lower bound */
-               if (alfa_i > - eps) continue;
-               temp = (lb_i - bbar_i) / alfa_i;
-               break;
-            case LPX_UP:
-up:            /* xB[i] has an upper bound */
-               if (alfa_i < + eps) continue;
-               temp = (ub_i - bbar_i) / alfa_i;
-               break;
-            case LPX_DB:
-               /* xB[i] has both lower and upper bounds */
-               if (alfa_i < 0.0) goto lo; else goto up;
-            case LPX_FX:
-               /* xB[i] is fixed variable */
-               if (abs_alfa_i < eps) continue;
-               temp = 0.0;
-               break;
-            default:
-               xassert(typx != typx);
-         }
-         /* if the value of the variable xB[i] violates its lower or
-            upper bound (slightly, because the current basis is assumed
-            to be primal feasible), temp is negative; we can think this
-            happens due to round-off errors and the value is exactly on
-            the bound; this allows replacing temp by zero */
-         if (temp < 0.0) temp = 0.0;
-         /* apply the minimal ratio test */
-         if (teta > temp || teta == temp && big < abs_alfa_i)
-            p = k, teta = temp, big = abs_alfa_i;
-      }
-      /* return the ordinal number of the chosen basic variable */
-      return p;
-}
-
-/*----------------------------------------------------------------------
--- lpx_dual_ratio_test - perform dual ratio test.
---
--- *Synopsis*
---
--- #include "glplpx.h"
--- int lpx_dual_ratio_test(LPX *lp, int len, int ind[], double val[],
---    int how, double tol);
---
--- *Description*
---
--- The routine lpx_dual_ratio_test performs the dual ratio test for an
--- explicitly specified row of the simplex table.
---
--- The dual basic solution associated with an LP problem object, which
--- the parameter lp points to, should be feasible. No components of the
--- LP problem object are changed by the routine.
---
--- The explicitly specified row of the simplex table is a linear form,
--- which shows how some basic variable y (not necessarily presented in
--- the problem object) depends on non-basic variables xN:
---
---    y = alfa[1]*xN[1] + alfa[2]*xN[2] + ... + alfa[n]*xN[n].       (*)
---
--- The linear form (*) is specified on entry to the routine using the
--- sparse format. Ordinal numbers of non-basic variables xN[j] should be
--- placed in locations ind[1], ..., ind[len], where ordinal numbers 1 to
--- m denote auxiliary variables, and ordinal numbers m+1 to m+n denote
--- structural variables. The corresponding non-zero coefficients alfa[j]
--- should be placed in locations val[1], ..., val[len]. The arrays ind
--- and val are not changed on exit.
---
--- The parameter how specifies in which direction the variable y changes
--- on leaving the basis: +1 means increasing, -1 means decreasing.
---
--- The parameter tol is a relative tolerance (small positive number)
--- used by the routine to skip small alfa[j] of the form (*).
---
--- The routine determines the ordinal number of some non-basic variable
--- (specified in ind[1], ..., ind[len]), which should enter the basis
--- instead the variable y in order to keep dual feasibility, and returns
--- it on exit. If the choice cannot be made (i.e. if the adjacent basic
--- solution is dual unbounded), the routine returns zero.
---
--- *Note*
---
--- If the basic variable y is presented in the LP problem object, the
--- row (*) can be computed using the routine lpx_eval_tab_row. Otherwise
--- it can be computed using the routine lpx_transform_row.
---
--- *Returns*
---
--- The routine lpx_dual_ratio_test returns the ordinal number of some
--- non-basic variable xN[j], which should enter the basis instead the
--- variable y in order to keep dual feasibility. If the adjacent basic
--- solution is dual unbounded and therefore the choice cannot be made,
--- the routine returns zero. */
-
-int lpx_dual_ratio_test(LPX *lp, int len, const int ind[],
-      const double val[], int how, double tol)
-{     int k, m, n, t, q, tagx;
-      double dir, alfa_j, abs_alfa_j, big, eps, cbar_j, temp, teta;
-      if (!lpx_is_b_avail(lp))
-         xfault("lpx_dual_ratio_test: LP basis is not available\n");
-      if (lpx_get_dual_stat(lp) != LPX_D_FEAS)
-         xfault("lpx_dual_ratio_test: current basic solution is not dua"
-            "l feasible\n");
-      if (!(how == +1 || how == -1))
-         xfault("lpx_dual_ratio_test: how = %d; invalid parameter\n",
-            how);
-      m = lpx_get_num_rows(lp);
-      n = lpx_get_num_cols(lp);
-      dir = (lpx_get_obj_dir(lp) == LPX_MIN ? +1.0 : -1.0);
-      /* compute the largest absolute value of the specified influence
-         coefficients */
-      big = 0.0;
-      for (t = 1; t <= len; t++)
-      {  temp = val[t];
-         if (temp < 0.0) temp = - temp;
-         if (big < temp) big = temp;
-      }
-      /* compute the absolute tolerance eps used to skip small entries
-         of the row */
-      if (!(0.0 < tol && tol < 1.0))
-         xfault("lpx_dual_ratio_test: tol = %g; invalid tolerance\n",
-            tol);
-      eps = tol * (1.0 + big);
-      /* initial settings */
-      q = 0, teta = DBL_MAX, big = 0.0;
-      /* walk through the entries of the specified row */
-      for (t = 1; t <= len; t++)
-      {  /* get ordinal number of non-basic variable */
-         k = ind[t];
-         if (!(1 <= k && k <= m+n))
-            xfault("lpx_dual_ratio_test: ind[%d] = %d; variable number "
-               "out of range\n", t, k);
-         if (k <= m)
-            tagx = lpx_get_row_stat(lp, k);
-         else
-            tagx = lpx_get_col_stat(lp, k-m);
-         if (tagx == LPX_BS)
-            xfault("lpx_dual_ratio_test: ind[%d] = %d; basic variable n"
-               "ot allowed\n", t, k);
-         /* determine unscaled reduced cost of the non-basic variable
-            x[k] = xN[j] in the current basic solution */
-         if (k <= m)
-            cbar_j = lpx_get_row_dual(lp, k);
-         else
-            cbar_j = lpx_get_col_dual(lp, k-m);
-         /* determine influence coefficient at the non-basic variable
-            x[k] = xN[j] in the explicitly specified row and turn to
-            the case of increasing the variable y in order to simplify
-            program logic */
-         alfa_j = (how > 0 ? +val[t] : -val[t]);
-         abs_alfa_j = (alfa_j > 0.0 ? +alfa_j : -alfa_j);
-         /* analyze main cases */
-         switch (tagx)
-         {  case LPX_NL:
-               /* xN[j] is on its lower bound */
-               if (alfa_j < +eps) continue;
-               temp = (dir * cbar_j) / alfa_j;
-               break;
-            case LPX_NU:
-               /* xN[j] is on its upper bound */
-               if (alfa_j > -eps) continue;
-               temp = (dir * cbar_j) / alfa_j;
-               break;
-            case LPX_NF:
-               /* xN[j] is non-basic free variable */
-               if (abs_alfa_j < eps) continue;
-               temp = 0.0;
-               break;
-            case LPX_NS:
-               /* xN[j] is non-basic fixed variable */
-               continue;
-            default:
-               xassert(tagx != tagx);
-         }
-         /* if the reduced cost of the variable xN[j] violates its zero
-            bound (slightly, because the current basis is assumed to be
-            dual feasible), temp is negative; we can think this happens
-            due to round-off errors and the reduced cost is exact zero;
-            this allows replacing temp by zero */
-         if (temp < 0.0) temp = 0.0;
-         /* apply the minimal ratio test */
-         if (teta > temp || teta == temp && big < abs_alfa_j)
-            q = k, teta = temp, big = abs_alfa_j;
-      }
-      /* return the ordinal number of the chosen non-basic variable */
-      return q;
+      fclose(fp);
+      return 0;
+fail: if (fp != NULL) fclose(fp);
+      return 1;
 }
 
 /* eof */

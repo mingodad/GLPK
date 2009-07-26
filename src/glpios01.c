@@ -136,6 +136,7 @@ glp_tree *ios_create_tree(glp_prob *mip, const glp_iocp *parm)
       /* initialize advanced solver interface */
       tree->reason = 0;
       tree->reopt = 0;
+      tree->reinv = 0;
       tree->br_var = 0;
       tree->br_sel = 0;
       tree->btrack = NULL;

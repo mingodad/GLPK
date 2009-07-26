@@ -236,7 +236,7 @@ the search has been terminated, it cannot be continued.
 
 \section{Problem creating and modifying routines}
 
-\subsection{glp\_create\_prob: create problem object}
+\subsection{glp\_create\_prob---create problem object}
 
 \subsubsection*{Synopsis}
 
@@ -254,7 +254,7 @@ initially is ``empty'', i.e. has no rows and columns.
 The routine returns a pointer to the created object, which should be
 used in any subsequent operations on this object.
 
-\subsection{glp\_set\_prob\_name: assign (change) problem name}
+\subsection{glp\_set\_prob\_name---assign (change) problem name}
 
 \subsubsection*{Synopsis}
 
@@ -270,7 +270,7 @@ The routine \verb|glp_set_prob_name| assigns a given symbolic
 If the parameter \verb|name| is \verb|NULL| or empty string, the routine
 erases an existing symbolic name of the problem object.
 
-\subsection{glp\_set\_obj\_name: assign (change) objective function
+\subsection{glp\_set\_obj\_name---assign (change) objective function
 name}
 
 \subsubsection*{Synopsis}
@@ -288,7 +288,7 @@ specified problem object.
 If the parameter \verb|name| is \verb|NULL| or empty string, the routine
 erases an existing symbolic name of the objective function.
 
-\subsection{glp\_set\_obj\_dir: set (change) optimization direction\\
+\subsection{glp\_set\_obj\_dir---set (change) optimization direction\\
 flag}
 
 \subsubsection*{Synopsis}
@@ -311,7 +311,7 @@ by the parameter \verb|dir|:
 \noindent
 (Note that by default the problem is minimization.)
 
-\subsection{glp\_add\_rows: add new rows to problem object}
+\subsection{glp\_add\_rows---add new rows to problem object}
 
 \subsubsection*{Synopsis}
 
@@ -335,7 +335,7 @@ new row added to the problem object.
 
 \newpage
 
-\subsection{glp\_add\_cols: add new columns to problem object}
+\subsection{glp\_add\_cols---add new columns to problem object}
 
 \subsubsection*{Synopsis}
 
@@ -358,7 +358,7 @@ list of the constraint coefficients.
 The routine \verb|glp_add_cols| returns the ordinal number of the first
 new column added to the problem object.
 
-\subsection{glp\_set\_row\_name: assign (change) row name}
+\subsection{glp\_set\_row\_name---assign (change) row name}
 
 \subsubsection*{Synopsis}
 
@@ -375,7 +375,7 @@ variable) of the specified problem object.
 If the parameter \verb|name| is \verb|NULL| or empty string, the routine
 erases an existing name of $i$-th row.
 
-\subsection{glp\_set\_col\_name: assign (change) column name}
+\subsection{glp\_set\_col\_name---assign (change) column name}
 
 \subsubsection*{Synopsis}
 
@@ -392,7 +392,7 @@ variable) of the specified problem object.
 If the parameter \verb|name| is \verb|NULL| or empty string, the routine
 erases an existing name of $j$-th column.
 
-\subsection{glp\_set\_row\_bnds: set (change) row bounds}
+\subsection{glp\_set\_row\_bnds---set (change) row bounds}
 
 \subsubsection*{Synopsis}
 
@@ -440,7 +440,7 @@ type is \verb|GLP_FR|.
 
 \newpage
 
-\subsection{glp\_set\_col\_bnds: set (change) column bounds}
+\subsection{glp\_set\_col\_bnds---set (change) column bounds}
 
 \subsubsection*{Synopsis}
 
@@ -486,7 +486,7 @@ while the parameter \verb|ub| is ignored.
 Being added to the problem object each column is initially fixed at
 zero, i.e. its type is \verb|GLP_FX| and both bounds are 0.
 
-\subsection{glp\_set\_obj\_coef: set (change) objective coefficient
+\subsection{glp\_set\_obj\_coef---set (change) objective coefficient
 or constant term}
 
 \subsubsection*{Synopsis}
@@ -504,7 +504,7 @@ the objective coefficient is specified by the parameter \verb|coef|.
 If the parameter \verb|j| is 0, the routine sets (changes) the constant
 term (``shift'') of the objective function.
 
-\subsection{glp\_set\_mat\_row: set (replace) row of the constraint
+\subsection{glp\_set\_mat\_row---set (replace) row of the constraint
 matrix}
 
 \subsubsection*{Synopsis}
@@ -531,7 +531,7 @@ constraint matrix.
 If the parameter \verb|len| is 0, the parameters \verb|ind| and/or
 \verb|val| can be specified as \verb|NULL|.
 
-\subsection{glp\_set\_mat\_col: set (replace) column of the
+\subsection{glp\_set\_mat\_col---set (replace) column of the
 constr\-aint matrix}
 
 \subsubsection*{Synopsis}
@@ -558,7 +558,7 @@ matrix.
 If the parameter \verb|len| is 0, the parameters \verb|ind| and/or
 \verb|val| can be specified as \verb|NULL|.
 
-\subsection{glp\_load\_matrix: load (replace) the whole constraint
+\subsection{glp\_load\_matrix---load (replace) the whole constraint
 matrix}
 
 \subsubsection*{Synopsis}
@@ -587,7 +587,7 @@ however, they are not stored in the constraint matrix.
 If the parameter \verb|ne| is 0, the parameters \verb|ia|, \verb|ja|,
 and/or \verb|ar| can be specified as \verb|NULL|.
 
-\subsection{glp\_del\_rows: delete rows from problem object}
+\subsection{glp\_del\_rows---delete rows from problem object}
 
 \subsubsection*{Synopsis}
 
@@ -610,7 +610,7 @@ be five rows $a$, $b$, $c$, $d$, $e$ with ordinal numbers 1, 2, 3, 4, 5,
 and let rows $b$ and $d$ have been deleted. Then after deletion the
 remaining rows $a$, $c$, $e$ are assigned new oridinal numbers 1, 2, 3.
 
-\subsection{glp\_del\_cols: delete columns from problem object}
+\subsection{glp\_del\_cols---delete columns from problem object}
 
 \subsubsection*{Synopsis}
 
@@ -634,7 +634,7 @@ be six columns $p$, $q$, $r$, $s$, $t$, $u$ with ordinal numbers 1, 2,
 deletion the remaining columns $r$, $t$, $u$ are assigned new ordinal
 numbers 1, 2, 3.
 
-\subsection{glp\_copy\_prob: copy problem object content}
+\subsection{glp\_copy\_prob---copy problem object content}
 
 \subsubsection*{Synopsis}
 
@@ -651,7 +651,7 @@ The parameter \verb|names| is a flag. If it is \verb|GLP_ON|,
 the routine also copies all symbolic names; otherwise, if it is
 \verb|GLP_OFF|, no symbolic names are copied.
 
-\subsection{glp\_erase\_prob: erase problem object content}
+\subsection{glp\_erase\_prob---erase problem object content}
 
 \subsubsection*{Synopsis}
 
@@ -668,7 +668,7 @@ and then created anew with the routine \verb|glp_create_prob|, with the
 only exception that the handle (pointer) to the problem object remains
 valid.
 
-\subsection{glp\_delete\_prob: delete problem object}
+\subsection{glp\_delete\_prob---delete problem object}
 
 \subsubsection*{Synopsis}
 
@@ -688,7 +688,7 @@ object.
 
 \section{Problem retrieving routines}
 
-\subsection{glp\_get\_prob\_name: retrieve problem name}
+\subsection{glp\_get\_prob\_name---retrieve problem name}
 
 \subsubsection*{Synopsis}
 
@@ -702,7 +702,7 @@ The routine \verb|glp_get_prob_name| returns a pointer to an internal
 buffer, which contains symbolic name of the problem. However, if the
 problem has no assigned name, the routine returns \verb|NULL|.
 
-\subsection{glp\_get\_obj\_name: retrieve objective function name}
+\subsection{glp\_get\_obj\_name---retrieve objective function name}
 
 \subsubsection*{Synopsis}
 
@@ -717,7 +717,7 @@ buffer, which contains symbolic name assigned to the objective
 function. However, if the objective function has no assigned name, the
 routine returns \verb|NULL|.
 
-\subsection{glp\_get\_obj\_dir: retrieve optimization direction flag}
+\subsection{glp\_get\_obj\_dir---retrieve optimization direction flag}
 
 \subsubsection*{Synopsis}
 
@@ -737,7 +737,7 @@ flag (i.e. ``sense'' of the objective function):
 
 \pagebreak
 
-\subsection{glp\_get\_num\_rows: retrieve number of rows}
+\subsection{glp\_get\_num\_rows---retrieve number of rows}
 
 \subsubsection*{Synopsis}
 
@@ -750,7 +750,7 @@ int glp_get_num_rows(glp_prob *lp);
 The routine \verb|glp_get_num_rows| returns the current number of rows
 in the specified problem object.
 
-\subsection{glp\_get\_num\_cols: retrieve number of columns}
+\subsection{glp\_get\_num\_cols---retrieve number of columns}
 
 \subsubsection*{Synopsis}
 
@@ -763,7 +763,7 @@ int glp_get_num_cols(glp_prob *lp);
 The routine \verb|glp_get_num_cols| returns the current number of
 columns the specified problem object.
 
-\subsection{glp\_get\_row\_name: retrieve row name}
+\subsection{glp\_get\_row\_name---retrieve row name}
 
 \subsubsection*{Synopsis}
 
@@ -778,7 +778,7 @@ buffer, which contains a symbolic name assigned to \verb|i|-th row.
 However, if the row has no assigned name, the routine returns
 \verb|NULL|.
 
-\subsection{glp\_get\_col\_name: retrieve column name}
+\subsection{glp\_get\_col\_name---retrieve column name}
 
 \subsubsection*{Synopsis}
 
@@ -793,7 +793,7 @@ buffer, which contains a symbolic name assigned to \verb|j|-th column.
 However, if the column has no assigned name, the routine returns
 \verb|NULL|.
 
-\subsection{glp\_get\_row\_type: retrieve row type}
+\subsection{glp\_get\_row\_type---retrieve row type}
 
 \subsubsection*{Synopsis}
 
@@ -814,7 +814,7 @@ row, i.e. the type of corresponding auxiliary variable, as follows:
 \verb|GLP_FX| & fixed variable. \\
 \end{tabular}
 
-\subsection{glp\_get\_row\_lb: retrieve row lower bound}
+\subsection{glp\_get\_row\_lb---retrieve row lower bound}
 
 \subsubsection*{Synopsis}
 
@@ -829,7 +829,7 @@ The routine \verb|glp_get_row_lb| returns the lower bound of
 variable. However, if the row has no lower bound, the routine returns
 \verb|-DBL_MAX|.
 
-\subsection{glp\_get\_row\_ub: retrieve row upper bound}
+\subsection{glp\_get\_row\_ub---retrieve row upper bound}
 
 \subsubsection*{Synopsis}
 
@@ -844,7 +844,7 @@ The routine \verb|glp_get_row_ub| returns the upper bound of
 variable. However, if the row has no upper bound, the routine returns
 \verb|+DBL_MAX|.
 
-\subsection{glp\_get\_col\_type: retrieve column type}
+\subsection{glp\_get\_col\_type---retrieve column type}
 
 \subsubsection*{Synopsis}
 
@@ -865,7 +865,7 @@ column, i.e. the type of corresponding structural variable, as follows:
 \verb|GLP_FX| & fixed variable. \\
 \end{tabular}
 
-\subsection{glp\_get\_col\_lb: retrieve column lower bound}
+\subsection{glp\_get\_col\_lb---retrieve column lower bound}
 
 \subsubsection*{Synopsis}
 
@@ -880,7 +880,7 @@ The routine \verb|glp_get_col_lb| returns the lower bound of
 variable. However, if the column has no lower bound, the routine returns
 \verb|-DBL_MAX|.
 
-\subsection{glp\_get\_col\_ub: retrieve column upper bound}
+\subsection{glp\_get\_col\_ub---retrieve column upper bound}
 
 \subsubsection*{Synopsis}
 
@@ -895,7 +895,7 @@ The routine \verb|glp_get_col_ub| returns the upper bound of
 variable. However, if the column has no upper bound, the routine returns
 \verb|+DBL_MAX|.
 
-\subsection{glp\_get\_obj\_coef: retrieve objective coefficient or\\
+\subsection{glp\_get\_obj\_coef---retrieve objective coefficient or\\
 constant term}
 
 \subsubsection*{Synopsis}
@@ -912,7 +912,7 @@ at \verb|j|-th structural variable (column).
 If the parameter \verb|j| is 0, the routine returns the constant term
 (``shift'') of the objective function.
 
-\subsection{glp\_get\_num\_nz: retrieve number of constraint
+\subsection{glp\_get\_num\_nz---retrieve number of constraint
 coefficients}
 
 \subsubsection*{Synopsis}
@@ -926,7 +926,7 @@ int glp_get_num_nz(glp_prob *lp);
 The routine \verb|glp_get_num_nz| returns the number of non-zero
 elements in the constraint matrix of the specified problem object.
 
-\subsection{glp\_get\_mat\_row: retrieve row of the constraint
+\subsection{glp\_get\_mat\_row---retrieve row of the constraint
 matrix}
 
 \subsubsection*{Synopsis}
@@ -953,7 +953,7 @@ The parameter \verb|ind| and/or \verb|val| can be specified as
 The routine \verb|glp_get_mat_row| returns the length \verb|len|, i.e.
 the number of (non-zero) elements in \verb|i|-th row.
 
-\subsection{glp\_get\_mat\_col: retrieve column of the constraint\\
+\subsection{glp\_get\_mat\_col---retrieve column of the constraint\\
 matrix}
 
 \subsubsection*{Synopsis}
@@ -986,7 +986,7 @@ the number of (non-zero) elements in \verb|j|-th column.
 
 \section{Row and column searching routines}
 
-\subsection{glp\_create\_index: create the name index}
+\subsection{glp\_create\_index---create the name index}
 
 \subsubsection*{Synopsis}
 
@@ -1004,7 +1004,7 @@ columns by their names.
 This routine can be called at any time. If the name index already
 exists, the routine does nothing.
 
-\subsection{glp\_find\_row: find row by its name}
+\subsection{glp\_find\_row---find row by its name}
 
 \subsubsection*{Synopsis}
 
@@ -1018,7 +1018,7 @@ The routine \verb|glp_find_row| returns the ordinal number of a row,
 which is assigned (by the routine \verb|glp_set_row_name|) the specified
 symbolic \verb|name|. If no such row exists, the routine returns 0.
 
-\subsection{glp\_find\_col: find column by its name}
+\subsection{glp\_find\_col---find column by its name}
 
 \subsubsection*{Synopsis}
 
@@ -1032,7 +1032,7 @@ The routine \verb|glp_find_col| returns the ordinal number of a column,
 which is assigned (by the routine \verb|glp_set_col_name|) the specified
 symbolic \verb|name|. If no such column exists, the routine returns 0.
 
-\subsection{glp\_delete\_index: delete the name index}
+\subsection{glp\_delete\_index---delete the name index}
 
 \subsubsection*{Synopsis}
 
@@ -1084,7 +1084,7 @@ either directly by the application program in a problem specific way
 (with the routines \verb|glp_set_rii| and \verb|glp_set_sjj|), or by
 some API routines intended for automatic scaling.
 
-\subsection{glp\_set\_rii: set (change) row scale factor}
+\subsection{glp\_set\_rii---set (change) row scale factor}
 
 \subsubsection*{Synopsis}
 
@@ -1097,7 +1097,7 @@ void glp_set_rii(glp_prob *lp, int i, double rii);
 The routine \verb|glp_set_rii| sets (changes) the scale factor $r_{ii}$
 for $i$-th row of the specified problem object.
 
-\subsection{glp\_set\_sjj: set (change) column scale factor}
+\subsection{glp\_set\_sjj---set (change) column scale factor}
 
 \subsubsection*{Synopsis}
 
@@ -1110,7 +1110,7 @@ void glp_set_sjj(glp_prob *lp, int j, double sjj);
 The routine \verb|glp_set_sjj| sets (changes) the scale factor $s_{jj}$
 for $j$-th column of the specified problem object.
 
-\subsection{glp\_get\_rii: retrieve row scale factor}
+\subsection{glp\_get\_rii---retrieve row scale factor}
 
 \subsubsection*{Synopsis}
 
@@ -1123,7 +1123,7 @@ double glp_get_rii(glp_prob *lp, int i);
 The routine \verb|glp_get_rii| returns current scale factor $r_{ii}$ for
 $i$-th row of the specified problem object.
 
-\subsection{glp\_get\_sjj: retrieve column scale factor}
+\subsection{glp\_get\_sjj---retrieve column scale factor}
 
 \subsubsection*{Synopsis}
 
@@ -1136,7 +1136,7 @@ double glp_get_sjj(glp_prob *lp, int j);
 The routine \verb|glp_get_sjj| returns current scale factor $s_{jj}$ for
 $j$-th column of the specified problem object.
 
-\subsection{glp\_scale\_prob: scale problem data}
+\subsection{glp\_scale\_prob---scale problem data}
 
 \subsubsection*{Synopsis}
 
@@ -1163,7 +1163,7 @@ may be the following:
 The parameter \verb|flags| may be specified as \verb|GLP_SF_AUTO|, in
 which case the routine chooses the scaling options automatically.
 
-\subsection{glp\_unscale\_prob: unscale problem data}
+\subsection{glp\_unscale\_prob---unscale problem data}
 
 \subsubsection*{Synopsis}
 
@@ -1216,7 +1216,7 @@ that on normal exit the simplex solver remains the basis valid, so in
 case of reoptimization there is no need to construct an initial basis
 from scratch.
 
-\subsection{glp\_set\_row\_stat: set (change) row status}
+\subsection{glp\_set\_row\_stat---set (change) row status}
 
 \subsubsection*{Synopsis}
 
@@ -1247,7 +1247,7 @@ of \verb|i|-th row (auxiliary variable) as specified by the parameter
    routine). \\
 \end{tabular}
 
-\subsection{glp\_set\_col\_stat: set (change) column status}
+\subsection{glp\_set\_col\_stat---set (change) column status}
 
 \subsubsection*{Synopsis}
 
@@ -1273,7 +1273,7 @@ parameter \verb|stat|:
    routine).
 \end{tabular}
 
-\subsection{glp\_std\_basis: construct standard initial LP basis}
+\subsection{glp\_std\_basis---construct standard initial LP basis}
 
 \subsubsection*{Synopsis}
 
@@ -1292,7 +1292,7 @@ corresponding basis matrix is unity).
 
 \newpage
 
-\subsection{glp\_adv\_basis: construct advanced initial LP basis}
+\subsection{glp\_adv\_basis---construct advanced initial LP basis}
 
 \subsubsection*{Synopsis}
 
@@ -1322,7 +1322,7 @@ complete the basis.
 As a result the initial LP basis has as few fixed variables as possible
 and the corresponding basis matrix is triangular.
 
-\subsection{glp\_cpx\_basis: construct Bixby's initial LP basis}
+\subsection{glp\_cpx\_basis---construct Bixby's initial LP basis}
 
 \subsubsection*{Synopsis}
 
@@ -1423,7 +1423,7 @@ has no dual feasible solution.)
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\subsection{glp\_simplex: solve LP problem with the primal or dual
+\subsection{glp\_simplex---solve LP problem with the primal or dual
 simplex method}
 
 \subsubsection*{Synopsis}
@@ -1832,7 +1832,7 @@ Writing basic solution to `25fv47.txt'...
 \end{verbatim}
 \end{footnotesize}
 
-\subsection{glp\_exact: solve LP problem in exact arithmetic}
+\subsection{glp\_exact---solve LP problem in exact arithmetic}
 
 \subsubsection*{Synopsis}
 
@@ -1886,7 +1886,7 @@ with the routine \verb|glp_simplex| and only then to call
 \verb|glp_exact|, in which case only a few simplex iterations need to
 be performed in exact arithmetic.
 
-\subsection{glp\_init\_smcp: initialize simplex solver control
+\subsection{glp\_init\_smcp---initialize simplex solver control
 parameters}
 
 \subsubsection*{Synopsis}
@@ -1903,7 +1903,7 @@ are used by the simplex solver, with default values.
 Default values of the control parameters are stored in a \verb|glp_smcp|
 structure, which the parameter \verb|parm| points to.
 
-\subsection{glp\_get\_status: determine generic status of basic
+\subsection{glp\_get\_status---determine generic status of basic
 solution}
 
 \subsubsection*{Synopsis}
@@ -1932,7 +1932,7 @@ retrieved with the routines \verb|glp_get_prim_stat| and
 
 \newpage
 
-\subsection{glp\_get\_prim\_stat: retrieve status of primal basic
+\subsection{glp\_get\_prim\_stat---retrieve status of primal basic
 solution}
 
 \subsubsection*{Synopsis}
@@ -1953,7 +1953,7 @@ basic solution for the specified problem object as follows:
 \verb|GLP_NOFEAS| & no primal feasible solution exists. \\
 \end{tabular}
 
-\subsection{glp\_get\_dual\_stat: retrieve status of dual basic
+\subsection{glp\_get\_dual\_stat---retrieve status of dual basic
 solution}
 
 \subsubsection*{Synopsis}
@@ -1974,7 +1974,7 @@ basic solution for the specified problem object as follows:
 \verb|GLP_NOFEAS| & no dual feasible solution exists. \\
 \end{tabular}
 
-\subsection{glp\_get\_obj\_val: retrieve objective value}
+\subsection{glp\_get\_obj\_val---retrieve objective value}
 
 \subsubsection*{Synopsis}
 
@@ -1987,7 +1987,7 @@ double glp_get_obj_val(glp_prob *lp);
 The routine \verb|glp_get_obj_val| returns current value of the
 objective function.
 
-\subsection{glp\_get\_row\_stat: retrieve row status}
+\subsection{glp\_get\_row\_stat---retrieve row status}
 
 \subsubsection*{Synopsis}
 
@@ -2008,7 +2008,7 @@ the auxiliary variable associated with \verb|i|-th row as follows:
 \verb|GLP_NS| & non-basic fixed variable. \\
 \end{tabular}
 
-\subsection{glp\_get\_row\_prim: retrieve row primal value}
+\subsection{glp\_get\_row\_prim---retrieve row primal value}
 
 \subsubsection*{Synopsis}
 
@@ -2021,7 +2021,7 @@ double glp_get_row_prim(glp_prob *lp, int i);
 The routine \verb|glp_get_row_prim| returns primal value of the
 auxiliary variable associated with \verb|i|-th row.
 
-\subsection{glp\_get\_row\_dual: retrieve row dual value}
+\subsection{glp\_get\_row\_dual---retrieve row dual value}
 
 \subsubsection*{Synopsis}
 
@@ -2036,7 +2036,7 @@ cost) of the auxiliary variable associated with \verb|i|-th row.
 
 \newpage
 
-\subsection{glp\_get\_col\_stat: retrieve column status}
+\subsection{glp\_get\_col\_stat---retrieve column status}
 
 \subsubsection*{Synopsis}
 
@@ -2057,7 +2057,7 @@ the structural variable associated with \verb|j|-th column as follows:
 \verb|GLP_NS| & non-basic fixed variable. \\
 \end{tabular}
 
-\subsection{glp\_get\_col\_prim: retrieve column primal value}
+\subsection{glp\_get\_col\_prim---retrieve column primal value}
 
 \subsubsection*{Synopsis}
 
@@ -2070,7 +2070,7 @@ double glp_get_col_prim(glp_prob *lp, int j);
 The routine \verb|glp_get_col_prim| returns primal value of the
 structural variable associated with \verb|j|-th column.
 
-\subsection{glp\_get\_col\_dual: retrieve column dual value}
+\subsection{glp\_get\_col\_dual---retrieve column dual value}
 
 \subsubsection*{Synopsis}
 
@@ -2085,7 +2085,7 @@ cost) of the structural variable associated with \verb|j|-th column.
 
 \newpage
 
-\subsection{glp\_get\_unbnd\_ray: determine variable causing\\
+\subsection{glp\_get\_unbnd\_ray---determine variable causing\\
 unboundedness}
 
 \subsubsection*{Synopsis}
@@ -2199,7 +2199,7 @@ the solver performs inverse transformations to recover corresponding
 solution to the original LP passed to the solver from the application
 program.
 
-\subsection{glp\_interior: solve LP problem with the interior-point
+\subsection{glp\_interior---solve LP problem with the interior-point
 method}
 
 \subsubsection*{Synopsis}
@@ -2409,7 +2409,7 @@ Writing interior-point solution to `25fv47.txt'...
 \end{verbatim}
 \end{footnotesize}
 
-\subsection{glp\_init\_iptcp: initialize interior-point solver control
+\subsection{glp\_init\_iptcp---initialize interior-point solver control
 parameters}
 
 \subsubsection*{Synopsis}
@@ -2426,7 +2426,7 @@ are used by the interior-point solver, with default values.
 Default values of the control parameters are stored in the structure
 \verb|glp_iptcp|, which the parameter \verb|parm| points to.
 
-\subsection{glp\_ipt\_status: determine solution status}
+\subsection{glp\_ipt\_status---determine solution status}
 
 \subsubsection*{Synopsis}
 
@@ -2446,7 +2446,7 @@ found by the interior-point solver as follows:
 \verb|GLP_NOFEAS|& no feasible primal-dual solution exists.\\
 \end{tabular}
 
-\subsection{glp\_ipt\_obj\_val: retrieve objective value}
+\subsection{glp\_ipt\_obj\_val---retrieve objective value}
 
 \subsubsection*{Synopsis}
 
@@ -2459,7 +2459,7 @@ double glp_ipt_obj_val(glp_prob *lp);
 The routine \verb|glp_ipt_obj_val| returns value of the objective
 function for interior-point solution.
 
-\subsection{glp\_ipt\_row\_prim: retrieve row primal value}
+\subsection{glp\_ipt\_row\_prim---retrieve row primal value}
 
 \subsubsection*{Synopsis}
 
@@ -2474,7 +2474,7 @@ auxiliary variable associated with \verb|i|-th row.
 
 \newpage
 
-\subsection{glp\_ipt\_row\_dual: retrieve row dual value}
+\subsection{glp\_ipt\_row\_dual---retrieve row dual value}
 
 \subsubsection*{Synopsis}
 
@@ -2487,7 +2487,7 @@ double glp_ipt_row_dual(glp_prob *lp, int i);
 The routine \verb|glp_ipt_row_dual| returns dual value (i.e. reduced
 cost) of the auxiliary variable associated with \verb|i|-th row.
 
-\subsection{glp\_ipt\_col\_prim: retrieve column primal value}
+\subsection{glp\_ipt\_col\_prim---retrieve column primal value}
 
 \subsubsection*{Synopsis}
 
@@ -2500,7 +2500,7 @@ double glp_ipt_col_prim(glp_prob *lp, int j);
 The routine \verb|glp_ipt_col_prim| returns primal value of the
 structural variable associated with \verb|j|-th column.
 
-\subsection{glp\_ipt\_col\_dual: retrieve column dual value}
+\subsection{glp\_ipt\_col\_dual---retrieve column dual value}
 
 \subsubsection*{Synopsis}
 
@@ -2519,7 +2519,7 @@ cost) of the structural variable associated with \verb|j|-th column.
 
 \section{Mixed integer programming routines}
 
-\subsection{glp\_set\_col\_kind: set (change) column kind}
+\subsection{glp\_set\_col\_kind---set (change) column kind}
 
 \subsubsection*{Synopsis}
 
@@ -2547,7 +2547,7 @@ Setting a column to \verb|GLP_BV| has the same effect as if it were
 set to \verb|GLP_IV|, its lower bound were set 0, and its upper bound
 were set to 1.
 
-\subsection{glp\_get\_col\_kind: retrieve column kind}
+\subsection{glp\_get\_col\_kind---retrieve column kind}
 
 \subsubsection*{Synopsis}
 
@@ -2566,7 +2566,7 @@ column (structural variable) as follows:
 \verb|GLP_BV| & binary variable. \\
 \end{tabular}
 
-\subsection{glp\_get\_num\_int: retrieve number of integer columns}
+\subsection{glp\_get\_num\_int---retrieve number of integer columns}
 
 \subsubsection*{Synopsis}
 
@@ -2580,7 +2580,7 @@ The routine \verb|glp_get_num_int| returns the number of columns
 (structural variables), which are marked as integer. Note that this
 number {\it does} include binary columns.
 
-\subsection{glp\_get\_num\_bin: retrieve number of binary columns}
+\subsection{glp\_get\_num\_bin---retrieve number of binary columns}
 
 \subsubsection*{Synopsis}
 
@@ -2594,7 +2594,7 @@ The routine \verb|glp_get_num_bin| returns the number of columns
 (structural variables), which are marked as integer and whose lower
 bound is zero and upper bound is one.
 
-\subsection{glp\_intopt: solve MIP problem with the branch-and-cut
+\subsection{glp\_intopt---solve MIP problem with the branch-and-cut
 method}
 
 \subsubsection*{Synopsis}
@@ -2914,7 +2914,7 @@ a node these bytes are initialized by binary zeros.\\
 &\verb|GLP_OFF|---do not use binarization.\\
 \end{tabular}
 
-\subsection{glp\_init\_iocp: initialize integer optimizer control
+\subsection{glp\_init\_iocp---initialize integer optimizer control
 parameters}
 
 \subsubsection*{Synopsis}
@@ -2931,7 +2931,7 @@ are used by the branch-and-cut solver, with default values.
 Default values of the control parameters are stored in a \verb|glp_iocp|
 structure, which the parameter \verb|parm| points to.
 
-\subsection{glp\_mip\_status: determine status of MIP solution}
+\subsection{glp\_mip\_status---determine status of MIP solution}
 
 \subsubsection*{Synopsis}
 
@@ -2959,7 +2959,7 @@ found by the MIP solver as follows:
    the solver). \\
 \end{tabular}
 
-\subsection{glp\_mip\_obj\_val: retrieve objective value}
+\subsection{glp\_mip\_obj\_val---retrieve objective value}
 
 \subsubsection*{Synopsis}
 
@@ -2972,7 +2972,7 @@ double glp_mip_obj_val(glp_prob *mip);
 The routine \verb|glp_mip_obj_val| returns value of the objective
 function for MIP solution.
 
-\subsection{glp\_mip\_row\_val: retrieve row value}
+\subsection{glp\_mip\_row\_val---retrieve row value}
 
 \subsubsection*{Synopsis}
 
@@ -2985,7 +2985,7 @@ double glp_mip_row_val(glp_prob *mip, int i);
 The routine \verb|glp_mip_row_val| returns value of the auxiliary
 variable associated with \verb|i|-th row for MIP solution.
 
-\subsection{glp\_mip\_col\_val: retrieve column value}
+\subsection{glp\_mip\_col\_val---retrieve column value}
 
 \subsubsection*{Synopsis}
 
@@ -3004,7 +3004,7 @@ variable associated with \verb|j|-th column for MIP solution.
 
 \section{Additional routines}
 
-\subsection{lpx\_check\_kkt: check Karush-Kuhn-Tucker optimality
+\subsection{lpx\_check\_kkt---check Karush-Kuhn-Tucker optimality
 conditions}
 
 \subsubsection*{Synopsis}

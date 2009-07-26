@@ -1435,6 +1435,8 @@ more: /* minor loop starts here; at this point the current subproblem
       {  /*int old_m = mip->m;*/
          xassert(tree->reason == 0);
          tree->reason = GLP_IROWGEN;
+         xassert(tree->reopt == 0);
+         xassert(tree->reinv == 0);
          tree->parm->cb_func(tree, tree->parm->cb_info);
          tree->reason = 0;
          if (tree->terminate)
@@ -1455,8 +1457,18 @@ more: /* minor loop starts here; at this point the current subproblem
          }
 #else
          if (tree->reopt)
-         {  tree->reopt = 0;
+         {  /* some rows were added; re-optimization is needed */
+            tree->reopt = tree->reinv = 0;
             goto more;
+         }
+         if (tree->reinv)
+         {  /* no rows were added, however, some inactive rows were
+               removed */
+            tree->reinv = 0;
+            xassert(lpx_warm_up(tree->mip) == LPX_E_OK);
+            /* basis must remain optimal */
+            xassert(tree->mip->pbs_stat == GLP_FEAS);
+            xassert(tree->mip->dbs_stat == GLP_FEAS);
          }
 #endif
       }

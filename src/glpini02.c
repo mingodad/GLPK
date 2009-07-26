@@ -21,7 +21,7 @@
 *  along with GLPK. If not, see <http://www.gnu.org/licenses/>.
 ***********************************************************************/
 
-#include "glpini.h"
+#include "glpapi.h"
 
 struct var
 {     /* structural variable */
@@ -54,13 +54,13 @@ static int get_column(glp_prob *lp, int j, int ind[], double val[])
       return len;
 }
 
-void cpx_basis(glp_prob *lp)
+static void cpx_basis(glp_prob *lp)
 {     /* main routine */
       struct var *C, *C2, *C3, *C4;
       int m, n, i, j, jk, k, l, ll, t, n2, n3, n4, type, len, *I, *r,
          *ind;
       double alpha, gamma, cmax, temp, *v, *val;
-      xprintf("Crashing...\n");
+      xprintf("Constructing initial basis...\n");
       /* determine the number of rows and columns */
       m = glp_get_num_rows(lp);
       n = glp_get_num_cols(lp);
@@ -235,6 +235,33 @@ void cpx_basis(glp_prob *lp)
       xfree(v);
       xfree(ind);
       xfree(val);
+      return;
+}
+
+/***********************************************************************
+*  NAME
+*
+*  glp_cpx_basis - construct Bixby's initial LP basis
+*
+*  SYNOPSIS
+*
+*  void glp_cpx_basis(glp_prob *lp);
+*
+*  DESCRIPTION
+*
+*  The routine glp_cpx_basis constructs an advanced initial basis for
+*  the specified problem object.
+*
+*  The routine is based on Bixby's algorithm described in the paper:
+*
+*  Robert E. Bixby. Implementing the Simplex Method: The Initial Basis.
+*  ORSA Journal on Computing, Vol. 4, No. 3, 1992, pp. 267-84. */
+
+void glp_cpx_basis(glp_prob *lp)
+{     if (lp->m == 0 || lp->n == 0)
+         glp_std_basis(lp);
+      else
+         cpx_basis(lp);
       return;
 }
 

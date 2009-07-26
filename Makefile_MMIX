@@ -43,7 +43,6 @@ src/glpapi16.o \
 src/glpapi17.o \
 src/glpapi18.o \
 src/glpapi19.o \
-src/glpapi20.o \
 src/glpavl.o \
 src/glpbfd.o \
 src/glpbfx.o \
@@ -81,13 +80,10 @@ src/glplib10.o \
 src/glplib11.o \
 src/glplib12.o \
 src/glplpf.o \
-src/glplpp01.o \
-src/glplpp02.o \
 src/glplpx01.o \
 src/glplpx02.o \
 src/glplpx03.o \
 src/glplpx04.o \
-src/glplpx05.o \
 src/glpluf.o \
 src/glplux.o \
 src/glpmat.o \
@@ -107,6 +103,7 @@ src/glpnet06.o \
 src/glpnet07.o \
 src/glpnpp01.o \
 src/glpnpp02.o \
+src/glpnpp03.o \
 src/glpqmd.o \
 src/glprgr.o \
 src/glprng01.o \
@@ -114,7 +111,7 @@ src/glprng02.o \
 src/glpscf.o \
 src/glpscg.o \
 src/glpscl.o \
-src/glpsds.o \
+src/glpsdf.o \
 src/glpspm.o \
 src/glpspx01.o \
 src/glpspx02.o \
@@ -137,7 +134,7 @@ src/amd/amd_valid.o \
 src/colamd/colamd.o
 
 .c.o:
-	$(GCC) $(CFLAGS) -Iinclude -o $@ -c $<
+	$(GCC) $(CFLAGS) -Iinclude -Isrc -o $@ -c $<
 
 all: libglpk.a glpsol.mmo
 

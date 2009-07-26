@@ -1,3 +1,53 @@
+Sun Jul 26 12:00:00 2009 Andrew Makhorin <mao@mai2.rcnet.ru>
+
+        * GLPK 4.39 (24:0:24) has been released
+
+        * glpsdf.c
+        New API routines to read plain data files were added.
+
+        * glpcpx.h, glpini.h, glpscl.h
+        These headers were removed.
+
+        * glpcpx.c
+        API routines glp_read_lp and glp_write_lp to read/write files
+        in CPLEX LP format were re-implemented. Now glp_write_lp
+        correctly writes double-bounded (ranged) rows by introducing
+        slack variables rather than by duplicating the rows. The data
+        structure glp_cpxcp and routine glp_init_cpxcp were added.
+
+        * amd/*
+        The 'xfree(NULL)' bug was fixed in the AMD routines. Thanks to
+        Niels Klitgord <niels@bu.edu> for the bug report.
+
+        * glpapi16.c
+        New API routines glp_set_vertex_name, glp_create_v_index,
+        glp_find_vertex, and glp_delete_v_index were added.
+
+        * glpdmx.c
+        New API routines glp_read_asnprob, glp_write_asnprob,
+        glp_read_ccformat, and glp_write_ccformat were added (the two
+        latter routines are not documented yet).
+
+        * glpapi18.c
+        New API routines glp_check_asnprob, glp_asnprob_lp,
+        glp_asnprob_okalg, and glp_asnprob_hall were added.
+
+        * glpini01.c, glpini02.c
+        The message "Crashing..." was changed to "Constructing initial
+        basis..." due to suggestion by Thomas Kahle <tom111@gmx.de>.
+
+        * glpapi14.c
+        New API routines glp_printf, glp_vprintf, glp_malloc,
+        glp_calloc, glp_free, and glp_assert were added.
+
+        * glplpp.h, glplpp01.c, glplpp02.c
+        Old LP presolver routines were removed. Now glp_simplex uses
+        new preprocessing routines (see glpnpp).
+
+        * glpapi12.c
+        New API routine glp_warm_up was added; it replaces the routine
+        lpx_warm_up.
+
 Sat May 02 12:00:00 2009 Andrew Makhorin <mao@mai2.rcnet.ru>
 
         * GLPK 4.38 (23:0:23) has been released

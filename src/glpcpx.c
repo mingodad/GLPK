@@ -1,4 +1,4 @@
-/* glpcpx.c (reading/writing data files in CPLEX LP format) */
+/* glpcpx.c (CPLEX LP format routines) */
 
 /***********************************************************************
 *  This code is part of GLPK (GNU Linear Programming Kit).
@@ -21,61 +21,101 @@
 *  along with GLPK. If not, see <http://www.gnu.org/licenses/>.
 ***********************************************************************/
 
-#define _GLPSTD_ERRNO
-#define _GLPSTD_STDIO
-#include "glpcpx.h"
+#include "glpapi.h"
 
-/*----------------------------------------------------------------------
--- read_cpxlp - read problem data in CPLEX LP format.
---
--- *Synopsis*
---
--- #include "glpcpx.h"
--- int read_cpxlp(glp_prob *lp, const char *fname);
---
--- *Description*
---
--- The routine read_cpxlp reads LP/MIP problem data in CPLEX LP format
--- from an input text file whose name is the character string fname.
---
--- *Returns*
---
--- If the operation was successful, the routine returns zero. Otherwise
--- the routine prints an error message and returns non-zero. */
+/***********************************************************************
+*  NAME
+*
+*  glp_init_cpxcp - initialize CPLEX LP format control parameters
+*
+*  SYNOPSIS
+*
+*  void glp_init_cpxcp(glp_cpxcp *parm):
+*
+*  The routine glp_init_cpxcp initializes control parameters used by
+*  the CPLEX LP input/output routines glp_read_lp and glp_write_lp with
+*  default values.
+*
+*  Default values of the control parameters are stored in the glp_cpxcp
+*  structure, which the parameter parm points to. */
 
-struct dsa
-{     /* working area used by lpx_read_cpxlp routine */
-      jmp_buf jump;
-      /* label used for non-local go to in case of error */
-      LPX *lp;
+void glp_init_cpxcp(glp_cpxcp *parm)
+{     xassert(parm != NULL);
+      return;
+}
+
+static void check_parm(const char *func, const glp_cpxcp *parm)
+{     /* check control parameters */
+      xassert(func != NULL);
+      xassert(parm != NULL);
+      return;
+}
+
+/***********************************************************************
+*  NAME
+*
+*  glp_read_lp - read problem data in CPLEX LP format
+*
+*  SYNOPSIS
+*
+*  int glp_read_lp(glp_prob *P, const glp_cpxcp *parm, const char
+*     *fname);
+*
+*  DESCRIPTION
+*
+*  The routine glp_read_lp reads problem data in CPLEX LP format from
+*  a text file.
+*
+*  The parameter parm is a pointer to the structure glp_cpxcp, which
+*  specifies control parameters used by the routine. If parm is NULL,
+*  the routine uses default settings.
+*
+*  The character string fname specifies a name of the text file to be
+*  read.
+*
+*  Note that before reading data the current content of the problem
+*  object is completely erased with the routine glp_erase_prob.
+*
+*  RETURNS
+*
+*  If the operation was successful, the routine glp_read_lp returns
+*  zero. Otherwise, it prints an error message and returns non-zero. */
+
+struct csa
+{     /* common storage area */
+      glp_prob *P;
       /* LP/MIP problem object */
+      const glp_cpxcp *parm;
+      /* pointer to control parameters */
       const char *fname;
-      /* name of input text file */
-      FILE *fp;
-      /* stream assigned to input text file */
+      /* name of input CPLEX LP file */
+      XFILE *fp;
+      /* stream assigned to input CPLEX LP file */
+      jmp_buf jump;
+      /* label for go to in case of error */
       int count;
       /* line count */
       int c;
-      /* current character or EOF */
+      /* current character or XEOF */
       int token;
-      /* code of current token: */
-#define T_EOF        0  /* end of file */
-#define T_MINIMIZE   1  /* keyword 'minimize' */
-#define T_MAXIMIZE   2  /* keyword 'maximize' */
-#define T_SUBJECT_TO 3  /* keyword 'subject to' */
-#define T_BOUNDS     4  /* keyword 'bounds' */
-#define T_GENERAL    5  /* keyword 'general' */
-#define T_INTEGER    6  /* keyword 'integer' */
-#define T_BINARY     7  /* keyword 'binary' */
-#define T_END        8  /* keyword 'end' */
-#define T_NAME       9  /* symbolic name */
-#define T_NUMBER     10 /* numeric constant */
-#define T_PLUS       11 /* delimiter '+' */
-#define T_MINUS      12 /* delimiter '-' */
-#define T_COLON      13 /* delimiter ':' */
-#define T_LE         14 /* delimiter '<=' */
-#define T_GE         15 /* delimiter '>=' */
-#define T_EQ         16 /* delimiter '=' */
+      /* current token: */
+#define T_EOF        0x00  /* end of file */
+#define T_MINIMIZE   0x01  /* keyword 'minimize' */
+#define T_MAXIMIZE   0x02  /* keyword 'maximize' */
+#define T_SUBJECT_TO 0x03  /* keyword 'subject to' */
+#define T_BOUNDS     0x04  /* keyword 'bounds' */
+#define T_GENERAL    0x05  /* keyword 'general' */
+#define T_INTEGER    0x06  /* keyword 'integer' */
+#define T_BINARY     0x07  /* keyword 'binary' */
+#define T_END        0x08  /* keyword 'end' */
+#define T_NAME       0x09  /* symbolic name */
+#define T_NUMBER     0x0A  /* numeric constant */
+#define T_PLUS       0x0B  /* delimiter '+' */
+#define T_MINUS      0x0C  /* delimiter '-' */
+#define T_COLON      0x0D  /* delimiter ':' */
+#define T_LE         0x0E  /* delimiter '<=' */
+#define T_GE         0x0F  /* delimiter '>=' */
+#define T_EQ         0x10  /* delimiter '=' */
       char image[255+1];
       /* image of current token */
       int imlen;
@@ -85,47 +125,54 @@ struct dsa
       int n_max;
       /* length of the following five arrays (enlarged automatically,
          if necessary) */
-      int *map; /* int map[1+n_max]; */
       int *ind; /* int ind[1+n_max]; */
       double *val; /* double val[1+n_max]; */
-      /* working arrays used for constructing linear forms */
+      char *flag; /* char flag[1+n_max]; */
+      /* working arrays used to construct linear forms */
       double *lb; /* double lb[1+n_max]; */
       double *ub; /* double ub[1+n_max]; */
       /* lower and upper bounds of variables (columns) */
 };
 
 #define CHAR_SET "!\"#$%&()/,.;?@_`'{}|~"
-/* characters which may appear in symbolic names */
+/* characters, which may appear in symbolic names */
 
-static void fatal(struct dsa *dsa, char *fmt, ...)
+static void error(struct csa *csa, const char *fmt, ...)
 {     /* print error message and terminate processing */
       va_list arg;
-      char msg[4095+1];
+      xprintf("%s:%d: ", csa->fname, csa->count);
       va_start(arg, fmt);
-      vsprintf(msg, fmt, arg);
-      xassert(strlen(msg) <= 4095);
+      xvprintf(fmt, arg);
       va_end(arg);
-      xprintf("%s:%d: %s\n", dsa->fname, dsa->count, msg);
-      longjmp(dsa->jump, 1);
+      longjmp(csa->jump, 1);
       /* no return */
 }
 
-static void read_char(struct dsa *dsa)
+static void warning(struct csa *csa, const char *fmt, ...)
+{     /* print warning message and continue processing */
+      va_list arg;
+      xprintf("%s:%d: warning: ", csa->fname, csa->count);
+      va_start(arg, fmt);
+      xvprintf(fmt, arg);
+      va_end(arg);
+      return;
+}
+
+static void read_char(struct csa *csa)
 {     /* read next character from input file */
       int c;
-      xassert(dsa->c != EOF);
-      if (dsa->c == '\n') dsa->count++;
-      c = fgetc(dsa->fp);
-      if (ferror(dsa->fp))
-         fatal(dsa, "read error - %s", strerror(errno));
-      if (feof(dsa->fp))
-      {  if (dsa->c == '\n')
-         {  dsa->count--;
-            c = EOF;
+      xassert(csa->c != XEOF);
+      if (csa->c == '\n') csa->count++;
+      c = xfgetc(csa->fp);
+      if (c < 0)
+      {  if (xferror(csa->fp))
+            error(csa, "read error - %s\n", xerrmsg());
+         else if (csa->c == '\n')
+         {  csa->count--;
+            c = XEOF;
          }
          else
-         {  xprintf("%s:%d: warning: missing final LF\n",
-               dsa->fname, dsa->count);
+         {  warning(csa, "missing final end of line\n");
             c = '\n';
          }
       }
@@ -134,490 +181,482 @@ static void read_char(struct dsa *dsa)
       else if (isspace(c))
          c = ' ';
       else if (iscntrl(c))
-         fatal(dsa, "invalid control character 0x%02X", c);
-      dsa->c = c;
+         error(csa, "invalid control character 0x%02X\n", c);
+      csa->c = c;
       return;
 }
 
-static void add_char(struct dsa *dsa)
+static void add_char(struct csa *csa)
 {     /* append current character to current token */
-      if (dsa->imlen == sizeof(dsa->image) - 1)
-         fatal(dsa, "token `%.15s...' too long", dsa->image);
-      dsa->image[dsa->imlen++] = (char)dsa->c;
-      dsa->image[dsa->imlen] = '\0';
-      read_char(dsa);
+      if (csa->imlen == sizeof(csa->image)-1)
+         error(csa, "token `%.15s...' too long\n", csa->image);
+      csa->image[csa->imlen++] = (char)csa->c;
+      csa->image[csa->imlen] = '\0';
+      read_char(csa);
       return;
 }
 
 static int the_same(char *s1, char *s2)
-{     /* compare two character strings without case sensitivity */
+{     /* compare two character strings ignoring case sensitivity */
       for (; *s1 != '\0'; s1++, s2++)
-         if (tolower((unsigned char)*s1) != tolower((unsigned char)*s2))
+      {  if (tolower((unsigned char)*s1) != tolower((unsigned char)*s2))
             return 0;
+      }
       return 1;
 }
 
-static void scan_token(struct dsa *dsa)
+static void scan_token(struct csa *csa)
 {     /* scan next token */
       int flag;
-      dsa->token = -1;
-      dsa->image[0] = '\0';
-      dsa->imlen = 0;
-      dsa->value = 0.0;
+      csa->token = -1;
+      csa->image[0] = '\0';
+      csa->imlen = 0;
+      csa->value = 0.0;
 loop: flag = 0;
       /* skip non-significant characters */
-      while (dsa->c == ' ') read_char(dsa);
+      while (csa->c == ' ') read_char(csa);
       /* recognize and scan current token */
-      if (dsa->c == EOF)
-         dsa->token = T_EOF;
-      else if (dsa->c == '\n')
-      {  read_char(dsa);
+      if (csa->c == XEOF)
+         csa->token = T_EOF;
+      else if (csa->c == '\n')
+      {  read_char(csa);
          /* if the next character is letter, it may begin a keyword */
-         if (isalpha(dsa->c))
+         if (isalpha(csa->c))
          {  flag = 1;
             goto name;
          }
          goto loop;
       }
-      else if (dsa->c == '\\')
+      else if (csa->c == '\\')
       {  /* comment; ignore everything until end-of-line */
-         while (dsa->c != '\n') read_char(dsa);
+         while (csa->c != '\n') read_char(csa);
          goto loop;
       }
-      else if (isalpha(dsa->c) || dsa->c != '.' && strchr(CHAR_SET,
-         dsa->c) != NULL)
+      else if (isalpha(csa->c) || csa->c != '.' && strchr(CHAR_SET,
+         csa->c) != NULL)
 name: {  /* symbolic name */
-         dsa->token = T_NAME;
-         while (isalnum(dsa->c) || strchr(CHAR_SET, dsa->c) != NULL)
-            add_char(dsa);
+         csa->token = T_NAME;
+         while (isalnum(csa->c) || strchr(CHAR_SET, csa->c) != NULL)
+            add_char(csa);
          if (flag)
          {  /* check for keyword */
-            if (the_same(dsa->image, "minimize"))
-               dsa->token = T_MINIMIZE;
-            else if (the_same(dsa->image, "minimum"))
-               dsa->token = T_MINIMIZE;
-            else if (the_same(dsa->image, "min"))
-               dsa->token = T_MINIMIZE;
-            else if (the_same(dsa->image, "maximize"))
-               dsa->token = T_MAXIMIZE;
-            else if (the_same(dsa->image, "maximum"))
-               dsa->token = T_MAXIMIZE;
-            else if (the_same(dsa->image, "max"))
-               dsa->token = T_MAXIMIZE;
-            else if (the_same(dsa->image, "subject"))
-            {  if (dsa->c == ' ')
-               {  read_char(dsa);
-                  if (tolower(dsa->c) == 't')
-                  {  dsa->token = T_SUBJECT_TO;
-                     dsa->image[dsa->imlen++] = ' ';
-                     dsa->image[dsa->imlen] = '\0';
-                     add_char(dsa);
-                     if (tolower(dsa->c) != 'o')
-                        fatal(dsa, "keyword `subject to' incomplete");
-                     add_char(dsa);
-                     if (isalpha(dsa->c))
-                        fatal(dsa, "keyword `%s%c...' not recognized",
-                           dsa->image, dsa->c);
+            if (the_same(csa->image, "minimize"))
+               csa->token = T_MINIMIZE;
+            else if (the_same(csa->image, "minimum"))
+               csa->token = T_MINIMIZE;
+            else if (the_same(csa->image, "min"))
+               csa->token = T_MINIMIZE;
+            else if (the_same(csa->image, "maximize"))
+               csa->token = T_MAXIMIZE;
+            else if (the_same(csa->image, "maximum"))
+               csa->token = T_MAXIMIZE;
+            else if (the_same(csa->image, "max"))
+               csa->token = T_MAXIMIZE;
+            else if (the_same(csa->image, "subject"))
+            {  if (csa->c == ' ')
+               {  read_char(csa);
+                  if (tolower(csa->c) == 't')
+                  {  csa->token = T_SUBJECT_TO;
+                     csa->image[csa->imlen++] = ' ';
+                     csa->image[csa->imlen] = '\0';
+                     add_char(csa);
+                     if (tolower(csa->c) != 'o')
+                        error(csa, "keyword `subject to' incomplete\n");
+                     add_char(csa);
+                     if (isalpha(csa->c))
+                        error(csa, "keyword `%s%c...' not recognized\n",
+                           csa->image, csa->c);
                   }
                }
             }
-            else if (the_same(dsa->image, "such"))
-            {  if (dsa->c == ' ')
-               {  read_char(dsa);
-                  if (tolower(dsa->c) == 't')
-                  {  dsa->token = T_SUBJECT_TO;
-                     dsa->image[dsa->imlen++] = ' ';
-                     dsa->image[dsa->imlen] = '\0';
-                     add_char(dsa);
-                     if (tolower(dsa->c) != 'h')
-err:                    fatal(dsa, "keyword `such that' incomplete");
-                     add_char(dsa);
-                     if (tolower(dsa->c) != 'a') goto err;
-                     add_char(dsa);
-                     if (tolower(dsa->c) != 't') goto err;
-                     add_char(dsa);
-                     if (isalpha(dsa->c))
-                        fatal(dsa, "keyword `%s%c...' not recognized",
-                           dsa->image, dsa->c);
+            else if (the_same(csa->image, "such"))
+            {  if (csa->c == ' ')
+               {  read_char(csa);
+                  if (tolower(csa->c) == 't')
+                  {  csa->token = T_SUBJECT_TO;
+                     csa->image[csa->imlen++] = ' ';
+                     csa->image[csa->imlen] = '\0';
+                     add_char(csa);
+                     if (tolower(csa->c) != 'h')
+err:                    error(csa, "keyword `such that' incomplete\n");
+                     add_char(csa);
+                     if (tolower(csa->c) != 'a') goto err;
+                     add_char(csa);
+                     if (tolower(csa->c) != 't') goto err;
+                     add_char(csa);
+                     if (isalpha(csa->c))
+                        error(csa, "keyword `%s%c...' not recognized\n",
+                           csa->image, csa->c);
                   }
                }
             }
-            else if (the_same(dsa->image, "st"))
-               dsa->token = T_SUBJECT_TO;
-            else if (the_same(dsa->image, "s.t."))
-               dsa->token = T_SUBJECT_TO;
-            else if (the_same(dsa->image, "st."))
-               dsa->token = T_SUBJECT_TO;
-            else if (the_same(dsa->image, "bounds"))
-               dsa->token = T_BOUNDS;
-            else if (the_same(dsa->image, "bound"))
-               dsa->token = T_BOUNDS;
-            else if (the_same(dsa->image, "general"))
-               dsa->token = T_GENERAL;
-            else if (the_same(dsa->image, "generals"))
-               dsa->token = T_GENERAL;
-            else if (the_same(dsa->image, "gen"))
-               dsa->token = T_GENERAL;
-            else if (the_same(dsa->image, "integer"))
-               dsa->token = T_INTEGER;
-            else if (the_same(dsa->image, "integers"))
-               dsa->token = T_INTEGER;
-            else if (the_same(dsa->image, "int"))
-              dsa->token = T_INTEGER;
-            else if (the_same(dsa->image, "binary"))
-               dsa->token = T_BINARY;
-            else if (the_same(dsa->image, "binaries"))
-               dsa->token = T_BINARY;
-            else if (the_same(dsa->image, "bin"))
-               dsa->token = T_BINARY;
-            else if (the_same(dsa->image, "end"))
-               dsa->token = T_END;
+            else if (the_same(csa->image, "st"))
+               csa->token = T_SUBJECT_TO;
+            else if (the_same(csa->image, "s.t."))
+               csa->token = T_SUBJECT_TO;
+            else if (the_same(csa->image, "st."))
+               csa->token = T_SUBJECT_TO;
+            else if (the_same(csa->image, "bounds"))
+               csa->token = T_BOUNDS;
+            else if (the_same(csa->image, "bound"))
+               csa->token = T_BOUNDS;
+            else if (the_same(csa->image, "general"))
+               csa->token = T_GENERAL;
+            else if (the_same(csa->image, "generals"))
+               csa->token = T_GENERAL;
+            else if (the_same(csa->image, "gen"))
+               csa->token = T_GENERAL;
+            else if (the_same(csa->image, "integer"))
+               csa->token = T_INTEGER;
+            else if (the_same(csa->image, "integers"))
+               csa->token = T_INTEGER;
+            else if (the_same(csa->image, "int"))
+              csa->token = T_INTEGER;
+            else if (the_same(csa->image, "binary"))
+               csa->token = T_BINARY;
+            else if (the_same(csa->image, "binaries"))
+               csa->token = T_BINARY;
+            else if (the_same(csa->image, "bin"))
+               csa->token = T_BINARY;
+            else if (the_same(csa->image, "end"))
+               csa->token = T_END;
          }
       }
-      else if (isdigit(dsa->c) || dsa->c == '.')
+      else if (isdigit(csa->c) || csa->c == '.')
       {  /* numeric constant */
-         dsa->token = T_NUMBER;
+         csa->token = T_NUMBER;
          /* scan integer part */
-         while (isdigit(dsa->c)) add_char(dsa);
+         while (isdigit(csa->c)) add_char(csa);
          /* scan optional fractional part (it is mandatory, if there is
             no integer part) */
-         if (dsa->c == '.')
-         {  add_char(dsa);
-            if (dsa->imlen == 1 && !isdigit(dsa->c))
-               fatal(dsa, "invalid use of decimal point");
-            while (isdigit(dsa->c)) add_char(dsa);
+         if (csa->c == '.')
+         {  add_char(csa);
+            if (csa->imlen == 1 && !isdigit(csa->c))
+               error(csa, "invalid use of decimal point\n");
+            while (isdigit(csa->c)) add_char(csa);
          }
          /* scan optional decimal exponent */
-         if (dsa->c == 'e' || dsa->c == 'E')
-         {  add_char(dsa);
-            if (dsa->c == '+' || dsa->c == '-') add_char(dsa);
-            if (!isdigit(dsa->c))
-               fatal(dsa, "numeric constant `%s' incomplete",
-                  dsa->image);
-            while (isdigit(dsa->c)) add_char(dsa);
+         if (csa->c == 'e' || csa->c == 'E')
+         {  add_char(csa);
+            if (csa->c == '+' || csa->c == '-') add_char(csa);
+            if (!isdigit(csa->c))
+               error(csa, "numeric constant `%s' incomplete\n",
+                  csa->image);
+            while (isdigit(csa->c)) add_char(csa);
          }
          /* convert the numeric constant to floating-point */
-         if (str2num(dsa->image, &dsa->value))
-            fatal(dsa, "numeric constant `%s' out of range",
-               dsa->image);
+         if (str2num(csa->image, &csa->value))
+            error(csa, "numeric constant `%s' out of range\n",
+               csa->image);
       }
-      else if (dsa->c == '+')
-         dsa->token = T_PLUS, add_char(dsa);
-      else if (dsa->c == '-')
-         dsa->token = T_MINUS, add_char(dsa);
-      else if (dsa->c == ':')
-         dsa->token = T_COLON, add_char(dsa);
-      else if (dsa->c == '<')
-      {  dsa->token = T_LE, add_char(dsa);
-         if (dsa->c == '=') add_char(dsa);
+      else if (csa->c == '+')
+         csa->token = T_PLUS, add_char(csa);
+      else if (csa->c == '-')
+         csa->token = T_MINUS, add_char(csa);
+      else if (csa->c == ':')
+         csa->token = T_COLON, add_char(csa);
+      else if (csa->c == '<')
+      {  csa->token = T_LE, add_char(csa);
+         if (csa->c == '=') add_char(csa);
       }
-      else if (dsa->c == '>')
-      {  dsa->token = T_GE, add_char(dsa);
-         if (dsa->c == '=') add_char(dsa);
+      else if (csa->c == '>')
+      {  csa->token = T_GE, add_char(csa);
+         if (csa->c == '=') add_char(csa);
       }
-      else if (dsa->c == '=')
-      {  dsa->token = T_EQ, add_char(dsa);
-         if (dsa->c == '<')
-            dsa->token = T_LE, add_char(dsa);
-         else if (dsa->c == '>')
-            dsa->token = T_GE, add_char(dsa);
+      else if (csa->c == '=')
+      {  csa->token = T_EQ, add_char(csa);
+         if (csa->c == '<')
+            csa->token = T_LE, add_char(csa);
+         else if (csa->c == '>')
+            csa->token = T_GE, add_char(csa);
       }
       else
-         fatal(dsa, "character `%c' not recognized", dsa->c);
+         error(csa, "character `%c' not recognized\n", csa->c);
       /* skip non-significant characters */
-      while (dsa->c == ' ') read_char(dsa);
+      while (csa->c == ' ') read_char(csa);
       return;
 }
 
-static int find_col(struct dsa *dsa, char *name)
+static int find_col(struct csa *csa, char *name)
 {     /* find column by its symbolic name */
       int j;
-      j = lpx_find_col(dsa->lp, name);
+      j = glp_find_col(csa->P, name);
       if (j == 0)
       {  /* not found; create new column */
-         j = lpx_add_cols(dsa->lp, 1);
-         lpx_set_col_name(dsa->lp, j, name);
-         /* enlarge auxiliary arrays, if necessary */
-         if (dsa->n_max < j)
-         {  int n_max = dsa->n_max;
-            int *map = dsa->map;
-            int *ind = dsa->ind;
-            double *val = dsa->val;
-            double *lb = dsa->lb;
-            double *ub = dsa->ub;
-            dsa->n_max += dsa->n_max;
-            dsa->map = xcalloc(1+dsa->n_max, sizeof(int));
-            memset(&dsa->map[1], 0, dsa->n_max * sizeof(int));
-            memcpy(&dsa->map[1], &map[1], n_max * sizeof(int));
-            xfree(map);
-            dsa->ind = xcalloc(1+dsa->n_max, sizeof(int));
-            memcpy(&dsa->ind[1], &ind[1], n_max * sizeof(int));
+         j = glp_add_cols(csa->P, 1);
+         glp_set_col_name(csa->P, j, name);
+         /* enlarge working arrays, if necessary */
+         if (csa->n_max < j)
+         {  int n_max = csa->n_max;
+            int *ind = csa->ind;
+            double *val = csa->val;
+            char *flag = csa->flag;
+            double *lb = csa->lb;
+            double *ub = csa->ub;
+            csa->n_max += csa->n_max;
+            csa->ind = xcalloc(1+csa->n_max, sizeof(int));
+            memcpy(&csa->ind[1], &ind[1], n_max * sizeof(int));
             xfree(ind);
-            dsa->val = xcalloc(1+dsa->n_max, sizeof(double));
-            memcpy(&dsa->val[1], &val[1], n_max * sizeof(double));
+            csa->val = xcalloc(1+csa->n_max, sizeof(double));
+            memcpy(&csa->val[1], &val[1], n_max * sizeof(double));
             xfree(val);
-            dsa->lb = xcalloc(1+dsa->n_max, sizeof(double));
-            memcpy(&dsa->lb[1], &lb[1], n_max * sizeof(double));
+            csa->flag = xcalloc(1+csa->n_max, sizeof(char));
+            memset(&csa->flag[1], 0, csa->n_max * sizeof(char));
+            memcpy(&csa->flag[1], &flag[1], n_max * sizeof(char));
+            xfree(flag);
+            csa->lb = xcalloc(1+csa->n_max, sizeof(double));
+            memcpy(&csa->lb[1], &lb[1], n_max * sizeof(double));
             xfree(lb);
-            dsa->ub = xcalloc(1+dsa->n_max, sizeof(double));
-            memcpy(&dsa->ub[1], &ub[1], n_max * sizeof(double));
+            csa->ub = xcalloc(1+csa->n_max, sizeof(double));
+            memcpy(&csa->ub[1], &ub[1], n_max * sizeof(double));
             xfree(ub);
          }
-         dsa->lb[j] = +DBL_MAX, dsa->ub[j] = -DBL_MAX;
+         csa->lb[j] = +DBL_MAX, csa->ub[j] = -DBL_MAX;
       }
       return j;
 }
 
-/*----------------------------------------------------------------------
--- parse_linear_form - parse linear form.
---
--- This routine parses linear form using the following syntax:
---
--- <variable> ::= <symbolic name>
--- <coefficient> ::= <numeric constant>
--- <term> ::= <variable> | <numeric constant> <variable>
--- <linear form> ::= <term> | + <term> | - <term> |
---    <linear form> + <term> | <linear form> - <term>
---
--- The routine returns the number of terms in the linear form. */
+/***********************************************************************
+*  parse_linear_form - parse linear form
+*
+*  This routine parses the linear form using the following syntax:
+*
+*  <variable> ::= <symbolic name>
+*  <coefficient> ::= <numeric constant>
+*  <term> ::= <variable> | <numeric constant> <variable>
+*  <linear form> ::= <term> | + <term> | - <term> |
+*     <linear form> + <term> | <linear form> - <term>
+*
+*  The routine returns the number of terms in the linear form. */
 
-static int parse_linear_form(struct dsa *dsa)
+static int parse_linear_form(struct csa *csa)
 {     int j, k, len = 0, newlen;
       double s, coef;
 loop: /* parse an optional sign */
-      if (dsa->token == T_PLUS)
-         s = +1.0, scan_token(dsa);
-      else if (dsa->token == T_MINUS)
-         s = -1.0, scan_token(dsa);
+      if (csa->token == T_PLUS)
+         s = +1.0, scan_token(csa);
+      else if (csa->token == T_MINUS)
+         s = -1.0, scan_token(csa);
       else
          s = +1.0;
       /* parse an optional coefficient */
-      if (dsa->token == T_NUMBER)
-         coef = dsa->value, scan_token(dsa);
+      if (csa->token == T_NUMBER)
+         coef = csa->value, scan_token(csa);
       else
          coef = 1.0;
       /* parse a variable name */
-      if (dsa->token != T_NAME)
-         fatal(dsa, "missing variable name");
+      if (csa->token != T_NAME)
+         error(csa, "missing variable name\n");
       /* find the corresponding column */
-      j = find_col(dsa, dsa->image);
+      j = find_col(csa, csa->image);
       /* check if the variable is already used in the linear form */
-      if (dsa->map[j])
-         fatal(dsa, "multiple use of variable `%s' not allowed",
-            dsa->image);
-      /* mark that the variable is used in the linear form */
-      dsa->map[j] = 1;
+      if (csa->flag[j])
+         error(csa, "multiple use of variable `%s' not allowed\n",
+            csa->image);
       /* add new term to the linear form */
-      len++, dsa->ind[len] = j, dsa->val[len] = s * coef;
-      scan_token(dsa);
+      len++, csa->ind[len] = j, csa->val[len] = s * coef;
+      /* and mark that the variable is used in the linear form */
+      csa->flag[j] = 1;
+      scan_token(csa);
       /* if the next token is a sign, there is another term */
-      if (dsa->token == T_PLUS || dsa->token == T_MINUS) goto loop;
+      if (csa->token == T_PLUS || csa->token == T_MINUS) goto loop;
       /* clear marks of the variables used in the linear form */
-      for (k = 1; k <= len; k++) dsa->map[dsa->ind[k]] = 0;
+      for (k = 1; k <= len; k++) csa->flag[csa->ind[k]] = 0;
       /* remove zero coefficients */
       newlen = 0;
       for (k = 1; k <= len; k++)
-      {  if (dsa->val[k] != 0.0)
+      {  if (csa->val[k] != 0.0)
          {  newlen++;
-            dsa->ind[newlen] = dsa->ind[k];
-            dsa->val[newlen] = dsa->val[k];
+            csa->ind[newlen] = csa->ind[k];
+            csa->val[newlen] = csa->val[k];
          }
       }
       return newlen;
 }
 
-/*----------------------------------------------------------------------
--- parse_objective - parse objective function.
---
--- This routine parses definition of the objective function using the
--- following syntax:
---
--- <obj sense> ::= minimize | minimum | min | maximize | maximum | max
--- <obj name> ::= <empty> | <symbolic name> :
--- <obj function> ::= <obj sense> <obj name> <linear form> */
+/***********************************************************************
+*  parse_objective - parse objective function
+*
+*  This routine parses definition of the objective function using the
+*  following syntax:
+*
+*  <obj sense> ::= minimize | minimum | min | maximize | maximum | max
+*  <obj name> ::= <empty> | <symbolic name> :
+*  <obj function> ::= <obj sense> <obj name> <linear form> */
 
-static void parse_objective(struct dsa *dsa)
+static void parse_objective(struct csa *csa)
 {     /* parse objective sense */
       int k, len;
       /* parse the keyword 'minimize' or 'maximize' */
-      if (dsa->token == T_MINIMIZE)
-         lpx_set_obj_dir(dsa->lp, LPX_MIN);
-      else if (dsa->token == T_MAXIMIZE)
-         lpx_set_obj_dir(dsa->lp, LPX_MAX);
+      if (csa->token == T_MINIMIZE)
+         glp_set_obj_dir(csa->P, GLP_MIN);
+      else if (csa->token == T_MAXIMIZE)
+         glp_set_obj_dir(csa->P, GLP_MAX);
       else
-         xassert(dsa != dsa);
-      scan_token(dsa);
+         xassert(csa != csa);
+      scan_token(csa);
       /* parse objective name */
-      if (dsa->token == T_NAME && dsa->c == ':')
+      if (csa->token == T_NAME && csa->c == ':')
       {  /* objective name is followed by a colon */
-         lpx_set_obj_name(dsa->lp, dsa->image);
-         scan_token(dsa);
-         xassert(dsa->token == T_COLON);
-         scan_token(dsa);
+         glp_set_obj_name(csa->P, csa->image);
+         scan_token(csa);
+         xassert(csa->token == T_COLON);
+         scan_token(csa);
       }
       else
       {  /* objective name is not specified; use default */
-         lpx_set_obj_name(dsa->lp, "obj");
+         glp_set_obj_name(csa->P, "obj");
       }
       /* parse linear form */
-      len = parse_linear_form(dsa);
+      len = parse_linear_form(csa);
       for (k = 1; k <= len; k++)
-         lpx_set_obj_coef(dsa->lp, dsa->ind[k], dsa->val[k]);
+         glp_set_obj_coef(csa->P, csa->ind[k], csa->val[k]);
       return;
 }
 
-/*----------------------------------------------------------------------
--- parse_constraints - parse constraints section.
---
--- This routine parses the constraints section using the following
--- syntax:
---
--- <row name> ::= <empty> | <symbolic name> :
--- <row sense> ::= < | <= | =< | > | >= | => | =
--- <right-hand side> ::= <numeric constant> | + <numeric constant> |
---    - <numeric constant>
--- <constraint> ::= <row name> <linear form> <row sense>
---    <right-hand side>
--- <subject to> ::= subject to | such that | st | s.t. | st.
--- <constraints section> ::= <subject to> <constraint> |
---    <constraints section> <constraint> */
+/***********************************************************************
+*  parse_constraints - parse constraints section
+*
+*  This routine parses the constraints section using the following
+*  syntax:
+*
+*  <row name> ::= <empty> | <symbolic name> :
+*  <row sense> ::= < | <= | =< | > | >= | => | =
+*  <right-hand side> ::= <numeric constant> | + <numeric constant> |
+*     - <numeric constant>
+*  <constraint> ::= <row name> <linear form> <row sense>
+*     <right-hand side>
+*  <subject to> ::= subject to | such that | st | s.t. | st.
+*  <constraints section> ::= <subject to> <constraint> |
+*     <constraints section> <constraint> */
 
-static void parse_constraints(struct dsa *dsa)
+static void parse_constraints(struct csa *csa)
 {     int i, len, type;
       double s;
       /* parse the keyword 'subject to' */
-      xassert(dsa->token == T_SUBJECT_TO);
-      scan_token(dsa);
+      xassert(csa->token == T_SUBJECT_TO);
+      scan_token(csa);
 loop: /* create new row (constraint) */
-      i = lpx_add_rows(dsa->lp, 1);
+      i = glp_add_rows(csa->P, 1);
       /* parse row name */
-      if (dsa->token == T_NAME && dsa->c == ':')
+      if (csa->token == T_NAME && csa->c == ':')
       {  /* row name is followed by a colon */
-         if (lpx_find_row(dsa->lp, dsa->image) != 0)
-            fatal(dsa, "constraint `%s' multiply defined", dsa->image);
-         lpx_set_row_name(dsa->lp, i, dsa->image);
-         scan_token(dsa);
-         xassert(dsa->token == T_COLON);
-         scan_token(dsa);
+         if (glp_find_row(csa->P, csa->image) != 0)
+            error(csa, "constraint `%s' multiply defined\n",
+               csa->image);
+         glp_set_row_name(csa->P, i, csa->image);
+         scan_token(csa);
+         xassert(csa->token == T_COLON);
+         scan_token(csa);
       }
       else
       {  /* row name is not specified; use default */
          char name[50];
-         sprintf(name, "r.%d", dsa->count);
-         lpx_set_row_name(dsa->lp, i, name);
+         sprintf(name, "r.%d", csa->count);
+         glp_set_row_name(csa->P, i, name);
       }
       /* parse linear form */
-      len = parse_linear_form(dsa);
-      lpx_set_mat_row(dsa->lp, i, len, dsa->ind, dsa->val);
+      len = parse_linear_form(csa);
+      glp_set_mat_row(csa->P, i, len, csa->ind, csa->val);
       /* parse constraint sense */
-      if (dsa->token == T_LE)
-         type = LPX_UP, scan_token(dsa);
-      else if (dsa->token == T_GE)
-         type = LPX_LO, scan_token(dsa);
-      else if (dsa->token == T_EQ)
-         type = LPX_FX, scan_token(dsa);
+      if (csa->token == T_LE)
+         type = GLP_UP, scan_token(csa);
+      else if (csa->token == T_GE)
+         type = GLP_LO, scan_token(csa);
+      else if (csa->token == T_EQ)
+         type = GLP_FX, scan_token(csa);
       else
-         fatal(dsa, "missing constraint sense");
+         error(csa, "missing constraint sense\n");
       /* parse right-hand side */
-      if (dsa->token == T_PLUS)
-         s = +1.0, scan_token(dsa);
-      else if (dsa->token == T_MINUS)
-         s = -1.0, scan_token(dsa);
+      if (csa->token == T_PLUS)
+         s = +1.0, scan_token(csa);
+      else if (csa->token == T_MINUS)
+         s = -1.0, scan_token(csa);
       else
          s = +1.0;
-      if (dsa->token != T_NUMBER)
-         fatal(dsa, "missing right-hand side");
-      switch (type)
-      {  case LPX_LO:
-            lpx_set_row_bnds(dsa->lp, i, LPX_LO, s * dsa->value, 0.0);
-            break;
-         case LPX_UP:
-            lpx_set_row_bnds(dsa->lp, i, LPX_UP, 0.0, s * dsa->value);
-            break;
-         case LPX_FX:
-            lpx_set_row_bnds(dsa->lp, i, LPX_FX, s * dsa->value, 0.0);
-            break;
-      }
+      if (csa->token != T_NUMBER)
+         error(csa, "missing right-hand side\n");
+      glp_set_row_bnds(csa->P, i, type, s * csa->value, s * csa->value);
       /* the rest of the current line must be empty */
-      if (!(dsa->c == '\n' || dsa->c == EOF))
-         fatal(dsa, "invalid symbol(s) beyond right-hand side");
-      scan_token(dsa);
+      if (!(csa->c == '\n' || csa->c == XEOF))
+         error(csa, "invalid symbol(s) beyond right-hand side\n");
+      scan_token(csa);
       /* if the next token is a sign, numeric constant, or a symbolic
          name, here is another constraint */
-      if (dsa->token == T_PLUS || dsa->token == T_MINUS ||
-         dsa->token == T_NUMBER || dsa->token == T_NAME) goto loop;
+      if (csa->token == T_PLUS || csa->token == T_MINUS ||
+          csa->token == T_NUMBER || csa->token == T_NAME) goto loop;
       return;
 }
 
-static void set_lower_bound(struct dsa *dsa, int j, double lb)
+static void set_lower_bound(struct csa *csa, int j, double lb)
+{     /* set lower bound of j-th variable */
+      if (csa->lb[j] != +DBL_MAX)
+      {  warning(csa, "lower bound of variable `%s' redefined\n",
+            glp_get_col_name(csa->P, j));
+      }
+      csa->lb[j] = lb;
+      return;
+}
+
+static void set_upper_bound(struct csa *csa, int j, double ub)
 {     /* set upper bound of j-th variable */
-      if (dsa->lb[j] != +DBL_MAX)
-         xprintf(
-            "%s:%d: warning: lower bound of variable `%s' redefined\n",
-            dsa->fname, dsa->count, lpx_get_col_name(dsa->lp, j));
-      dsa->lb[j] = lb;
+      if (csa->ub[j] != -DBL_MAX)
+      {  warning(csa, "upper bound of variable `%s' redefined\n",
+            glp_get_col_name(csa->P, j));
+      }
+      csa->ub[j] = ub;
       return;
 }
 
-static void set_upper_bound(struct dsa *dsa, int j, double ub)
-{     /* set upper bound of j-th variable */
-      if (dsa->ub[j] != -DBL_MAX)
-         xprintf(
-            "%s:%d: warning: upper bound of variable `%s' redefined\n",
-            dsa->fname, dsa->count, lpx_get_col_name(dsa->lp, j));
-      dsa->ub[j] = ub;
-      return;
-}
+/***********************************************************************
+*  parse_bounds - parse bounds section
+*
+*  This routine parses the bounds section using the following syntax:
+*
+*  <variable> ::= <symbolic name>
+*  <infinity> ::= infinity | inf
+*  <bound> ::= <numeric constant> | + <numeric constant> |
+*     - <numeric constant> | + <infinity> | - <infinity>
+*  <lt> ::= < | <= | =<
+*  <gt> ::= > | >= | =>
+*  <bound definition> ::= <bound> <lt> <variable> <lt> <bound> |
+*     <bound> <lt> <variable> | <variable> <lt> <bound> |
+*     <variable> <gt> <bound> | <variable> = <bound> | <variable> free
+*  <bounds> ::= bounds | bound
+*  <bounds section> ::= <bounds> |
+*     <bounds section> <bound definition> */
 
-/*----------------------------------------------------------------------
--- parse_bounds - parse bounds section.
---
--- This routine parses the bounds section using the following syntax:
---
--- <variable> ::= <symbolic name>
--- <infinity> ::= infinity | inf
--- <bound> ::= <numeric constant> | + <numeric constant> |
---    - <numeric constant> | + <infinity> | - <infinity>
--- <lt> ::= < | <= | =<
--- <gt> ::= > | >= | =>
--- <bound definition> ::= <bound> <lt> <variable> <lt> <bound> |
---    <bound> <lt> <variable> | <variable> <lt> <bound> |
---    <variable> <gt> <bound> | <variable> = <bound> | <variable> free
--- <bounds> ::= bounds | bound
--- <bounds section> ::= <bounds> |
---    <bounds section> <bound definition> */
-
-static void parse_bounds(struct dsa *dsa)
+static void parse_bounds(struct csa *csa)
 {     int j, lb_flag;
       double lb, s;
       /* parse the keyword 'bounds' */
-      xassert(dsa->token == T_BOUNDS);
-      scan_token(dsa);
+      xassert(csa->token == T_BOUNDS);
+      scan_token(csa);
 loop: /* bound definition can start with a sign, numeric constant, or
          a symbolic name */
-      if (!(dsa->token == T_PLUS || dsa->token == T_MINUS ||
-            dsa->token == T_NUMBER || dsa->token == T_NAME)) goto done;
+      if (!(csa->token == T_PLUS || csa->token == T_MINUS ||
+            csa->token == T_NUMBER || csa->token == T_NAME)) goto done;
       /* parse bound definition */
-      if (dsa->token == T_PLUS || dsa->token == T_MINUS)
+      if (csa->token == T_PLUS || csa->token == T_MINUS)
       {  /* parse signed lower bound */
          lb_flag = 1;
-         s = (dsa->token == T_PLUS ? +1.0 : -1.0);
-         scan_token(dsa);
-         if (dsa->token == T_NUMBER)
-            lb = s * dsa->value, scan_token(dsa);
-         else if (the_same(dsa->image, "infinity") ||
-                  the_same(dsa->image, "inf"))
+         s = (csa->token == T_PLUS ? +1.0 : -1.0);
+         scan_token(csa);
+         if (csa->token == T_NUMBER)
+            lb = s * csa->value, scan_token(csa);
+         else if (the_same(csa->image, "infinity") ||
+                  the_same(csa->image, "inf"))
          {  if (s > 0.0)
-               fatal(dsa, "invalid use of `+inf' as lower bound");
-            lb = -DBL_MAX, scan_token(dsa);
+               error(csa, "invalid use of `+inf' as lower bound\n");
+            lb = -DBL_MAX, scan_token(csa);
          }
          else
-            fatal(dsa, "missing lower bound");
+            error(csa, "missing lower bound\n");
       }
-      else if (dsa->token == T_NUMBER)
+      else if (csa->token == T_NUMBER)
       {  /* parse unsigned lower bound */
          lb_flag = 1;
-         lb = dsa->value, scan_token(dsa);
+         lb = csa->value, scan_token(csa);
       }
       else
       {  /* lower bound is not specified */
@@ -625,348 +664,366 @@ loop: /* bound definition can start with a sign, numeric constant, or
       }
       /* parse the token that should follow the lower bound */
       if (lb_flag)
-      {  if (dsa->token != T_LE)
-            fatal(dsa, "missing `<', `<=', or `=<' after lower bound");
-         scan_token(dsa);
+      {  if (csa->token != T_LE)
+            error(csa, "missing `<', `<=', or `=<' after lower bound\n")
+               ;
+         scan_token(csa);
       }
       /* parse variable name */
-      if (dsa->token != T_NAME)
-         fatal(dsa, "missing variable name");
-      j = find_col(dsa, dsa->image);
+      if (csa->token != T_NAME)
+         error(csa, "missing variable name\n");
+      j = find_col(csa, csa->image);
       /* set lower bound */
-      if (lb_flag) set_lower_bound(dsa, j, lb);
-      scan_token(dsa);
+      if (lb_flag) set_lower_bound(csa, j, lb);
+      scan_token(csa);
       /* parse the context that follows the variable name */
-      if (dsa->token == T_LE)
+      if (csa->token == T_LE)
       {  /* parse upper bound */
-         scan_token(dsa);
-         if (dsa->token == T_PLUS || dsa->token == T_MINUS)
+         scan_token(csa);
+         if (csa->token == T_PLUS || csa->token == T_MINUS)
          {  /* parse signed upper bound */
-            s = (dsa->token == T_PLUS ? +1.0 : -1.0);
-            scan_token(dsa);
-            if (dsa->token == T_NUMBER)
-            {  set_upper_bound(dsa, j, s * dsa->value);
-               scan_token(dsa);
+            s = (csa->token == T_PLUS ? +1.0 : -1.0);
+            scan_token(csa);
+            if (csa->token == T_NUMBER)
+            {  set_upper_bound(csa, j, s * csa->value);
+               scan_token(csa);
             }
-            else if (the_same(dsa->image, "infinity") ||
-                     the_same(dsa->image, "inf"))
+            else if (the_same(csa->image, "infinity") ||
+                     the_same(csa->image, "inf"))
             {  if (s < 0.0)
-                  fatal(dsa, "invalid use of `-inf' as upper bound");
-               set_upper_bound(dsa, j, +DBL_MAX);
-               scan_token(dsa);
+                  error(csa, "invalid use of `-inf' as upper bound\n");
+               set_upper_bound(csa, j, +DBL_MAX);
+               scan_token(csa);
             }
             else
-               fatal(dsa, "missing upper bound");
+               error(csa, "missing upper bound\n");
          }
-         else if (dsa->token == T_NUMBER)
+         else if (csa->token == T_NUMBER)
          {  /* parse unsigned upper bound */
-            set_upper_bound(dsa, j, dsa->value);
-            scan_token(dsa);
+            set_upper_bound(csa, j, csa->value);
+            scan_token(csa);
          }
          else
-            fatal(dsa, "missing upper bound");
+            error(csa, "missing upper bound\n");
       }
-      else if (dsa->token == T_GE)
+      else if (csa->token == T_GE)
       {  /* parse lower bound */
          if (lb_flag)
          {  /* the context '... <= x >= ...' is invalid */
-            fatal(dsa, "invalid bound definition");
+            error(csa, "invalid bound definition\n");
          }
-         scan_token(dsa);
-         if (dsa->token == T_PLUS || dsa->token == T_MINUS)
+         scan_token(csa);
+         if (csa->token == T_PLUS || csa->token == T_MINUS)
          {  /* parse signed lower bound */
-            s = (dsa->token == T_PLUS ? +1.0 : -1.0);
-            scan_token(dsa);
-            if (dsa->token == T_NUMBER)
-            {  set_lower_bound(dsa, j, s * dsa->value);
-               scan_token(dsa);
+            s = (csa->token == T_PLUS ? +1.0 : -1.0);
+            scan_token(csa);
+            if (csa->token == T_NUMBER)
+            {  set_lower_bound(csa, j, s * csa->value);
+               scan_token(csa);
             }
-            else if (the_same(dsa->image, "infinity") ||
-                     the_same(dsa->image, "inf") == 0)
+            else if (the_same(csa->image, "infinity") ||
+                     the_same(csa->image, "inf") == 0)
             {  if (s > 0.0)
-                  fatal(dsa, "invalid use of `+inf' as lower bound");
-               set_lower_bound(dsa, j, -DBL_MAX);
-               scan_token(dsa);
+                  error(csa, "invalid use of `+inf' as lower bound\n");
+               set_lower_bound(csa, j, -DBL_MAX);
+               scan_token(csa);
             }
             else
-               fatal(dsa, "missing lower bound");
+               error(csa, "missing lower bound\n");
          }
-         else if (dsa->token == T_NUMBER)
+         else if (csa->token == T_NUMBER)
          {  /* parse unsigned lower bound */
-            set_lower_bound(dsa, j, dsa->value);
-            scan_token(dsa);
+            set_lower_bound(csa, j, csa->value);
+            scan_token(csa);
          }
          else
-            fatal(dsa, "missing lower bound");
+            error(csa, "missing lower bound\n");
       }
-      else if (dsa->token == T_EQ)
+      else if (csa->token == T_EQ)
       {  /* parse fixed value */
          if (lb_flag)
          {  /* the context '... <= x = ...' is invalid */
-            fatal(dsa, "invalid bound definition");
+            error(csa, "invalid bound definition\n");
          }
-         scan_token(dsa);
-         if (dsa->token == T_PLUS || dsa->token == T_MINUS)
+         scan_token(csa);
+         if (csa->token == T_PLUS || csa->token == T_MINUS)
          {  /* parse signed fixed value */
-            s = (dsa->token == T_PLUS ? +1.0 : -1.0);
-            scan_token(dsa);
-            if (dsa->token == T_NUMBER)
-            {  set_lower_bound(dsa, j, s * dsa->value);
-               set_upper_bound(dsa, j, s * dsa->value);
-               scan_token(dsa);
+            s = (csa->token == T_PLUS ? +1.0 : -1.0);
+            scan_token(csa);
+            if (csa->token == T_NUMBER)
+            {  set_lower_bound(csa, j, s * csa->value);
+               set_upper_bound(csa, j, s * csa->value);
+               scan_token(csa);
             }
             else
-               fatal(dsa, "missing fixed value");
+               error(csa, "missing fixed value\n");
          }
-         else if (dsa->token == T_NUMBER)
+         else if (csa->token == T_NUMBER)
          {  /* parse unsigned fixed value */
-            set_lower_bound(dsa, j, dsa->value);
-            set_upper_bound(dsa, j, dsa->value);
-            scan_token(dsa);
+            set_lower_bound(csa, j, csa->value);
+            set_upper_bound(csa, j, csa->value);
+            scan_token(csa);
          }
          else
-            fatal(dsa, "missing fixed value");
+            error(csa, "missing fixed value\n");
       }
-      else if (the_same(dsa->image, "free"))
+      else if (the_same(csa->image, "free"))
       {  /* parse the keyword 'free' */
          if (lb_flag)
          {  /* the context '... <= x free ...' is invalid */
-            fatal(dsa, "invalid bound definition");
+            error(csa, "invalid bound definition\n");
          }
-         set_lower_bound(dsa, j, -DBL_MAX);
-         set_upper_bound(dsa, j, +DBL_MAX);
-         scan_token(dsa);
+         set_lower_bound(csa, j, -DBL_MAX);
+         set_upper_bound(csa, j, +DBL_MAX);
+         scan_token(csa);
       }
       else if (!lb_flag)
       {  /* neither lower nor upper bounds are specified */
-         fatal(dsa, "invalid bound definition");
+         error(csa, "invalid bound definition\n");
       }
       goto loop;
 done: return;
 }
 
-/*----------------------------------------------------------------------
--- parse_integer - parse general, integer, or binary section.
---
--- <variable> ::= <symbolic name>
--- <general> ::= general | generals | gen
--- <integer> ::= integer | integers | int
--- <binary> ::= binary | binaries | bin
--- <section head> ::= <general> <integer> <binary>
--- <additional section> ::= <section head> |
---    <additional section> <variable> */
+/***********************************************************************
+*  parse_integer - parse general, integer, or binary section
+*
+*  <variable> ::= <symbolic name>
+*  <general> ::= general | generals | gen
+*  <integer> ::= integer | integers | int
+*  <binary> ::= binary | binaries | bin
+*  <section head> ::= <general> <integer> <binary>
+*  <additional section> ::= <section head> |
+*     <additional section> <variable> */
 
-static void parse_integer(struct dsa *dsa)
+static void parse_integer(struct csa *csa)
 {     int j, binary;
       /* parse the keyword 'general', 'integer', or 'binary' */
-      if (dsa->token == T_GENERAL)
-         binary = 0, scan_token(dsa);
-      else if (dsa->token == T_INTEGER)
-         binary = 0, scan_token(dsa);
-      else if (dsa->token == T_BINARY)
-         binary = 1, scan_token(dsa);
+      if (csa->token == T_GENERAL)
+         binary = 0, scan_token(csa);
+      else if (csa->token == T_INTEGER)
+         binary = 0, scan_token(csa);
+      else if (csa->token == T_BINARY)
+         binary = 1, scan_token(csa);
       else
-         xassert(dsa != dsa);
+         xassert(csa != csa);
       /* parse list of variables (may be empty) */
-      while (dsa->token == T_NAME)
+      while (csa->token == T_NAME)
       {  /* find the corresponding column */
-         j = find_col(dsa, dsa->image);
+         j = find_col(csa, csa->image);
          /* change kind of the variable */
-#if 0
-         lpx_set_class(dsa->lp, LPX_MIP);
-#endif
-         lpx_set_col_kind(dsa->lp, j, LPX_IV);
+         glp_set_col_kind(csa->P, j, GLP_IV);
          /* set 0-1 bounds for the binary variable */
          if (binary)
-         {  set_lower_bound(dsa, j, 0.0);
-            set_upper_bound(dsa, j, 1.0);
+         {  set_lower_bound(csa, j, 0.0);
+            set_upper_bound(csa, j, 1.0);
          }
-         scan_token(dsa);
+         scan_token(csa);
       }
       return;
 }
 
-int read_cpxlp(glp_prob *lp, const char *fname)
+int glp_read_lp(glp_prob *P, const glp_cpxcp *parm, const char *fname)
 {     /* read problem data in CPLEX LP format */
-      struct dsa _dsa, *dsa = &_dsa;
-      glp_erase_prob(lp);
-      if (setjmp(dsa->jump)) goto fail;
-      dsa->lp = lp;
-      dsa->fname = fname;
-      dsa->fp = NULL;
-      dsa->count = 0;
-      dsa->c = '\n';
-      dsa->token = T_EOF;
-      dsa->image[0] = '\0';
-      dsa->imlen = 0;
-      dsa->value = 0.0;
-      dsa->n_max = 100;
-      dsa->map = xcalloc(1+dsa->n_max, sizeof(int));
-      memset(&dsa->map[1], 0, dsa->n_max * sizeof(int));
-      dsa->ind = xcalloc(1+dsa->n_max, sizeof(int));
-      dsa->val = xcalloc(1+dsa->n_max, sizeof(double));
-      dsa->lb = xcalloc(1+dsa->n_max, sizeof(double));
-      dsa->ub = xcalloc(1+dsa->n_max, sizeof(double));
-      xprintf("glp_read_lp: reading problem data from `%s'...\n",
-         dsa->fname);
-      dsa->fp = fopen(dsa->fname, "r");
-      if (dsa->fp == NULL)
-      {  xprintf("glp_read_lp: unable to open `%s' - %s\n", dsa->fname,
-            strerror(errno));
-         goto fail;
+      glp_cpxcp _parm;
+      struct csa _csa, *csa = &_csa;
+      int ret;
+      xprintf("Reading problem data from `%s'...\n", fname);
+      if (parm == NULL)
+         glp_init_cpxcp(&_parm), parm = &_parm;
+      /* check control parameters */
+      check_parm("glp_read_lp", parm);
+      /* initialize common storage area */
+      csa->P = P;
+      csa->parm = parm;
+      csa->fname = fname;
+      csa->fp = NULL;
+      if (setjmp(csa->jump))
+      {  ret = 1;
+         goto done;
       }
-      lpx_create_index(dsa->lp);
-#if 0
-      /* read very first character */
-      read_char(dsa);
-#endif
+      csa->count = 0;
+      csa->c = '\n';
+      csa->token = T_EOF;
+      csa->image[0] = '\0';
+      csa->imlen = 0;
+      csa->value = 0.0;
+      csa->n_max = 100;
+      csa->ind = xcalloc(1+csa->n_max, sizeof(int));
+      csa->val = xcalloc(1+csa->n_max, sizeof(double));
+      csa->flag = xcalloc(1+csa->n_max, sizeof(char));
+      memset(&csa->flag[1], 0, csa->n_max * sizeof(char));
+      csa->lb = xcalloc(1+csa->n_max, sizeof(double));
+      csa->ub = xcalloc(1+csa->n_max, sizeof(double));
+      /* erase problem object */
+      glp_erase_prob(P);
+      glp_create_index(P);
+      /* open input CPLEX LP file */
+      csa->fp = xfopen(fname, "r");
+      if (csa->fp == NULL)
+      {  xprintf("Unable to open `%s' - %s\n", fname, xerrmsg());
+         ret = 1;
+         goto done;
+      }
       /* scan very first token */
-      scan_token(dsa);
+      scan_token(csa);
       /* parse definition of the objective function */
-      if (!(dsa->token == T_MINIMIZE || dsa->token == T_MAXIMIZE))
-         fatal(dsa, "`minimize' or `maximize' keyword missing");
-      parse_objective(dsa);
+      if (!(csa->token == T_MINIMIZE || csa->token == T_MAXIMIZE))
+         error(csa, "`minimize' or `maximize' keyword missing\n");
+      parse_objective(csa);
       /* parse constraints section */
-      if (dsa->token != T_SUBJECT_TO)
-         fatal(dsa, "constraints section missing");
-      parse_constraints(dsa);
+      if (csa->token != T_SUBJECT_TO)
+         error(csa, "constraints section missing\n");
+      parse_constraints(csa);
       /* parse optional bounds section */
-      if (dsa->token == T_BOUNDS) parse_bounds(dsa);
+      if (csa->token == T_BOUNDS) parse_bounds(csa);
       /* parse optional general, integer, and binary sections */
-      while (dsa->token == T_GENERAL ||
-             dsa->token == T_INTEGER ||
-             dsa->token == T_BINARY) parse_integer(dsa);
+      while (csa->token == T_GENERAL ||
+             csa->token == T_INTEGER ||
+             csa->token == T_BINARY) parse_integer(csa);
       /* check for the keyword 'end' */
-      if (dsa->token == T_END)
-         scan_token(dsa);
-      else if (dsa->token == T_EOF)
-         xprintf("%s:%d: warning: keyword `end' missing\n",
-            dsa->fname, dsa->count);
+      if (csa->token == T_END)
+         scan_token(csa);
+      else if (csa->token == T_EOF)
+         warning(csa, "keyword `end' missing\n");
       else
-         fatal(dsa, "symbol `%s' in wrong position", dsa->image);
+         error(csa, "symbol `%s' in wrong position\n", csa->image);
       /* nothing must follow the keyword 'end' (except comments) */
-      if (dsa->token != T_EOF)
-         fatal(dsa, "extra symbol(s) detected beyond `end'");
+      if (csa->token != T_EOF)
+         error(csa, "extra symbol(s) detected beyond `end'\n");
       /* set bounds of variables */
       {  int j, type;
          double lb, ub;
-         for (j = lpx_get_num_cols(dsa->lp); j >= 1; j--)
-         {  lb = dsa->lb[j];
-            ub = dsa->ub[j];
+         for (j = 1; j <= P->n; j++)
+         {  lb = csa->lb[j];
+            ub = csa->ub[j];
             if (lb == +DBL_MAX) lb = 0.0;      /* default lb */
             if (ub == -DBL_MAX) ub = +DBL_MAX; /* default ub */
             if (lb == -DBL_MAX && ub == +DBL_MAX)
-               type = LPX_FR;
+               type = GLP_FR;
             else if (ub == +DBL_MAX)
-               type = LPX_LO;
+               type = GLP_LO;
             else if (lb == -DBL_MAX)
-               type = LPX_UP;
+               type = GLP_UP;
             else if (lb != ub)
-               type = LPX_DB;
+               type = GLP_DB;
             else
-               type = LPX_FX;
-            lpx_set_col_bnds(dsa->lp, j, type, lb, ub);
+               type = GLP_FX;
+            glp_set_col_bnds(csa->P, j, type, lb, ub);
          }
       }
       /* print some statistics */
-      {  int m = lpx_get_num_rows(dsa->lp);
-         int n = lpx_get_num_cols(dsa->lp);
-         int nnz = lpx_get_num_nz(dsa->lp);
-         xprintf(
-            "glp_read_lp: %d row%s, %d column%s, %d non-zero%s\n",
-            m, m == 1 ? "" : "s", n, n == 1 ? "" : "s", nnz, nnz == 1 ?
-            "" : "s");
-      }
-      if (lpx_get_class(dsa->lp) == LPX_MIP)
-      {  int ni = lpx_get_num_int(dsa->lp);
-         int nb = lpx_get_num_bin(dsa->lp);
-         char s[50];
-         if (nb == 0)
-            strcpy(s, "none of");
-         else if (ni == 1 && nb == 1)
-            strcpy(s, "");
-         else if (nb == 1)
-            strcpy(s, "one of");
-         else if (nb == ni)
-            strcpy(s, "all of");
+      xprintf("%d row%s, %d column%s, %d non-zero%s\n",
+         P->m, P->m == 1 ? "" : "s", P->n, P->n == 1 ? "" : "s",
+         P->nnz, P->nnz == 1 ? "" : "s");
+      if (glp_get_num_int(P) > 0)
+      {  int ni = glp_get_num_int(P);
+         int nb = glp_get_num_bin(P);
+         if (ni == 1)
+         {  if (nb == 0)
+               xprintf("One variable is integer\n");
+            else
+               xprintf("One variable is binary\n");
+         }
          else
-            sprintf(s, "%d of", nb);
-         xprintf(
-            "glp_read_lp: %d integer column%s, %s which %s binary\n",
-            ni, ni == 1 ? "" : "s", s, nb == 1 ? "is" : "are");
+         {  xprintf("%d integer variables, ", ni);
+            if (nb == 0)
+               xprintf("none");
+            else if (nb == 1)
+               xprintf("one");
+            else if (nb == ni)
+               xprintf("all");
+            else
+               xprintf("%d", nb);
+            xprintf(" of which %s binary\n", nb == 1 ? "is" : "are");
+         }
       }
-      xprintf("glp_read_lp: %d lines were read\n", dsa->count);
-      fclose(dsa->fp);
-      xfree(dsa->map);
-      xfree(dsa->ind);
-      xfree(dsa->val);
-      xfree(dsa->lb);
-      xfree(dsa->ub);
-      lpx_delete_index(dsa->lp);
-      lpx_order_matrix(dsa->lp);
-      return 0;
-fail: if (dsa->lp != NULL) glp_erase_prob(dsa->lp);
-      if (dsa->fp != NULL) fclose(dsa->fp);
-      if (dsa->map != NULL) xfree(dsa->map);
-      if (dsa->ind != NULL) xfree(dsa->ind);
-      if (dsa->val != NULL) xfree(dsa->val);
-      if (dsa->lb != NULL) xfree(dsa->lb);
-      if (dsa->ub != NULL) xfree(dsa->ub);
-      return 1;
+      xprintf("%d lines were read\n", csa->count);
+      /* problem data has been successfully read */
+      glp_delete_index(P);
+      lpx_order_matrix(P);
+      ret = 0;
+done: if (csa->fp != NULL) xfclose(csa->fp);
+      xfree(csa->ind);
+      xfree(csa->val);
+      xfree(csa->flag);
+      xfree(csa->lb);
+      xfree(csa->ub);
+      if (ret != 0) glp_erase_prob(P);
+      return ret;
 }
 
-/*----------------------------------------------------------------------
--- write_cpxlp - write problem data in CPLEX LP format.
---
--- *Synopsis*
---
--- #include "glpcpx.h"
--- int write_cpxlp(glp_prob *lp, const char *fname);
---
--- *Description*
---
--- The routine write_cpxlp writes problem data in CPLEX LP format to an
--- output text file whose name is the character string fname.
---
--- *Returns*
---
--- If the operation was successful, the routine returns zero. Otherwise
--- the routine prints an error message and returns non-zero. */
+/***********************************************************************
+*  NAME
+*
+*  glp_write_lp - write problem data in CPLEX LP format
+*
+*  SYNOPSIS
+*
+*  int glp_write_lp(glp_prob *P, const glp_cpxcp *parm, const char
+*     *fname);
+*
+*  DESCRIPTION
+*
+*  The routine glp_write_lp writes problem data in CPLEX LP format to
+*  a text file.
+*
+*  The parameter parm is a pointer to the structure glp_cpxcp, which
+*  specifies control parameters used by the routine. If parm is NULL,
+*  the routine uses default settings.
+*
+*  The character string fname specifies a name of the text file to be
+*  written.
+*
+*  RETURNS
+*
+*  If the operation was successful, the routine glp_write_lp returns
+*  zero. Otherwise, it prints an error message and returns non-zero. */
+
+#define csa csa1
+
+struct csa
+{     /* common storage area */
+      glp_prob *P;
+      /* pointer to problem object */
+      const glp_cpxcp *parm;
+      /* pointer to control parameters */
+};
 
 static int check_name(char *name)
-{     /* check if given name is valid for CPLEX LP format */
-      int k;
-      if (isdigit((unsigned char)name[0])) return 1;
-      if (name[0] == '.') return 1;
-      for (k = 0; name[k] != '\0'; k++)
-         if (!isalnum((unsigned char)name[k]) &&
-            strchr(CHAR_SET, (unsigned char)name[k]) == NULL) return 1;
+{     /* check if specified name is valid for CPLEX LP format */
+      if (*name == '.') return 1;
+      if (isdigit((unsigned char)*name)) return 1;
+      for (; *name; name++)
+      {  if (!isalnum((unsigned char)*name) &&
+             strchr(CHAR_SET, (unsigned char)*name) == NULL) return 1;
+      }
       return 0; /* name is ok */
 }
 
 static void adjust_name(char *name)
-{     /* try changing given name to make it valid for CPLEX LP format */
-      int k;
-      for (k = 0; name[k] != '\0'; k++)
-      {  if (name[k] == ' ')
-            name[k] = '_';
-         else if (name[k] == '-')
-            name[k] = '~';
-         else if (name[k] == '[')
-            name[k] = '(';
-         else if (name[k] == ']')
-            name[k] = ')';
+{     /* attempt to adjust specified name to make it valid for CPLEX LP
+         format */
+      for (; *name; name++)
+      {  if (*name == ' ')
+            *name = '_';
+         else if (*name == '-')
+            *name = '~';
+         else if (*name == '[')
+            *name = '(';
+         else if (*name == ']')
+            *name = ')';
       }
       return;
 }
 
-static char *row_name(LPX *lp, int i, char rname[255+1])
+static char *row_name(struct csa *csa, int i, char rname[255+1])
 {     /* construct symbolic name of i-th row (constraint) */
-      char *name;
+      const char *name;
       if (i == 0)
-         name = (void *)lpx_get_obj_name(lp);
+         name = glp_get_obj_name(csa->P);
       else
-         name = (void *)lpx_get_row_name(lp, i);
+         name = glp_get_row_name(csa->P, i);
       if (name == NULL) goto fake;
       strcpy(rname, name);
       adjust_name(rname);
@@ -979,10 +1036,10 @@ fake: if (i == 0)
       return rname;
 }
 
-static char *col_name(LPX *lp, int j, char cname[255+1])
+static char *col_name(struct csa *csa, int j, char cname[255+1])
 {     /* construct symbolic name of j-th column (variable) */
       const char *name;
-      name = lpx_get_col_name(lp, j);
+      name = glp_get_col_name(csa->P, j);
       if (name == NULL) goto fake;
       strcpy(cname, name);
       adjust_name(cname);
@@ -992,200 +1049,190 @@ fake: sprintf(cname, "x_%d", j);
       return cname;
 }
 
-int write_cpxlp(glp_prob *lp, const char *fname)
+int glp_write_lp(glp_prob *P, const glp_cpxcp *parm, const char *fname)
 {     /* write problem data in CPLEX LP format */
-      FILE *fp;
-      int nrows, ncols, i, j, t, len, typx, flag, kind, *ind;
-      double lb, ub, temp, *val;
-      char line[1023+1], term[1023+1], rname[255+1], cname[255+1];
-      xprintf("glp_write_lp: writing problem data to `%s'...\n",
-         fname);
-      /* open the output text file */
-      fp = fopen(fname, "w");
+      glp_cpxcp _parm;
+      struct csa _csa, *csa = &_csa;
+      XFILE *fp;
+      GLPROW *row;
+      GLPCOL *col;
+      GLPAIJ *aij;
+      int i, j, len, flag, count, ret;
+      char line[1000+1], term[500+1], name[255+1];
+      xprintf("Writing problem data to `%s'...\n", fname);
+      if (parm == NULL)
+         glp_init_cpxcp(&_parm), parm = &_parm;
+      /* check control parameters */
+      check_parm("glp_write_lp", parm);
+      /* initialize common storage area */
+      csa->P = P;
+      csa->parm = parm;
+      /* create output CPLEX LP file */
+      fp = xfopen(fname, "w"), count = 0;
       if (fp == NULL)
-      {  xprintf("glp_write_lp: unable to create `%s' - %s\n", fname,
-            strerror(errno));
-         goto fail;
+      {  xprintf("Unable to create `%s' - %s\n", fname, xerrmsg());
+         ret = 1;
+         goto done;
       }
-      /* determine the number of rows and columns */
-      nrows = lpx_get_num_rows(lp);
-      ncols = lpx_get_num_cols(lp);
-#if 0 /* 01/II-2009 */
-      /* the problem should contain at least one row and one column */
-      if (!(nrows > 0 && ncols > 0))
-         xerror("glp_write_lp: problem has no rows/columns\n");
-#endif
       /* write problem name */
-      {  const char *name = lpx_get_prob_name(lp);
-         if (name == NULL) name = "Unknown";
-         fprintf(fp, "\\* Problem: %s *\\\n", name);
-         fprintf(fp, "\n");
-      }
-#if 1 /* 01/II-2009 */
-      if (!(nrows > 0 && ncols > 0))
-      {  fprintf(fp, "\\* WARNING: PROBLEM HAS NO ROWS/COLUMNS *\\\n");
+      xfprintf(fp, "\\* Problem: %s *\\\n",
+         P->name == NULL ? "Unknown" : P->name), count++;
+      xfprintf(fp, "\n"), count++;
+      /* the problem should contain at least one row and one column */
+      if (!(P->m > 0 && P->n > 0))
+      {  xprintf("Warning: problem has no rows/columns\n");
+         xfprintf(fp, "\\* WARNING: PROBLEM HAS NO ROWS/COLUMNS *\\\n"),
+            count++;
+         xfprintf(fp, "\n"), count++;
          goto skip;
       }
-#endif
-      /* allocate working arrays */
-      ind = xcalloc(1+ncols, sizeof(int));
-      val = xcalloc(1+ncols, sizeof(double));
-      /* write the objective function definition and the constraints
-         section */
-      for (i = 0; i <= nrows; i++)
-      {  if (i == 0)
-         {  switch (lpx_get_obj_dir(lp))
-            {  case LPX_MIN:
-                  fprintf(fp, "Minimize\n");
-                  break;
-               case LPX_MAX:
-                  fprintf(fp, "Maximize\n");
-                  break;
-               default:
-                  xassert(lp != lp);
-            }
-         }
-         else if (i == 1)
-         {  temp = lpx_get_obj_coef(lp, 0);
-            if (temp != 0.0)
-               fprintf(fp, "\\* constant term = %.*g *\\\n", DBL_DIG,
-                  temp);
-            fprintf(fp, "\n");
-            fprintf(fp, "Subject To\n");
-         }
-         row_name(lp, i, rname);
-         if (i == 0)
-         {  len = 0;
-            for (j = 1; j <= ncols; j++)
-            {  temp = lpx_get_obj_coef(lp, j);
-               if (temp != 0.0)
-                  len++, ind[len] = j, val[len] = temp;
-            }
-         }
-         else
-         {  lpx_get_row_bnds(lp, i, &typx, &lb, &ub);
-            if (typx == LPX_FR) continue;
-            len = lpx_get_mat_row(lp, i, ind, val);
-         }
-         flag = 0;
-more:    if (!flag)
-            sprintf(line, " %s:", rname);
-         else
-            sprintf(line, " %*s ", strlen(rname), "");
-         for (t = 1; t <= len; t++)
-         {  col_name(lp, ind[t], cname);
-            if (val[t] == +1.0)
-               sprintf(term, " + %s", cname);
-            else if (val[t] == -1.0)
-               sprintf(term, " - %s", cname);
-            else if (val[t] > 0.0)
-               sprintf(term, " + %.*g %s", DBL_DIG, +val[t], cname);
-            else if (val[t] < 0.0)
-               sprintf(term, " - %.*g %s", DBL_DIG, -val[t], cname);
+      /* write the objective function definition */
+      if (P->dir == GLP_MIN)
+         xfprintf(fp, "Minimize\n"), count++;
+      else if (P->dir == GLP_MAX)
+         xfprintf(fp, "Maximize\n"), count++;
+      else
+         xassert(P != P);
+      row_name(csa, 0, name);
+      sprintf(line, " %s:", name);
+      len = 0;
+      for (j = 1; j <= P->n; j++)
+      {  col = P->col[j];
+         if (col->coef != 0.0 || col->ptr == NULL)
+         {  len++;
+            col_name(csa, j, name);
+            if (col->coef == 0.0)
+               sprintf(term, " + 0 %s", name); /* empty column */
+            else if (col->coef == +1.0)
+               sprintf(term, " + %s", name);
+            else if (col->coef == -1.0)
+               sprintf(term, " - %s", name);
+            else if (col->coef > 0.0)
+               sprintf(term, " + %.*g %s", DBL_DIG, +col->coef, name);
             else
-               xassert(lp != lp);
+               sprintf(term, " - %.*g %s", DBL_DIG, -col->coef, name);
             if (strlen(line) + strlen(term) > 72)
-               fprintf(fp, "%s\n", line), line[0] = '\0';
+               xfprintf(fp, "%s\n", line), line[0] = '\0', count++;
             strcat(line, term);
-         }
-         if (len == 0)
-         {  /* empty row */
-            sprintf(term, " 0 %s", col_name(lp, 1, cname));
-            strcat(line, term);
-         }
-         if (i > 0)
-         {  switch (typx)
-            {  case LPX_LO:
-               case LPX_DB:
-                  sprintf(term, " >= %.*g", DBL_DIG, lb);
-                  break;
-               case LPX_UP:
-                  sprintf(term, " <= %.*g", DBL_DIG, ub);
-                  break;
-               case LPX_FX:
-                  sprintf(term, " = %.*g", DBL_DIG, lb);
-                  break;
-               default:
-                  xassert(typx != typx);
-            }
-            if (strlen(line) + strlen(term) > 72)
-               fprintf(fp, "%s\n", line), line[0] = '\0';
-            strcat(line, term);
-         }
-         fprintf(fp, "%s\n", line);
-         if (i > 0 && typx == LPX_DB)
-         {  /* double-bounded row needs a copy for its upper bound */
-            flag = 1;
-            typx = LPX_UP;
-            goto more;
          }
       }
-      /* free working arrays */
-      xfree(ind);
-      xfree(val);
+      if (len == 0)
+      {  /* empty objective */
+         sprintf(term, " 0 %s", col_name(csa, 1, name));
+         strcat(line, term);
+      }
+      xfprintf(fp, "%s\n", line), count++;
+      if (P->c0 != 0.0)
+         xfprintf(fp, "\\* constant term = %.*g *\\\n", DBL_DIG, P->c0),
+            count++;
+      xfprintf(fp, "\n"), count++;
+      /* write the constraints section */
+      xfprintf(fp, "Subject To\n"), count++;
+      for (i = 1; i <= P->m; i++)
+      {  row = P->row[i];
+         if (row->type == GLP_FR) continue; /* skip free row */
+         row_name(csa, i, name);
+         sprintf(line, " %s:", name);
+         /* linear form */
+         for (aij = row->ptr; aij != NULL; aij = aij->r_next)
+         {  col_name(csa, aij->col->j, name);
+            if (aij->val == +1.0)
+               sprintf(term, " + %s", name);
+            else if (aij->val == -1.0)
+               sprintf(term, " - %s", name);
+            else if (aij->val > 0.0)
+               sprintf(term, " + %.*g %s", DBL_DIG, +aij->val, name);
+            else
+               sprintf(term, " - %.*g %s", DBL_DIG, -aij->val, name);
+            if (strlen(line) + strlen(term) > 72)
+               xfprintf(fp, "%s\n", line), line[0] = '\0', count++;
+            strcat(line, term);
+         }
+         if (row->type == GLP_DB)
+         {  /* double-bounded (ranged) constraint */
+            sprintf(term, " - ~r_%d", i);
+            if (strlen(line) + strlen(term) > 72)
+               xfprintf(fp, "%s\n", line), line[0] = '\0', count++;
+            strcat(line, term);
+         }
+         else if (row->ptr == NULL)
+         {  /* empty constraint */
+            sprintf(term, " 0 %s", col_name(csa, 1, name));
+            strcat(line, term);
+         }
+         /* right hand-side */
+         if (row->type == GLP_LO)
+            sprintf(term, " >= %.*g", DBL_DIG, row->lb);
+         else if (row->type == GLP_UP)
+            sprintf(term, " <= %.*g", DBL_DIG, row->ub);
+         else if (row->type == GLP_DB || row->type == GLP_FX)
+            sprintf(term, " = %.*g", DBL_DIG, row->lb);
+         else
+            xassert(row != row);
+         if (strlen(line) + strlen(term) > 72)
+            xfprintf(fp, "%s\n", line), line[0] = '\0', count++;
+         strcat(line, term);
+         xfprintf(fp, "%s\n", line), count++;
+      }
+      xfprintf(fp, "\n"), count++;
       /* write the bounds section */
       flag = 0;
-      for (j = 1; j <= ncols; j++)
-      {  col_name(lp, j, cname);
-         lpx_get_col_bnds(lp, j, &typx, &lb, &ub);
-         if (typx == LPX_LO && lb == 0.0) continue;
+      for (i = 1; i <= P->m; i++)
+      {  row = P->row[i];
+         if (row->type != GLP_DB) continue;
          if (!flag)
-         {  fprintf(fp, "\n");
-            fprintf(fp, "Bounds\n");
-            flag = 1;
-         }
-         switch (typx)
-         {  case LPX_FR:
-               fprintf(fp, " %s free\n", cname);
-               break;
-            case LPX_LO:
-               fprintf(fp, " %s >= %.*g\n", cname, DBL_DIG, lb);
-               break;
-            case LPX_UP:
-               fprintf(fp, " -inf <= %s <= %.*g\n", cname, DBL_DIG, ub);
-               break;
-            case LPX_DB:
-               fprintf(fp, " %.*g <= %s <= %.*g\n", DBL_DIG, lb, cname,
-                  DBL_DIG, ub);
-               break;
-            case LPX_FX:
-               fprintf(fp, " %s = %.*g\n", cname, DBL_DIG, lb);
-               break;
-            default:
-               xassert(typx != typx);
-         }
+            xfprintf(fp, "Bounds\n"), flag = 1, count++;
+         xfprintf(fp, " 0 <= ~r_%d <= %.*g\n",
+            i, DBL_DIG, row->ub - row->lb), count++;
       }
-      /* write the general section */
-      if (lpx_get_class(lp) == LPX_MIP)
-      {  flag = 0;
-         for (j = 1; j <= ncols; j++)
-         {  kind = lpx_get_col_kind(lp, j);
-            if (kind == LPX_CV) continue;
-            xassert(kind == LPX_IV);
-            if (!flag)
-            {  fprintf(fp, "\n");
-               fprintf(fp, "Generals\n");
-               flag = 1;
-            }
-            fprintf(fp, " %s\n", col_name(lp, j, cname));
-         }
+      for (j = 1; j <= P->n; j++)
+      {  col = P->col[j];
+         if (col->type == GLP_LO && col->lb == 0.0) continue;
+         if (!flag)
+            xfprintf(fp, "Bounds\n"), flag = 1, count++;
+         col_name(csa, j, name);
+         if (col->type == GLP_FR)
+            xfprintf(fp, " %s free\n", name), count++;
+         else if (col->type == GLP_LO)
+            xfprintf(fp, " %s >= %.*g\n",
+               name, DBL_DIG, col->lb), count++;
+         else if (col->type == GLP_UP)
+            xfprintf(fp, " -Inf <= %s <= %.*g\n",
+               name, DBL_DIG, col->ub), count++;
+         else if (col->type == GLP_DB)
+            xfprintf(fp, " %.*g <= %s <= %.*g\n",
+               DBL_DIG, col->lb, name, DBL_DIG, col->ub), count++;
+         else if (col->type == GLP_FX)
+            xfprintf(fp, " %s = %.*g\n",
+               name, DBL_DIG, col->lb), count++;
+         else
+            xassert(col != col);
       }
+      if (flag) xfprintf(fp, "\n"), count++;
+      /* write the integer section */
+      flag = 0;
+      for (j = 1; j <= P->n; j++)
+      {  col = P->col[j];
+         if (col->kind == GLP_CV) continue;
+         xassert(col->kind == GLP_IV);
+         if (!flag)
+            xfprintf(fp, "Generals\n"), flag = 1, count++;
+         xfprintf(fp, " %s\n", col_name(csa, j, name)), count++;
+      }
+      if (flag) xfprintf(fp, "\n"), count++;
 skip: /* write the end keyword */
-      fprintf(fp, "\n");
-      fprintf(fp, "End\n");
-      /* close the output text file */
-      fflush(fp);
-      if (ferror(fp))
-      {  xprintf("glp_write_lp: write error on `%s' - %s\n",
-            fname, strerror(errno));
-         goto fail;
+      xfprintf(fp, "End\n"), count++;
+      xfflush(fp);
+      if (xferror(fp))
+      {  xprintf("Write error on `%s' - %s\n", fname, xerrmsg());
+         ret = 1;
+         goto done;
       }
-      fclose(fp);
-      /* return to the calling program */
-      return 0;
-fail: /* the operation failed */
-      if (fp != NULL) fclose(fp);
-      return 1;
+      /* problem data has been successfully written */
+      xprintf("%d lines were written\n", count);
+      ret = 0;
+done: if (fp != NULL) xfclose(fp);
+      return ret;
 }
 
 /* eof */

@@ -32,6 +32,7 @@ typedef struct NPPCOL NPPCOL;
 typedef struct NPPAIJ NPPAIJ;
 typedef struct NPPTSE NPPTSE;
 typedef struct NPPLFE NPPLFE;
+typedef struct NPPLFX NPPLFX;
 
 struct NPP
 {     /* LP/MIP preprocessor workspace */
@@ -168,7 +169,7 @@ struct NPPROW
       NPPAIJ *ptr;
       /* pointer to the linked list of constraint coefficients */
       int temp;
-      /* working field used by some preprocessor routines */
+      /* working field used by preprocessor routines */
       NPPROW *prev;
       /* pointer to previous row in the row list */
       NPPROW *next;
@@ -194,6 +195,8 @@ struct NPPCOL
       /* objective coefficient */
       NPPAIJ *ptr;
       /* pointer to the linked list of constraint coefficients */
+      int temp;
+      /* working field used by preprocessor routines */
       NPPCOL *prev;
       /* pointer to previous column in the column list */
       NPPCOL *next;
@@ -238,9 +241,37 @@ struct NPPLFE
       /* pointer to another element */
 };
 
+struct NPPLFX
+{     /* extended linear form element */
+      int ref;
+      /* row/column reference number */
+      char flag;
+      /* row/column flag */
+      double val;
+      /* (non-zero) coefficient value */
+      NPPLFX *next;
+      /* pointer to another element */
+};
+
 #define npp_create_wksp _glp_npp_create_wksp
 NPP *npp_create_wksp(void);
 /* create LP/MIP preprocessor workspace */
+
+#define npp_insert_row _glp_npp_insert_row
+void npp_insert_row(NPP *npp, NPPROW *row, int where);
+/* insert row to the row list */
+
+#define npp_remove_row _glp_npp_remove_row
+void npp_remove_row(NPP *npp, NPPROW *row);
+/* remove row from the row list */
+
+#define npp_insert_col _glp_npp_insert_col
+void npp_insert_col(NPP *npp, NPPCOL *col, int where);
+/* insert column to the column list */
+
+#define npp_remove_col _glp_npp_remove_col
+void npp_remove_col(NPP *npp, NPPCOL *col);
+/* remove column from the column list */
 
 #define npp_add_row _glp_npp_add_row
 NPPROW *npp_add_row(NPP *npp);
@@ -328,9 +359,41 @@ int npp_empty_row(NPP *npp, NPPROW *row);
 int npp_empty_col(NPP *npp, NPPCOL *col);
 /* process empty column */
 
-#define npp_sngl_row _glp_npp_sngl_row
-int npp_sngl_row(NPP *npp, NPPROW *row);
+#define npp_implied_fixed _glp_npp_implied_fixed
+int npp_implied_fixed(NPP *npp, NPPCOL *col, double val);
+/* process implied fixed value of column */
+
+#define npp_row_sngtn1 _glp_npp_row_sngtn1
+int npp_row_sngtn1(NPP *npp, NPPROW *row);
 /* process row singleton (equality constraint) */
+
+#define npp_implied_lower _glp_npp_implied_lower
+int npp_implied_lower(NPP *npp, NPPCOL *col, double bnd);
+/* process implied lower bound of column */
+
+#define npp_implied_upper _glp_npp_implied_upper
+int npp_implied_upper(NPP *npp, NPPCOL *col, double bnd);
+/* process implied upper bound of column */
+
+#define npp_row_sngtn2 _glp_npp_row_sngtn2
+int npp_row_sngtn2(NPP *npp, NPPROW *row);
+/* process row singleton (inequality constraint) */
+
+#define npp_col_sngtn1 _glp_npp_col_sngtn1
+void npp_col_sngtn1(NPP *npp, NPPCOL *col);
+/* process column singleton (implied slack variable) */
+
+#define npp_col_sngtn2 _glp_npp_col_sngtn2
+int npp_col_sngtn2(NPP *npp, NPPCOL *col);
+/* process column singleton (implied free variable) */
+
+#define npp_forcing_row _glp_npp_forcing_row
+int npp_forcing_row(NPP *npp, NPPROW *row, int at);
+/* process forcing row */
+
+#define npp_preprocess _glp_npp_preprocess
+int npp_preprocess(NPP *npp);
+/* preprocess LP/MIP instance */
 
 #endif
 

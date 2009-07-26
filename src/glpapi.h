@@ -423,29 +423,21 @@ void _glp_check_kkt(glp_prob *P, int sol, int cond, double *ae_max,
       int *ae_ind, double *re_max, int *re_ind);
 /* check feasibility and optimality conditions */
 
-#define lpx_order_matrix _glp_1px_order_matrix
+#define lpx_order_matrix _glp_order_matrix
 void lpx_order_matrix(LPX *lp);
 /* order rows and columns of the constraint matrix */
 
-#define lpx_put_solution _glp_1px_put_solution
+#define lpx_put_solution _glp_put_solution
 void lpx_put_solution(glp_prob *lp, int inval, const int *p_stat,
       const int *d_stat, const double *obj_val, const int r_stat[],
       const double r_prim[], const double r_dual[], const int c_stat[],
       const double c_prim[], const double c_dual[]);
 /* store basic solution components */
 
-#define lpx_put_mip_soln _glp_1px_put_mip_soln
+#define lpx_put_mip_soln _glp_put_mip_soln
 void lpx_put_mip_soln(LPX *lp, int i_stat, double row_mipx[],
       double col_mipx[]);
 /* store mixed integer solution components */
-
-#define lpx_eval_b_prim _glp_1px_eval_b_prim
-void lpx_eval_b_prim(LPX *lp, double row_prim[], double col_prim[]);
-/* compute primal basic solution components */
-
-#define lpx_eval_b_dual _glp_1px_eval_b_dual
-void lpx_eval_b_dual(LPX *lp, double row_dual[], double col_dual[]);
-/* compute dual basic solution components */
 
 #endif
 

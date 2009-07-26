@@ -606,4 +606,391 @@ done: if (fp != NULL) xfclose(fp);
       return ret;
 }
 
+/***********************************************************************
+*  NAME
+*
+*  glp_read_asnprob - read assignment problem data in DIMACS format
+*
+*  SYNOPSIS
+*
+*  int glp_read_asnprob(glp_graph *G, int v_set, int a_cost,
+*     const char *fname);
+*
+*  DESCRIPTION
+*
+*  The routine glp_read_asnprob reads assignment problem data in DIMACS
+*  format from a text file.
+*
+*  RETURNS
+*
+*  If the operation was successful, the routine returns zero. Otherwise
+*  it prints an error message and returns non-zero. */
+
+int glp_read_asnprob(glp_graph *G, int v_set, int a_cost, const char
+      *fname)
+{     struct csa _csa, *csa = &_csa;
+      glp_vertex *v;
+      glp_arc *a;
+      int nv, na, n1, i, j, k, ret = 0;
+      double cost;
+      char *flag = NULL;
+      if (v_set >= 0 && v_set > G->v_size - (int)sizeof(int))
+         xerror("glp_read_asnprob: v_set = %d; invalid offset\n",
+            v_set);
+      if (a_cost >= 0 && a_cost > G->a_size - (int)sizeof(double))
+         xerror("glp_read_asnprob: a_cost = %d; invalid offset\n",
+            a_cost);
+      glp_erase_graph(G, G->v_size, G->a_size);
+      if (setjmp(csa->jump))
+      {  ret = 1;
+         goto done;
+      }
+      csa->fname = fname;
+      csa->fp = NULL;
+      csa->count = 0;
+      csa->c = '\n';
+      csa->field[0] = '\0';
+      csa->empty = csa->nonint = 0;
+      xprintf("Reading assignment problem data from `%s'...\n", fname);
+      csa->fp = xfopen(fname, "r");
+      if (csa->fp == NULL)
+      {  xprintf("Unable to open `%s' - %s\n", fname, xerrmsg());
+         longjmp(csa->jump, 1);
+      }
+      /* read problem line */
+      read_designator(csa);
+      if (strcmp(csa->field, "p") != 0)
+         error(csa, "problem line missing or invalid");
+      read_field(csa);
+      if (strcmp(csa->field, "asn") != 0)
+         error(csa, "wrong problem designator; `asn' expected");
+      read_field(csa);
+      if (!(str2int(csa->field, &nv) == 0 && nv >= 0))
+         error(csa, "number of nodes missing or invalid");
+      read_field(csa);
+      if (!(str2int(csa->field, &na) == 0 && na >= 0))
+         error(csa, "number of arcs missing or invalid");
+      if (nv > 0) glp_add_vertices(G, nv);
+      end_of_line(csa);
+      /* read node descriptor lines */
+      flag = xcalloc(1+nv, sizeof(char));
+      memset(&flag[1], 0, nv * sizeof(char));
+      n1 = 0;
+      for (;;)
+      {  read_designator(csa);
+         if (strcmp(csa->field, "n") != 0) break;
+         read_field(csa);
+         if (str2int(csa->field, &i) != 0)
+            error(csa, "node number missing or invalid");
+         if (!(1 <= i && i <= nv))
+            error(csa, "node number %d out of range", i);
+         if (flag[i])
+            error(csa, "duplicate descriptor of node %d", i);
+         flag[i] = 1, n1++;
+         end_of_line(csa);
+      }
+      xprintf(
+         "Assignment problem has %d + %d = %d node%s and %d arc%s\n",
+         n1, nv - n1, nv, nv == 1 ? "" : "s", na, na == 1 ? "" : "s");
+      if (v_set >= 0)
+      {  for (i = 1; i <= nv; i++)
+         {  v = G->v[i];
+            k = (flag[i] ? 0 : 1);
+            memcpy((char *)v->data + v_set, &k, sizeof(int));
+         }
+      }
+      /* read arc descriptor lines */
+      for (k = 1; k <= na; k++)
+      {  if (k > 1) read_designator(csa);
+         if (strcmp(csa->field, "a") != 0)
+            error(csa, "wrong line designator; `a' expected");
+         read_field(csa);
+         if (str2int(csa->field, &i) != 0)
+            error(csa, "starting node number missing or invalid");
+         if (!(1 <= i && i <= nv))
+            error(csa, "starting node number %d out of range", i);
+         if (!flag[i])
+            error(csa, "node %d cannot be a starting node", i);
+         read_field(csa);
+         if (str2int(csa->field, &j) != 0)
+            error(csa, "ending node number missing or invalid");
+         if (!(1 <= j && j <= nv))
+            error(csa, "ending node number %d out of range", j);
+         if (flag[j])
+            error(csa, "node %d cannot be an ending node", j);
+         read_field(csa);
+         if (str2num(csa->field, &cost) != 0)
+            error(csa, "arc cost missing or invalid");
+         check_int(csa, cost);
+         a = glp_add_arc(G, i, j);
+         if (a_cost >= 0)
+            memcpy((char *)a->data + a_cost, &cost, sizeof(double));
+         end_of_line(csa);
+      }
+      xprintf("%d lines were read\n", csa->count);
+done: if (ret) glp_erase_graph(G, G->v_size, G->a_size);
+      if (csa->fp != NULL) xfclose(csa->fp);
+      if (flag != NULL) xfree(flag);
+      return ret;
+}
+
+/***********************************************************************
+*  NAME
+*
+*  glp_write_asnprob - write assignment problem data in DIMACS format
+*
+*  SYNOPSIS
+*
+*  int glp_write_asnprob(glp_graph *G, int v_set, int a_cost,
+*     const char *fname);
+*
+*  DESCRIPTION
+*
+*  The routine glp_write_asnprob writes assignment problem data in
+*  DIMACS format to a text file.
+*
+*  RETURNS
+*
+*  If the operation was successful, the routine returns zero. Otherwise
+*  it prints an error message and returns non-zero. */
+
+int glp_write_asnprob(glp_graph *G, int v_set, int a_cost, const char
+      *fname)
+{     XFILE *fp;
+      glp_vertex *v;
+      glp_arc *a;
+      int i, k, count = 0, ret;
+      double cost;
+      if (v_set >= 0 && v_set > G->v_size - (int)sizeof(int))
+         xerror("glp_write_asnprob: v_set = %d; invalid offset\n",
+            v_set);
+      if (a_cost >= 0 && a_cost > G->a_size - (int)sizeof(double))
+         xerror("glp_write_asnprob: a_cost = %d; invalid offset\n",
+            a_cost);
+      xprintf("Writing assignment problem data to `%s'...\n", fname);
+      fp = xfopen(fname, "w");
+      if (fp == NULL)
+      {  xprintf("Unable to create `%s' - %s\n", fname, xerrmsg());
+         ret = 1;
+         goto done;
+      }
+      xfprintf(fp, "c %s\n",
+         G->name == NULL ? "unknown" : G->name), count++;
+      xfprintf(fp, "p asn %d %d\n", G->nv, G->na), count++;
+      for (i = 1; i <= G->nv; i++)
+      {  v = G->v[i];
+         if (v_set >= 0)
+            memcpy(&k, (char *)v->data + v_set, sizeof(int));
+         else
+            k = (v->out != NULL ? 0 : 1);
+         if (k == 0)
+            xfprintf(fp, "n %d\n", i), count++;
+      }
+      for (i = 1; i <= G->nv; i++)
+      {  v = G->v[i];
+         for (a = v->out; a != NULL; a = a->t_next)
+         {  if (a_cost >= 0)
+               memcpy(&cost, (char *)a->data + a_cost, sizeof(double));
+            else
+               cost = 1.0;
+            xfprintf(fp, "a %d %d %.*g\n",
+               a->tail->i, a->head->i, DBL_DIG, cost), count++;
+         }
+      }
+      xfprintf(fp, "c eof\n"), count++;
+      xfflush(fp);
+      if (xferror(fp))
+      {  xprintf("Write error on `%s' - %s\n", fname, xerrmsg());
+         ret = 1;
+         goto done;
+      }
+      xprintf("%d lines were written\n", count);
+      ret = 0;
+done: if (fp != NULL) xfclose(fp);
+      return ret;
+}
+
+/***********************************************************************
+*  NAME
+*
+*  glp_read_ccformat - read graph in DIMACS clique/coloring format
+*
+*  SYNOPSIS
+*
+*  int glp_read_ccformat(glp_graph *G, int v_wgt, const char *fname);
+*
+*  DESCRIPTION
+*
+*  The routine glp_read_ccformat reads an (undirected) graph in DIMACS
+*  clique/coloring format from a text file.
+*
+*  RETURNS
+*
+*  If the operation was successful, the routine returns zero. Otherwise
+*  it prints an error message and returns non-zero. */
+
+int glp_read_ccformat(glp_graph *G, int v_wgt, const char *fname)
+{     struct csa _csa, *csa = &_csa;
+      glp_vertex *v;
+      int i, j, k, nv, ne, ret = 0;
+      double w;
+      char *flag = NULL;
+      if (v_wgt >= 0 && G->v_size - (int)sizeof(double))
+         xerror("glp_read_ccformat: v_wgt = %d; invalid offset\n",
+            v_wgt);
+      glp_erase_graph(G, G->v_size, G->a_size);
+      if (setjmp(csa->jump))
+      {  ret = 1;
+         goto done;
+      }
+      csa->fname = fname;
+      csa->fp = NULL;
+      csa->count = 0;
+      csa->c = '\n';
+      csa->field[0] = '\0';
+      csa->empty = csa->nonint = 0;
+      xprintf("Reading graph from `%s'...\n", fname);
+      csa->fp = xfopen(fname, "r");
+      if (csa->fp == NULL)
+      {  xprintf("Unable to open `%s' - %s\n", fname, xerrmsg());
+         longjmp(csa->jump, 1);
+      }
+      /* read problem line */
+      read_designator(csa);
+      if (strcmp(csa->field, "p") != 0)
+         error(csa, "problem line missing or invalid");
+      read_field(csa);
+      if (strcmp(csa->field, "edge") != 0)
+         error(csa, "wrong problem designator; `edge' expected");
+      read_field(csa);
+      if (!(str2int(csa->field, &nv) == 0 && nv >= 0))
+         error(csa, "number of vertices missing or invalid");
+      read_field(csa);
+      if (!(str2int(csa->field, &ne) == 0 && ne >= 0))
+         error(csa, "number of edges missing or invalid");
+      xprintf("Graph has %d vert%s and %d edge%s\n",
+         nv, nv == 1 ? "ex" : "ices", ne, ne == 1 ? "" : "s");
+      if (nv > 0) glp_add_vertices(G, nv);
+      end_of_line(csa);
+      /* read node descriptor lines */
+      flag = xcalloc(1+nv, sizeof(char));
+      memset(&flag[1], 0, nv * sizeof(char));
+      if (v_wgt >= 0)
+      {  w = 1.0;
+         for (i = 1; i <= nv; i++)
+         {  v = G->v[i];
+            memcpy((char *)v->data + v_wgt, &w, sizeof(double));
+         }
+      }
+      for (;;)
+      {  read_designator(csa);
+         if (strcmp(csa->field, "n") != 0) break;
+         read_field(csa);
+         if (str2int(csa->field, &i) != 0)
+            error(csa, "vertex number missing or invalid");
+         if (!(1 <= i && i <= nv))
+            error(csa, "vertex number %d out of range", i);
+         if (flag[i])
+            error(csa, "duplicate descriptor of vertex %d", i);
+         read_field(csa);
+         if (str2num(csa->field, &w) != 0)
+            error(csa, "vertex weight missing or invalid");
+         check_int(csa, w);
+         if (v_wgt >= 0)
+         {  v = G->v[i];
+            memcpy((char *)v->data + v_wgt, &w, sizeof(double));
+         }
+         flag[i] = 1;
+         end_of_line(csa);
+      }
+      xfree(flag), flag = NULL;
+      /* read edge descriptor lines */
+      for (k = 1; k <= ne; k++)
+      {  if (k > 1) read_designator(csa);
+         if (strcmp(csa->field, "e") != 0)
+            error(csa, "wrong line designator; `e' expected");
+         read_field(csa);
+         if (str2int(csa->field, &i) != 0)
+            error(csa, "first vertex number missing or invalid");
+         if (!(1 <= i && i <= nv))
+            error(csa, "first vertex number %d out of range", i);
+         read_field(csa);
+         if (str2int(csa->field, &j) != 0)
+            error(csa, "second vertex number missing or invalid");
+         if (!(1 <= j && j <= nv))
+            error(csa, "second vertex number %d out of range", j);
+         glp_add_arc(G, i, j);
+         end_of_line(csa);
+      }
+      xprintf("%d lines were read\n", csa->count);
+done: if (ret) glp_erase_graph(G, G->v_size, G->a_size);
+      if (csa->fp != NULL) xfclose(csa->fp);
+      if (flag != NULL) xfree(flag);
+      return ret;
+}
+
+/***********************************************************************
+*  NAME
+*
+*  glp_write_ccformat - write graph in DIMACS clique/coloring format
+*
+*  SYNOPSIS
+*
+*  int glp_write_ccformat(glp_graph *G, int v_wgt, const char *fname);
+*
+*  DESCRIPTION
+*
+*  The routine glp_write_ccformat writes the specified graph in DIMACS
+*  clique/coloring format to a text file.
+*
+*  RETURNS
+*
+*  If the operation was successful, the routine returns zero. Otherwise
+*  it prints an error message and returns non-zero. */
+
+int glp_write_ccformat(glp_graph *G, int v_wgt, const char *fname)
+{     XFILE *fp;
+      glp_vertex *v;
+      glp_arc *e;
+      int i, count = 0, ret;
+      double w;
+      if (v_wgt >= 0 && G->v_size - (int)sizeof(double))
+         xerror("glp_write_ccformat: v_wgt = %d; invalid offset\n",
+            v_wgt);
+      xprintf("Writing graph to `%s'\n", fname);
+      fp = xfopen(fname, "w");
+      if (fp == NULL)
+      {  xprintf("Unable to create `%s' - %s\n", fname, xerrmsg());
+         ret = 1;
+         goto done;
+      }
+      xfprintf(fp, "c %s\n",
+         G->name == NULL ? "unknown" : G->name), count++;
+      xfprintf(fp, "p edge %d %d\n", G->nv, G->na), count++;
+      if (v_wgt >= 0)
+      {  for (i = 1; i <= G->nv; i++)
+         {  v = G->v[i];
+            memcpy(&w, (char *)v->data + v_wgt, sizeof(double));
+            if (w != 1.0)
+               xfprintf(fp, "n %d %.*g\n", i, DBL_DIG, w), count++;
+         }
+      }
+      for (i = 1; i <= G->nv; i++)
+      {  v = G->v[i];
+         for (e = v->out; e != NULL; e = e->t_next)
+            xfprintf(fp, "e %d %d\n", e->tail->i, e->head->i), count++;
+      }
+      xfprintf(fp, "c eof\n"), count++;
+      xfflush(fp);
+      if (xferror(fp))
+      {  xprintf("Write error on `%s' - %s\n", fname, xerrmsg());
+         ret = 1;
+         goto done;
+      }
+      xprintf("%d lines were written\n", count);
+      ret = 0;
+done: if (fp != NULL) xfclose(fp);
+      return ret;
+}
+
 /* eof */

@@ -61,7 +61,7 @@ void xputc(int c)
       }
       /* write the character to the terminal */
       fputc(c, stdout);
-#if 1 /* 10/XII-2008 */
+#if 1 /* 10/XII-2008; for gusek */
       if (c == '\n') fflush(stdout);
 #endif
       /* write the character to the log file */

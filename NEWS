@@ -1,3 +1,43 @@
+GLPK 4.39 (release date: Jul 26, 2009)
+
+        The following new API routines were added:
+
+        glp_warm_up           "warm up" LP basis
+        glp_set_vertex_name   assign (change) vertex name
+        glp_create_v_index    create vertex name index
+        glp_find_vertex       find vertex by its name
+        glp_delete_v_index    delete vertex name index
+        glp_read_asnprob      read assignment problem data in DIMACS
+                              format
+        glp_write_asnprob     write assignment problem data in DIMACS
+                              format
+        glp_check_asnprob     check correctness of assignment problem
+                              data
+        glp_asnprob_lp        convert assignment problem to LP
+        glp_asnprob_okalg     solve assignment problem with the
+                              out-of-kilter algorithm
+        glp_asnprob_hall      find bipartite matching of maxumum
+                              cardinality with Hall's algorithm
+
+        Also were added some API routines to read plain data files.
+
+        The API routines glp_read_lp and glp_write_lp to read/write
+        files in CPLEX LP format were re-implemented. Now glp_write_lp
+        correctly writes double-bounded (ranged) rows by introducing
+        slack variables rather than by duplicating the rows.
+
+        For description of these new routines see a new edition of the
+        reference manual included in the distribution.
+
+        The 'xfree(NULL)' bug was fixed in the AMD routines. Thanks to
+        Niels Klitgord <niels@bu.edu> for bug report.
+
+        The message "Crashing..." was changed to "Constructing initial
+        basis..." due to suggestion by Thomas Kahle <tom111@gmx.de>.
+
+        Some typos were corrected in glpsol output messages. Thanks to
+        Xypron <xypron.glpk@gmx.de> for patch.
+
 GLPK 4.38 (release date: May 02, 2009)
 
         API routines glp_read_mps and glp_write_mps were improved.
