@@ -42,6 +42,7 @@ tas.mod        Tail assignment problem
 todd.mod       A class of hard instances of 0-1 knapsack problems
 train.mod      A model of railroad passenger car allocation
 transp.mod     A transportation problem
+trick.mod      A transportation design problem
 tsp.mod        Traveling salesman problem
 yacfs.mod      Yet another curve fitting solution
 zebra.mod      Who owns the zebra?

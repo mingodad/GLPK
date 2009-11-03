@@ -1,3 +1,41 @@
+GLPK 4.40 (release date: Nov 03, 2009)
+
+        The following new API routines were added:
+
+        glp_del_vertices      remove vertices from graph
+        glp_del_arc           remove arc from graph
+        glp_wclique_exact     find maximum weight clique with the exact
+                              algorithm developed by Prof. P. Ostergard
+        glp_read_ccdata       read graph in DIMACS clique/coloring
+                              format
+        glp_write_ccdata      write graph in DIMACS clique/coloring
+                              format
+
+        For description of these new routines see a new edition of the
+        reference manual included in the distribution.
+
+        The hybrid pseudocost branching heuristic was included in the
+        MIP solver. It is available on API level (iocp.br_tech should
+        be set to GLP_BR_PCH) and in the stand-alone solver glpsol
+        (via the command-line option --pcost). This heuristic may be
+        useful on solving hard MIP instances.
+
+        The branching heuristic by Driebeck and Tomlin (used in the
+        MIP solver by default) was changed to switch to branching on
+        most fractional variable if an lower bound of degradation of
+        the objective is close to zero for all branching candidates.
+
+        A bug was fixed in the LP preprocessor (routine npp_empty_col).
+        Thanks to Stefan Vigerske <stefan@math.hu-berlin.de> for the
+        bug report.
+
+        A bug was fixed and some improvements were made in the FPUMP
+        heuristic module. Thanks to Xypron <xypron.glpk@gmx.de>.
+
+        A bug was fixed in the API routine glp_warm_up (dual
+        feasibility test was incorrect in maximization case). Thanks to
+        Uday Venkatadri <Uday.Venkatadri@dal.ca> for the bug report.
+
 GLPK 4.39 (release date: Jul 26, 2009)
 
         The following new API routines were added:

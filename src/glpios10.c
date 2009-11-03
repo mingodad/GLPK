@@ -137,6 +137,7 @@ more: /* copy the original problem object to keep it intact */
             bound to the original objective function; note that this
             additional constraint is not violated at the optimal point
             to LP relaxation */
+#if 0 /* modified by xypron <xypron.glpk@gmx.de> */
          if (P->dir == GLP_MIN)
          {  bnd = P->mip_obj - 0.10 * (1.0 + fabs(P->mip_obj));
             if (bnd < P->obj_val) bnd = P->obj_val;
@@ -149,6 +150,16 @@ more: /* copy the original problem object to keep it intact */
          }
          else
             xassert(P != P);
+#else
+         bnd = 0.1 * P->obj_val + 0.9 * P->mip_obj;
+         /* xprintf("bnd = %f\n", bnd); */
+         if (P->dir == GLP_MIN)
+            glp_set_row_bnds(lp, lp->m, GLP_UP, 0.0, bnd - P->c0);
+         else if (P->dir == GLP_MAX)
+            glp_set_row_bnds(lp, lp->m, GLP_LO, bnd - P->c0, 0.0);
+         else
+            xassert(P != P);
+#endif
       }
       /* reset pass count */
       npass = 0;
@@ -270,6 +281,35 @@ skip: /* check if the time limit has been exhausted */
          {  x[j] = lp->col[j]->prim;
             if (P->col[j]->kind == GLP_IV) x[j] = floor(x[j] + 0.5);
          }
+#if 1 /* modified by xypron <xypron.glpk@gmx.de> */
+         /* reset direction and right-hand side of objective */
+         lp->c0  = P->c0;
+         lp->dir = P->dir;
+         /* fix integer variables */
+         for (k = 1; k <= nv; k++)
+         {  lp->col[var[k].j]->lb   = x[var[k].j];
+            lp->col[var[k].j]->ub   = x[var[k].j];
+            lp->col[var[k].j]->type = GLP_FX;
+         }
+         /* copy original objective function */
+         for (j = 1; j <= n; j++)
+            lp->col[j]->coef = P->col[j]->coef;
+         /* solve original LP and copy result */
+         ret = glp_simplex(lp, &parm);
+         if (ret != 0)
+         {  if (T->parm->msg_lev >= GLP_MSG_ERR)
+               xprintf("Warning: glp_simplex returned %d\n", ret);
+            goto done;
+         }
+         ret = glp_get_status(lp);
+         if (ret != GLP_OPT)
+         {  if (T->parm->msg_lev >= GLP_MSG_ERR)
+               xprintf("Warning: glp_get_status returned %d\n", ret);
+            goto done;
+         }
+         for (j = 1; j <= n; j++)
+            if (P->col[j]->kind != GLP_IV) x[j] = lp->col[j]->prim;
+#endif
          ret = glp_ios_heur_sol(T, x);
          xfree(x);
          if (ret == 0)

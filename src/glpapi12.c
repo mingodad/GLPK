@@ -579,7 +579,7 @@ int glp_warm_up(glp_prob *P)
       GLPCOL *col;
       GLPAIJ *aij;
       int i, j, type, ret;
-      double eps, *work;
+      double eps, temp, *work;
       /* invalidate basic solution */
       P->pbs_stat = P->dbs_stat = GLP_UNDEF;
       P->obj_val = 0.0;
@@ -706,8 +706,9 @@ int glp_warm_up(glp_prob *P)
          /* N[j] is i-th column of matrix (I|-A) */
          row->dual = - work[i];
          type = row->type;
-         if ((type == GLP_FR || type == GLP_LO) && row->dual < -1e-5 ||
-             (type == GLP_FR || type == GLP_UP) && row->dual > +1e-5)
+         temp = (P->dir == GLP_MIN ? + row->dual : - row->dual);
+         if ((type == GLP_FR || type == GLP_LO) && temp < -1e-5 ||
+             (type == GLP_FR || type == GLP_UP) && temp > +1e-5)
             P->dbs_stat = GLP_INFEAS;
       }
       for (j = 1; j <= P->n; j++)
@@ -721,8 +722,9 @@ int glp_warm_up(glp_prob *P)
          for (aij = col->ptr; aij != NULL; aij = aij->c_next)
             col->dual += aij->val * work[aij->row->i];
          type = col->type;
-         if ((type == GLP_FR || type == GLP_LO) && col->dual < -1e-5 ||
-             (type == GLP_FR || type == GLP_UP) && col->dual > +1e-5)
+         temp = (P->dir == GLP_MIN ? + col->dual : - col->dual);
+         if ((type == GLP_FR || type == GLP_LO) && temp < -1e-5 ||
+             (type == GLP_FR || type == GLP_UP) && temp > +1e-5)
             P->dbs_stat = GLP_INFEAS;
       }
       /* free working array */

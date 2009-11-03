@@ -43,6 +43,7 @@ src/glpapi16.o \
 src/glpapi17.o \
 src/glpapi18.o \
 src/glpapi19.o \
+src/glpapi20.o \
 src/glpavl.o \
 src/glpbfd.o \
 src/glpbfx.o \
@@ -101,6 +102,7 @@ src/glpnet04.o \
 src/glpnet05.o \
 src/glpnet06.o \
 src/glpnet07.o \
+src/glpnet08.o \
 src/glpnpp01.o \
 src/glpnpp02.o \
 src/glpnpp03.o \

@@ -45,6 +45,10 @@ void ffalg(int nv, int na, const int tail[], const int head[],
       int s, int t, const int cap[], int x[], char cut[]);
 /* Ford-Fulkerson algorithm */
 
+#define wclique _glp_wclique
+int wclique(int n, const int w[], const unsigned char a[], int ind[]);
+/* find maximum weight clique with Ostergard's algorithm */
+
 #endif
 
 /* eof */

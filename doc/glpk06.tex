@@ -342,13 +342,38 @@ it by binary zeros, and stores a pointer to it in the field \verb|data|
 of the struct \verb|glp_arc|. Otherwise, if the block size is zero, the
 field \verb|data| is set to \verb|NULL|.
 
-\subsection{glp\_remove\_vertices---remove vertices from graph}
+\subsection{glp\_del\_vertices---delete vertices from graph}
 
-[This routine is not implemented yet.]
+\subsubsection*{Synopsis}
 
-\subsection{glp\_remove\_arc---remove arc from graph}
+\begin{verbatim}
+void glp_del_vertices(glp_graph *G, int ndel, const int num[]);
+\end{verbatim}
 
-[This routine is not implemented yet.]
+\subsubsection*{Description}
+
+The routine \verb|glp_del_vertices| deletes vertices along with all
+incident arcs from the specified graph. Ordinal numbers of vertices to
+be deleted should be placed in locations \verb|num[1]|, \dots,
+\verb|num[ndel]|, \verb|ndel| $>0$.
+
+Note that deleting vertices involves changing ordinal numbers of other
+vertices remaining in the graph. New ordinal numbers of the remaining
+vertices are assigned under the assumption that the original order of
+vertices is not changed.
+
+\subsection{glp\_del\_arc---delete arc from graph}
+
+\subsubsection*{Synopsis}
+
+\begin{verbatim}
+void glp_del_arc(glp_graph *G, glp_arc *a);
+\end{verbatim}
+
+\subsubsection*{Description}
+
+The routine \verb|glp_del_arc| deletes an arc from the specified graph.
+The arc to be deleted must exist.
 
 \subsection{glp\_erase\_graph---erase graph content}
 
@@ -508,6 +533,201 @@ where:
 
 \noindent
 \verb|j[k]|, $k=1,\dots,na$, is the index of head vertex of arc $k$.
+
+\subsection{glp\_read\_ccdata---read graph from text file in DIMACS
+clique/coloring format}
+
+\subsubsection*{Synopsis}
+
+\begin{verbatim}
+int glp_read_ccdata(glp_graph *G, int v_wgt,
+      const char *fname);
+\end{verbatim}
+
+\subsubsection*{Description}
+
+The routine {\it glp\_read\_ccdata} reads a graph from a text file in
+DIMACS clique/coloring format. (Though this format is originally
+designed to represent data for the minimal vertex coloring and maximal
+clique problems, it may be used to represent general undirected and
+directed graphs, because the routine allows reading self-loops and
+multiple edges/arcs keeping the order of vertices specified for each
+edge/arc of the graph.)
+
+The parameter $G$ specifies the graph object to be read in. Note that
+before reading data the current content of the graph object is
+completely erased with the routine {\it glp\_erase\_graph}.
+
+The parameter {\it v\_wgt} specifies an offset of the field of type
+{\bf double} in the vertex data block, to which the routine stores the
+vertex weight. If {\it v\_wgt} $<0$, the vertex weights are not stored.
+
+The character string {\it fname} specifies the name of a text file to
+be read in. (If the file name ends with the suffix `\verb|.gz|', the
+file is assumed to be compressed, in which case the routine decompresses
+it ``on the fly''.)
+
+\subsubsection*{Returns}
+
+If the operation was successful, the routine returns zero. Otherwise,
+it prints an error message and returns non-zero.
+
+\subsubsection*{DIMACS clique/coloring format\footnote{This material is
+based on the paper ``Clique and Coloring Problems Graph Format'', which
+is publically available at
+{\tt http://dimacs.rutgers.edu/Challenges/}.}}
+
+The DIMACS input file is a plain ASCII text file. It contains
+{\it lines} of several types described below. A line is terminated with
+an end-of-line character. Fields in each line are separated by at least
+one blank space. Each line begins with a one-character designator to
+identify the line type.
+
+Note that DIMACS requires all numerical quantities to be integers in
+the range $[-2^{31},2^{31}-1]$ while GLPK allows the quantities to be
+floating-point numbers.
+
+\paragraph{Comment lines.} Comment lines give human-readable information
+about the file and are ignored by programs. Comment lines can appear
+anywhere in the file. Each comment line begins with a lower-case
+character \verb|c|.
+
+\begin{verbatim}
+   c This is a comment line
+\end{verbatim}
+
+\paragraph{Problem line.} There is one problem line per data file. The
+problem line must appear before any node or edge descriptor lines. It
+has the following format:
+
+\begin{verbatim}
+   p edge NODES EDGES
+\end{verbatim}
+
+\noindent
+The lower-case letter \verb|p| signifies that this is a problem line.
+The four-character problem designator \verb|edge| identifies the file
+as containing data for the minimal vertex coloring or maximal clique
+problem. The \verb|NODES| field contains an integer value specifying
+the number of vertices in the graph. The \verb|EDGES| field contains an
+integer value specifying the number of edges (arcs) in the graph.
+
+\paragraph{Vertex descriptors.} These lines give the weight assigned to
+a vertex of the graph. There is one vertex descriptor line for each
+vertex, with the following format. Vertices without a descriptor take on
+a default value of 1.
+
+\begin{verbatim}
+   n ID VALUE
+\end{verbatim}
+
+\noindent
+The lower-case character \verb|n| signifies that this is a vertex
+descriptor line. The \verb|ID| field gives a vertex identification
+number, an integer between 1 and $n$, where $n$ is the number of
+vertices in the graph. The \verb|VALUE| field gives a vertex weight,
+which can either positive or negative (or zero).
+
+\paragraph{Edge descriptors.} There is one edge descriptor line for
+each edge (arc) of the graph, each with the following format:
+
+\begin{verbatim}
+   e I J
+\end{verbatim}
+
+\noindent
+The lower-case character \verb|e| signifies that this is an edge
+descriptor line. For an edge (arc) $(i,j)$ the fields \verb|I| and
+\verb|J| specify its endpoints.
+
+\paragraph{Example.} The following example of an undirected graph:
+
+\bigskip
+
+\noindent\hfil
+\xymatrix %@C=32pt
+{&{v_1}\ar@{-}[ldd]\ar@{-}[dd]\ar@{-}[rd]\ar@{-}[rr]&&{v_2}\ar@{-}[ld]
+\ar@{-}[dd]\ar@{-}[rdd]&\\
+&&{v_7}\ar@{-}[ld]\ar@{-}[rd]&&\\
+{v_6}\ar@{-}[r]\ar@{-}[rdd]&{v_{10}}\ar@{-}[rr]\ar@{-}[rd]\ar@{-}[dd]&&
+{v_8}\ar@{-}[ld]\ar@{-}[dd]\ar@{-}[r]&{v_3}\ar@{-}[ldd]\\
+&&{v_9}\ar@{-}[ld]\ar@{-}[rd]&&\\
+&{v_5}\ar@{-}[rr]&&{v_4}&\\
+}
+
+\bigskip
+
+\noindent
+might be coded in DIMACS clique/coloring format as follows:
+
+\begin{footnotesize}
+\begin{verbatim}
+c sample.col
+c
+c This is an example of the vertex coloring problem data
+c in DIMACS format.
+c
+p edge 10 21
+c
+e 1 2
+e 1 6
+e 1 7
+e 1 10
+e 2 3
+e 2 7
+e 2 8
+e 3 4
+e 3 8
+e 4 5
+e 4 8
+e 4 9
+e 5 6
+e 5 9
+e 5 10
+e 6 10
+e 7 8
+e 7 10
+e 8 9
+e 8 10
+e 9 10
+c
+c eof
+\end{verbatim}
+\end{footnotesize}
+
+\subsection{glp\_write\_ccdata---write graph to text file in DIMACS
+clique/coloring format}
+
+\subsubsection*{Synopsis}
+
+\begin{verbatim}
+int glp_write_ccdata(glp_graph *G, int v_wgt,
+      const char *fname);
+\end{verbatim}
+
+\subsection*{Description}
+
+The routine {\it glp\_write\_ccdata} writes the graph object specified
+by the parameter $G$ to a text file in DIMACS clique/coloring format.
+(Though this format is originally designed to represent data for the
+minimal vertex coloring and maximal clique problems, it may be used to
+represent general undirected and directed graphs, because the routine
+allows writing self-loops and multiple edges/arcs keeping the order of
+vertices specified for each edge/arc of the graph.)
+
+The parameter {\it v\_wgt} specifies an offset of the field of type
+{\bf double} in the vertex data block, which contains the vertex weight.
+If {\it v\_wgt} $<0$, it is assumed that the weight of each vertex is 1.
+
+The character string {\it fname} specifies a name of the text file to be
+written out. (If the file name ends with suffix `\verb|.gz|', the file
+is assumed to be compressed, in which case the routine performs
+automatic compression on writing it.)
+
+\subsubsection*{Returns}
+
+If the operation was successful, the routine returns zero. Otherwise,
+it prints an error message and returns non-zero.
 
 \newpage
 
@@ -3040,6 +3260,215 @@ edge  6  9: x = 1
 edge  7 10: x = 1
 edge  8 11: x = 0
 edge  8 10: x = 0
+\end{verbatim}
+\end{footnotesize}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\newpage
+
+\section{Maximum clique problem}
+
+\subsection{Background}
+
+The {\it Maximum Clique Problem (MCP)} is a classic combinatorial
+optimization problem. Given an undirected graph $G=(V,E)$, where $V$ is
+a set of vertices, and $E$ is a set of edges, this problem is to find
+the largest {\it clique} $C\subseteq G$, i.e. the largest induced
+complete subgraph. A generalization of this problem is the {\it Maximum
+Weight Clique Problem (MWCP)}, which is to find a clique $C\subseteq G$
+of the largest weight $\displaystyle\sum_{v\in C}w(v)\rightarrow\max$,
+where $w(v)$ is a weight of vertex $v\in V$.
+
+An example of the Maximum Weight Clique Problem is shown on Fig.~4.
+
+\bigskip
+
+\begin{tabular}{c}
+{\xymatrix %@C=16pt
+{&&&{v_1}\ar@{-}[lllddd]\ar@{-}[llddddd]\ar@{-}[dddddd]
+\ar@{-}[rrrddd]&&&\\
+&{v_2}\ar@{-}[rrrr]\ar@{-}[rrrrdddd]\ar@{-}[rrddddd]\ar@{-}[dddd]&&&&
+{v_3}\ar@{-}[llllldd]\ar@{-}[lllldddd]\ar@{-}[dddd]&\\
+&&&&&&\\
+{v_4}\ar@{-}[rrrrrr]\ar@{-}[rrrddd]&&&&&&{v_5}\ar@{-}[lllddd]
+\ar@{-}[ldd]\\
+&&&&&&\\
+&{v_6}\ar@{-}[rrrr]&&&&{v_7}&\\
+&&&{v_8}&&&\\
+}}
+\end{tabular}
+\begin{tabular}{r@{\ }c@{\ }l}
+$w(v_1)$&=&3\\$w(v_2)$&=&4\\$w(v_3)$&=&8\\$w(v_4)$&=&1\\
+$w(v_5)$&=&5\\$w(v_6)$&=&2\\$w(v_7)$&=&1\\$w(v_8)$&=&3\\
+\end{tabular}
+
+\begin{center}
+Fig.~4. An example of the Maximum Weight Clique Problem.
+\end{center}
+
+\newpage
+
+\subsection{glp\_wclique\_exact---find maximum weight clique with exact
+algorithm}
+
+\subsubsection*{Synopsis}
+
+\begin{verbatim}
+int glp_wclique_exact(glp_graph *G, int v_wgt, double *sol,
+      int v_set);
+\end{verbatim}
+
+\subsection*{Description}
+
+The routine {\it glp\_wclique\_exact} finds a maximum weight clique in
+the specified undirected graph with the exact algorithm developed by
+Patric \"Osterg{\aa}rd.\footnote{P.~R.~J.~\"Osterg{\aa}rd, A new
+algorithm for the maximum-weight clique problem, Nordic J. of Computing,
+Vol.~8, No.~4, 2001, pp.~424--36.}
+
+The parameter $G$ is the program object, which specifies an undirected
+graph. Each arc $(x\rightarrow y)$ in $G$ is considered as edge
+$(x,y)$, self-loops are ignored, and multiple edges, if present, are
+replaced (internally) by simple edges.
+
+The parameter {\it v\_wgt} specifies an offset of the field of type
+{\bf double} in the vertex data block, which contains a weight of
+corresponding vertex. Vertex weights must be integer-valued in the
+range $[0,$ {\it INT\_MAX}$]$. If {\it v\_wgt} $<0$, it is assumed that
+all vertices of the graph have the weight 1.
+
+The parameter {\it sol} specifies a location, to which the routine
+stores the weight of the clique found (the clique weight is the sum
+of weights of all vertices included in the clique.) If {\it sol} is
+{\it NULL}, the solution is not stored.
+
+The parameter {\it v\_set} specifies an offset of the field of type
+{\bf int} in the vertex data block, to which the routines stores a
+vertex flag: 1 means that the corresponding vertex is included in the
+clique found, and 0 otherwise. If {\it v\_set} $<0$, vertex flags are
+not stored.
+
+\subsubsection*{Returns}
+
+\def\arraystretch{1}
+
+\begin{tabular}{@{}p{25mm}p{97.3mm}@{}}
+0 & Optimal solution found.\\
+\verb|GLP_EDATA| & Unable to start the search, because some vertex
+weights are either not integer-valued or out of range. This code is
+also returned if the sum of weights of all vertices exceeds
+{\it INT\_MAX}. \\
+\end{tabular}
+
+\newpage
+
+\subsubsection*{Notes}
+
+\noindent\indent
+1. The routine {\it glp\_wclique\_exact} finds exact solution. Since
+both MCP and MWCP problems are NP-complete, the algorithm may require
+exponential time in worst cases.
+
+2. Internally the specified graph is converted to an adjacency matrix
+in {\it dense} format. This requires about $|V|^2/16$ bytes of memory,
+where $|V|$ is the number of vertices in the graph.
+
+\subsubsection*{Example}
+
+The example program shown below reads a MWCP instance in DIMACS
+clique/coloring format from file `\verb|sample.clq|', finds the clique
+of largest weight, and writes the solution found to the standard output.
+
+\begin{footnotesize}
+\begin{verbatim}
+#include <stddef.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <glpk.h>
+
+typedef struct { double wgt; int set; } v_data;
+
+#define vertex(v) ((v_data *)((v)->data))
+
+int main(void)
+{     glp_graph *G;
+      glp_vertex *v;
+      int i, ret;
+      double sol;
+      G = glp_create_graph(sizeof(v_data), 0);
+      glp_read_ccdata(G, offsetof(v_data, wgt), "sample.clq");
+      ret = glp_wclique_exact(G, offsetof(v_data, wgt), &sol,
+         offsetof(v_data, set));
+      printf("ret = %d; sol = %g\n", ret, sol);
+      for (i = 1; i <= G->nv; i++)
+      {  v = G->v[i];
+         printf("vertex %d: weight = %g, flag = %d\n",
+            i, vertex(v)->wgt, vertex(v)->set);
+      }
+      glp_delete_graph(G);
+      return 0;
+}
+\end{verbatim}
+\end{footnotesize}
+
+\newpage
+
+\noindent
+For the example shown on Fig.~4 the data file may look like follows:
+
+\begin{footnotesize}
+\begin{verbatim}
+c sample.clq
+c
+c This is an example of the Maximum Weight Clique
+c Problem in DIMACS clique/coloring format.
+c
+p edge 8 16
+n 1 3
+n 2 4
+n 3 8
+n 5 5
+n 6 2
+n 8 3
+e 1 4
+e 1 5
+e 1 6
+e 1 8
+e 2 3
+e 2 6
+e 2 7
+e 2 8
+e 3 4
+e 3 6
+e 3 7
+e 4 5
+e 4 8
+e 5 7
+e 5 8
+e 6 7
+c
+c eof
+\end{verbatim}
+\end{footnotesize}
+
+\noindent
+The corresponding output from the example program is the following:
+
+\begin{footnotesize}
+\begin{verbatim}
+Reading graph from `sample.clq'...
+Graph has 8 vertices and 16 edges
+28 lines were read
+ret = 0; sol = 15
+vertex 1: weight = 3, flag = 0
+vertex 2: weight = 4, flag = 1
+vertex 3: weight = 8, flag = 1
+vertex 4: weight = 1, flag = 0
+vertex 5: weight = 5, flag = 0
+vertex 6: weight = 2, flag = 1
+vertex 7: weight = 1, flag = 1
+vertex 8: weight = 3, flag = 0
 \end{verbatim}
 \end{footnotesize}
 

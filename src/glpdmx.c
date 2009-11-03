@@ -813,15 +813,15 @@ done: if (fp != NULL) xfclose(fp);
 /***********************************************************************
 *  NAME
 *
-*  glp_read_ccformat - read graph in DIMACS clique/coloring format
+*  glp_read_ccdata - read graph in DIMACS clique/coloring format
 *
 *  SYNOPSIS
 *
-*  int glp_read_ccformat(glp_graph *G, int v_wgt, const char *fname);
+*  int glp_read_ccdata(glp_graph *G, int v_wgt, const char *fname);
 *
 *  DESCRIPTION
 *
-*  The routine glp_read_ccformat reads an (undirected) graph in DIMACS
+*  The routine glp_read_ccdata reads an (undirected) graph in DIMACS
 *  clique/coloring format from a text file.
 *
 *  RETURNS
@@ -829,14 +829,14 @@ done: if (fp != NULL) xfclose(fp);
 *  If the operation was successful, the routine returns zero. Otherwise
 *  it prints an error message and returns non-zero. */
 
-int glp_read_ccformat(glp_graph *G, int v_wgt, const char *fname)
+int glp_read_ccdata(glp_graph *G, int v_wgt, const char *fname)
 {     struct csa _csa, *csa = &_csa;
       glp_vertex *v;
       int i, j, k, nv, ne, ret = 0;
       double w;
       char *flag = NULL;
-      if (v_wgt >= 0 && G->v_size - (int)sizeof(double))
-         xerror("glp_read_ccformat: v_wgt = %d; invalid offset\n",
+      if (v_wgt >= 0 && v_wgt > G->v_size - (int)sizeof(double))
+         xerror("glp_read_ccdata: v_wgt = %d; invalid offset\n",
             v_wgt);
       glp_erase_graph(G, G->v_size, G->a_size);
       if (setjmp(csa->jump))
@@ -932,15 +932,15 @@ done: if (ret) glp_erase_graph(G, G->v_size, G->a_size);
 /***********************************************************************
 *  NAME
 *
-*  glp_write_ccformat - write graph in DIMACS clique/coloring format
+*  glp_write_ccdata - write graph in DIMACS clique/coloring format
 *
 *  SYNOPSIS
 *
-*  int glp_write_ccformat(glp_graph *G, int v_wgt, const char *fname);
+*  int glp_write_ccdata(glp_graph *G, int v_wgt, const char *fname);
 *
 *  DESCRIPTION
 *
-*  The routine glp_write_ccformat writes the specified graph in DIMACS
+*  The routine glp_write_ccdata writes the specified graph in DIMACS
 *  clique/coloring format to a text file.
 *
 *  RETURNS
@@ -948,14 +948,14 @@ done: if (ret) glp_erase_graph(G, G->v_size, G->a_size);
 *  If the operation was successful, the routine returns zero. Otherwise
 *  it prints an error message and returns non-zero. */
 
-int glp_write_ccformat(glp_graph *G, int v_wgt, const char *fname)
+int glp_write_ccdata(glp_graph *G, int v_wgt, const char *fname)
 {     XFILE *fp;
       glp_vertex *v;
       glp_arc *e;
       int i, count = 0, ret;
       double w;
-      if (v_wgt >= 0 && G->v_size - (int)sizeof(double))
-         xerror("glp_write_ccformat: v_wgt = %d; invalid offset\n",
+      if (v_wgt >= 0 && v_wgt > G->v_size - (int)sizeof(double))
+         xerror("glp_write_ccdata: v_wgt = %d; invalid offset\n",
             v_wgt);
       xprintf("Writing graph to `%s'\n", fname);
       fp = xfopen(fname, "w");

@@ -1,3 +1,50 @@
+Tue Nov 03 12:00:00 2009 Andrew Makhorin <mao@gnu.org>
+
+        * GLPK 4.40 (25:0:25) has been released
+
+        * glpdmx.c
+        Two new API routines were added:
+        glp_read_ccdata (read graph in DIMACS clique/coloring format);
+        glp_write_ccdata (write graph in DIMACS clique/coloring format).
+        Also an example file examples/sample.col was added.
+
+        * glpapi19.c, glpnet08.c
+        New API routine glp_wclique_exact was added. It is intended to
+        find a maximum weight clique with the exact algorithm developed
+        by Prof. P. Ostergard.
+
+        * glpnpp02.c
+        A bug was fixed in the LP preprocessor (routine npp_empty_col).
+        Thanks to Stefan Vigerske <stefan@math.hu-berlin.de> for the
+        bug report.
+
+        * glpios10.c
+        A bug was fixed and some improvements were made in the FPUMP
+        heuristic module. Thanks to Xypron <xypron.glpk@gmx.de>.
+
+        * glpapi12.c
+        A bug was fixed in the API routine glp_warm_up (dual
+        feasibility test was incorrect in maximization case). Thanks to
+        Uday Venkatadri <Uday.Venkatadri@dal.ca> for the bug report.
+
+        * glpapi16.c
+        Two new API routines were added:
+        glp_del_vertices (remove vertices from graph);
+        glp_del_arc (remove arc from graph).
+
+        * glpios09.c
+        The hybrid pseudocost branching heuristic was included in the
+        MIP solver. It is available on API level (iocp.br_tech should
+        be set to GLP_BR_PCH) and in the stand-alone solver glpsol
+        (via the command-line option --pcost). This heuristic may be
+        useful on solving hard MIP instances.
+
+        * glpios03.c
+        The branching heuristic by Driebeck and Tomlin (used in the
+        MIP solver by default) was changed to switch to branching on
+        most fractional variable if an lower bound of degradation of
+        the objective is close to zero for all branching candidates.
+
 Sun Jul 26 12:00:00 2009 Andrew Makhorin <mao@mai2.rcnet.ru>
 
         * GLPK 4.39 (24:0:24) has been released

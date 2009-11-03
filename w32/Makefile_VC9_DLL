@@ -23,6 +23,7 @@ OBJSET = \
 ..\src\glpapi17.obj \
 ..\src\glpapi18.obj \
 ..\src\glpapi19.obj \
+..\src\glpapi20.obj \
 ..\src\glpavl.obj \
 ..\src\glpbfd.obj \
 ..\src\glpbfx.obj \
@@ -81,6 +82,7 @@ OBJSET = \
 ..\src\glpnet05.obj \
 ..\src\glpnet06.obj \
 ..\src\glpnet07.obj \
+..\src\glpnet08.obj \
 ..\src\glpnpp01.obj \
 ..\src\glpnpp02.obj \
 ..\src\glpnpp03.obj \
@@ -116,15 +118,15 @@ OBJSET = \
 .c.obj:
         cl.exe $(CFLAGS) /Fo$*.obj /c $*.c
 
-all: glpk_4_39.dll glpsol.exe
+all: glpk_4_40.dll glpsol.exe
 
-glpk_4_39.dll: $(OBJSET)
-        cl.exe $(CFLAGS) /LD /Feglpk_4_39.dll ..\src\*.obj \
-                ..\src\amd\*.obj ..\src\colamd\*.obj glpk_4_39.def
+glpk_4_40.dll: $(OBJSET)
+        cl.exe $(CFLAGS) /LD /Feglpk_4_40.dll ..\src\*.obj \
+                ..\src\amd\*.obj ..\src\colamd\*.obj glpk_4_40.def
 
-glpsol.exe: ..\examples\glpsol.obj glpk_4_39.dll
+glpsol.exe: ..\examples\glpsol.obj glpk_4_40.dll
         cl.exe $(CFLAGS) /Feglpsol.exe ..\examples\glpsol.obj \
-                glpk_4_39.lib
+                glpk_4_40.lib
 
 check: glpsol.exe
         .\glpsol.exe --mps ..\examples\plan.mps

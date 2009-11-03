@@ -33,7 +33,7 @@ extern "C" {
 
 /* library version numbers: */
 #define GLP_MAJOR_VERSION  4
-#define GLP_MINOR_VERSION  39
+#define GLP_MINOR_VERSION  40
 
 #ifndef GLP_PROB
 #define GLP_PROB
@@ -165,7 +165,7 @@ typedef struct
 #define GLP_BR_LFV         2  /* last fractional variable */
 #define GLP_BR_MFV         3  /* most fractional variable */
 #define GLP_BR_DTH         4  /* heuristic by Driebeck and Tomlin */
-#define GLP_BR_HPC         5  /* hybrid pseudocost */
+#define GLP_BR_PCH         5  /* hybrid pseudocost heuristic */
       int bt_tech;            /* backtracking technique: */
 #define GLP_BT_DFS         1  /* depth first search */
 #define GLP_BT_BFS         2  /* breadth first search */
@@ -807,6 +807,12 @@ void glp_set_vertex_name(glp_graph *G, int i, const char *name);
 glp_arc *glp_add_arc(glp_graph *G, int i, int j);
 /* add new arc to graph */
 
+void glp_del_vertices(glp_graph *G, int ndel, const int num[]);
+/* delete vertices from graph */
+
+void glp_del_arc(glp_graph *G, glp_arc *a);
+/* delete arc from graph */
+
 void glp_erase_graph(glp_graph *G, int v_size, int a_size);
 /* erase graph content */
 
@@ -887,10 +893,10 @@ int glp_write_asnprob(glp_graph *G, int v_set, int a_cost, const char
       *fname);
 /* write assignment problem data in DIMACS format */
 
-int glp_read_ccformat(glp_graph *G, int v_wgt, const char *fname);
+int glp_read_ccdata(glp_graph *G, int v_wgt, const char *fname);
 /* read graph in DIMACS clique/coloring format */
 
-int glp_write_ccformat(glp_graph *G, int v_wgt, const char *fname);
+int glp_write_ccdata(glp_graph *G, int v_wgt, const char *fname);
 /* write graph in DIMACS clique/coloring format */
 
 int glp_netgen(glp_graph *G, int v_rhs, int a_cap, int a_cost,
@@ -910,6 +916,9 @@ int glp_weak_comp(glp_graph *G, int v_num);
 
 int glp_strong_comp(glp_graph *G, int v_num);
 /* find all strongly connected components of graph */
+
+int glp_wclique_exact(glp_graph *G, int v_wgt, double *sol, int v_set);
+/* find maximum weight clique with exact algorithm */
 
 /**********************************************************************/
 
@@ -994,7 +1003,10 @@ int glp_sdf_line(glp_data *data);
 void glp_sdf_close_file(glp_data *data);
 /* close plain data file */
 
-/**********************************************************************/
+/***********************************************************************
+*  NOTE: All symbols defined below are obsolete and kept here only for
+*        backward compatibility. 
+***********************************************************************/
 
 #define LPX glp_prob
 

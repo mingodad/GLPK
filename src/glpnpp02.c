@@ -805,7 +805,7 @@ int npp_empty_col(NPP *npp, NPPCOL *col)
       /* fix the column */
       if (col->lb == -DBL_MAX && col->ub == +DBL_MAX)
       {  /* free variable */
-         info->stat = GLP_NS;
+         info->stat = GLP_NF;
          col->lb = col->ub = 0.0;
       }
       else if (col->ub == +DBL_MAX)

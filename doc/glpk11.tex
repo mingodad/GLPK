@@ -140,9 +140,11 @@ obtained to an output text file.
                      (allows solving MIP as pure LP) \\
 \verb|--first|    &  branch on first integer variable \\
 \verb|--last|     &  branch on last integer variable \\
+\verb|--mostf|    &  branch on most fractional variable \\
 \verb|--drtom|    &  branch using heuristic by Driebeck and Tomlin
                      (default) \\
-\verb|--mostf|    &  branch on most fractional variable \\
+\verb|--pcost|    &  branch using hybrid pseudocost heuristic (may be
+                     useful for hard instances) \\
 \verb|--dfs|      &  backtrack using depth first search \\
 \verb|--bfs|      &  backtrack using breadth first search \\
 \verb|--bestp|    &  backtrack using the best projection heuristic
@@ -152,12 +154,12 @@ obtained to an output text file.
 \verb|--binarize| &  replace general integer variables by binary ones
                      (assumes \verb|--intopt|)\\
 \verb|--cover|    &  generate mixed cover cuts\\
-\verb|--clique|   &  generate clique cuts\\
-\verb|--gomory|   &  generate Gomory's mixed integer cuts\\
 \end{tabular}
 
 \noindent
 \begin{tabular}{@{}p{30mm}p{92.3mm}@{}}
+\verb|--clique|   &  generate clique cuts\\
+\verb|--gomory|   &  generate Gomory's mixed integer cuts\\
 \verb|--mir|      &  generate MIR (mixed integer rounding) cuts\\
 \verb|--cuts|     &  generate cuts of all classes above (assumes
                      \verb|--intopt|)\\

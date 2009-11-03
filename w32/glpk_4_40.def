@@ -1,5 +1,5 @@
-LIBRARY glpk_4_39
-VERSION 4.39
+LIBRARY glpk_4_40
+VERSION 4.40
 DESCRIPTION "GNU Linear Programming Kit"
 EXPORTS
 ;; from amd_1 ;;
@@ -196,6 +196,8 @@ EXPORTS
  glp_add_vertices
  glp_create_graph
  glp_create_v_index
+ glp_del_arc
+ glp_del_vertices
  glp_delete_graph
  glp_delete_v_index
  glp_erase_graph
@@ -217,6 +219,8 @@ EXPORTS
  glp_mincost_lp
  glp_mincost_okalg
 ;; from glpapi19 ;;
+ glp_wclique_exact
+;; from glpapi20 ;;
  glp_main
 ;; from glpavl ;;
  _glp_avl_create_tree
@@ -255,11 +259,11 @@ EXPORTS
  _glp_dmp_in_use
 ;; from glpdmx ;;
  glp_read_asnprob
- glp_read_ccformat
+ glp_read_ccdata
  glp_read_maxflow
  glp_read_mincost
  glp_write_asnprob
- glp_write_ccformat
+ glp_write_ccdata
  glp_write_maxflow
  glp_write_mincost
 ;; from glpfhv ;;
@@ -340,6 +344,7 @@ EXPORTS
  _glp_ios_preprocess_node
 ;; from glpios03 ;;
  _glp_ios_driver
+ _glp_ios_mostf_branch
 ;; from glpios04 ;;
  _glp_ios_check_vec
  _glp_ios_clean_vec
@@ -365,6 +370,8 @@ EXPORTS
 ;; from glpios09 ;;
  _glp_ios_pcost_branch
  _glp_ios_pcost_free
+ _glp_ios_pcost_init
+ _glp_ios_pcost_update
 ;; from glpios10 ;;
  _glp_ios_feas_pump
 ;; from glpipm ;;
@@ -919,6 +926,8 @@ EXPORTS
  _glp_okalg
 ;; from glpnet07 ;;
  _glp_ffalg
+;; from glpnet08 ;;
+ _glp_wclique
 ;; from glpnpp01 ;;
  _glp_npp_add_aij
  _glp_npp_add_col

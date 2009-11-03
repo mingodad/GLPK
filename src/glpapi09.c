@@ -506,7 +506,7 @@ int glp_intopt(glp_prob *mip, const glp_iocp *parm)
             parm->br_tech == GLP_BR_LFV ||
             parm->br_tech == GLP_BR_MFV ||
             parm->br_tech == GLP_BR_DTH ||
-            parm->br_tech == GLP_BR_HPC))
+            parm->br_tech == GLP_BR_PCH))
          xerror("glp_intopt: br_tech = %d; invalid parameter\n",
             parm->br_tech);
       if (!(parm->bt_tech == GLP_BT_DFS ||

@@ -514,6 +514,9 @@ void ios_add_edge(glp_tree *tree, int j1, int j2);
 int ios_preprocess_node(glp_tree *tree, int max_pass);
 /* preprocess current subproblem */
 
+#define ios_mostf_branch _glp_ios_mostf_branch
+void ios_mostf_branch(glp_tree *T);
+
 #define ios_driver _glp_ios_driver
 int ios_driver(glp_tree *tree);
 /* branch-and-bound driver */
@@ -608,9 +611,17 @@ void ios_clq_gen(glp_tree *tree, void *gen);
 void ios_clq_term(void *gen);
 /* terminate clique cut generator */
 
+#define ios_pcost_init _glp_ios_pcost_init
+void *ios_pcost_init(glp_tree *tree);
+/* initialize working data used on pseudocost branching */
+
 #define ios_pcost_branch _glp_ios_pcost_branch
 void ios_pcost_branch(glp_tree *tree);
-/* choose branching variable using hybrid pseudocost technique */
+/* choose branching variable with pseudocost branching */
+
+#define ios_pcost_update _glp_ios_pcost_update
+void ios_pcost_update(glp_tree *tree);
+/* update history information for pseudocost branching */
 
 #define ios_pcost_free _glp_ios_pcost_free
 void ios_pcost_free(glp_tree *tree);

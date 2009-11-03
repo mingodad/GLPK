@@ -276,6 +276,131 @@ glp_arc *glp_add_arc(glp_graph *G, int i, int j)
 /***********************************************************************
 *  NAME
 *
+*  glp_del_vertices - delete vertices from graph
+*
+*  SYNOPSIS
+*
+*  void glp_del_vertices(glp_graph *G, int ndel, const int num[]);
+*
+*  DESCRIPTION
+*
+*  The routine glp_del_vertices deletes vertices along with all
+*  incident arcs from the specified graph. Ordinal numbers of vertices
+*  to be deleted should be placed in locations num[1], ..., num[ndel],
+*  ndel > 0.
+*
+*  Note that deleting vertices involves changing ordinal numbers of
+*  other vertices remaining in the graph. New ordinal numbers of the
+*  remaining vertices are assigned under the assumption that the
+*  original order of vertices is not changed. */
+
+void glp_del_vertices(glp_graph *G, int ndel, const int num[])
+{     glp_vertex *v;
+      int i, k, nv_new;
+      /* scan the list of vertices to be deleted */
+      if (!(1 <= ndel && ndel <= G->nv))
+         xerror("glp_del_vertices: ndel = %d; invalid number of vertice"
+            "s\n", ndel);
+      for (k = 1; k <= ndel; k++)
+      {  /* take the number of vertex to be deleted */
+         i = num[k];
+         /* obtain pointer to i-th vertex */
+         if (!(1 <= i && i <= G->nv))
+            xerror("glp_del_vertices: num[%d] = %d; vertex number out o"
+               "f range\n", k, i);
+         v = G->v[i];
+         /* check that the vertex is not marked yet */
+         if (v->i == 0)
+            xerror("glp_del_vertices: num[%d] = %d; duplicate vertex nu"
+               "mbers not allowed\n", k, i);
+         /* erase symbolic name assigned to the vertex */
+         glp_set_vertex_name(G, i, NULL);
+         xassert(v->name == NULL);
+         xassert(v->entry == NULL);
+         /* free vertex data, if allocated */
+         if (v->data != NULL)
+            dmp_free_atom(G->pool, v->data, G->v_size);
+         /* delete all incoming arcs */
+         while (v->in != NULL)
+            glp_del_arc(G, v->in);
+         /* delete all outgoing arcs */
+         while (v->out != NULL)
+            glp_del_arc(G, v->out);
+         /* mark the vertex to be deleted */
+         v->i = 0;
+      }
+      /* delete all marked vertices from the vertex list */
+      nv_new = 0;
+      for (i = 1; i <= G->nv; i++)
+      {  /* obtain pointer to i-th vertex */
+         v = G->v[i];
+         /* check if the vertex is marked */
+         if (v->i == 0)
+         {  /* it is marked, delete it */
+            dmp_free_atom(G->pool, v, sizeof(glp_vertex));
+         }
+         else
+         {  /* it is not marked, keep it */
+            v->i = ++nv_new;
+            G->v[v->i] = v;
+         }
+      }
+      /* set new number of vertices in the graph */
+      G->nv = nv_new;
+      return;
+}
+
+/***********************************************************************
+*  NAME
+*
+*  glp_del_arc - delete arc from graph
+*
+*  SYNOPSIS
+*
+*  void glp_del_arc(glp_graph *G, glp_arc *a);
+*
+*  DESCRIPTION
+*
+*  The routine glp_del_arc deletes an arc from the specified graph.
+*  The arc to be deleted must exist. */
+
+void glp_del_arc(glp_graph *G, glp_arc *a)
+{     /* some sanity checks */
+      xassert(G->na > 0);
+      xassert(1 <= a->tail->i && a->tail->i <= G->nv);
+      xassert(a->tail == G->v[a->tail->i]);
+      xassert(1 <= a->head->i && a->head->i <= G->nv);
+      xassert(a->head == G->v[a->head->i]);
+      /* remove the arc from the list of incoming arcs */
+      if (a->h_prev == NULL)
+         a->head->in = a->h_next;
+      else
+         a->h_prev->h_next = a->h_next;
+      if (a->h_next == NULL)
+         ;
+      else
+         a->h_next->h_prev = a->h_prev;
+      /* remove the arc from the list of outgoing arcs */
+      if (a->t_prev == NULL)
+         a->tail->out = a->t_next;
+      else
+         a->t_prev->t_next = a->t_next;
+      if (a->t_next == NULL)
+         ;
+      else
+         a->t_next->t_prev = a->t_prev;
+      /* free arc data, if allocated */
+      if (a->data != NULL)
+         dmp_free_atom(G->pool, a->data, G->a_size);
+      /* delete the arc from the graph */
+      dmp_free_atom(G->pool, a, sizeof(glp_arc));
+      G->na--;
+      return;
+}
+
+/***********************************************************************
+*  NAME
+*
 *  glp_erase_graph - erase graph content
 *
 *  SYNOPSIS

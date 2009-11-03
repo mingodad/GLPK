@@ -642,6 +642,12 @@ skip:       /* new Z is never better than old Z, therefore the change
 #endif
       /* something must be chosen */
       xassert(1 <= jj && jj <= n);
+#if 1 /* 02/XI-2009 */
+      if (degrad < 1e-6 * (1.0 + 0.001 * fabs(lp->obj_val)))
+      {  ios_mostf_branch(tree);
+         goto done;
+      }
+#endif
       if (tree->parm->msg_lev >= GLP_MSG_DBG)
       {  xprintf("branch_drtom: column %d chosen to branch on\n", jj);
          if (fabs(dd_dn) == DBL_MAX)
@@ -657,7 +663,7 @@ skip:       /* new Z is never better than old Z, therefore the change
       }
       /* perform branching */
       glp_ios_branch_upon(tree, jj, next);
-      return;
+done: return;
 }
 
 /*----------------------------------------------------------------------
@@ -694,6 +700,11 @@ static void branch_mostf(glp_tree *tree)
       }
       /* perform branching */
       glp_ios_branch_upon(tree, jj, next);
+      return;
+}
+
+void ios_mostf_branch(glp_tree *T)
+{     branch_mostf(T);
       return;
 }
 
@@ -1586,6 +1597,10 @@ more: /* minor loop starts here; at this point the current subproblem
 #if 1
       tree->just_selected = 0;
 #endif
+#if 1 /* 01/XI-2009 */
+      /* update history information used on pseudocost branching */
+      if (tree->pcost != NULL) ios_pcost_update(tree);
+#endif
       /* call the user-defined callback routine to choose branching
          variable */
       if (tree->parm->cb_func != NULL)
@@ -1620,8 +1635,8 @@ more: /* minor loop starts here; at this point the current subproblem
                /* branch using the heuristic by Dreebeck and Tomlin */
                branch_drtom(tree);
                break;
-            case GLP_BR_HPC:
-               /* hybrid pseudocost branching */
+            case GLP_BR_PCH:
+               /* hybrid pseudocost heuristic */
                ios_pcost_branch(tree);
                break;
             default:

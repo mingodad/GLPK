@@ -58,24 +58,25 @@ am_libglpk_la_OBJECTS = glpapi01.lo glpapi02.lo glpapi03.lo \
 	glpapi04.lo glpapi05.lo glpapi06.lo glpapi07.lo glpapi08.lo \
 	glpapi09.lo glpapi10.lo glpapi11.lo glpapi12.lo glpapi13.lo \
 	glpapi14.lo glpapi15.lo glpapi16.lo glpapi17.lo glpapi18.lo \
-	glpapi19.lo glpavl.lo glpbfd.lo glpbfx.lo glpcpx.lo glpdmp.lo \
-	glpdmx.lo glpfhv.lo glpgmp.lo glphbm.lo glpini01.lo \
-	glpini02.lo glpios01.lo glpios02.lo glpios03.lo glpios04.lo \
-	glpios05.lo glpios06.lo glpios07.lo glpios08.lo glpios09.lo \
-	glpios10.lo glpipm.lo glpipp01.lo glpipp02.lo glplib01.lo \
-	glplib02.lo glplib03.lo glplib04.lo glplib05.lo glplib06.lo \
-	glplib07.lo glplib08.lo glplib09.lo glplib10.lo glplib11.lo \
-	glplib12.lo glplpf.lo glplpx01.lo glplpx02.lo glplpx03.lo \
-	glplpx04.lo glpluf.lo glplux.lo glpmat.lo glpmpl01.lo \
-	glpmpl02.lo glpmpl03.lo glpmpl04.lo glpmpl05.lo glpmpl06.lo \
-	glpmps.lo glpnet01.lo glpnet02.lo glpnet03.lo glpnet04.lo \
-	glpnet05.lo glpnet06.lo glpnet07.lo glpnpp01.lo glpnpp02.lo \
-	glpnpp03.lo glpqmd.lo glprgr.lo glprng01.lo glprng02.lo \
-	glpscf.lo glpscg.lo glpscl.lo glpsdf.lo glpspm.lo glpspx01.lo \
-	glpspx02.lo glpsql.lo glpssx01.lo glpssx02.lo glptsp.lo \
-	amd_1.lo amd_2.lo amd_aat.lo amd_control.lo amd_defaults.lo \
-	amd_dump.lo amd_info.lo amd_order.lo amd_post_tree.lo \
-	amd_postorder.lo amd_preprocess.lo amd_valid.lo colamd.lo
+	glpapi19.lo glpapi20.lo glpavl.lo glpbfd.lo glpbfx.lo \
+	glpcpx.lo glpdmp.lo glpdmx.lo glpfhv.lo glpgmp.lo glphbm.lo \
+	glpini01.lo glpini02.lo glpios01.lo glpios02.lo glpios03.lo \
+	glpios04.lo glpios05.lo glpios06.lo glpios07.lo glpios08.lo \
+	glpios09.lo glpios10.lo glpipm.lo glpipp01.lo glpipp02.lo \
+	glplib01.lo glplib02.lo glplib03.lo glplib04.lo glplib05.lo \
+	glplib06.lo glplib07.lo glplib08.lo glplib09.lo glplib10.lo \
+	glplib11.lo glplib12.lo glplpf.lo glplpx01.lo glplpx02.lo \
+	glplpx03.lo glplpx04.lo glpluf.lo glplux.lo glpmat.lo \
+	glpmpl01.lo glpmpl02.lo glpmpl03.lo glpmpl04.lo glpmpl05.lo \
+	glpmpl06.lo glpmps.lo glpnet01.lo glpnet02.lo glpnet03.lo \
+	glpnet04.lo glpnet05.lo glpnet06.lo glpnet07.lo glpnet08.lo \
+	glpnpp01.lo glpnpp02.lo glpnpp03.lo glpqmd.lo glprgr.lo \
+	glprng01.lo glprng02.lo glpscf.lo glpscg.lo glpscl.lo \
+	glpsdf.lo glpspm.lo glpspx01.lo glpspx02.lo glpsql.lo \
+	glpssx01.lo glpssx02.lo glptsp.lo amd_1.lo amd_2.lo amd_aat.lo \
+	amd_control.lo amd_defaults.lo amd_dump.lo amd_info.lo \
+	amd_order.lo amd_post_tree.lo amd_postorder.lo \
+	amd_preprocess.lo amd_valid.lo colamd.lo
 libglpk_la_OBJECTS = $(am_libglpk_la_OBJECTS)
 libglpk_la_LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) \
 	$(LIBTOOLFLAGS) --mode=link $(CCLD) $(AM_CFLAGS) $(CFLAGS) \
@@ -215,7 +216,7 @@ top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
 INCLUDES = -I$(srcdir)/../include
 lib_LTLIBRARIES = libglpk.la
-libglpk_la_LDFLAGS = -version-info 24:0:24 \
+libglpk_la_LDFLAGS = -version-info 25:0:25 \
 -export-symbols-regex '^(glp_|_glp_lpx_).*'
 
 libglpk_la_SOURCES = \
@@ -238,6 +239,7 @@ glpapi16.c \
 glpapi17.c \
 glpapi18.c \
 glpapi19.c \
+glpapi20.c \
 glpavl.c \
 glpbfd.c \
 glpbfx.c \
@@ -296,6 +298,7 @@ glpnet04.c \
 glpnet05.c \
 glpnet06.c \
 glpnet07.c \
+glpnet08.c \
 glpnpp01.c \
 glpnpp02.c \
 glpnpp03.c \
@@ -429,6 +432,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/glpapi17.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/glpapi18.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/glpapi19.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/glpapi20.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/glpavl.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/glpbfd.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/glpbfx.Plo@am__quote@
@@ -487,6 +491,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/glpnet05.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/glpnet06.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/glpnet07.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/glpnet08.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/glpnpp01.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/glpnpp02.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/glpnpp03.Plo@am__quote@
