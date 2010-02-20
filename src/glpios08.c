@@ -647,7 +647,7 @@ done: xfree(newtable);
 static int wclique(int _n, int w[], unsigned char _a[], int sol[])
 {     struct dsa _dsa, *dsa = &_dsa;
       int i, j, p, max_wt, max_nwt, wth, *used, *nwt, *pos;
-      xlong_t timer;
+      glp_long timer;
       n = _n;
       wt = &w[1];
       a = _a;

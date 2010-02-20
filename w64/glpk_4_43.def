@@ -1,5 +1,5 @@
-LIBRARY glpk_4_42
-VERSION 4.42
+LIBRARY glpk_4_43
+VERSION 4.43
 DESCRIPTION "GNU Linear Programming Kit"
 EXPORTS
 ;; from amd_1 ;;
@@ -181,20 +181,6 @@ EXPORTS
  glp_ios_tree_size
  glp_ios_up_node
 ;; from glpapi14 ;;
- glp_assert_
- glp_calloc
- glp_free
- glp_free_env
- glp_malloc
- glp_mem_limit
- glp_mem_usage
- glp_printf
- glp_term_hook
- glp_term_out
- glp_time
- glp_version
- glp_vprintf
-;; from glpapi15 ;;
  _glp_mpl_init_rand
  glp_mpl_alloc_wksp
  glp_mpl_build_prob
@@ -203,7 +189,7 @@ EXPORTS
  glp_mpl_postsolve
  glp_mpl_read_data
  glp_mpl_read_model
-;; from glpapi16 ;;
+;; from glpapi15 ;;
  glp_add_arc
  glp_add_vertices
  glp_create_graph
@@ -218,10 +204,11 @@ EXPORTS
  glp_set_graph_name
  glp_set_vertex_name
  glp_write_graph
-;; from glpapi17 ;;
+;; from glpapi16 ;;
  glp_strong_comp
+ glp_top_sort
  glp_weak_comp
-;; from glpapi18 ;;
+;; from glpapi17 ;;
  glp_asnprob_hall
  glp_asnprob_lp
  glp_asnprob_okalg
@@ -230,9 +217,9 @@ EXPORTS
  glp_maxflow_lp
  glp_mincost_lp
  glp_mincost_okalg
-;; from glpapi19 ;;
+;; from glpapi18 ;;
  glp_wclique_exact
-;; from glpapi20 ;;
+;; from glpapi19 ;;
  glp_main
 ;; from glpavl ;;
  _glp_avl_create_tree
@@ -282,6 +269,49 @@ EXPORTS
  glp_write_maxflow
  glp_write_mincost
  glp_write_prob
+;; from glpenv01 ;;
+ _glp_get_env_ptr
+ glp_free_env
+ glp_init_env
+ glp_version
+;; from glpenv02 ;;
+ _glp_tls_get_ptr
+ _glp_tls_set_ptr
+;; from glpenv03 ;;
+ glp_close_tee
+ glp_open_tee
+ glp_printf
+ glp_term_hook
+ glp_term_out
+ glp_vprintf
+;; from glpenv04 ;;
+ glp_assert_
+ glp_error_
+ glp_error_hook
+;; from glpenv05 ;;
+ glp_calloc
+ glp_free
+ glp_malloc
+ glp_mem_limit
+ glp_mem_usage
+;; from glpenv06 ;;
+ glp_difftime
+ glp_time
+;; from glpenv07 ;;
+ _glp_lib_err_msg
+ _glp_lib_xerrmsg
+ _glp_lib_xfclose
+ _glp_lib_xfeof
+ _glp_lib_xferror
+ _glp_lib_xfflush
+ _glp_lib_xfgetc
+ _glp_lib_xfopen
+ _glp_lib_xfprintf
+ _glp_lib_xfputc
+;; from glpenv08 ;;
+ _glp_xdlclose
+ _glp_xdlopen
+ _glp_xdlsym
 ;; from glpfhv ;;
  _glp_fhv_btran
  _glp_fhv_create_it
@@ -396,33 +426,9 @@ EXPORTS
 ;; from glpipm ;;
  _glp_ipm_solve
 ;; from glplib01 ;;
- _glp_lib_free_env
- _glp_lib_init_env
- _glp_lib_link_env
- _glp_lib_version
-;; from glplib02 ;;
- _glp_lib_get_ptr
- _glp_lib_set_ptr
-;; from glplib03 ;;
- _glp_lib_err_msg
- _glp_lib_fault_hook
- _glp_lib_xassert
- _glp_lib_xerrmsg
- _glp_lib_xerror1
- _glp_lib_xerror2
-;; from glplib04 ;;
- _glp_lib_close_log
- _glp_lib_open_log
- _glp_lib_print_hook
- _glp_lib_term_hook
- _glp_lib_xgetc
- _glp_lib_xprintf
- _glp_lib_xputc
- _glp_lib_xvprintf
-;; from glplib05 ;;
  _glp_lib_bigdiv
  _glp_lib_bigmul
-;; from glplib06 ;;
+;; from glplib02 ;;
  _glp_lib_xladd
  _glp_lib_xlcmp
  _glp_lib_xldiv
@@ -432,27 +438,7 @@ EXPORTS
  _glp_lib_xlsub
  _glp_lib_xltoa
  _glp_lib_xltod
-;; from glplib07 ;;
- _glp_lib_mem_limit
- _glp_lib_mem_usage
- _glp_lib_xcalloc
- _glp_lib_xfree
- _glp_lib_xmalloc
-;; from glplib08 ;;
- _glp_lib_xfclose
- _glp_lib_xfeof
- _glp_lib_xferror
- _glp_lib_xfflush
- _glp_lib_xfgetc
- _glp_lib_xfopen
- _glp_lib_xfputc
-;; from glplib09 ;;
- _glp_lib_doprnt
- _glp_lib_xfprintf
-;; from glplib10 ;;
- _glp_lib_xdifftime
- _glp_lib_xtime
-;; from glplib11 ;;
+;; from glplib03 ;;
  _glp_lib_fp2rat
  _glp_lib_gcd
  _glp_lib_gcdn
@@ -466,10 +452,6 @@ EXPORTS
  _glp_lib_strrev
  _glp_lib_strspx
  _glp_lib_strtrim
-;; from glplib12 ;;
- _glp_xdlclose
- _glp_xdlopen
- _glp_xdlsym
 ;; from glplpf ;;
  _glp_lpf_btran
  _glp_lpf_create_it

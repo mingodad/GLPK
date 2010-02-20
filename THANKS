@@ -1,10 +1,15 @@
+Noli Sicad <nsicad@gmail.com> for testing glpk under Mac OS.
+
+Pietro Scionti <pietro.scionti@archinet.it> for report typos found in
+the reference manual.
+
 Noli Sicad <nsicad@gmail.com> for example model in MathProg.
 
 Nigel Galloway <nigel_galloway@operamail.com> for example model in
 MathProg.
 
-Thanks to Xypron <xypron.glpk@gmx.de> for contribution and testing
-batch scripts to build Glpk with MS Visual Studio 2010.
+Xypron <xypron.glpk@gmx.de> for contribution and testing batch scripts
+to build Glpk with MS Visual Studio 2010.
 
 Xypron <xypron.glpk@gmx.de> for improving the SQL table driver.
 

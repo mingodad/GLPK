@@ -4,7 +4,7 @@ INCLUDES = -I$(srcdir)/../include
 
 lib_LTLIBRARIES = libglpk.la
 
-libglpk_la_LDFLAGS = -version-info 27:0:27 \
+libglpk_la_LDFLAGS = -version-info 28:0:28 \
 -export-symbols-regex '^(glp_|_glp_lpx_).*'
 
 libglpk_la_SOURCES = \
@@ -27,13 +27,20 @@ glpapi16.c \
 glpapi17.c \
 glpapi18.c \
 glpapi19.c \
-glpapi20.c \
 glpavl.c \
 glpbfd.c \
 glpbfx.c \
 glpcpx.c \
 glpdmp.c \
 glpdmx.c \
+glpenv01.c \
+glpenv02.c \
+glpenv03.c \
+glpenv04.c \
+glpenv05.c \
+glpenv06.c \
+glpenv07.c \
+glpenv08.c \
 glpfhv.c \
 glpgmp.c \
 glphbm.c \
@@ -55,15 +62,6 @@ glpipm.c \
 glplib01.c \
 glplib02.c \
 glplib03.c \
-glplib04.c \
-glplib05.c \
-glplib06.c \
-glplib07.c \
-glplib08.c \
-glplib09.c \
-glplib10.c \
-glplib11.c \
-glplib12.c \
 glplpf.c \
 glplpx01.c \
 glplpx02.c \

@@ -27,7 +27,7 @@
 *  along with GLPK. If not, see <http://www.gnu.org/licenses/>.
 ***********************************************************************/
 
-#include "glplib.h"
+#include "glpenv.h"
 #include "glprng.h"
 
 #if 0

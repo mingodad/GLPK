@@ -304,7 +304,7 @@ static int preprocess_and_solve_lp(glp_prob *P, const glp_smcp *parm)
       glp_get_bfcp(P, &bfcp);
       glp_set_bfcp(lp, &bfcp);
       /* scale the transformed problem */
-      {  LIBENV *env = lib_link_env();
+      {  ENV *env = get_env_ptr();
          int term_out = env->term_out;
          if (!term_out || parm->msg_lev < GLP_MSG_ALL)
             env->term_out = GLP_OFF;
@@ -314,7 +314,7 @@ static int preprocess_and_solve_lp(glp_prob *P, const glp_smcp *parm)
          env->term_out = term_out;
       }
       /* build advanced initial basis */
-      {  LIBENV *env = lib_link_env();
+      {  ENV *env = get_env_ptr();
          int term_out = env->term_out;
          if (!term_out || parm->msg_lev < GLP_MSG_ALL)
             env->term_out = GLP_OFF;

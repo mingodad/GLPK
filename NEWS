@@ -1,3 +1,17 @@
+GLPK 4.43 (release date: Feb 20, 2010)
+
+        This is a maintainer release.
+
+        `configure.ac' was changed to allow building the package under
+        Mac OS and Darwin with ODBC support.
+        Thanks to Xypron <xypron.glpk@gmx.de> for suggestions and Noli
+        Sicad <nsicad@gmail.com> for testing.
+
+        The SQL table driver was improved to process NULL data. Thanks
+        to Xypron <xypron.glpk@gmx.de>.
+
+        Some bugs were fixed in the LP/MIP preprocessor.
+
 GLPK 4.42 (release date: Jan 13, 2010)
 
         The following new API routines were added:

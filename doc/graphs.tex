@@ -53,7 +53,7 @@ urlcolor=blue]{hyperref}
 \vspace{0.5in}
 
 \begin{LARGE}
-\sf Version 4.42
+\sf Version 4.43
 \end{LARGE}
 
 \vspace{0.5in}
@@ -967,6 +967,129 @@ num[14] = 1
 num[15] = 1
 \end{verbatim}
 \end{footnotesize}
+
+\subsection{glp\_top\_sort---topological sorting of acyclic digraph}
+
+\subsubsection*{Synopsis}
+
+\begin{verbatim}
+int glp_top_sort(glp_graph *G, int v_num);
+\end{verbatim}
+
+\subsubsection*{Description}
+
+The routine \verb|glp_top_sort| performs topological sorting of
+vertices of the specified acyclic digraph.
+
+The parameter \verb|v_num| specifies an offset of the field of type
+\verb|int| in the vertex data block, to which the routine stores the
+vertex number assigned. If \verb|v_num| $<0$, vertex numbers are not
+stored.
+
+The vertices are numbered from 1 to $n$, where $n$ is the total number
+of vertices in the graph. The vertex numbering has the property that
+for every arc $(i\rightarrow j)$ in the graph the condition
+$num(i)<num(j)$ holds. Special case $num(i)=0$ means that vertex $i$ is
+not assigned a number, because the graph is {\it not} acyclic.
+
+\subsubsection*{Returns}
+
+If the graph is acyclic and therefore all the vertices have been
+assigned numbers, the routine \verb|glp_top_sort| returns zero.
+Otherwise, if the graph is not acyclic, the routine returns the number
+of vertices which have not been numbered, i.e. for which $num(i)=0$.
+
+\subsubsection*{Example}
+
+The following program reads a digraph from a plain text file
+`\verb|graph.txt|' and performs topological sorting of its vertices.
+
+\begin{footnotesize}
+\begin{verbatim}
+#include <stddef.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <glpk.h>
+
+typedef struct { int num; } v_data;
+
+#define vertex(v) ((v_data *)((v)->data))
+
+int main(void)
+{     glp_graph *G;
+      int i, cnt;
+      G = glp_create_graph(sizeof(v_data), 0);
+      glp_read_graph(G, "graph.txt");
+      cnt = glp_top_sort(G, offsetof(v_data, num));
+      printf("cnt = %d\n", cnt);
+      for (i = 1; i <= G->nv; i++)
+         printf("num[%d] = %d\n", i, vertex(G->v[i])->num);
+      glp_delete_graph(G);
+      return 0;
+}
+\end{verbatim}
+\end{footnotesize}
+
+\noindent
+If the file `\verb|graph.txt|' contains the graph shown below:
+
+\bigskip
+
+\noindent\hfil
+\xymatrix @=20pt
+{
+1\ar[rrr]&&&2\ar[r]\ar[rddd]&3\ar[rd]&&&&\\
+&&&4\ar[ru]&&5\ar[r]&6\ar[rd]\ar[dd]&&\\
+7\ar[r]&8\ar[r]&9\ar[ruu]\ar[ru]\ar[r]\ar[rd]&10\ar[rr]\ar[rru]&&
+11\ar[ru]&&12\ar[r]&13\\
+&&&14\ar[r]&15\ar[rrru]\ar[rr]&&16\ar[rru]\ar[rr]&&17\\
+}
+
+\bigskip\bigskip
+
+\noindent
+the program output may look like follows:
+
+\begin{footnotesize}
+\begin{verbatim}
+Reading graph from `graph.txt'...
+Graph has 17 vertices and 23 arcs
+24 lines were read
+cnt = 0
+num[1] = 8
+num[2] = 9
+num[3] = 10
+num[4] = 4
+num[5] = 11
+num[6] = 12
+num[7] = 1
+num[8] = 2
+num[9] = 3
+num[10] = 5
+num[11] = 6
+num[12] = 14
+num[13] = 16
+num[14] = 7
+num[15] = 13
+num[16] = 15
+num[17] = 17
+\end{verbatim}
+\end{footnotesize}
+
+\noindent
+The output corresponds to the following vertex numbering:
+
+\bigskip
+
+\noindent\hfil
+\xymatrix @=20pt
+{
+8\ar[rrr]&&&9\ar[r]\ar[rddd]&10\ar[rd]&&&&\\
+&&&4\ar[ru]&&11\ar[r]&12\ar[rd]\ar[dd]&&\\
+1\ar[r]&2\ar[r]&3\ar[ruu]\ar[ru]\ar[r]\ar[rd]&5\ar[rr]\ar[rru]&&
+6\ar[ru]&&14\ar[r]&16\\
+&&&7\ar[r]&13\ar[rrru]\ar[rr]&&15\ar[rru]\ar[rr]&&17\\
+}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 

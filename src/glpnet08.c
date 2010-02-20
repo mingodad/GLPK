@@ -31,7 +31,7 @@
 *  along with GLPK. If not, see <http://www.gnu.org/licenses/>.
 ***********************************************************************/
 
-#include "glplib.h"
+#include "glpenv.h"
 #include "glpnet.h"
 
 /***********************************************************************
@@ -167,7 +167,7 @@ done: xfree(newtable);
 int wclique(int _n, const int w[], const unsigned char _a[], int ind[])
 {     struct csa _csa, *csa = &_csa;
       int i, j, p, max_wt, max_nwt, wth, *used, *nwt, *pos;
-      xlong_t timer;
+      glp_long timer;
       n = _n;
       xassert(n > 0);
       wt = &w[1];

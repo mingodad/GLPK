@@ -34,9 +34,10 @@ extern "C" {
 
 /* library version numbers: */
 #define GLP_MAJOR_VERSION  4
-#define GLP_MINOR_VERSION  42
+#define GLP_MINOR_VERSION  43
 
-#ifndef GLPAPI_H
+#ifndef GLP_PROB_DEFINED
+#define GLP_PROB_DEFINED
 typedef struct { double _opaque_prob[100]; } glp_prob;
 /* LP/MIP problem object */
 #endif
@@ -146,7 +147,8 @@ typedef struct
       double foo_bar[48];     /* (reserved) */
 } glp_iptcp;
 
-#ifndef GLPIOS_H
+#ifndef GLP_TREE_DEFINED
+#define GLP_TREE_DEFINED
 typedef struct { double _opaque_tree[100]; } glp_tree;
 /* branch-and-bound tree */
 #endif
@@ -276,7 +278,8 @@ typedef struct
       /* (reserved for use in the future) */
 } glp_cpxcp;
 
-#ifndef GLPMPL_H
+#ifndef GLP_TRAN_DEFINED
+#define GLP_TRAN_DEFINED
 typedef struct { double _opaque_tran[100]; } glp_tran;
 /* MathProg translator workspace */
 #endif
@@ -754,6 +757,118 @@ int glp_main(int argc, const char *argv[]);
 
 /**********************************************************************/
 
+#ifndef GLP_LONG_DEFINED
+#define GLP_LONG_DEFINED
+typedef struct { int lo, hi; } glp_long;
+/* long integer data type */
+#endif
+
+int glp_init_env(void);
+/* initialize GLPK environment */
+
+const char *glp_version(void);
+/* determine library version */
+
+int glp_free_env(void);
+/* free GLPK environment */
+
+void glp_printf(const char *fmt, ...);
+/* write formatted output to terminal */
+
+void glp_vprintf(const char *fmt, va_list arg);
+/* write formatted output to terminal */
+
+int glp_term_out(int flag);
+/* enable/disable terminal output */
+
+void glp_term_hook(int (*func)(void *info, const char *s), void *info);
+/* install hook to intercept terminal output */
+
+int glp_open_tee(const char *fname);
+/* start copying terminal output to text file */
+
+int glp_close_tee(void);
+/* stop copying terminal output to text file */
+
+#ifndef GLP_ERROR_DEFINED
+#define GLP_ERROR_DEFINED
+typedef void (*_glp_error)(const char *fmt, ...);
+#endif
+
+#define glp_error glp_error_(__FILE__, __LINE__)
+_glp_error glp_error_(const char *file, int line);
+/* display error message and terminate execution */
+
+#define glp_assert(expr) \
+      ((void)((expr) || (glp_assert_(#expr, __FILE__, __LINE__), 1)))
+void glp_assert_(const char *expr, const char *file, int line);
+/* check for logical condition */
+
+void glp_error_hook(void (*func)(void *info), void *info);
+/* install hook to intercept abnormal termination */
+
+void *glp_malloc(int size);
+/* allocate memory block */
+
+void *glp_calloc(int n, int size);
+/* allocate memory block */
+
+void glp_free(void *ptr);
+/* free memory block */
+
+void glp_mem_limit(int limit);
+/* set memory usage limit */
+
+void glp_mem_usage(int *count, int *cpeak, glp_long *total,
+      glp_long *tpeak);
+/* get memory usage information */
+
+glp_long glp_time(void);
+/* determine current universal time */
+
+double glp_difftime(glp_long t1, glp_long t0);
+/* compute difference between two time values */
+
+/**********************************************************************/
+
+#ifndef GLP_DATA_DEFINED
+#define GLP_DATA_DEFINED
+typedef struct { double _opaque_data[100]; } glp_data;
+/* plain data file */
+#endif
+
+glp_data *glp_sdf_open_file(const char *fname);
+/* open plain data file */
+
+void glp_sdf_set_jump(glp_data *data, void *jump);
+/* set up error handling */
+
+void glp_sdf_error(glp_data *data, const char *fmt, ...);
+/* print error message */
+
+void glp_sdf_warning(glp_data *data, const char *fmt, ...);
+/* print warning message */
+
+int glp_sdf_read_int(glp_data *data);
+/* read integer number */
+
+double glp_sdf_read_num(glp_data *data);
+/* read floating-point number */
+
+const char *glp_sdf_read_item(glp_data *data);
+/* read data item */
+
+const char *glp_sdf_read_text(glp_data *data);
+/* read text until end of line */
+
+int glp_sdf_line(glp_data *data);
+/* determine current line number */
+
+void glp_sdf_close_file(glp_data *data);
+/* close plain data file */
+
+/**********************************************************************/
+
 typedef struct _glp_graph glp_graph;
 typedef struct _glp_vertex glp_vertex;
 typedef struct _glp_arc glp_arc;
@@ -948,97 +1063,15 @@ int glp_weak_comp(glp_graph *G, int v_num);
 int glp_strong_comp(glp_graph *G, int v_num);
 /* find all strongly connected components of graph */
 
+int glp_top_sort(glp_graph *G, int v_num);
+/* topological sorting of acyclic digraph */
+
 int glp_wclique_exact(glp_graph *G, int v_wgt, double *sol, int v_set);
 /* find maximum weight clique with exact algorithm */
 
-/**********************************************************************/
-
-typedef struct { int lo, hi; } glp_long;
-/* long integer data type */
-
-const char *glp_version(void);
-/* determine library version */
-
-void glp_printf(const char *fmt, ...);
-/* write formatted output to terminal */
-
-void glp_vprintf(const char *fmt, va_list arg);
-/* write formatted output to terminal */
-
-#define glp_assert(expr) \
-      ((void)((expr) || (glp_assert_(#expr, __FILE__, __LINE__), 1)))
-
-void glp_assert_(const char *expr, const char *file, int line);
-/* check for logical condition */
-
-int glp_term_out(int flag);
-/* enable/disable terminal output */
-
-void glp_term_hook(int (*func)(void *info, const char *s), void *info);
-/* install hook to intercept terminal output */
-
-void *glp_malloc(int size);
-/* allocate memory block */
-
-void *glp_calloc(int n, int size);
-/* allocate memory block */
-
-void glp_free(void *ptr);
-/* free memory block */
-
-void glp_mem_usage(int *count, int *cpeak, glp_long *total,
-      glp_long *tpeak);
-/* get memory usage information */
-
-void glp_mem_limit(int limit);
-/* set memory usage limit */
-
-glp_long glp_time(void);
-/* determine current universal time */
-
-void glp_free_env(void);
-/* free GLPK library environment */
-
-/**********************************************************************/
-
-#ifndef GLPSDF_H
-typedef struct { double _opaque_data[100]; } glp_data;
-/* plain data file */
-#endif
-
-glp_data *glp_sdf_open_file(const char *fname);
-/* open plain data file */
-
-void glp_sdf_set_jump(glp_data *data, void *jump);
-/* set up error handling */
-
-void glp_sdf_error(glp_data *data, const char *fmt, ...);
-/* print error message */
-
-void glp_sdf_warning(glp_data *data, const char *fmt, ...);
-/* print warning message */
-
-int glp_sdf_read_int(glp_data *data);
-/* read integer number */
-
-double glp_sdf_read_num(glp_data *data);
-/* read floating-point number */
-
-const char *glp_sdf_read_item(glp_data *data);
-/* read data item */
-
-const char *glp_sdf_read_text(glp_data *data);
-/* read text until end of line */
-
-int glp_sdf_line(glp_data *data);
-/* determine current line number */
-
-void glp_sdf_close_file(glp_data *data);
-/* close plain data file */
-
 /***********************************************************************
 *  NOTE: All symbols defined below are obsolete and kept here only for
-*        backward compatibility. 
+*        backward compatibility.
 ***********************************************************************/
 
 #define LPX glp_prob

@@ -26,7 +26,7 @@
 #define GLPSSX_H
 
 #include "glpbfx.h"
-#include "glplib.h"
+#include "glpenv.h"
 
 typedef struct SSX SSX;
 
@@ -323,10 +323,10 @@ struct SSX
       /* output frequency, in seconds; this parameter specifies how
          frequently the solver sends information about the progress of
          the search to the standard output */
-      xlong_t tm_beg;
+      glp_long tm_beg;
       /* starting time of the search, in seconds; the total time of the
          search is the difference between xtime() and tm_beg */
-      xlong_t tm_lag;
+      glp_long tm_lag;
       /* the most recent time, in seconds, at which the progress of the
          the search was displayed */
 };

@@ -275,7 +275,7 @@ done: return ret;
 
 static int preprocess_and_solve_mip(glp_prob *P, const glp_iocp *parm)
 {     /* solve MIP using the preprocessor */
-      LIBENV *env = lib_link_env();
+      ENV *env = get_env_ptr();
       int term_out = env->term_out;
       NPP *npp;
       glp_prob *mip = NULL;

@@ -1029,6 +1029,12 @@ int npp_hidden_covering(NPP *npp, NPPROW *row)
                xprintf(" %sx%d", e->aj > 0.0 ? "+" : "-", e->xj->j);
             xprintf(", >= %g\n", b);
 #endif
+            if (row->lb == -DBL_MAX || row->ub == +DBL_MAX)
+            {  /* the original row is single-sided inequality; no copy
+                  is needed */
+               copy = NULL;
+            }
+            else
             {  /* the original row is double-sided inequality; we need
                   to create its copy for other bound before replacing it
                   with the equivalent inequality */

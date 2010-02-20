@@ -1,4 +1,4 @@
-/* glprng02.c */
+/* glpenv02.c (thread local storage) */
 
 /***********************************************************************
 *  This code is part of GLPK (GNU Linear Programming Kit).
@@ -23,54 +23,51 @@
 ***********************************************************************/
 
 #include "glpenv.h"
-#include "glprng.h"
-#define xfault xerror
+
+static void *tls = NULL;
+/* in a re-entrant version of the package this variable must be placed
+   in the Thread Local Storage (TLS) */
 
 /***********************************************************************
 *  NAME
 *
-*  rng_unif_01 - obtain pseudo-random number in the range [0, 1]
+*  tls_set_ptr - store global pointer in TLS
 *
 *  SYNOPSIS
 *
-*  #include "glprng.h"
-*  double rng_unif_01(RNG *rand);
+*  #include "glpenv.h"
+*  void tls_set_ptr(void *ptr);
 *
-*  RETURNS
+*  DESCRIPTION
 *
-*  The routine rng_unif_01 returns a next pseudo-random number which is
-*  uniformly distributed in the range [0, 1]. */
+*  The routine tls_set_ptr stores a pointer specified by the parameter
+*  ptr in the Thread Local Storage (TLS). */
 
-double rng_unif_01(RNG *rand)
-{     double x;
-      x = (double)rng_next_rand(rand) / 2147483647.0;
-      xassert(0.0 <= x && x <= 1.0);
-      return x;
+void tls_set_ptr(void *ptr)
+{     tls = ptr;
+      return;
 }
 
 /***********************************************************************
 *  NAME
 *
-*  rng_uniform - obtain pseudo-random number in the range [a, b]
+*  tls_get_ptr - retrieve global pointer from TLS
 *
 *  SYNOPSIS
 *
-*  #include "glprng.h"
-*  double rng_uniform(RNG *rand, double a, double b);
+*  #include "glpenv.h"
+*  void *tls_get_ptr(void);
 *
 *  RETURNS
 *
-*  The routine rng_uniform returns a next pseudo-random number which is
-*  uniformly distributed in the range [a, b]. */
+*  The routine tls_get_ptr returns a pointer previously stored by the
+*  routine tls_set_ptr. If the latter has not been called yet, NULL is
+*  returned. */
 
-double rng_uniform(RNG *rand, double a, double b)
-{     double x;
-      if (a >= b)
-         xfault("rng_uniform: a = %g, b = %g; invalid range\n", a, b);
-      x = rng_unif_01(rand);
-      x = a * (1.0 - x) + b * x;
-      xassert(a <= x && x <= b);
-      return x;
+void *tls_get_ptr(void)
+{     void *ptr;
+      ptr = tls;
+      return ptr;
 }
 
 /* eof */

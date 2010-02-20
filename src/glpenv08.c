@@ -1,4 +1,4 @@
-/* glplib12.c (shared library support) */
+/* glpenv08.c (shared library support) */
 
 /***********************************************************************
 *  This code is part of GLPK (GNU Linear Programming Kit).
@@ -22,13 +22,15 @@
 *  along with GLPK. If not, see <http://www.gnu.org/licenses/>.
 ***********************************************************************/
 
-#include "glplib.h"
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 
-/**********************************************************************/
+#include "glpenv.h"
+
+/* GNU version ********************************************************/
 
 #if defined(HAVE_LTDL)
-
-/* GNU version */
 
 #include <ltdl.h>
 
@@ -65,11 +67,9 @@ void xdlclose(void *h)
       return;
 }
 
-/**********************************************************************/
+/* POSIX version ******************************************************/
 
 #elif defined(HAVE_DLFCN)
-
-/* POSIX version */
 
 #include <dlfcn.h>
 
@@ -97,11 +97,9 @@ void xdlclose(void *h)
       return;
 }
 
-/**********************************************************************/
+/* Windows version ****************************************************/
 
 #elif defined(__WOE__)
-
-/* Windows version */
 
 #include <windows.h>
 
@@ -132,11 +130,9 @@ void xdlclose(void *h)
       return;
 }
 
-/**********************************************************************/
+/* NULL version *******************************************************/
 
 #else
-
-/* NULL version */
 
 void *xdlopen(const char *module)
 {     xassert(module == module);

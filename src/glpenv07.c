@@ -1,4 +1,4 @@
-/* glplib08.c (stream input/output) */
+/* glpenv07.c (stream input/output) */
 
 /***********************************************************************
 *  This code is part of GLPK (GNU Linear Programming Kit).
@@ -22,9 +22,58 @@
 *  along with GLPK. If not, see <http://www.gnu.org/licenses/>.
 ***********************************************************************/
 
-#define _GLPSTD_ERRNO
-#define _GLPSTD_STDIO
-#include "glplib.h"
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
+#include "glpenv.h"
+
+/***********************************************************************
+*  NAME
+*
+*  lib_err_msg - save error message string
+*
+*  SYNOPSIS
+*
+*  #include "glpenv.h"
+*  void lib_err_msg(const char *msg);
+*
+*  DESCRIPTION
+*
+*  The routine lib_err_msg saves an error message string specified by
+*  the parameter msg. The message is obtained by some library routines
+*  with a call to strerror(errno). */
+
+void lib_err_msg(const char *msg)
+{     ENV *env = get_env_ptr();
+      int len = strlen(msg);
+      if (len >= IOERR_MSG_SIZE)
+         len = IOERR_MSG_SIZE - 1;
+      memcpy(env->ioerr_msg, msg, len);
+      if (len > 0 && env->ioerr_msg[len-1] == '\n') len--;
+      env->ioerr_msg[len] = '\0';
+      return;
+}
+
+/***********************************************************************
+*  NAME
+*
+*  xerrmsg - retrieve error message string
+*
+*  SYNOPSIS
+*
+*  #include "glpenv.h"
+*  const char *xerrmsg(void);
+*
+*  RETURNS
+*
+*  The routine xerrmsg returns a pointer to an error message string
+*  previously set by some library routine to indicate an error. */
+
+const char *xerrmsg(void)
+{     ENV *env = get_env_ptr();
+      return env->ioerr_msg;
+}
 
 /***********************************************************************
 *  NAME
@@ -33,7 +82,7 @@
 *
 *  SYNOPSIS
 *
-*  #include "glplib.h"
+*  #include "glpenv.h"
 *  XFILE *xfopen(const char *fname, const char *mode);
 *
 *  DESCRIPTION
@@ -63,7 +112,7 @@ static int is_gz_file(const char *fname)
 }
 
 XFILE *xfopen(const char *fname, const char *mode)
-{     LIBENV *env = lib_link_env();
+{     ENV *env = get_env_ptr();
       XFILE *fp;
       int type;
       void *fh;
@@ -96,7 +145,7 @@ done: return fp;
 *
 *  SYNOPSIS
 *
-*  #include "glplib.h"
+*  #include "glpenv.h"
 *  int xfgetc(XFILE *fp);
 *
 *  DESCRIPTION
@@ -144,7 +193,7 @@ int xfgetc(XFILE *fp)
 *
 *  SYNOPSIS
 *
-*  #include "glplib.h"
+*  #include "glpenv.h"
 *  int xfputc(int c, XFILE *fp);
 *
 *  DESCRIPTION
@@ -184,7 +233,7 @@ int xfputc(int c, XFILE *fp)
 *
 *  SYNOPSIS
 *
-*  #include "glplib.h"
+*  #include "glpenv.h"
 *  int xferror(XFILE *fp);
 *
 *  DESCRIPTION
@@ -222,7 +271,7 @@ int xferror(XFILE *fp)
 *
 *  SYNOPSIS
 *
-*  #include "glplib.h"
+*  #include "glpenv.h"
 *  int xfeof(XFILE *fp);
 *
 *  DESCRIPTION
@@ -253,6 +302,22 @@ int xfeof(XFILE *fp)
       return ret;
 }
 
+int xfprintf(XFILE *file, const char *fmt, ...)
+{     ENV *env = get_env_ptr();
+      int cnt, j;
+      va_list arg;
+      va_start(arg, fmt);
+      cnt = vsprintf(env->term_buf, fmt, arg);
+      va_end(arg);
+      for (j = 0; j < cnt; j++)
+      {  if (xfputc(env->term_buf[j], file) < 0)
+         {  cnt = -1;
+            break;
+         }
+      }
+      return cnt;
+}
+
 /***********************************************************************
 *  NAME
 *
@@ -260,7 +325,7 @@ int xfeof(XFILE *fp)
 *
 *  SYNOPSIS
 *
-*  #include "glplib.h"
+*  #include "glpenv.h"
 *  int xfflush(XFILE *fp);
 *
 *  DESCRIPTION
@@ -299,7 +364,7 @@ int xfflush(XFILE *fp)
 *
 *  SYNOPSIS
 *
-*  #include "glplib.h"
+*  #include "glpenv.h"
 *  int xfclose(XFILE *fp);
 *
 *  DESCRIPTION
@@ -317,7 +382,7 @@ static int c_fclose(void *fh);
 static int z_fclose(void *fh);
 
 int xfclose(XFILE *fp)
-{     LIBENV *env = lib_link_env();
+{     ENV *env = get_env_ptr();
       int ret;
       switch (fp->type)
       {  case FH_FILE:

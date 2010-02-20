@@ -160,7 +160,7 @@ struct csa
          0 - not determined yet
          1 - search for dual feasible solution
          2 - search for optimal solution */
-      xlong_t tm_beg;
+      glp_long tm_beg;
       /* time value at the beginning of the search */
       int it_beg;
       /* simplex iteration count at the beginning of the search */

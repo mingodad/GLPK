@@ -1,4 +1,4 @@
-/* glpapi14.c (library environment routines) */
+/* glpapi14.c (processing models in GNU MathProg language) */
 
 /***********************************************************************
 *  This code is part of GLPK (GNU Linear Programming Kit).
@@ -22,341 +22,220 @@
 *  along with GLPK. If not, see <http://www.gnu.org/licenses/>.
 ***********************************************************************/
 
+#define GLP_TRAN_DEFINED
+typedef struct MPL glp_tran;
+
+#include "glpmpl.h"
 #include "glpapi.h"
 
-/***********************************************************************
-*  NAME
-*
-*  glp_version - determine library version
-*
-*  SYNOPSIS
-*
-*  const char *glp_version(void);
-*
-*  RETURNS
-*
-*  The routine glp_version returns a pointer to a null-terminated
-*  character string, which specifies the version of the GLPK library in
-*  the form "X.Y", where X is the major version number, and Y is the
-*  minor version number, for example, "4.16". */
-
-const char *glp_version(void)
-{     return
-         lib_version();
+glp_tran *glp_mpl_alloc_wksp(void)
+{     /* allocate the MathProg translator workspace */
+      glp_tran *tran;
+      tran = mpl_initialize();
+      return tran;
 }
-
-/**********************************************************************/
-
-void glp_printf(const char *fmt, ...)
-{     /* write formatted output to terminal */
-      va_list arg;
-      va_start(arg, fmt);
-      xvprintf(fmt, arg);
-      va_end(arg);
-      return;
-}
-
-void glp_vprintf(const char *fmt, va_list arg)
-{     /* write formatted output to terminal */
-      xvprintf(fmt, arg);
-      return;
-}
-
-void glp_assert_(const char *expr, const char *file, int line)
-{     /* check for logical condition */
-      lib_xassert(expr, file, line);
-      /* no return */
-}
-
-/***********************************************************************
-*  NAME
-*
-*  glp_term_out - enable/disable terminal output
-*
-*  SYNOPSIS
-*
-*  int glp_term_out(int flag);
-*
-*  DESCRIPTION
-*
-*  Depending on the parameter flag the routine glp_term_out enables or
-*  disables terminal output performed by glpk routines:
-*
-*  GLP_ON  - enable terminal output;
-*  GLP_OFF - disable terminal output. */
-
-int glp_term_out(int flag)
-{     LIBENV *env = lib_link_env();
-      int old = env->term_out;
-      env->term_out = GLP_ON;
-      if (!(flag == GLP_ON || flag == GLP_OFF))
-         xerror("glp_term_out: flag = %d; invalid value\n", flag);
-      env->term_out = flag;
-      return old;
-}
-
-/***********************************************************************
-*  NAME
-*
-*  glp_term_hook - install hook to intercept terminal output
-*
-*  SYNOPSIS
-*
-*  void glp_term_hook(int (*func)(void *info, const char *s),
-*     void *info);
-*
-*  DESCRIPTION
-*
-*  The routine glp_term_hook installs the user-defined hook routine to
-*  intercept all terminal output performed by glpk routines.
-*
-*  This feature can be used to redirect the terminal output to other
-*  destination, for example to a file or a text window.
-*
-*  The parameter func specifies the user-defined hook routine. It is
-*  called from an internal printing routine, which passes to it two
-*  parameters: info and s. The parameter info is a transit pointer,
-*  specified in the corresponding call to the routine glp_term_hook;
-*  it may be used to pass some information to the hook routine. The
-*  parameter s is a pointer to the null terminated character string,
-*  which is intended to be written to the terminal. If the hook routine
-*  returns zero, the printing routine writes the string s to the
-*  terminal in a usual way; otherwise, if the hook routine returns
-*  non-zero, no terminal output is performed.
-*
-*  To uninstall the hook routine the parameters func and info should be
-*  specified as NULL. */
-
-void glp_term_hook(int (*func)(void *info, const char *s), void *info)
-{     lib_term_hook(func, info);
-      return;
-}
-
-/***********************************************************************
-*  NAME
-*
-*  glp_malloc - allocate memory block
-*
-*  SYNOPSIS
-*
-*  void *glp_malloc(int size);
-*
-*  DESCRIPTION
-*
-*  The routine glp_malloc allocates a memory block of size bytes long.
-*
-*  Note that being allocated the memory block contains arbitrary data
-*  (not binary zeros).
-*
-*  RETURNS
-*
-*  The routine glp_malloc returns a pointer to the allocated block.
-*  To free this block the routine glp_free (not free!) must be used. */
-
-void *glp_malloc(int size)
-{     void *ptr;
-      ptr = xmalloc(size);
-      return ptr;
-}
-
-/***********************************************************************
-*  NAME
-*
-*  glp_calloc - allocate memory block
-*
-*  SYNOPSIS
-*
-*  void *glp_calloc(int n, int size);
-*
-*  DESCRIPTION
-*
-*  The routine glp_calloc allocates a memory block of (n*size) bytes
-*  long.
-*
-*  Note that being allocated the memory block contains arbitrary data
-*  (not binary zeros).
-*
-*  RETURNS
-*
-*  The routine glp_calloc returns a pointer to the allocated block.
-*  To free this block the routine glp_free (not free!) must be used. */
-
-void *glp_calloc(int n, int size)
-{     void *ptr;
-      ptr = xcalloc(n, size);
-      return ptr;
-}
-
-/***********************************************************************
-*  NAME
-*
-*  glp_free - free memory block
-*
-*  SYNOPSIS
-*
-*  void glp_free(void *ptr);
-*
-*  DESCRIPTION
-*
-*  The routine glp_free frees a memory block pointed to by ptr, which
-*  was previuosly allocated by the routine glp_malloc or glp_calloc. */
-
-void glp_free(void *ptr)
-{     xfree(ptr);
-      return;
-}
-
-/***********************************************************************
-*  NAME
-*
-*  glp_mem_usage - get memory usage information
-*
-*  SYNOPSIS
-*
-*  void glp_mem_usage(int *count, int *cpeak, glp_long *total,
-*     glp_long *tpeak);
-*
-*  DESCRIPTION
-*
-*  The routine glp_mem_usage reports some information about utilization
-*  of the memory by GLPK routines. Information is stored to locations
-*  specified by corresponding parameters (see below). Any parameter can
-*  be specified as NULL, in which case corresponding information is not
-*  stored.
-*
-*  *count is the number of the memory blocks currently allocated by the
-*  routines xmalloc and xcalloc (one call to xmalloc or xcalloc results
-*  in allocating one memory block).
-*
-*  *cpeak is the peak value of *count reached since the initialization
-*  of the GLPK library environment.
-*
-*  *total is the total amount, in bytes, of the memory blocks currently
-*  allocated by the routines xmalloc and xcalloc.
-*
-*  *tpeak is the peak value of *total reached since the initialization
-*  of the GLPK library envirionment. */
-
-void glp_mem_usage(int *count, int *cpeak, glp_long *total,
-      glp_long *tpeak)
-{     xlong_t total1, tpeak1;
-      lib_mem_usage(count, cpeak, &total1, &tpeak1);
-      if (total != NULL) total->lo = total1.lo, total->hi = total1.hi;
-      if (tpeak != NULL) tpeak->lo = tpeak1.lo, tpeak->hi = tpeak1.hi;
-      return;
-}
-
-/***********************************************************************
-*  NAME
-*
-*  glp_mem_limit - set memory usage limit
-*
-*  SYNOPSIS
-*
-*  void glp_mem_limit(int limit);
-*
-*  DESCRIPTION
-*
-*  The routine glp_mem_limit limits the amount of memory available for
-*  dynamic allocation (in GLPK routines) to limit megabytes. */
-
-void glp_mem_limit(int limit)
-{     if (limit < 0)
-         xerror("glp_mem_limit: limit = %d; invalid parameter\n",
-            limit);
-      lib_mem_limit(xlmul(xlset(limit), xlset(1 << 20)));
-      return;
-}
-
-#if 0
-/***********************************************************************
-*  NAME
-*
-*  glp_fopen - open file
-*
-*  SYNOPSIS
-*
-*  FILE *glp_fopen(const char *fname, const char *mode);
-*
-*  DESCRIPTION
-*
-*  The routine glp_fopen opens a file using the character string fname
-*  as the file name and the character string mode as the open mode.
-*
-*  RETURNS
-*
-*  If the file is successfully open, the routine glp_fopen returns a
-*  pointer to an i/o stream associated with the file (i.e. a pointer to
-*  an object of the FILE type). Otherwise the routine return NULL. */
-
-FILE *glp_fopen(const char *fname, const char *mode)
-{     FILE *fp;
-      fp = xfopen(fname, mode);
-      return fp;
-}
-#endif
-
-#if 0
-/***********************************************************************
-*  NAME
-*
-*  glp_fclose - close file
-*
-*  SYNOPSIS
-*
-*  void glp_fclose(FILE *fp);
-*
-*  DESCRIPTION
-*
-*  The routine glp_fclose closes a file associated with i/o stream,
-*  which the parameter fp points to. It is assumed that the file was
-*  open by the routine glp_fopen. */
-
-void glp_fclose(FILE *fp)
-{     xfclose(fp);
-      return;
-}
-#endif
 
 #if 1 /* 08/XII-2009 */
-glp_long glp_time(void)
-{     /* determine current universal time */
-      xlong_t t;
-      glp_long t1;
-      t = xtime();
-      t1.lo = t.lo, t1.hi = t.hi;
-      return t1;
+void _glp_mpl_init_rand(glp_tran *tran, int seed)
+{     if (tran->phase != 0)
+         xerror("glp_mpl_init_rand: invalid call sequence\n");
+      rng_init_rand(tran->rand, seed);
+      return;
 }
 #endif
 
-/***********************************************************************
-*  NAME
-*
-*  glp_free_env - free GLPK library environment
-*
-*  SYNOPSIS
-*
-*  void glp_free_env(void);
-*
-*  DESCRIPTION
-*
-*  The routine glp_free_env frees all resources used by GLPK routines
-*  (memory blocks, etc.) which are currently still in use.
-*
-*  USAGE NOTES
-*
-*  Normally the application program does not need to call this routine,
-*  because GLPK routines always free all unused resources. However, if
-*  the application program even has deleted all problem objects, there
-*  will be several memory blocks still allocated for the library needs.
-*  For some reasons the application program may want GLPK to free this
-*  memory, in which case it should call glp_free_env.
-*
-*  Note that a call to glp_free_env invalidates all problem objects as
-*  if no GLPK routine were called. */
+int glp_mpl_read_model(glp_tran *tran, const char *fname, int skip)
+{     /* read and translate model section */
+      int ret;
+      if (tran->phase != 0)
+         xerror("glp_mpl_read_model: invalid call sequence\n");
+      ret = mpl_read_model(tran, (char *)fname, skip);
+      if (ret == 1 || ret == 2)
+         ret = 0;
+      else if (ret == 4)
+         ret = 1;
+      else
+         xassert(ret != ret);
+      return ret;
+}
 
-void glp_free_env(void)
-{     lib_free_env();
+int glp_mpl_read_data(glp_tran *tran, const char *fname)
+{     /* read and translate data section */
+      int ret;
+      if (!(tran->phase == 1 || tran->phase == 2))
+         xerror("glp_mpl_read_data: invalid call sequence\n");
+      ret = mpl_read_data(tran, (char *)fname);
+      if (ret == 2)
+         ret = 0;
+      else if (ret == 4)
+         ret = 1;
+      else
+         xassert(ret != ret);
+      return ret;
+}
+
+int glp_mpl_generate(glp_tran *tran, const char *fname)
+{     /* generate the model */
+      int ret;
+      if (!(tran->phase == 1 || tran->phase == 2))
+         xerror("glp_mpl_generate: invalid call sequence\n");
+      ret = mpl_generate(tran, (char *)fname);
+      if (ret == 3)
+         ret = 0;
+      else if (ret == 4)
+         ret = 1;
+      return ret;
+}
+
+void glp_mpl_build_prob(glp_tran *tran, glp_prob *prob)
+{     /* build LP/MIP problem instance from the model */
+      int m, n, i, j, t, kind, type, len, *ind;
+      double lb, ub, *val;
+      if (tran->phase != 3)
+         xerror("glp_mpl_build_prob: invalid call sequence\n");
+      /* erase the problem object */
+      glp_erase_prob(prob);
+      /* set problem name */
+      glp_set_prob_name(prob, mpl_get_prob_name(tran));
+      /* build rows (constraints) */
+      m = mpl_get_num_rows(tran);
+      if (m > 0)
+         glp_add_rows(prob, m);
+      for (i = 1; i <= m; i++)
+      {  /* set row name */
+         glp_set_row_name(prob, i, mpl_get_row_name(tran, i));
+         /* set row bounds */
+         type = mpl_get_row_bnds(tran, i, &lb, &ub);
+         switch (type)
+         {  case MPL_FR: type = GLP_FR; break;
+            case MPL_LO: type = GLP_LO; break;
+            case MPL_UP: type = GLP_UP; break;
+            case MPL_DB: type = GLP_DB; break;
+            case MPL_FX: type = GLP_FX; break;
+            default: xassert(type != type);
+         }
+         if (type == GLP_DB && fabs(lb - ub) < 1e-9 * (1.0 + fabs(lb)))
+         {  type = GLP_FX;
+            if (fabs(lb) <= fabs(ub)) ub = lb; else lb = ub;
+         }
+         glp_set_row_bnds(prob, i, type, lb, ub);
+         /* warn about non-zero constant term */
+         if (mpl_get_row_c0(tran, i) != 0.0)
+            xprintf("glp_mpl_build_prob: row %s; constant term %.12g ig"
+               "nored\n",
+               mpl_get_row_name(tran, i), mpl_get_row_c0(tran, i));
+      }
+      /* build columns (variables) */
+      n = mpl_get_num_cols(tran);
+      if (n > 0)
+         glp_add_cols(prob, n);
+      for (j = 1; j <= n; j++)
+      {  /* set column name */
+         glp_set_col_name(prob, j, mpl_get_col_name(tran, j));
+         /* set column kind */
+         kind = mpl_get_col_kind(tran, j);
+         switch (kind)
+         {  case MPL_NUM:
+               break;
+            case MPL_INT:
+            case MPL_BIN:
+               glp_set_col_kind(prob, j, GLP_IV);
+               break;
+            default:
+               xassert(kind != kind);
+         }
+         /* set column bounds */
+         type = mpl_get_col_bnds(tran, j, &lb, &ub);
+         switch (type)
+         {  case MPL_FR: type = GLP_FR; break;
+            case MPL_LO: type = GLP_LO; break;
+            case MPL_UP: type = GLP_UP; break;
+            case MPL_DB: type = GLP_DB; break;
+            case MPL_FX: type = GLP_FX; break;
+            default: xassert(type != type);
+         }
+         if (kind == MPL_BIN)
+         {  if (type == GLP_FR || type == GLP_UP || lb < 0.0) lb = 0.0;
+            if (type == GLP_FR || type == GLP_LO || ub > 1.0) ub = 1.0;
+            type = GLP_DB;
+         }
+         if (type == GLP_DB && fabs(lb - ub) < 1e-9 * (1.0 + fabs(lb)))
+         {  type = GLP_FX;
+            if (fabs(lb) <= fabs(ub)) ub = lb; else lb = ub;
+         }
+         glp_set_col_bnds(prob, j, type, lb, ub);
+      }
+      /* load the constraint matrix */
+      ind = xcalloc(1+n, sizeof(int));
+      val = xcalloc(1+n, sizeof(double));
+      for (i = 1; i <= m; i++)
+      {  len = mpl_get_mat_row(tran, i, ind, val);
+         glp_set_mat_row(prob, i, len, ind, val);
+      }
+      /* build objective function (the first objective is used) */
+      for (i = 1; i <= m; i++)
+      {  kind = mpl_get_row_kind(tran, i);
+         if (kind == MPL_MIN || kind == MPL_MAX)
+         {  /* set objective name */
+            glp_set_obj_name(prob, mpl_get_row_name(tran, i));
+            /* set optimization direction */
+            glp_set_obj_dir(prob, kind == MPL_MIN ? GLP_MIN : GLP_MAX);
+            /* set constant term */
+            glp_set_obj_coef(prob, 0, mpl_get_row_c0(tran, i));
+            /* set objective coefficients */
+            len = mpl_get_mat_row(tran, i, ind, val);
+            for (t = 1; t <= len; t++)
+               glp_set_obj_coef(prob, ind[t], val[t]);
+            break;
+         }
+      }
+      /* free working arrays */
+      xfree(ind);
+      xfree(val);
+      return;
+}
+
+int glp_mpl_postsolve(glp_tran *tran, glp_prob *prob, int sol)
+{     /* postsolve the model */
+      int j, m, n, ret;
+      double x;
+      if (!(tran->phase == 3 && !tran->flag_p))
+         xerror("glp_mpl_postsolve: invalid call sequence\n");
+      if (!(sol == GLP_SOL || sol == GLP_IPT || sol == GLP_MIP))
+         xerror("glp_mpl_postsolve: sol = %d; invalid parameter\n",
+            sol);
+      m = mpl_get_num_rows(tran);
+      n = mpl_get_num_cols(tran);
+      if (!(m == glp_get_num_rows(prob) &&
+            n == glp_get_num_cols(prob)))
+         xerror("glp_mpl_postsolve: wrong problem object\n");
+      if (!mpl_has_solve_stmt(tran))
+      {  ret = 0;
+         goto done;
+      }
+      for (j = 1; j <= n; j++)
+      {  if (sol == GLP_SOL)
+            x = glp_get_col_prim(prob, j);
+         else if (sol == GLP_IPT)
+            x = glp_ipt_col_prim(prob, j);
+         else if (sol == GLP_MIP)
+            x = glp_mip_col_val(prob, j);
+         else
+            xassert(sol != sol);
+         if (fabs(x) < 1e-9) x = 0.0;
+         mpl_put_col_value(tran, j, x);
+      }
+      ret = mpl_postsolve(tran);
+      if (ret == 3)
+         ret = 0;
+      else if (ret == 4)
+         ret = 1;
+done: return ret;
+}
+
+void glp_mpl_free_wksp(glp_tran *tran)
+{     /* free the MathProg translator workspace */
+      mpl_terminate(tran);
       return;
 }
 

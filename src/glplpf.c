@@ -23,7 +23,7 @@
 ***********************************************************************/
 
 #include "glplpf.h"
-#include "glplib.h"
+#include "glpenv.h"
 #define xfault xerror
 
 #define _GLPLPF_DEBUG 0

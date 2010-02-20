@@ -1,3 +1,34 @@
+Sat Feb 20 12:00:00 2010 Andrew Makhorin <mao@gnu.org>
+
+        * GLPK 4.43 (28:0:28) has been released
+
+        * glplib.h, glplib.c, glpenv.h, glpenv.c
+        The module glpenv was split into two modules glpenv and glplib.
+
+        * glpenv01.c, glpenv03.c, glpenv04.c, glpenv06.c 
+        The following new API routines were added and documented:
+        glp_init_env, glp_free_env, glp_open_tee, glp_close_tee,
+        glp_error (macro), glp_difftime.
+
+        * glpapi16.c
+        New API routine glp_top_sort (topological sorting of ayclic
+        digraph) was added and documented.
+
+        * glpapi17.c
+        A serious bug was fixed in the routine glp_asn_prob_hall.
+
+        * glpnpp05.c
+        A bug was fixed in the LP/MIP preprocessor (hidden covering
+        inequalities).
+
+        * glpsql.c
+        Some improvements were made in the table driver (NULL data).
+        Thanks to Xypron <xypron.glpk@gmx.de> for contribution.
+
+        * configure.ac
+        Changes were made to use .dylib rather than .so under Mac OS.
+        Thanks to Noli Sicad <nsicad@gmail.com> for testing
+
 Wed Jan 13 12:00:00 2010 Andrew Makhorin <mao@gnu.org>
 
         * GLPK 4.42 (27:0:27) has been released

@@ -24,6 +24,7 @@
 
 #define GLPSDF_H
 
+#define GLP_DATA_DEFINED
 typedef struct glp_data glp_data;
 
 #include "glpapi.h"
@@ -90,7 +91,7 @@ void glp_sdf_error(glp_data *data, const char *fmt, ...)
       xvprintf(fmt, arg);
       va_end(arg);
       if (data->jump == NULL)
-         exit(EXIT_FAILURE);
+         xerror("");
       else
          longjmp(data->jump, 1);
       /* no return */

@@ -25,6 +25,7 @@
 #ifndef GLPAPI_H
 #define GLPAPI_H
 
+#define GLP_PROB_DEFINED
 typedef struct glp_prob glp_prob;
 
 #include "glpk.h"

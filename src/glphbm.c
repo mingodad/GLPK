@@ -25,7 +25,7 @@
 #define _GLPSTD_ERRNO
 #define _GLPSTD_STDIO
 #include "glphbm.h"
-#include "glplib.h"
+#include "glpenv.h"
 
 /***********************************************************************
 *  NAME

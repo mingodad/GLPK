@@ -1,6 +1,6 @@
 dnl Process this file with autoconf to produce a configure script
 
-AC_INIT([GLPK], [4.42], [bug-glpk@gnu.org])
+AC_INIT([GLPK], [4.43], [bug-glpk@gnu.org])
 
 AC_CONFIG_SRCDIR([include/glpk.h])
 
@@ -68,8 +68,13 @@ AC_PROG_LIBTOOL
 dnl Check for math library
 AC_CHECK_LIB([m], [exp])
 
-dnl Check for vsnprintf function
-AC_CHECK_FUNCS([vsnprintf])
+dnl Check for <sys/time.h> header
+AC_CHECK_HEADER([sys/time.h],
+   AC_DEFINE([HAVE_SYS_TIME_H], [1], [N/A]))
+
+dnl Check for gettimeofday function
+AC_CHECK_FUNC([gettimeofday],
+   AC_DEFINE([HAVE_GETTIMEOFDAY], [1], [N/A]))
 
 AC_MSG_CHECKING([whether to use GNU MP bignum library])
 if test "$with_gmp" = "yes"; then
@@ -105,19 +110,32 @@ else
    AC_MSG_RESULT([no])
 fi
 
+case $host_os in
+   darwin* | macosx*)
+      LIBIODBC="libiodbc.dylib"
+      LIBODBC="libodbc.dylib"
+      LIBMYSQL="libmysqlclient.dylib"
+      ;;
+   *)
+      LIBIODBC="libiodbc.so"
+      LIBODBC="libodbc.so"
+      LIBMYSQL="libmysqlclient.so"
+      ;;
+esac
+
 AC_MSG_CHECKING([whether to enable MathProg ODBC support])
 if test "$enable_odbc" = "yes"; then
    if test "$enable_dl" = "no"; then
       AC_MSG_ERROR([--enable-odbc requires --enable-dl])
    fi
    AC_MSG_RESULT([yes])
-   AC_DEFINE([ODBC_DLNAME], ["libiodbc.so"], [N/A])
+   AC_DEFINE_UNQUOTED([ODBC_DLNAME], ["$LIBIODBC"], [N/A])
 elif test "$enable_odbc" = "unix"; then
    if test "$enable_dl" = "no"; then
       AC_MSG_ERROR([--enable-odbc requires --enable-dl])
    fi
    AC_MSG_RESULT([unix])
-   AC_DEFINE([ODBC_DLNAME], ["libodbc.so"], [N/A])
+   AC_DEFINE_UNQUOTED([ODBC_DLNAME], ["$LIBODBC"], [N/A])
 else
    AC_MSG_RESULT([no])
 fi
@@ -129,7 +147,7 @@ if test "$enable_mysql" = "yes"; then
    fi
    AC_MSG_RESULT([yes])
    CPPFLAGS="-I/usr/include/mysql $CPPFLAGS"
-   AC_DEFINE([MYSQL_DLNAME], ["libmysqlclient.so"], [N/A])
+   AC_DEFINE_UNQUOTED([MYSQL_DLNAME], ["$LIBMYSQL"], [N/A])
 else
    AC_MSG_RESULT([no])
 fi

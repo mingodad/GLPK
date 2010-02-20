@@ -214,7 +214,7 @@ void dmp_free_atom(DMP *pool, void *atom, int size)
 *  SYNOPSIS
 *
 *  #include "glpdmp.h"
-*  xlong_t dmp_in_use(DMP *pool);
+*  glp_long dmp_in_use(DMP *pool);
 *
 *  DESCRIPTION
 *
@@ -226,7 +226,7 @@ void dmp_free_atom(DMP *pool, void *atom, int size)
 *
 *  The routine returns the number of atoms which are still in use. */
 
-xlong_t dmp_in_use(DMP *pool)
+glp_long dmp_in_use(DMP *pool)
 {     return
          pool->count;
 }

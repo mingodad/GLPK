@@ -25,7 +25,7 @@
 typedef struct BFX BFX;
 #define GLPBFX_DEFINED
 #include "glpbfx.h"
-#include "glplib.h"
+#include "glpenv.h"
 #include "glplux.h"
 
 struct BFX

@@ -106,7 +106,7 @@ obtained to an output text file.
                   &  (faster, less stable; default) \\
 \verb|--cbg|      &  LU + Schur complement + Bartels--Golub update \\
                   &  (slower, more stable) \\
-\verb|--cbg|      &  LU + Schur complement + Givens rotation update \\
+\verb|--cgr|      &  LU + Schur complement + Givens rotation update \\
                   &  (slower, more stable) \\
 \end{tabular}
 
@@ -166,19 +166,19 @@ obtained to an output text file.
 \verb|--bestp|    &  backtrack using the best projection heuristic
                      (default) \\
 \verb|--bestb|    &  backtrack using node with best local bound \\
-\verb|--intopt|   &  use advanced MIP solver (enables MIP presolving)\\
+\verb|--intopt|   &  use MIP presolver (default)\\
+\verb|--nointopt| &  do not use MIP presolver\\
 \verb|--binarize| &  replace general integer variables by binary ones
                      (assumes \verb|--intopt|)\\
-\verb|--cover|    &  generate mixed cover cuts\\
-\end{tabular}
-
-\noindent
-\begin{tabular}{@{}p{30mm}p{92.3mm}@{}}
-\verb|--clique|   &  generate clique cuts\\
+\verb|--fpump|    & apply feasibility pump heuristic\\
 \verb|--gomory|   &  generate Gomory's mixed integer cuts\\
 \verb|--mir|      &  generate MIR (mixed integer rounding) cuts\\
+\verb|--cover|    &  generate mixed cover cuts\\
+\verb|--clique|   &  generate clique cuts\\
 \verb|--cuts|     &  generate cuts of all classes above (assumes
                      \verb|--intopt|)\\
+\verb|--mipgap| {\it tol}
+                  & set relative mip gap tolerance to {\it tol}\\
 \end{tabular}
 
 \bigskip

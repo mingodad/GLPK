@@ -1,4 +1,4 @@
-/* glplib07.c (memory allocation) */
+/* glpenv05.c (memory allocation) */
 
 /***********************************************************************
 *  This code is part of GLPK (GNU Linear Programming Kit).
@@ -22,9 +22,8 @@
 *  along with GLPK. If not, see <http://www.gnu.org/licenses/>.
 ***********************************************************************/
 
-#include "glplib.h"
+#include "glpapi.h"
 
-#if 1 /* 29/VIII-2008 */
 /* some processors need data to be properly aligned; the macro
    align_datasize enlarges the specified size of a data item to provide
    a proper alignment of immediately following data */
@@ -32,47 +31,45 @@
 #define align_datasize(size) ((((size) + 15) / 16) * 16)
 /* 16 bytes is sufficient in both 32- and 64-bit environments
    (8 bytes is not sufficient in 64-bit environment due to jmp_buf) */
-#endif
 
 /***********************************************************************
 *  NAME
 *
-*  xmalloc - allocate memory block
+*  glp_malloc - allocate memory block
 *
 *  SYNOPSIS
 *
-*  #include "glplib.h"
-*  void *xmalloc(int size);
+*  void *glp_malloc(int size);
 *
 *  DESCRIPTION
 *
-*  The routine xmalloc allocates a memory block of size bytes long.
+*  The routine glp_malloc allocates a memory block of size bytes long.
 *
 *  Note that being allocated the memory block contains arbitrary data
 *  (not binary zeros).
 *
 *  RETURNS
 *
-*  The routine xmalloc returns a pointer to the allocated memory block.
-*  To free this block the routine xfree (not free!) should be used. */
+*  The routine glp_malloc returns a pointer to the allocated block.
+*  To free this block the routine glp_free (not free!) must be used. */
 
-void *xmalloc(int size)
-{     LIBENV *env = lib_link_env();
-      LIBMEM *desc;
-      int size_of_desc = align_datasize(sizeof(LIBMEM));
+void *glp_malloc(int size)
+{     ENV *env = get_env_ptr();
+      MEM *desc;
+      int size_of_desc = align_datasize(sizeof(MEM));
       if (size < 1 || size > INT_MAX - size_of_desc)
-         xerror("xmalloc: size = %d; invalid parameter\n", size);
+         xerror("glp_malloc: size = %d; invalid parameter\n", size);
       size += size_of_desc;
       if (xlcmp(xlset(size),
           xlsub(env->mem_limit, env->mem_total)) > 0)
-         xerror("xmalloc: memory limit exceeded\n");
+         xerror("glp_malloc: memory limit exceeded\n");
       if (env->mem_count == INT_MAX)
-         xerror("xmalloc: too many memory blocks allocated\n");
+         xerror("glp_malloc: too many memory blocks allocated\n");
       desc = malloc(size);
       if (desc == NULL)
-         xerror("xmalloc: no memory available\n");
+         xerror("glp_malloc: no memory available\n");
       memset(desc, '?', size);
-      desc->flag = LIB_MEM_FLAG;
+      desc->flag = MEM_MAGIC;
       desc->size = size;
       desc->prev = NULL;
       desc->next = env->mem_ptr;
@@ -90,96 +87,62 @@ void *xmalloc(int size)
 /***********************************************************************
 *  NAME
 *
-*  xcalloc - allocate memory block
+*  glp_calloc - allocate memory block
 *
 *  SYNOPSIS
 *
-*  #include "glplib.h"
-*  void *xcalloc(int n, int size);
+*  void *glp_calloc(int n, int size);
 *
 *  DESCRIPTION
 *
-*  The routine xcalloc allocates a memory block of (n*size) bytes long.
+*  The routine glp_calloc allocates a memory block of (n*size) bytes
+*  long.
 *
 *  Note that being allocated the memory block contains arbitrary data
 *  (not binary zeros).
 *
 *  RETURNS
 *
-*  The routine xcalloc returns a pointer to the allocated memory block.
-*  To free this block the routine xfree (not free!) should be used. */
+*  The routine glp_calloc returns a pointer to the allocated block.
+*  To free this block the routine glp_free (not free!) must be used. */
 
-void *xcalloc(int n, int size)
+void *glp_calloc(int n, int size)
 {     if (n < 1)
-         xerror("xcalloc: n = %d; invalid parameter\n", n);
+         xerror("glp_calloc: n = %d; invalid parameter\n", n);
       if (size < 1)
-         xerror("xcalloc: size = %d; invalid parameter\n", size);
+         xerror("glp_calloc: size = %d; invalid parameter\n", size);
       if (n > INT_MAX / size)
-         xerror("xcalloc: n = %d; size = %d; array too big\n", n, size);
+         xerror("glp_calloc: n = %d; size = %d; array too big\n", n,
+            size);
       return xmalloc(n * size);
 }
-
-/**********************************************************************/
-
-#if 0
-void *xrealloc(void *ptr, int size)
-{     /* reallocate memory block */
-      LIBMEM *desc;
-      int size_of_desc = align_datasize(sizeof(LIBMEM));
-      int copy_size;
-      void *old;
-      if (size < 0)
-         xerror("xrealloc: size = %d; invalid parameter\n", size);
-      if (ptr == NULL)
-      {  if (size > 0)
-            ptr = xmalloc(size);
-         goto done;
-      }
-      if (size == 0)
-      {  xfree(ptr);
-         ptr = NULL;
-         goto done;
-      }
-      desc = (void *)((char *)ptr - size_of_desc);
-      if (desc->flag != LIB_MEM_FLAG)
-         xerror("xrealloc: ptr = %p; invalid pointer\n", ptr);
-      copy_size = desc->size - size_of_desc;
-      if (copy_size > size) copy_size = size;
-      old = ptr;
-      ptr = xmalloc(size);
-      memcpy(ptr, old, copy_size);
-      xfree(old);
-done: return ptr;
-}
-#endif
 
 /***********************************************************************
 *  NAME
 *
-*  xfree - free memory block
+*  glp_free - free memory block
 *
 *  SYNOPSIS
 *
-*  #include "glplib.h"
-*  void xfree(void *ptr);
+*  void glp_free(void *ptr);
 *
 *  DESCRIPTION
 *
-*  The routine xfree frees a memory block pointed to by ptr, which was
-*  previuosly allocated by the routine xmalloc or xcalloc. */
+*  The routine glp_free frees a memory block pointed to by ptr, which
+*  was previuosly allocated by the routine glp_malloc or glp_calloc. */
 
-void xfree(void *ptr)
-{     LIBENV *env = lib_link_env();
-      LIBMEM *desc;
-      int size_of_desc = align_datasize(sizeof(LIBMEM));
+void glp_free(void *ptr)
+{     ENV *env = get_env_ptr();
+      MEM *desc;
+      int size_of_desc = align_datasize(sizeof(MEM));
       if (ptr == NULL)
-         xerror("xfree: ptr = %p; null pointer\n", ptr);
+         xerror("glp_free: ptr = %p; null pointer\n", ptr);
       desc = (void *)((char *)ptr - size_of_desc);
-      if (desc->flag != LIB_MEM_FLAG)
-         xerror("xfree: ptr = %p; invalid pointer\n", ptr);
+      if (desc->flag != MEM_MAGIC)
+         xerror("glp_free: ptr = %p; invalid pointer\n", ptr);
       if (env->mem_count == 0 ||
           xlcmp(env->mem_total, xlset(desc->size)) < 0)
-         xerror("xfree: memory allocation error\n");
+         xerror("glp_free: memory allocation error\n");
       if (desc->prev == NULL)
          env->mem_ptr = desc->next;
       else
@@ -198,38 +161,39 @@ void xfree(void *ptr)
 /***********************************************************************
 *  NAME
 *
-*  lib_mem_limit - set memory allocation limit
+*  glp_mem_limit - set memory usage limit
 *
 *  SYNOPSIS
 *
-*  #include "glplib.h"
-*  void lib_mem_limit(xlong_t limit);
+*  void glp_mem_limit(int limit);
 *
 *  DESCRIPTION
 *
-*  The routine lib_mem_limit limits the amount of memory available for
-*  dynamic allocation (in GLPK routines) to limit bytes. */
+*  The routine glp_mem_limit limits the amount of memory available for
+*  dynamic allocation (in GLPK routines) to limit megabytes. */
 
-void lib_mem_limit(xlong_t limit)
-{     LIBENV *env = lib_link_env();
-      env->mem_limit = limit;
+void glp_mem_limit(int limit)
+{     ENV *env = get_env_ptr();
+      if (limit < 0)
+         xerror("glp_mem_limit: limit = %d; invalid parameter\n",
+            limit);
+      env->mem_limit = xlmul(xlset(limit), xlset(1 << 20));
       return;
 }
 
 /***********************************************************************
 *  NAME
 *
-*  lib_mem_usage - get memory usage information
+*  glp_mem_usage - get memory usage information
 *
 *  SYNOPSIS
 *
-*  #include "glplib.h"
-*  void lib_mem_usage(int *count, int *cpeak, xlong_t *total,
-*     xlong_t *tpeak);
+*  void glp_mem_usage(int *count, int *cpeak, glp_long *total,
+*     glp_long *tpeak);
 *
 *  DESCRIPTION
 *
-*  The routine lib_mem_usage reports some information about utilization
+*  The routine glp_mem_usage reports some information about utilization
 *  of the memory by GLPK routines. Information is stored to locations
 *  specified by corresponding parameters (see below). Any parameter can
 *  be specified as NULL, in which case corresponding information is not
@@ -248,9 +212,9 @@ void lib_mem_limit(xlong_t limit)
 *  *tpeak is the peak value of *total reached since the initialization
 *  of the GLPK library envirionment. */
 
-void lib_mem_usage(int *count, int *cpeak, xlong_t *total,
-      xlong_t *tpeak)
-{     LIBENV *env = lib_link_env();
+void glp_mem_usage(int *count, int *cpeak, glp_long *total,
+      glp_long *tpeak)
+{     ENV *env = get_env_ptr();
       if (count != NULL) *count = env->mem_count;
       if (cpeak != NULL) *cpeak = env->mem_cpeak;
       if (total != NULL) *total = env->mem_total;

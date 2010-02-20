@@ -185,7 +185,7 @@ int glp_interior(glp_prob *P, const glp_iptcp *parm)
       }
 #endif
       /* scale the resultant LP */
-      {  LIBENV *env = lib_link_env();
+      {  ENV *env = get_env_ptr();
          int term_out = env->term_out;
          env->term_out = GLP_OFF;
          glp_scale_prob(prob, GLP_SF_EQ);

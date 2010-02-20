@@ -24,20 +24,23 @@
 *  along with GLPK. If not, see <http://www.gnu.org/licenses/>.
 ***********************************************************************/
 
-#define _GLPSTD_STDIO
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #include "glpmpl.h"
 #include "glpsql.h"
 
 #ifdef ODBC_DLNAME
 #define HAVE_ODBC
 #define libodbc ODBC_DLNAME
-#define h_odbc (lib_link_env()->h_odbc)
+#define h_odbc (get_env_ptr()->h_odbc)
 #endif
 
 #ifdef MYSQL_DLNAME
 #define HAVE_MYSQL
 #define libmysql MYSQL_DLNAME
-#define h_mysql (lib_link_env()->h_mysql)
+#define h_mysql (get_env_ptr()->h_mysql)
 #endif
 
 static void *db_iodbc_open_int(TABDCA *dca, int mode, const char
@@ -888,21 +891,26 @@ int db_iodbc_read(TABDCA *dca, void *link)
       if (sql->ref[i] > 0)
       {
          len = sql->outlen[i];
-         if (len > SQL_FDLEN_MAX)
-            len = SQL_FDLEN_MAX;
-         else if (len < 0)
-            len = 0;
-         strncpy(buf, (const char *) sql->data[i], len);
-         buf[len] = 0x00;
-         if (0 != (sql->isnumeric[i]))
+         if (len != SQL_NULL_DATA)
          {
-            strspx(buf); /* remove spaces*/
-            xassert(str2num(buf, &num) == 0);
-            mpl_tab_set_num(dca, sql->ref[i], num);
-         }
-         else
-         {
-            mpl_tab_set_str(dca, sql->ref[i], strtrim(buf));
+            if (len > SQL_FDLEN_MAX)
+               len = SQL_FDLEN_MAX;
+            else if (len < 0)
+               len = 0;
+            strncpy(buf, (const char *) sql->data[i], len);
+            buf[len] = 0x00;
+            if (0 != (sql->isnumeric[i]))
+            {  strspx(buf); /* remove spaces*/
+               if (str2num(buf, &num) != 0)
+               {  xprintf("'%s' cannot be converted to a number.\n",
+                     buf);
+                  return 1;
+               }
+               mpl_tab_set_num(dca, sql->ref[i], num);
+            }
+            else
+            {  mpl_tab_set_str(dca, sql->ref[i], strtrim(buf));
+            }
          }
       }
    }
@@ -1497,26 +1505,29 @@ int db_mysql_read(TABDCA *dca, void *link)
    num_fields = dl_mysql_num_fields(sql->res);
    for (i=1; i <= num_fields; i++)
    {
-      len = (size_t) lengths[i-1];
-      if (len > 255)
-         len = 255;
-      strncpy(buf, (const char *) row[i-1], len);
-      buf[len] = 0x00;
-      if (0 != (fields[i-1].flags & NUM_FLAG))
-      {
-         strspx(buf); /* remove spaces*/
-         xassert(str2num(buf, &num) == 0);
-         if (sql->ref[i] > 0)
-            mpl_tab_set_num(dca, sql->ref[i], num);
+      if (row[i-1] != NULL)
+      {  len = (size_t) lengths[i-1];
+         if (len > 255)
+            len = 255;
+         strncpy(buf, (const char *) row[i-1], len);
+         buf[len] = 0x00;
+         if (0 != (fields[i-1].flags & NUM_FLAG))
+         {  strspx(buf); /* remove spaces*/
+            if (str2num(buf, &num) != 0)
+            {  xprintf("'%s' cannot be converted to a number.\n", buf);
+               return 1;
+            }
+            if (sql->ref[i] > 0)
+               mpl_tab_set_num(dca, sql->ref[i], num);
          }
-           else
-         {
-         if (sql->ref[i] > 0)
-            mpl_tab_set_str(dca, sql->ref[i], strtrim(buf));
+         else
+         {  if (sql->ref[i] > 0)
+               mpl_tab_set_str(dca, sql->ref[i], strtrim(buf));
          }
-         }
-   return 0;
+      }
    }
+   return 0;
+}
 
 int db_mysql_write(TABDCA *dca, void *link)
 {

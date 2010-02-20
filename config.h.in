@@ -1,7 +1,10 @@
 /* config.h.in (GLPK configuration template file) */
 
-#undef HAVE_VSNPRINTF
-/* defined if the vsnprintf function can be used */
+#undef HAVE_SYS_TIME_H
+/* defined if the <sys/time.h> header can be used */
+
+#undef HAVE_GETTIMEOFDAY
+/* defined if the gettimeofday function can be used */
 
 #undef HAVE_GMP
 /* defined if the GNU MP bignum library is available */

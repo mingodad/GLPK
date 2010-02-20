@@ -710,7 +710,7 @@ int ios_driver(glp_tree *T)
          branching, pred_p is the reference number of its parent
          subproblem, otherwise pred_p is zero */
 #endif
-      xlong_t ttt = T->tm_beg;
+      glp_long ttt = T->tm_beg;
 #if 0
       ((glp_iocp *)T->parm)->msg_lev = GLP_MSG_DBG;
 #endif
@@ -807,8 +807,8 @@ more: /* minor loop starts here */
          show_progress(T, 0);
       if (T->parm->msg_lev >= GLP_MSG_ALL &&
             xdifftime(xtime(), ttt) >= 60.0)
-      {  xlong_t total;
-         lib_mem_usage(NULL, NULL, &total, NULL);
+      {  glp_long total;
+         glp_mem_usage(NULL, NULL, &total, NULL);
          xprintf("Time used: %.1f secs.  Memory used: %.1f Mb.\n",
             xdifftime(xtime(), T->tm_beg), xltod(total) / 1048576.0);
          ttt = xtime();
