@@ -197,8 +197,8 @@ void glp_mpl_build_prob(glp_tran *tran, glp_prob *prob)
 
 int glp_mpl_postsolve(glp_tran *tran, glp_prob *prob, int sol)
 {     /* postsolve the model */
-      int j, m, n, ret;
-      double x;
+      int i, j, m, n, stat, ret;
+      double prim, dual;
       if (!(tran->phase == 3 && !tran->flag_p))
          xerror("glp_mpl_postsolve: invalid call sequence\n");
       if (!(sol == GLP_SOL || sol == GLP_IPT || sol == GLP_MIP))
@@ -213,17 +213,49 @@ int glp_mpl_postsolve(glp_tran *tran, glp_prob *prob, int sol)
       {  ret = 0;
          goto done;
       }
-      for (j = 1; j <= n; j++)
+      for (i = 1; i <= m; i++)
       {  if (sol == GLP_SOL)
-            x = glp_get_col_prim(prob, j);
+         {  stat = glp_get_row_stat(prob, i);
+            prim = glp_get_row_prim(prob, i);
+            dual = glp_get_row_dual(prob, i);
+         }
          else if (sol == GLP_IPT)
-            x = glp_ipt_col_prim(prob, j);
+         {  stat = 0;
+            prim = glp_ipt_row_prim(prob, i);
+            dual = glp_ipt_row_dual(prob, i);
+         }
          else if (sol == GLP_MIP)
-            x = glp_mip_col_val(prob, j);
+         {  stat = 0;
+            prim = glp_mip_row_val(prob, i);
+            dual = 0.0;
+         }
          else
             xassert(sol != sol);
-         if (fabs(x) < 1e-9) x = 0.0;
-         mpl_put_col_value(tran, j, x);
+         if (fabs(prim) < 1e-9) prim = 0.0;
+         if (fabs(dual) < 1e-9) dual = 0.0;
+         mpl_put_row_soln(tran, i, stat, prim, dual);
+      }
+      for (j = 1; j <= n; j++)
+      {  if (sol == GLP_SOL)
+         {  stat = glp_get_col_stat(prob, j);
+            prim = glp_get_col_prim(prob, j);
+            dual = glp_get_col_dual(prob, j);
+         }
+         else if (sol == GLP_IPT)
+         {  stat = 0;
+            prim = glp_ipt_col_prim(prob, j);
+            dual = glp_ipt_col_dual(prob, j);
+         }
+         else if (sol == GLP_MIP)
+         {  stat = 0;
+            prim = glp_mip_col_val(prob, j);
+            dual = 0.0;
+         }
+         else
+            xassert(sol != sol);
+         if (fabs(prim) < 1e-9) prim = 0.0;
+         if (fabs(dual) < 1e-9) dual = 0.0;
+         mpl_put_col_soln(tran, j, stat, prim, dual);
       }
       ret = mpl_postsolve(tran);
       if (ret == 3)

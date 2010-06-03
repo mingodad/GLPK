@@ -34,7 +34,7 @@ extern "C" {
 
 /* library version numbers: */
 #define GLP_MAJOR_VERSION  4
-#define GLP_MINOR_VERSION  43
+#define GLP_MINOR_VERSION  44
 
 #ifndef GLP_PROB_DEFINED
 #define GLP_PROB_DEFINED
@@ -188,7 +188,10 @@ typedef struct
       int presolve;           /* enable/disable using MIP presolver */
       int binarize;           /* try to binarize integer variables */
       int fp_heur;            /* feasibility pump heuristic */
-      double foo_bar[30];     /* (reserved) */
+#if 1 /* 28/V-2010 */
+      int alien;              /* use alien solver */
+#endif
+      double foo_bar[29];     /* (reserved) */
 } glp_iocp;
 
 typedef struct
@@ -1014,6 +1017,9 @@ int glp_asnprob_okalg(int form, glp_graph *G, int v_set, int a_cost,
 
 int glp_asnprob_hall(glp_graph *G, int v_set, int a_x);
 /* find bipartite matching of maximum cardinality */
+
+double glp_cpp(glp_graph *G, int v_t, int v_es, int v_ls);
+/* solve critical path problem */
 
 int glp_read_mincost(glp_graph *G, int v_rhs, int a_low, int a_cap,
       int a_cost, const char *fname);

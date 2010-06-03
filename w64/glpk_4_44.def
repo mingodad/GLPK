@@ -1,5 +1,5 @@
-LIBRARY glpk_4_43
-VERSION 4.43
+LIBRARY glpk_4_44
+VERSION 4.44
 DESCRIPTION "GNU Linear Programming Kit"
 EXPORTS
 ;; from amd_1 ;;
@@ -213,6 +213,7 @@ EXPORTS
  glp_asnprob_lp
  glp_asnprob_okalg
  glp_check_asnprob
+ glp_cpp
  glp_maxflow_ffalg
  glp_maxflow_lp
  glp_mincost_lp
@@ -854,7 +855,8 @@ EXPORTS
  _glp_mpl_open_output
  _glp_mpl_postsolve
  _glp_mpl_postsolve_model
- _glp_mpl_put_col_value
+ _glp_mpl_put_col_soln
+ _glp_mpl_put_row_soln
  _glp_mpl_read_char
  _glp_mpl_read_data
  _glp_mpl_read_model

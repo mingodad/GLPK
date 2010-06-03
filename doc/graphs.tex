@@ -53,12 +53,12 @@ urlcolor=blue]{hyperref}
 \vspace{0.5in}
 
 \begin{LARGE}
-\sf Version 4.43
+\sf Version 4.44
 \end{LARGE}
 
 \vspace{0.5in}
 \begin{Large}
-\sf (DRAFT, January 2010)
+\sf (DRAFT, April 2010)
 \end{Large}
 \end{center}
 
@@ -3494,22 +3494,258 @@ edge  8 10: x = 0
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+\newpage
+
+\section{Critical path problem}
+
+\subsection{Background}
+
+The {\it critical path problem} (CPP) is stated as follows. Let there
+be given a project $J$, which a set of jobs (tasks, activities, etc.).
+Performing each job $i\in J$ requires time $t_i\geq 0$. Besides, over
+the set $J$ there is given a precedence relation $R\subseteq J\times J$,
+where $(i,j)\in R$ means that job $i$ immediately precedes job $j$, i.e.
+performing job $j$ cannot start until job $i$ has been completely
+performed. The problem is to find starting times $x_i$ for each job
+$i\in J$, which satisfy to the precedence relation and minimize the
+total duration (makespan) of the project.
+
+The following is an example of the critical path problem:
+
+\begin{center}
+\begin{tabular}{|c|l|c|c|}
+\hline
+Job&Desription&Time&Predecessors\\
+\hline
+A&Excavate&3&---\\
+B&Lay foundation&4&A\\
+C&Rough plumbing&3&B\\
+D&Frame&10&B\\
+E&Finish exterior&8&D\\
+F&Install HVAC&4&D\\
+G&Rough electric&6&D\\
+H&Sheet rock&8&C, E, F, G\\
+I&Install cabinets&5&H\\
+J&Paint&5&H\\
+K&Final plumbing&4&I\\
+L&Final electric&2&J\\
+M&Install flooring&4&K, L\\
+\hline
+\end{tabular}
+\end{center}
+
+Obviously, the project along with the precedence relation can be
+represented as a directed graph $G=(J,R)$ called {\it project network},
+where each node $i\in J$ corresponds to a job, and arc
+$(i\rightarrow j)\in R$ means that job $i$ immediately precedes job
+$j$.\footnote{There exists another network representation of the
+critical path problem, where jobs correspond to arcs while nodes
+correspond to events introduced to express the precedence relation.
+That representation, however, is much less convenient than the one,
+where jobs are represented as nodes of the network.} The project network
+for the example above is shown on Fig.~4.
+
+May note that the project network must be acyclic; otherwise, it would
+be impossible to satisfy to the precedence relation for any job that
+belongs to a cycle.
+
+\newpage
+
+\xymatrix
+{&&&C|3\ar[rd]&&I|5\ar[r]&K|4\ar[rd]&\\
+A|3\ar[r]&B|4\ar[rru]\ar[rd]&&E|8\ar[r]&H|8\ar[ru]\ar[rd]&&&M|4\\
+&&D|10\ar[ru]\ar[r]\ar[rd]&F|4\ar[ru]&&J|5\ar[r]&L|2\ar[ru]&\\
+&&&G|6\ar[ruu]&&&&\\
+}
+
+\bigskip
+
+\noindent\hfil
+Fig.~4. An example of the project network.
+
+\bigskip
+
+The critical path problem can be naturally formulated as the following
+LP problem:
+
+\medskip
+
+\noindent
+\hspace{.5in}minimize
+$$z\eqno(19)$$
+\hspace{.5in}subject to
+$$x_i+t_i\leq z\ \ \ \hbox{for all}\ i\in J\ \ \ \ \eqno(20)$$
+$$x_i+t_i\leq x_j\ \ \ \hbox{for all}\ (i,j)\in R\eqno(21)$$
+$$x_i\geq 0\ \ \ \ \ \ \ \hbox{for all}\ i\in J\ \ \eqno(22)$$
+
+The inequality constraints (21), which are active in the optimal
+solution, define so called {\it critical path} having the following
+property: the minimal project duration $z$ can be decreased only by
+decreasing the times $t_j$ for jobs on the critical path, and delaying
+any critical job delays the entire project.
+
+\subsection{glp\_cpp---solve critical path problem}
+
+\subsubsection{Synopsis}
+
+\begin{verbatim}
+double glp_cpp(glp_graph *G, int v_t, int v_es, int v_ls);
+\end{verbatim}
+
+\subsubsection{Description}
+
+The routine \verb|glp_cpp| solves the critical path problem represented
+in the form of the project network.
+
+The parameter \verb|G| is a pointer to the graph object, which
+specifies the project network. This graph must be acyclic. Multiple
+arcs are allowed being considered as single arcs.
+
+The parameter \verb|v_t| specifies an offset of the field of type
+\verb|double| in the vertex data block, which contains time $t_i\geq 0$
+needed to perform corresponding job $j\in J$. If \verb|v_t| $<0$, it is
+assumed that $t_i=1$ for all jobs.
+
+The parameter \verb|v_es| specifies an offset of the field of type
+\verb|double| in the vertex data block, to which the routine stores
+the {\it earliest start time} for corresponding job. If \verb|v_es|
+$<0$, this time is not stored.
+
+The parameter \verb|v_ls| specifies an offset of the field of type
+\verb|double| in the vertex data block, to which the routine stores
+the {\it latest start time} for corresponding job. If \verb|v_ls|
+$<0$, this time is not stored.
+
+The difference between the latest and earliest start times of some job
+is called its {\it time reserve}. Delaying a job within its time reserve
+does not affect the project duration, so if the time reserve is zero,
+the corresponding job is critical.
+
+\subsubsection{Returns}
+
+The routine \verb|glp_cpp| returns the minimal project duration, i.e.
+minimal time needed to perform all jobs in the project.
+
+\subsubsection{Example}
+
+The example program below solves the critical path problem shown on
+Fig.~4 by using the routine \verb|glp_cpp| and writes the solution found
+to the standard output.
+
+\begin{footnotesize}
+\begin{verbatim}
+#include <stddef.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <glpk.h>
+
+typedef struct { double t, es, ls; } v_data;
+
+#define node(v) ((v_data *)((v)->data))
+
+int main(void)
+{     glp_graph *G;
+      int i;
+      double t, es, ef, ls, lf, total;
+      G = glp_create_graph(sizeof(v_data), 0);
+      glp_add_vertices(G, 13);
+      node(G->v[1])->t = 3;   /* A: Excavate */
+      node(G->v[2])->t = 4;   /* B: Lay foundation */
+      node(G->v[3])->t = 3;   /* C: Rough plumbing */
+      node(G->v[4])->t = 10;  /* D: Frame */
+      node(G->v[5])->t = 8;   /* E: Finish exterior */
+      node(G->v[6])->t = 4;   /* F: Install HVAC */
+      node(G->v[7])->t = 6;   /* G: Rough elecrtic */
+      node(G->v[8])->t = 8;   /* H: Sheet rock */
+      node(G->v[9])->t = 5;   /* I: Install cabinets */
+      node(G->v[10])->t = 5;  /* J: Paint */
+      node(G->v[11])->t = 4;  /* K: Final plumbing */
+      node(G->v[12])->t = 2;  /* L: Final electric */
+      node(G->v[13])->t = 4;  /* M: Install flooring */
+      glp_add_arc(G, 1, 2);   /* A precedes B */
+      glp_add_arc(G, 2, 3);   /* B precedes C */
+      glp_add_arc(G, 2, 4);   /* B precedes D */
+      glp_add_arc(G, 4, 5);   /* D precedes E */
+      glp_add_arc(G, 4, 6);   /* D precedes F */
+      glp_add_arc(G, 4, 7);   /* D precedes G */
+      glp_add_arc(G, 3, 8);   /* C precedes H */
+      glp_add_arc(G, 5, 8);   /* E precedes H */
+      glp_add_arc(G, 6, 8);   /* F precedes H */
+      glp_add_arc(G, 7, 8);   /* G precedes H */
+      glp_add_arc(G, 8, 9);   /* H precedes I */
+      glp_add_arc(G, 8, 10);  /* H precedes J */
+      glp_add_arc(G, 9, 11);  /* I precedes K */
+      glp_add_arc(G, 10, 12); /* J precedes L */
+      glp_add_arc(G, 11, 13); /* K precedes M */
+      glp_add_arc(G, 12, 13); /* L precedes M */
+      total = glp_cpp(G, offsetof(v_data, t), offsetof(v_data, es),
+         offsetof(v_data, ls));
+      printf("Minimal project duration is %.2f\n\n", total);
+      printf("Job  Time      ES     EF     LS     LF\n");
+      printf("--- ------   ------ ------ ------ ------\n");
+      for (i = 1; i <= G->nv; i++)
+      {  t = node(G->v[i])->t;
+         es = node(G->v[i])->es;
+         ef = es + node(G->v[i])->t;
+         ls = node(G->v[i])->ls;
+         lf = ls + node(G->v[i])->t;
+         printf("%3d %6.2f %s %6.2f %6.2f %6.2f %6.2f\n",
+            i, t, ls - es < 0.001 ? "*" : " ", es, ef, ls, lf);
+      }
+      glp_delete_graph(G);
+      return 0;
+}
+\end{verbatim}
+\end{footnotesize}
+
+The output from the example program shown below includes job number,
+the time needed to perform a job, earliest start time (\verb|ES|),
+earliest finish time (\verb|EF|), latest start time (\verb|LS|), and
+latest finish time (\verb|LF|) for each job in the project. Critical
+jobs are marked by asterisks.
+
+\newpage
+
+\begin{footnotesize}
+\begin{verbatim}
+Minimal project duration is 46.00
+
+Job  Time      ES     EF     LS     LF
+--- ------   ------ ------ ------ ------
+  1   3.00 *   0.00   3.00   0.00   3.00
+  2   4.00 *   3.00   7.00   3.00   7.00
+  3   3.00     7.00  10.00  22.00  25.00
+  4  10.00 *   7.00  17.00   7.00  17.00
+  5   8.00 *  17.00  25.00  17.00  25.00
+  6   4.00    17.00  21.00  21.00  25.00
+  7   6.00    17.00  23.00  19.00  25.00
+  8   8.00 *  25.00  33.00  25.00  33.00
+  9   5.00 *  33.00  38.00  33.00  38.00
+ 10   5.00    33.00  38.00  35.00  40.00
+ 11   4.00 *  38.00  42.00  38.00  42.00
+ 12   2.00    38.00  40.00  40.00  42.00
+ 13   4.00 *  42.00  46.00  42.00  46.00
+\end{verbatim}
+\end{footnotesize}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
 \chapter{Graph Optimization API Routines}
 
 \section{Maximum clique problem}
 
 \subsection{Background}
 
-The {\it Maximum Clique Problem (MCP)} is a classic combinatorial
+The {\it maximum clique problem (MCP)} is a classic combinatorial
 optimization problem. Given an undirected graph $G=(V,E)$, where $V$ is
 a set of vertices, and $E$ is a set of edges, this problem is to find
 the largest {\it clique} $C\subseteq G$, i.e. the largest induced
-complete subgraph. A generalization of this problem is the {\it Maximum
-Weight Clique Problem (MWCP)}, which is to find a clique $C\subseteq G$
+complete subgraph. A generalization of this problem is the {\it maximum
+weight clique problem (MWCP)}, which is to find a clique $C\subseteq G$
 of the largest weight $\displaystyle\sum_{v\in C}w(v)\rightarrow\max$,
 where $w(v)$ is a weight of vertex $v\in V$.
 
-An example of the Maximum Weight Clique Problem is shown on Fig.~4.
+An example of the maximum weight clique problem is shown on Fig.~5.
 
 \begin{figure}
 \noindent\hfil
@@ -3533,7 +3769,7 @@ $w(v_5)$&=&5\\$w(v_6)$&=&2\\$w(v_7)$&=&1\\$w(v_8)$&=&3\\
 \end{tabular}
 
 \begin{center}
-Fig.~4. An example of the Maximum Weight Clique Problem.
+Fig.~5. An example of the maximum weight clique problem.
 \end{center}
 \end{figure}
 
@@ -3639,14 +3875,14 @@ int main(void)
 \end{footnotesize}
 
 \noindent
-For the example shown on Fig.~4 the data file may look like follows:
+For the example shown on Fig.~5 the data file may look like follows:
 
 \begin{footnotesize}
 \begin{verbatim}
 c sample.clq
 c
-c This is an example of the Maximum Weight Clique
-c Problem in DIMACS clique/coloring format.
+c This is an example of the maximum weight clique
+c problem in DIMACS clique/coloring format.
 c
 p edge 8 16
 n 1 3

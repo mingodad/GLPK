@@ -117,15 +117,15 @@ OBJSET = \
 .c.obj:
         cl.exe $(CFLAGS) /Fo$*.obj /c $*.c
 
-all: glpk_4_43.dll glpsol.exe
+all: glpk_4_44.dll glpsol.exe
 
-glpk_4_43.dll: $(OBJSET)
-        cl.exe $(CFLAGS) /LD /Feglpk_4_43.dll ..\src\*.obj \
-                ..\src\amd\*.obj ..\src\colamd\*.obj glpk_4_43.def
+glpk_4_44.dll: $(OBJSET)
+        cl.exe $(CFLAGS) /LD /Feglpk_4_44.dll ..\src\*.obj \
+                ..\src\amd\*.obj ..\src\colamd\*.obj glpk_4_44.def
 
-glpsol.exe: ..\examples\glpsol.obj glpk_4_43.dll
+glpsol.exe: ..\examples\glpsol.obj glpk_4_44.dll
         cl.exe $(CFLAGS) /Feglpsol.exe ..\examples\glpsol.obj \
-                glpk_4_43.lib
+                glpk_4_44.lib
 
 check: glpsol.exe
         .\glpsol.exe --version

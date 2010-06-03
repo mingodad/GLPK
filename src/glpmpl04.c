@@ -1256,6 +1256,33 @@ int mpl_has_solve_stmt(MPL *mpl)
       return mpl->flag_s;
 }
 
+#if 1 /* 15/V-2010 */
+void mpl_put_row_soln(MPL *mpl, int i, int stat, double prim,
+      double dual)
+{     /* store row (constraint/objective) solution components */
+      xassert(mpl->phase == 3);
+      xassert(1 <= i && i <= mpl->m);
+      mpl->row[i]->stat = stat;
+      mpl->row[i]->prim = prim;
+      mpl->row[i]->dual = dual;
+      return;
+}
+#endif
+
+#if 1 /* 15/V-2010 */
+void mpl_put_col_soln(MPL *mpl, int j, int stat, double prim,
+      double dual)
+{     /* store column (variable) solution components */
+      xassert(mpl->phase == 3);
+      xassert(1 <= j && j <= mpl->n);
+      mpl->col[j]->stat = stat;
+      mpl->col[j]->prim = prim;
+      mpl->col[j]->dual = dual;
+      return;
+}
+#endif
+
+#if 0 /* 15/V-2010 */
 /*----------------------------------------------------------------------
 -- mpl_put_col_value - store column value.
 --
@@ -1276,9 +1303,10 @@ void mpl_put_col_value(MPL *mpl, int j, double val)
       if (!(1 <= j && j <= mpl->n))
          xfault(
          "mpl_put_col_value: j = %d; column number out of range\n", j);
-      mpl->col[j]->value = val;
+      mpl->col[j]->prim = val;
       return;
 }
+#endif
 
 /*----------------------------------------------------------------------
 -- mpl_postsolve - postsolve model.

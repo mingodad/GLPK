@@ -1182,8 +1182,11 @@ struct ELEMVAR
       double temp;
       /* working quantity used in operations on linear forms; normally
          it contains floating-point zero */
-      double value;
-      /* value of this elemental variable provided by the solver */
+#if 1 /* 15/V-2010 */
+      int stat;
+      double prim, dual;
+      /* solution components provided by the solver */
+#endif
 };
 
 /**********************************************************************/
@@ -1271,6 +1274,11 @@ struct ELEMCON
       /* lower bound */
       double ubnd;
       /* upper bound */
+#if 1 /* 15/V-2010 */
+      int stat;
+      double prim, dual;
+      /* solution components provided by the solver */
+#endif
 };
 
 /**********************************************************************/
@@ -2004,7 +2012,28 @@ union OPERANDS
          /* model variable, which contains member to be taken */
          ARG_LIST *list;
          /* list of subscripts; NULL for 0-dimensional variable */
+#if 1 /* 15/V-2010 */
+         int suff;
+         /* suffix specified: */
+#define DOT_NONE        0x00  /* none     (means variable itself) */
+#define DOT_LB          0x01  /* .lb      (lower bound) */
+#define DOT_UB          0x02  /* .ub      (upper bound) */
+#define DOT_STATUS      0x03  /* .status  (status) */
+#define DOT_VAL         0x04  /* .val     (primal value) */
+#define DOT_DUAL        0x05  /* .dual    (dual value) */
+#endif
       } var;
+#if 1 /* 15/V-2010 */
+      /*--------------------------------------------------------------*/
+      struct                  /* O_MEMCON */
+      {  CONSTRAINT *con;
+         /* model constraint, which contains member to be taken */
+         ARG_LIST *list;
+         /* list of subscripys; NULL for 0-dimensional constraint */
+         int suff;
+         /* suffix specified (see O_MEMVAR above) */
+      } con;
+#endif
       /*--------------------------------------------------------------*/
       ARG_LIST *list;         /* O_TUPLE, O_MAKE, n-ary operations */
       /* list of operands */
@@ -2050,88 +2079,89 @@ struct CODE
 #define O_MEMSYM        305   /* take member of symbolic parameter */
 #define O_MEMSET        306   /* take member of set */
 #define O_MEMVAR        307   /* take member of variable */
-#define O_TUPLE         308   /* make n-tuple */
-#define O_MAKE          309   /* make elemental set of n-tuples */
-#define O_SLICE         310   /* define domain block (dummy op) */
+#define O_MEMCON        308   /* take member of constraint */
+#define O_TUPLE         309   /* make n-tuple */
+#define O_MAKE          310   /* make elemental set of n-tuples */
+#define O_SLICE         311   /* define domain block (dummy op) */
                               /* 0-ary operations --------------------*/
-#define O_IRAND224      311   /* pseudo-random in [0, 2^24-1] */
-#define O_UNIFORM01     312   /* pseudo-random in [0, 1) */
-#define O_NORMAL01      313   /* gaussian random, mu = 0, sigma = 1 */
-#define O_GMTIME        314   /* current calendar time (UTC) */
+#define O_IRAND224      312   /* pseudo-random in [0, 2^24-1] */
+#define O_UNIFORM01     313   /* pseudo-random in [0, 1) */
+#define O_NORMAL01      314   /* gaussian random, mu = 0, sigma = 1 */
+#define O_GMTIME        315   /* current calendar time (UTC) */
                               /* unary operations --------------------*/
-#define O_CVTNUM        315   /* conversion to numeric */
-#define O_CVTSYM        316   /* conversion to symbolic */
-#define O_CVTLOG        317   /* conversion to logical */
-#define O_CVTTUP        318   /* conversion to 1-tuple */
-#define O_CVTLFM        319   /* conversion to linear form */
-#define O_PLUS          320   /* unary plus */
-#define O_MINUS         321   /* unary minus */
-#define O_NOT           322   /* negation (logical "not") */
-#define O_ABS           323   /* absolute value */
-#define O_CEIL          324   /* round upward ("ceiling of x") */
-#define O_FLOOR         325   /* round downward ("floor of x") */
-#define O_EXP           326   /* base-e exponential */
-#define O_LOG           327   /* natural logarithm */
-#define O_LOG10         328   /* common (decimal) logarithm */
-#define O_SQRT          329   /* square root */
-#define O_SIN           330   /* trigonometric sine */
-#define O_COS           331   /* trigonometric cosine */
-#define O_ATAN          332   /* trigonometric arctangent */
-#define O_ROUND         333   /* round to nearest integer */
-#define O_TRUNC         334   /* truncate to nearest integer */
-#define O_CARD          335   /* cardinality of set */
-#define O_LENGTH        336   /* length of symbolic value */
+#define O_CVTNUM        316   /* conversion to numeric */
+#define O_CVTSYM        317   /* conversion to symbolic */
+#define O_CVTLOG        318   /* conversion to logical */
+#define O_CVTTUP        319   /* conversion to 1-tuple */
+#define O_CVTLFM        320   /* conversion to linear form */
+#define O_PLUS          321   /* unary plus */
+#define O_MINUS         322   /* unary minus */
+#define O_NOT           323   /* negation (logical "not") */
+#define O_ABS           324   /* absolute value */
+#define O_CEIL          325   /* round upward ("ceiling of x") */
+#define O_FLOOR         326   /* round downward ("floor of x") */
+#define O_EXP           327   /* base-e exponential */
+#define O_LOG           328   /* natural logarithm */
+#define O_LOG10         329   /* common (decimal) logarithm */
+#define O_SQRT          330   /* square root */
+#define O_SIN           331   /* trigonometric sine */
+#define O_COS           332   /* trigonometric cosine */
+#define O_ATAN          333   /* trigonometric arctangent */
+#define O_ROUND         334   /* round to nearest integer */
+#define O_TRUNC         335   /* truncate to nearest integer */
+#define O_CARD          336   /* cardinality of set */
+#define O_LENGTH        337   /* length of symbolic value */
                               /* binary operations -------------------*/
-#define O_ADD           337   /* addition */
-#define O_SUB           338   /* subtraction */
-#define O_LESS          339   /* non-negative subtraction */
-#define O_MUL           340   /* multiplication */
-#define O_DIV           341   /* division */
-#define O_IDIV          342   /* quotient of exact division */
-#define O_MOD           343   /* remainder of exact division */
-#define O_POWER         344   /* exponentiation (raise to power) */
-#define O_ATAN2         345   /* trigonometric arctangent */
-#define O_ROUND2        346   /* round to n fractional digits */
-#define O_TRUNC2        347   /* truncate to n fractional digits */
-#define O_UNIFORM       348   /* pseudo-random in [a, b) */
-#define O_NORMAL        349   /* gaussian random, given mu and sigma */
-#define O_CONCAT        350   /* concatenation */
-#define O_LT            351   /* comparison on 'less than' */
-#define O_LE            352   /* comparison on 'not greater than' */
-#define O_EQ            353   /* comparison on 'equal to' */
-#define O_GE            354   /* comparison on 'not less than' */
-#define O_GT            355   /* comparison on 'greater than' */
-#define O_NE            356   /* comparison on 'not equal to' */
-#define O_AND           357   /* conjunction (logical "and") */
-#define O_OR            358   /* disjunction (logical "or") */
-#define O_UNION         359   /* union */
-#define O_DIFF          360   /* difference */
-#define O_SYMDIFF       361   /* symmetric difference */
-#define O_INTER         362   /* intersection */
-#define O_CROSS         363   /* cross (Cartesian) product */
-#define O_IN            364   /* test on 'x in Y' */
-#define O_NOTIN         365   /* test on 'x not in Y' */
-#define O_WITHIN        366   /* test on 'X within Y' */
-#define O_NOTWITHIN     367   /* test on 'X not within Y' */
-#define O_SUBSTR        368   /* substring */
-#define O_STR2TIME      369   /* convert string to time */
-#define O_TIME2STR      370   /* convert time to string */
+#define O_ADD           338   /* addition */
+#define O_SUB           339   /* subtraction */
+#define O_LESS          340   /* non-negative subtraction */
+#define O_MUL           341   /* multiplication */
+#define O_DIV           342   /* division */
+#define O_IDIV          343   /* quotient of exact division */
+#define O_MOD           344   /* remainder of exact division */
+#define O_POWER         345   /* exponentiation (raise to power) */
+#define O_ATAN2         346   /* trigonometric arctangent */
+#define O_ROUND2        347   /* round to n fractional digits */
+#define O_TRUNC2        348   /* truncate to n fractional digits */
+#define O_UNIFORM       349   /* pseudo-random in [a, b) */
+#define O_NORMAL        350   /* gaussian random, given mu and sigma */
+#define O_CONCAT        351   /* concatenation */
+#define O_LT            352   /* comparison on 'less than' */
+#define O_LE            353   /* comparison on 'not greater than' */
+#define O_EQ            354   /* comparison on 'equal to' */
+#define O_GE            355   /* comparison on 'not less than' */
+#define O_GT            356   /* comparison on 'greater than' */
+#define O_NE            357   /* comparison on 'not equal to' */
+#define O_AND           358   /* conjunction (logical "and") */
+#define O_OR            359   /* disjunction (logical "or") */
+#define O_UNION         360   /* union */
+#define O_DIFF          361   /* difference */
+#define O_SYMDIFF       362   /* symmetric difference */
+#define O_INTER         363   /* intersection */
+#define O_CROSS         364   /* cross (Cartesian) product */
+#define O_IN            365   /* test on 'x in Y' */
+#define O_NOTIN         366   /* test on 'x not in Y' */
+#define O_WITHIN        367   /* test on 'X within Y' */
+#define O_NOTWITHIN     368   /* test on 'X not within Y' */
+#define O_SUBSTR        369   /* substring */
+#define O_STR2TIME      370   /* convert string to time */
+#define O_TIME2STR      371   /* convert time to string */
                               /* ternary operations ------------------*/
-#define O_DOTS          371   /* build "arithmetic" set */
-#define O_FORK          372   /* if-then-else */
-#define O_SUBSTR3       373   /* substring */
+#define O_DOTS          372   /* build "arithmetic" set */
+#define O_FORK          373   /* if-then-else */
+#define O_SUBSTR3       374   /* substring */
                               /* n-ary operations --------------------*/
-#define O_MIN           374   /* minimal value (n-ary) */
-#define O_MAX           375   /* maximal value (n-ary) */
+#define O_MIN           375   /* minimal value (n-ary) */
+#define O_MAX           376   /* maximal value (n-ary) */
                               /* iterated operations -----------------*/
-#define O_SUM           376   /* summation */
-#define O_PROD          377   /* multiplication */
-#define O_MINIMUM       378   /* minimum */
-#define O_MAXIMUM       379   /* maximum */
-#define O_FORALL        380   /* conjunction (A-quantification) */
-#define O_EXISTS        381   /* disjunction (E-quantification) */
-#define O_SETOF         382   /* compute elemental set */
-#define O_BUILD         383   /* build elemental set */
+#define O_SUM           377   /* summation */
+#define O_PROD          378   /* multiplication */
+#define O_MINIMUM       379   /* minimum */
+#define O_MAXIMUM       380   /* maximum */
+#define O_FORALL        381   /* conjunction (A-quantification) */
+#define O_EXISTS        382   /* disjunction (E-quantification) */
+#define O_SETOF         383   /* compute elemental set */
+#define O_BUILD         384   /* build elemental set */
       OPERANDS arg;
       /* operands that participate in the operation */
       int type;
@@ -2248,8 +2278,10 @@ struct DISPLAY1
          CODE *code;
       } u;
       /* item to be displayed */
+#if 0 /* 15/V-2010 */
       ARG_LIST *list;
       /* optional subscript list (for constraint/objective only) */
+#endif
       DISPLAY1 *next;
       /* the next entry for the same statement */
 };
@@ -2518,9 +2550,25 @@ int mpl_get_col_bnds(MPL *mpl, int j, double *lb, double *ub);
 int mpl_has_solve_stmt(MPL *mpl);
 /* check if model has solve statement */
 
+#if 1 /* 15/V-2010 */
+#define mpl_put_row_soln _glp_mpl_put_row_soln
+void mpl_put_row_soln(MPL *mpl, int i, int stat, double prim,
+      double dual);
+/* store row (constraint/objective) solution components */
+#endif
+
+#if 1 /* 15/V-2010 */
+#define mpl_put_col_soln _glp_mpl_put_col_soln
+void mpl_put_col_soln(MPL *mpl, int j, int stat, double prim,
+      double dual);
+/* store column (variable) solution components */
+#endif
+
+#if 0 /* 15/V-2010 */
 #define mpl_put_col_value _glp_mpl_put_col_value
 void mpl_put_col_value(MPL *mpl, int j, double val);
 /* store column value */
+#endif
 
 #define mpl_postsolve _glp_mpl_postsolve
 int mpl_postsolve(MPL *mpl);

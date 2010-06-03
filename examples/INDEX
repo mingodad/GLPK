@@ -5,6 +5,7 @@ cf12a.mod      Curve fitting problem
 cf12b.mod      Curve fitting problem
 cflsq.mod      Curve fitting problem by least squares
 color.mod      Graph coloring problem
+cpp.mod        Critical path problem
 crypto.mod     A crypto-arithmetic puzzle
 dea.mod        Data envelopment analysis (DEA)
 diet.mod       Stigler's nutrition model
@@ -36,6 +37,7 @@ queens.mod     A classic combinatorial optimization problem
 sat.mod        Satisfiability problem
 shiftcover.mod Workforce shift coverage assignment problem
 shikaku.mod    A solver for the logic puzzle Shikaku
+sorting.mod    How to sort arrays in MathProg
 spp.mod        Shortest path problem
 stigler.mod    Original Stigler's 1939 diet problem
 sudoku.mod     Number placement puzzle

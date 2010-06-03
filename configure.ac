@@ -1,6 +1,6 @@
 dnl Process this file with autoconf to produce a configure script
 
-AC_INIT([GLPK], [4.43], [bug-glpk@gnu.org])
+AC_INIT([GLPK], [4.44], [bug-glpk@gnu.org])
 
 AC_CONFIG_SRCDIR([include/glpk.h])
 

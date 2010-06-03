@@ -409,6 +409,15 @@ done: /* delete the transformed MIP, if it exists */
       return ret;
 }
 
+#ifndef HAVE_ALIEN_SOLVER /* 28/V-2010 */
+int _glp_intopt1(glp_prob *P, const glp_iocp *parm)
+{     xassert(P == P);
+      xassert(parm == parm);
+      xprintf("glp_intopt: no alien solver is available\n");
+      return GLP_EFAIL;
+}
+#endif
+
 int glp_intopt(glp_prob *P, const glp_iocp *parm)
 {     /* solve MIP problem with the branch-and-bound method */
       glp_iocp _parm;
@@ -488,6 +497,11 @@ int glp_intopt(glp_prob *P, const glp_iocp *parm)
       if (!(parm->fp_heur == GLP_ON || parm->fp_heur == GLP_OFF))
          xerror("glp_intopt: fp_heur = %d; invalid parameter\n",
             parm->fp_heur);
+#if 1 /* 28/V-2010 */
+      if (!(parm->alien == GLP_ON || parm->alien == GLP_OFF))
+         xerror("glp_intopt: alien = %d; invalid parameter\n",
+            parm->alien);
+#endif
       /* integer solution is currently undefined */
       P->mip_stat = GLP_UNDEF;
       P->mip_obj = 0.0;
@@ -566,6 +580,13 @@ int glp_intopt(glp_prob *P, const glp_iocp *parm)
          xprintf("%d integer variable%s, %s which %s binary\n",
             ni, ni == 1 ? "" : "s", s, nb == 1 ? "is" : "are");
       }
+#if 1 /* 28/V-2010 */
+      if (parm->alien)
+      {  /* use alien integer optimizer */
+         ret = _glp_intopt1(P, parm);
+         goto done;
+      }
+#endif
       if (!parm->presolve)
          ret = solve_mip(P, parm);
       else
@@ -612,6 +633,9 @@ void glp_init_iocp(glp_iocp *parm)
       parm->presolve = GLP_OFF;
       parm->binarize = GLP_OFF;
       parm->fp_heur = GLP_OFF;
+#if 1 /* 28/V-2010 */
+      parm->alien = GLP_OFF;
+#endif
       return;
 }
 

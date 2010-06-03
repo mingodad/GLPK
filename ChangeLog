@@ -1,3 +1,17 @@
+Thu Jun 03 12:00:00 2010 Andrew Makhorin <mao@gnu.org>
+
+        * GLPK 4.44 (29:0:29) has been released
+
+        * glpapi14.c glpmpl.h glpmpl01.c glpmpl03.c glpmpl04.c
+        Implemented suffixes for variables and constraints.
+
+        * glpmpl06.c
+        Made changes to allow comment records in CSV files.
+
+        * glpapi17.c
+        Added and documented new API routine glp_cpp to solve Critical
+        Path Problem.
+
 Sat Feb 20 12:00:00 2010 Andrew Makhorin <mao@gnu.org>
 
         * GLPK 4.43 (28:0:28) has been released
@@ -5,7 +19,7 @@ Sat Feb 20 12:00:00 2010 Andrew Makhorin <mao@gnu.org>
         * glplib.h, glplib.c, glpenv.h, glpenv.c
         The module glpenv was split into two modules glpenv and glplib.
 
-        * glpenv01.c, glpenv03.c, glpenv04.c, glpenv06.c 
+        * glpenv01.c, glpenv03.c, glpenv04.c, glpenv06.c
         The following new API routines were added and documented:
         glp_init_env, glp_free_env, glp_open_tee, glp_close_tee,
         glp_error (macro), glp_difftime.

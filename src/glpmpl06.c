@@ -65,6 +65,10 @@ struct csv
       /* ref[k] = k', if k-th field of the csv file corresponds to
          k'-th field in the table statement; if ref[k] = 0, k-th field
          of the csv file is ignored */
+#if 1 /* 01/VI-2010 */
+      int nskip;
+      /* number of comment records preceding the header record */
+#endif
 };
 
 #undef read_char
@@ -127,6 +131,18 @@ err1:    {  xprintf("%s:%d: empty field not allowed\n", csv->fname,
                csv->count);
             longjmp(csv->jump, 0);
          }
+#if 1 /* 01/VI-2010 */
+         /* skip comment records; may appear only before the very first
+            record containing field names */
+         if (csv->c == '#' && csv->count == 1)
+         {  while (csv->c == '#')
+            {  while (csv->c != '\n')
+                  read_char(csv);
+               read_char(csv);
+               csv->nskip++;
+            }
+         }
+#endif
          goto done;
       }
       /* skip comma before next field */
@@ -227,6 +243,9 @@ static struct csv *csv_open_file(TABDCA *dca, int mode)
                csv->fname, strerror(errno));
             longjmp(csv->jump, 0);
          }
+#if 1 /* 01/VI-2010 */
+         csv->nskip = 0;
+#endif
          /* skip fake new-line */
          read_field(csv);
          xassert(csv->what == CSV_EOR);
@@ -296,7 +315,11 @@ static int csv_read_record(TABDCA *dca, struct csv *csv)
       }
       /* read dummy RECNO field */
       if (csv->ref[0] > 0)
+#if 0 /* 01/VI-2010 */
          mpl_tab_set_num(dca, csv->ref[0], csv->count-1);
+#else
+         mpl_tab_set_num(dca, csv->ref[0], csv->count-csv->nskip-1);
+#endif
       /* read fields */
       for (k = 1; k <= csv->nf; k++)
       {  read_field(csv);

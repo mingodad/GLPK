@@ -1,3 +1,25 @@
+GLPK 4.44 (release date: Jun 03, 2010)
+
+        The following suffixes for variables and constraints were
+        implemented in the MathProg language:
+
+        .lb     (lower bound),
+        .ub     (upper bound),
+        .status (status in the solution),
+        .val    (primal value), and
+        .dual   (dual value).
+
+        Thanks to Xypron <xypron.glpk@gmx.de> for draft implementation
+        and testing.
+
+        Now the MathProg language allows comment records (marked by
+        '#' in the very first position) in CSV data files read with the
+        table statements. Note that the comment records may appear only
+        in the beginning of a CSV data file.
+
+        The API routine glp_cpp to solve the Critical Path Problem was
+        added and documented.
+
 GLPK 4.43 (release date: Feb 20, 2010)
 
         This is a maintainer release.

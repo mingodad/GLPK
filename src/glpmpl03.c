@@ -3153,8 +3153,11 @@ ELEMVAR *take_member_var      /* returns reference */
             refer->ubnd = eval_numeric(mpl, var->ubnd);
          /* nullify working quantity */
          refer->temp = 0.0;
-         /* numerical value has not been obtained by the solver yet */
-         refer->value = 0.0;
+#if 1 /* 15/V-2010 */
+         /* solution has not been obtained by the solver yet */
+         refer->stat = 0;
+         refer->prim = refer->dual = 0.0;
+#endif
       }
       return refer;
 }
@@ -3337,6 +3340,11 @@ ELEMCON *take_member_con      /* returns reference */
             refer->lbnd = fp_sub(mpl, temp1, temp);
             refer->ubnd = fp_sub(mpl, temp2, temp);
          }
+#if 1 /* 15/V-2010 */
+         /* solution has not been obtained by the solver yet */
+         refer->stat = 0;
+         refer->prim = refer->dual = 0.0;
+#endif
       }
       return refer;
 }
@@ -3512,15 +3520,87 @@ double eval_numeric(MPL *mpl, CODE *code)
             /* take computed value of elemental variable */
             {  TUPLE *tuple;
                ARG_LIST *e;
+#if 1 /* 15/V-2010 */
+               ELEMVAR *var;
+#endif
                tuple = create_tuple(mpl);
                for (e = code->arg.var.list; e != NULL; e = e->next)
                   tuple = expand_tuple(mpl, tuple, eval_symbolic(mpl,
                      e->x));
+#if 0 /* 15/V-2010 */
                value = eval_member_var(mpl, code->arg.var.var, tuple)
                   ->value;
+#else
+               var = eval_member_var(mpl, code->arg.var.var, tuple);
+               switch (code->arg.var.suff)
+               {  case DOT_LB:
+                     if (var->var->lbnd == NULL)
+                        value = -DBL_MAX;
+                     else
+                        value = var->lbnd;
+                     break;
+                  case DOT_UB:
+                     if (var->var->ubnd == NULL)
+                        value = +DBL_MAX;
+                     else
+                        value = var->ubnd;
+                     break;
+                  case DOT_STATUS:
+                     value = var->stat;
+                     break;
+                  case DOT_VAL:
+                     value = var->prim;
+                     break;
+                  case DOT_DUAL:
+                     value = var->dual;
+                     break;
+                  default:
+                     xassert(code != code);
+               }
+#endif
                delete_tuple(mpl, tuple);
             }
             break;
+#if 1 /* 15/V-2010 */
+         case O_MEMCON:
+            /* take computed value of elemental constraint */
+            {  TUPLE *tuple;
+               ARG_LIST *e;
+               ELEMCON *con;
+               tuple = create_tuple(mpl);
+               for (e = code->arg.con.list; e != NULL; e = e->next)
+                  tuple = expand_tuple(mpl, tuple, eval_symbolic(mpl,
+                     e->x));
+               con = eval_member_con(mpl, code->arg.con.con, tuple);
+               switch (code->arg.con.suff)
+               {  case DOT_LB:
+                     if (con->con->lbnd == NULL)
+                        value = -DBL_MAX;
+                     else
+                        value = con->lbnd;
+                     break;
+                  case DOT_UB:
+                     if (con->con->ubnd == NULL)
+                        value = +DBL_MAX;
+                     else
+                        value = con->ubnd;
+                     break;
+                  case DOT_STATUS:
+                     value = con->stat;
+                     break;
+                  case DOT_VAL:
+                     value = con->prim;
+                     break;
+                  case DOT_DUAL:
+                     value = con->dual;
+                     break;
+                  default:
+                     xassert(code != code);
+               }
+               delete_tuple(mpl, tuple);
+            }
+            break;
+#endif
          case O_IRAND224:
             /* pseudo-random in [0, 2^24-1] */
             value = fp_irand224(mpl);
@@ -4634,6 +4714,9 @@ FORMULA *eval_formula(MPL *mpl, CODE *code)
                for (e = code->arg.var.list; e != NULL; e = e->next)
                   tuple = expand_tuple(mpl, tuple, eval_symbolic(mpl,
                      e->x));
+#if 1 /* 15/V-2010 */
+               xassert(code->arg.var.suff == DOT_NONE);
+#endif
                value = single_variable(mpl,
                   eval_member_var(mpl, code->arg.var.var, tuple));
                delete_tuple(mpl, tuple);
@@ -4759,6 +4842,12 @@ void clean_code(MPL *mpl, CODE *code)
             for (e = code->arg.var.list; e != NULL; e = e->next)
                clean_code(mpl, e->x);
             break;
+#if 1 /* 15/V-2010 */
+         case O_MEMCON:
+            for (e = code->arg.con.list; e != NULL; e = e->next)
+               clean_code(mpl, e->x);
+            break;
+#endif
          case O_TUPLE:
          case O_MAKE:
             for (e = code->arg.list; e != NULL; e = e->next)
@@ -5317,79 +5406,75 @@ static void display_par(MPL *mpl, PARAMETER *par, MEMBER *memb)
       return;
 }
 
-static void display_var(MPL *mpl, VARIABLE *var, MEMBER *memb)
+#if 1 /* 15/V-2010 */
+static void display_var(MPL *mpl, VARIABLE *var, MEMBER *memb,
+      int suff)
 {     /* display member of model variable */
-      if (mpl->flag_p)
-         write_text(mpl, "%s%s = %.*g\n",
-            var->name, format_tuple(mpl, '[', memb->tuple),
-            DBL_DIG, memb->value.var->value);
-      else if (var->lbnd == NULL && var->ubnd == NULL)
-         write_text(mpl, "%s%s\n",
-            var->name, format_tuple(mpl, '[', memb->tuple));
-      else if (var->ubnd == NULL)
-         write_text(mpl, "%s%s >= %.*g\n",
-            var->name, format_tuple(mpl, '[', memb->tuple),
-            DBL_DIG, memb->value.var->lbnd);
-      else if (var->lbnd == NULL)
-         write_text(mpl, "%s%s <= %.*g\n",
-            var->name, format_tuple(mpl, '[', memb->tuple),
-            DBL_DIG, memb->value.var->ubnd);
-      else if (var->lbnd == var->ubnd)
-         write_text(mpl, "%s%s = %.*g\n",
-            var->name, format_tuple(mpl, '[', memb->tuple),
-            DBL_DIG, memb->value.var->lbnd);
+      if (suff == DOT_NONE || suff == DOT_VAL)
+         write_text(mpl, "%s%s.val = %.*g\n", var->name,
+            format_tuple(mpl, '[', memb->tuple), DBL_DIG,
+            memb->value.var->prim);
+      else if (suff == DOT_LB)
+         write_text(mpl, "%s%s.lb = %.*g\n", var->name,
+            format_tuple(mpl, '[', memb->tuple), DBL_DIG,
+            memb->value.var->var->lbnd == NULL ? -DBL_MAX :
+            memb->value.var->lbnd);
+      else if (suff == DOT_UB)
+         write_text(mpl, "%s%s.ub = %.*g\n", var->name,
+            format_tuple(mpl, '[', memb->tuple), DBL_DIG,
+            memb->value.var->var->ubnd == NULL ? +DBL_MAX :
+            memb->value.var->ubnd);
+      else if (suff == DOT_STATUS)
+         write_text(mpl, "%s%s.status = %d\n", var->name, format_tuple
+            (mpl, '[', memb->tuple), memb->value.var->stat);
+      else if (suff == DOT_DUAL)
+         write_text(mpl, "%s%s.dual = %.*g\n", var->name,
+            format_tuple(mpl, '[', memb->tuple), DBL_DIG,
+            memb->value.var->dual);
       else
-         write_text(mpl, "%.*g <= %s%s <= %.*g\n",
-            DBL_DIG, memb->value.var->lbnd,
-            var->name, format_tuple(mpl, '[', memb->tuple),
-            DBL_DIG, memb->value.var->ubnd);
+         xassert(suff != suff);
       return;
 }
+#endif
 
-static void display_con(MPL *mpl, CONSTRAINT *con, MEMBER *memb)
+#if 1 /* 15/V-2010 */
+static void display_con(MPL *mpl, CONSTRAINT *con, MEMBER *memb,
+      int suff)
 {     /* display member of model constraint */
-      FORMULA *term;
-      if (con->lbnd == NULL && con->ubnd == NULL)
-         write_text(mpl, "%s%s:\n",
-            con->name, format_tuple(mpl, '[', memb->tuple));
-      else if (con->ubnd == NULL)
-         write_text(mpl, "%s%s >= %.*g:\n",
-            con->name, format_tuple(mpl, '[', memb->tuple),
-            DBL_DIG, memb->value.con->lbnd);
-      else if (con->lbnd == NULL)
-         write_text(mpl, "%s%s <= %.*g:\n",
-            con->name, format_tuple(mpl, '[', memb->tuple),
-            DBL_DIG, memb->value.con->ubnd);
-      else if (con->lbnd == con->ubnd)
-         write_text(mpl, "%s%s = %.*g:\n",
-            con->name, format_tuple(mpl, '[', memb->tuple),
-            DBL_DIG, memb->value.con->lbnd);
+      if (suff == DOT_NONE || suff == DOT_VAL)
+         write_text(mpl, "%s%s.val = %.*g\n", con->name,
+            format_tuple(mpl, '[', memb->tuple), DBL_DIG,
+            memb->value.con->prim);
+      else if (suff == DOT_LB)
+         write_text(mpl, "%s%s.lb = %.*g\n", con->name,
+            format_tuple(mpl, '[', memb->tuple), DBL_DIG,
+            memb->value.con->con->lbnd == NULL ? -DBL_MAX :
+            memb->value.con->lbnd);
+      else if (suff == DOT_UB)
+         write_text(mpl, "%s%s.ub = %.*g\n", con->name,
+            format_tuple(mpl, '[', memb->tuple), DBL_DIG,
+            memb->value.con->con->ubnd == NULL ? +DBL_MAX :
+            memb->value.con->ubnd);
+      else if (suff == DOT_STATUS)
+         write_text(mpl, "%s%s.status = %d\n", con->name, format_tuple
+            (mpl, '[', memb->tuple), memb->value.con->stat);
+      else if (suff == DOT_DUAL)
+         write_text(mpl, "%s%s.dual = %.*g\n", con->name,
+            format_tuple(mpl, '[', memb->tuple), DBL_DIG,
+            memb->value.con->dual);
       else
-         write_text(mpl, "%.*g <= %s%s <= %.*g:\n",
-            DBL_DIG, memb->value.con->lbnd,
-            con->name, format_tuple(mpl, '[', memb->tuple),
-            DBL_DIG, memb->value.con->ubnd);
-      if ((con->type == A_MINIMIZE || con->type == A_MAXIMIZE) &&
-         memb->value.con->lbnd != 0)
-         write_text(mpl, "   %.*g\n", DBL_DIG, -memb->value.con->lbnd);
-      else if (memb->value.con->form == NULL)
-         write_text(mpl, "   empty linear form\n");
-      for (term = memb->value.con->form; term != NULL; term =
-         term->next)
-      {  xassert(term->var != NULL);
-         write_text(mpl, "   %.*g %s%s\n", DBL_DIG, term->coef,
-            term->var->var->name, format_tuple(mpl, '[',
-            term->var->memb->tuple));
-      }
+         xassert(suff != suff);
       return;
 }
+#endif
 
 static void display_memb(MPL *mpl, CODE *code)
 {     /* display member specified by pseudo-code */
       MEMBER memb;
       ARG_LIST *e;
-      xassert(code->op == O_MEMNUM || code->op == O_MEMSYM ||
-             code->op == O_MEMSET || code->op == O_MEMVAR);
+      xassert(code->op == O_MEMNUM || code->op == O_MEMSYM
+         || code->op == O_MEMSET || code->op == O_MEMVAR
+         || code->op == O_MEMCON);
       memb.tuple = create_tuple(mpl);
       for (e = code->arg.par.list; e != NULL; e = e->next)
          memb.tuple = expand_tuple(mpl, memb.tuple, eval_symbolic(mpl,
@@ -5414,7 +5499,14 @@ static void display_memb(MPL *mpl, CODE *code)
          case O_MEMVAR:
             memb.value.var = eval_member_var(mpl, code->arg.var.var,
                memb.tuple);
-            display_var(mpl, code->arg.var.var, &memb);
+            display_var
+               (mpl, code->arg.var.var, &memb, code->arg.var.suff);
+            break;
+         case O_MEMCON:
+            memb.value.con = eval_member_con(mpl, code->arg.con.con,
+               memb.tuple);
+            display_con
+               (mpl, code->arg.con.con, &memb, code->arg.con.suff);
             break;
          default:
             xassert(code != code);
@@ -5562,43 +5654,30 @@ static int display_func(MPL *mpl, void *info)
          {  /* model variable */
             VARIABLE *var = entry->u.var;
             MEMBER *memb;
+            xassert(mpl->flag_p);
             /* display all members of the variable array */
             if (var->array->head == NULL)
                write_text(mpl, "%s has empty content\n", var->name);
             for (memb = var->array->head; memb != NULL; memb =
-               memb->next) display_var(mpl, var, memb);
+               memb->next) display_var(mpl, var, memb, DOT_NONE);
          }
          else if (entry->type == A_CONSTRAINT)
          {  /* model constraint */
             CONSTRAINT *con = entry->u.con;
-            if (entry->list == NULL)
-            {  /* display the whole constraint */
-               MEMBER *memb;
-               eval_whole_con(mpl, con);
-               if (con->array->head == NULL)
-                  write_text(mpl, "%s has empty content\n", con->name);
-               for (memb = con->array->head; memb != NULL; memb =
-                  memb->next) display_con(mpl, con, memb);
-            }
-            else
-            {  /* display the constraint member */
-               TUPLE *tuple;
-               ARG_LIST *e;
-               ELEMCON *c;
-               tuple = create_tuple(mpl);
-               for (e = entry->list; e != NULL; e = e->next)
-                  tuple = expand_tuple(mpl, tuple, eval_symbolic(mpl,
-                     e->x));
-               c = eval_member_con(mpl, con, tuple);
-               delete_tuple(mpl, tuple);
-               display_con(mpl, con, c->memb);
-            }
+            MEMBER *memb;
+            xassert(mpl->flag_p);
+            /* display all members of the constraint array */
+            if (con->array->head == NULL)
+               write_text(mpl, "%s has empty content\n", con->name);
+            for (memb = con->array->head; memb != NULL; memb =
+               memb->next) display_con(mpl, con, memb, DOT_NONE);
          }
          else if (entry->type == A_EXPRESSION)
          {  /* expression */
             CODE *code = entry->u.code;
             if (code->op == O_MEMNUM || code->op == O_MEMSYM ||
-                code->op == O_MEMSET || code->op == O_MEMVAR)
+                code->op == O_MEMSET || code->op == O_MEMVAR ||
+                code->op == O_MEMCON)
                display_memb(mpl, code);
             else
                display_code(mpl, code);
@@ -5622,7 +5701,9 @@ void execute_display(MPL *mpl, DISPLAY *dpy)
 
 void clean_display(MPL *mpl, DISPLAY *dpy)
 {     DISPLAY1 *d;
+#if 0 /* 15/V-2010 */
       ARG_LIST *e;
+#endif
       /* clean subscript domain */
       clean_domain(mpl, dpy->domain);
       /* clean display list */
@@ -5630,9 +5711,11 @@ void clean_display(MPL *mpl, DISPLAY *dpy)
       {  /* clean pseudo-code for computing expression */
          if (d->type == A_EXPRESSION)
             clean_code(mpl, d->u.code);
+#if 0 /* 15/V-2010 */
          /* clean pseudo-code for computing subscripts */
          for (e = d->list; e != NULL; e = e->next)
             clean_code(mpl, e->x);
+#endif
       }
       return;
 }

@@ -391,6 +391,10 @@ static int parse_cmdline(struct csa *csa, int argc, const char *argv[])
             csa->solution = SOL_BASIC;
          else if (p("--interior"))
             csa->solution = SOL_INTERIOR;
+#if 1 /* 28/V-2010 */
+         else if (p("--alien"))
+            csa->iocp.alien = GLP_ON;
+#endif
          else if (p("-r") || p("--read"))
          {  k++;
             if (k == argc || argv[k][0] == '\0' || argv[k][0] == '-')

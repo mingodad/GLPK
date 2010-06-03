@@ -548,7 +548,23 @@ CODE *make_code(MPL *mpl, int op, OPERANDS *arg, int type, int dim)
             }
             code->arg.var.var = arg->var.var;
             code->arg.var.list = arg->var.list;
+#if 1 /* 15/V-2010 */
+            code->arg.var.suff = arg->var.suff;
+#endif
             break;
+#if 1 /* 15/V-2010 */
+         case O_MEMCON:
+            for (e = arg->con.list; e != NULL; e = e->next)
+            {  xassert(e->x != NULL);
+               xassert(e->x->up == NULL);
+               e->x->up = code;
+               code->vflag |= e->x->vflag;
+            }
+            code->arg.con.con = arg->con.con;
+            code->arg.con.list = arg->con.list;
+            code->arg.con.suff = arg->con.suff;
+            break;
+#endif
          case O_TUPLE:
          case O_MAKE:
             for (e = arg->list; e != NULL; e = e->next)
@@ -890,6 +906,7 @@ ARG_LIST *subscript_list(MPL *mpl)
       return list;
 }
 
+#if 1 /* 15/V-2010 */
 /*----------------------------------------------------------------------
 -- object_reference - parse reference to named object.
 --
@@ -900,12 +917,18 @@ ARG_LIST *subscript_list(MPL *mpl)
 -- <primary expression> ::= <set name> [ <subscript list> ]
 -- <primary expression> ::= <parameter name>
 -- <primary expression> ::= <parameter name> [ <subscript list> ]
--- <primary expression> ::= <variable name>
+-- <primary expression> ::= <variable name> <suffix>
 -- <primary expression> ::= <variable name> [ <subscript list> ]
+--                          <suffix>
+-- <primary expression> ::= <constraint name> <suffix>
+-- <primary expression> ::= <constraint name> [ <subscript list> ]
+--                          <suffix>
 -- <dummy index> ::= <symbolic name>
 -- <set name> ::= <symbolic name>
 -- <parameter name> ::= <symbolic name>
--- <variable name> ::= <symbolic name> */
+-- <variable name> ::= <symbolic name>
+-- <constraint name> ::= <symbolic name>
+-- <suffix> ::= <empty> | .lb | .ub | .status | .val | .dual */
 
 CODE *object_reference(MPL *mpl)
 {     AVLNODE *node;
@@ -918,7 +941,7 @@ CODE *object_reference(MPL *mpl)
       OPERANDS arg;
       CODE *code;
       char *name;
-      int dim;
+      int dim, suff;
       /* find the object in the symbolic name table */
       xassert(mpl->token == T_NAME);
       node = avl_find_node(mpl->tree, mpl->image);
@@ -957,9 +980,9 @@ CODE *object_reference(MPL *mpl)
          case A_CONSTRAINT:
             /* model constraint or objective */
             con = (CONSTRAINT *)avl_get_node_link(node);
-            error(mpl, "invalid reference to %s %s",
-               con->type == A_CONSTRAINT ? "constraint" : "objective",
-               mpl->image);
+            name = con->name;
+            dim = con->dim;
+            break;
          default:
             xassert(node != node);
       }
@@ -982,6 +1005,32 @@ CODE *object_reference(MPL *mpl)
          if (dim != 0)
             error(mpl, "%s must be subscripted", name);
          list = create_arg_list(mpl);
+      }
+      /* parse optional suffix */
+      if (!mpl->flag_s && avl_get_node_type(node) == A_VARIABLE)
+         suff = DOT_NONE;
+      else
+         suff = DOT_VAL;
+      if (mpl->token == T_POINT)
+      {  get_token(mpl /* . */);
+         if (mpl->token != T_NAME)
+            error(mpl, "invalid use of period");
+         if (!(avl_get_node_type(node) == A_VARIABLE ||
+               avl_get_node_type(node) == A_CONSTRAINT))
+            error(mpl, "%s cannot have a suffix", name);
+         if (strcmp(mpl->image, "lb") == 0)
+            suff = DOT_LB;
+         else if (strcmp(mpl->image, "ub") == 0)
+            suff = DOT_UB;
+         else if (strcmp(mpl->image, "status") == 0)
+            suff = DOT_STATUS;
+         else if (strcmp(mpl->image, "val") == 0)
+            suff = DOT_VAL;
+         else if (strcmp(mpl->image, "dual") == 0)
+            suff = DOT_DUAL;
+         else
+            error(mpl, "suffix .%s invalid", mpl->image);
+         get_token(mpl /* suffix */);
       }
       /* generate pseudo-code to take value of the object */
       switch (avl_get_node_type(node))
@@ -1006,26 +1055,35 @@ CODE *object_reference(MPL *mpl)
                code = make_code(mpl, O_MEMNUM, &arg, A_NUMERIC, 0);
             break;
          case A_VARIABLE:
+            if (!mpl->flag_s && (suff == DOT_STATUS || suff == DOT_VAL
+               || suff == DOT_DUAL))
+               error(mpl, "invalid reference to status, primal value, o"
+                  "r dual value of variable %s above solve statement",
+                  var->name);
             arg.var.var = var;
             arg.var.list = list;
-#if 0 /* 01/VIII-2004 */
-            code = make_code(mpl, O_MEMVAR, &arg, A_FORMULA, 0);
-#else
-            if (!mpl->flag_s)
-            {  /* variable is referenced above solve statement */
-               code = make_code(mpl, O_MEMVAR, &arg, A_FORMULA, 0);
-            }
-            else
-            {  /* variable is referenced below solve statement */
-               code = make_code(mpl, O_MEMVAR, &arg, A_NUMERIC, 0);
-            }
-#endif
+            arg.var.suff = suff;
+            code = make_code(mpl, O_MEMVAR, &arg, suff == DOT_NONE ?
+               A_FORMULA : A_NUMERIC, 0);
+            break;
+         case A_CONSTRAINT:
+            if (!mpl->flag_s && (suff == DOT_STATUS || suff == DOT_VAL
+               || suff == DOT_DUAL))
+               error(mpl, "invalid reference to status, primal value, o"
+                  "r dual value of %s %s above solve statement",
+                  con->type == A_CONSTRAINT ? "constraint" : "objective"
+                  , con->name);
+            arg.con.con = con;
+            arg.con.list = list;
+            arg.con.suff = suff;
+            code = make_code(mpl, O_MEMCON, &arg, A_NUMERIC, 0);
             break;
          default:
             xassert(node != node);
       }
       return code;
 }
+#endif
 
 /*----------------------------------------------------------------------
 -- numeric_argument - parse argument passed to built-in function.
@@ -4234,12 +4292,14 @@ CHECK *check_statement(MPL *mpl)
       return chk;
 }
 
+#if 1 /* 15/V-2010 */
 /*----------------------------------------------------------------------
 -- display_statement - parse display statement.
 --
 -- This routine parses display statement using the syntax:
 --
 -- <display statement> ::= display <domain> : <display list> ;
+-- <display statement> ::= display <domain> <display list> ;
 -- <domain> ::= <empty>
 -- <domain> ::= <indexing expression>
 -- <display list> ::= <display entry>
@@ -4253,9 +4313,7 @@ CHECK *check_statement(MPL *mpl)
 -- <display entry> ::= <variable name> [ <subscript list> ]
 -- <display entry> ::= <constraint name>
 -- <display entry> ::= <constraint name> [ <subscript list> ]
--- <display entry> ::= <expression 13>
---
--- If <domain> is omitted, colon following it may also be omitted. */
+-- <display entry> ::= <expression 13> */
 
 DISPLAY *display_statement(MPL *mpl)
 {     DISPLAY *dpy;
@@ -4268,12 +4326,7 @@ DISPLAY *display_statement(MPL *mpl)
       get_token(mpl /* display */);
       /* parse optional indexing expression */
       if (mpl->token == T_LBRACE)
-      {  dpy->domain = indexing_expression(mpl);
-#if 0
-         if (mpl->token != T_COLON)
-            error(mpl, "colon missing where expected");
-#endif
-      }
+         dpy->domain = indexing_expression(mpl);
       /* skip optional colon */
       if (mpl->token == T_COLON) get_token(mpl /* : */);
       /* parse display list */
@@ -4281,7 +4334,6 @@ DISPLAY *display_statement(MPL *mpl)
       {  /* create new display entry */
          entry = alloc(DISPLAY1);
          entry->type = 0;
-         entry->list = NULL;
          entry->next = NULL;
          /* and append it to the display list */
          if (dpy->list == NULL)
@@ -4296,8 +4348,7 @@ DISPLAY *display_statement(MPL *mpl)
             get_token(mpl /* <symbolic name> */);
             next_token = mpl->token;
             unget_token(mpl);
-            if (!(next_token == T_COMMA || next_token == T_SEMICOLON ||
-                  next_token == T_LBRACKET))
+            if (!(next_token == T_COMMA || next_token == T_SEMICOLON))
             {  /* symbolic name begins expression */
                goto expr;
             }
@@ -4305,48 +4356,36 @@ DISPLAY *display_statement(MPL *mpl)
             node = avl_find_node(mpl->tree, mpl->image);
             if (node == NULL)
                error(mpl, "%s not defined", mpl->image);
-if (next_token == T_LBRACKET && avl_get_node_type(node) != A_CONSTRAINT)
-            {  /* symbolic name begins expression */
-               goto expr;
-            }
             entry->type = avl_get_node_type(node);
             switch (avl_get_node_type(node))
             {  case A_INDEX:
-entry->u.slot = (DOMAIN_SLOT *)avl_get_node_link(node);
+                  entry->u.slot =
+                     (DOMAIN_SLOT *)avl_get_node_link(node);
                   break;
                case A_SET:
-entry->u.set = (SET *)avl_get_node_link(node);
+                  entry->u.set = (SET *)avl_get_node_link(node);
                   break;
                case A_PARAMETER:
-entry->u.par = (PARAMETER *)avl_get_node_link(node);
+                  entry->u.par = (PARAMETER *)avl_get_node_link(node);
                   break;
                case A_VARIABLE:
-entry->u.var = (VARIABLE *)avl_get_node_link(node);
+                  entry->u.var = (VARIABLE *)avl_get_node_link(node);
+                  if (!mpl->flag_s)
+                     error(mpl, "invalid reference to variable %s above"
+                        " solve statement", entry->u.var->name);
                   break;
                case A_CONSTRAINT:
-entry->u.con = (CONSTRAINT *)avl_get_node_link(node);
+                  entry->u.con = (CONSTRAINT *)avl_get_node_link(node);
+                  if (!mpl->flag_s)
+                     error(mpl, "invalid reference to %s %s above solve"
+                        " statement",
+                        entry->u.con->type == A_CONSTRAINT ?
+                        "constraint" : "objective", entry->u.con->name);
                   break;
                default:
                   xassert(node != node);
             }
             get_token(mpl /* <symbolic name> */);
-            /* parse optional subscript list for constraint */
-            if (mpl->token == T_LBRACKET)
-            {  CONSTRAINT *con;
-               xassert(entry->type == A_CONSTRAINT);
-               con = entry->u.con;
-               if (con->dim == 0)
-                  error(mpl, "%s cannot be subscripted", con->name);
-               get_token(mpl /* [ */);
-               entry->list = subscript_list(mpl);
-               if (con->dim != arg_list_len(mpl, entry->list))
-                  error(mpl,
-                     "%s must have %d subscript%s rather than %d",
-                     con->name, con->dim, con->dim == 1 ? "" : "s",
-                     arg_list_len(mpl, entry->list));
-               xassert(mpl->token == T_RBRACKET);
-               get_token(mpl /* ] */);
-            }
          }
          else
 expr:    {  /* display entry is expression */
@@ -4367,6 +4406,7 @@ expr:    {  /* display entry is expression */
       get_token(mpl /* ; */);
       return dpy;
 }
+#endif
 
 /*----------------------------------------------------------------------
 -- printf_statement - parse printf statement.
