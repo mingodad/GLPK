@@ -1,3 +1,22 @@
+GLPK 4.45 (release date: Dec 05, 2010)
+
+        This is a bug-fix release.
+
+        Several bugs/typos were fixed. Thanks to
+        Xypron <xypron.glpk@gmx.de>,
+        Robbie Morrison <robbie@actrix.co.nz>, and
+        Ali Baharev <ali.baharev@gmail.com> for reports.
+
+        Some glpk documents was re-formatted and merged into a single
+        document. Now the glpk documentation consists of the following
+        three main documents (all included in the distribution):
+
+        GLPK: Reference Manual
+
+        GLPK: Graph and Network Routines
+
+        Modeling Language GNU MathProg: Language Reference
+
 GLPK 4.44 (release date: Jun 03, 2010)
 
         The following suffixes for variables and constraints were

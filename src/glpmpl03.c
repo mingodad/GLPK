@@ -5857,6 +5857,13 @@ static int printf_func(MPL *mpl, void *info)
                print_char(mpl, '\t');
             else if (*c == 'n')
                print_char(mpl, '\n');
+#if 1 /* 28/X-2010 */
+            else if (*c == '\0')
+            {  /* format string ends with backslash */
+               error(mpl, "invalid use of escape character \\ in format"
+                  " control string");
+            }
+#endif
             else
                print_char(mpl, *c);
          }

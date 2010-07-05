@@ -1,5 +1,5 @@
-LIBRARY glpk_4_44
-VERSION 4.44
+LIBRARY glpk_4_45
+VERSION 4.45
 DESCRIPTION "GNU Linear Programming Kit"
 EXPORTS
 ;; from amd_1 ;;

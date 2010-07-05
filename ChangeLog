@@ -1,3 +1,23 @@
+Sun Dec 05 12:00:00 2010 Andrew Makhorin <mao@gnu.org>
+
+        * GLPK 4.45 (30:0:30) has been released
+
+        * glplpx01.c
+        A bug (it_cnt) in routine reset_parms was fixed.
+        Thanks to Ali Baharev <ali.baharev@gmail.com> for report.
+
+        * glpmpl03.c
+        A bug (print "text\") was fixed.
+        Thanks to Xypron <xypron.glpk@gmx.de> for report.
+
+        * glpsql.c
+        A precision bug was fixed.
+        Thanks to Xypron <xypron.glpk@gmx.de>.
+
+        * glpk.tex
+        Some typos were corrected.
+        Thanks to Robbie Morrison <robbie@actrix.co.nz>.
+
 Thu Jun 03 12:00:00 2010 Andrew Makhorin <mao@gnu.org>
 
         * GLPK 4.44 (29:0:29) has been released

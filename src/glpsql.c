@@ -959,7 +959,11 @@ int db_iodbc_write(TABDCA *dca, void *link)
       strcat( query, part );
       switch (mpl_tab_get_type(dca, k))
       {  case 'N':
+#if 0 /* 02/XI-2010 by xypron */
             sprintf(num, "%-18g",mpl_tab_get_num(dca, k));
+#else
+            sprintf(num, "%.*g", DBL_DIG, mpl_tab_get_num(dca, k));
+#endif
             strcat( query, num );
             break;
          case 'S':
@@ -1571,7 +1575,11 @@ int db_mysql_write(TABDCA *dca, void *link)
       strcat( query, part );
       switch (mpl_tab_get_type(dca, k))
       {  case 'N':
+#if 0 /* 02/XI-2010 by xypron */
             sprintf(num, "%-18g",mpl_tab_get_num(dca, k));
+#else
+            sprintf(num, "%.*g", DBL_DIG, mpl_tab_get_num(dca, k));
+#endif
             strcat( query, num );
             break;
          case 'S':

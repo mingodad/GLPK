@@ -34,7 +34,7 @@ extern "C" {
 
 /* library version numbers: */
 #define GLP_MAJOR_VERSION  4
-#define GLP_MINOR_VERSION  44
+#define GLP_MINOR_VERSION  45
 
 #ifndef GLP_PROB_DEFINED
 #define GLP_PROB_DEFINED

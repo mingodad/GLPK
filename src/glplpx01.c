@@ -1010,7 +1010,9 @@ static void reset_parms(LPX *lp)
       cps->obj_ll   = -DBL_MAX;
       cps->obj_ul   = +DBL_MAX;
       cps->it_lim   = -1;
+#if 0 /* 02/XII-2010 */
       lp->it_cnt   = 0;
+#endif
       cps->tm_lim   = -1.0;
       cps->out_frq  = 200;
       cps->out_dly  = 0.0;
