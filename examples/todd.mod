@@ -1,6 +1,6 @@
 /* TODD, a class of hard instances of zero-one knapsack problems */
 
-/* Written in GNU MathProg by Andrew Makhorin <mao@mai2.rcnet.ru> */
+/* Written in GNU MathProg by Andrew Makhorin <mao@gnu.org> */
 
 /* Chvatal describes a class of instances of zero-one knapsack problems
    due to Todd. He shows that a wide class of algorithms - including all

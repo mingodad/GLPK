@@ -48,8 +48,6 @@ OBJSET = \
 ..\src\glpios11.obj \
 ..\src\glpios12.obj \
 ..\src\glpipm.obj \
-..\src\glpipp01.obj \
-..\src\glpipp02.obj \
 ..\src\glplib01.obj \
 ..\src\glplib02.obj \
 ..\src\glplib03.obj \
@@ -66,7 +64,6 @@ OBJSET = \
 ..\src\glplpx01.obj \
 ..\src\glplpx02.obj \
 ..\src\glplpx03.obj \
-..\src\glplpx04.obj \
 ..\src\glpluf.obj \
 ..\src\glplux.obj \
 ..\src\glpmat.obj \
@@ -85,10 +82,12 @@ OBJSET = \
 ..\src\glpnet06.obj \
 ..\src\glpnet07.obj \
 ..\src\glpnet08.obj \
+..\src\glpnet09.obj \
 ..\src\glpnpp01.obj \
 ..\src\glpnpp02.obj \
 ..\src\glpnpp03.obj \
 ..\src\glpnpp04.obj \
+..\src\glpnpp05.obj \
 ..\src\glpqmd.obj \
 ..\src\glprgr.obj \
 ..\src\glprng01.obj \
@@ -120,15 +119,15 @@ OBJSET = \
 .c.obj:
         cl.exe $(CFLAGS) /Fo$*.obj /c $*.c
 
-all: glpk_4_41.dll glpsol.exe
+all: glpk_4_42.dll glpsol.exe
 
-glpk_4_41.dll: $(OBJSET)
-        cl.exe $(CFLAGS) /LD /Feglpk_4_41.dll ..\src\*.obj \
-                ..\src\amd\*.obj ..\src\colamd\*.obj glpk_4_41.def
+glpk_4_42.dll: $(OBJSET)
+        cl.exe $(CFLAGS) /LD /Feglpk_4_42.dll ..\src\*.obj \
+                ..\src\amd\*.obj ..\src\colamd\*.obj glpk_4_42.def
 
-glpsol.exe: ..\examples\glpsol.obj glpk_4_41.dll
+glpsol.exe: ..\examples\glpsol.obj glpk_4_42.dll
         cl.exe $(CFLAGS) /Feglpsol.exe ..\examples\glpsol.obj \
-                glpk_4_41.lib
+                glpk_4_42.lib
 
 check: glpsol.exe
         .\glpsol.exe --version

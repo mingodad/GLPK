@@ -1,6 +1,6 @@
 /* MISP, Maximum Independent Set Problem */
 
-/* Written in GNU MathProg by Andrew Makhorin <mao@mai2.rcnet.ru> */
+/* Written in GNU MathProg by Andrew Makhorin <mao@gnu.org> */
 
 /* Let G = (V,E) be an undirected graph with vertex set V and edge set
    E. Vertices u, v in V are non-adjacent if (u,v) not in E. A subset

@@ -15,7 +15,7 @@
 *
 *  USED WITH PERMISSION OF THE AUTHOR OF THE ORIGINAL CODE.
 *
-*  Changes were made by Andrew Makhorin <mao@mai2.rcnet.ru>.
+*  Changes were made by Andrew Makhorin <mao@gnu.org>.
 *
 *  GLPK is free software: you can redistribute it and/or modify it
 *  under the terms of the GNU General Public License as published by

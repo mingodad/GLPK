@@ -68,8 +68,6 @@ src/glpios10.o \
 src/glpios11.o \
 src/glpios12.o \
 src/glpipm.o \
-src/glpipp01.o \
-src/glpipp02.o \
 src/glplib01.o \
 src/glplib02.o \
 src/glplib03.o \
@@ -86,7 +84,6 @@ src/glplpf.o \
 src/glplpx01.o \
 src/glplpx02.o \
 src/glplpx03.o \
-src/glplpx04.o \
 src/glpluf.o \
 src/glplux.o \
 src/glpmat.o \
@@ -105,10 +102,12 @@ src/glpnet05.o \
 src/glpnet06.o \
 src/glpnet07.o \
 src/glpnet08.o \
+src/glpnet09.o \
 src/glpnpp01.o \
 src/glpnpp02.o \
 src/glpnpp03.o \
 src/glpnpp04.o \
+src/glpnpp05.o \
 src/glpqmd.o \
 src/glprgr.o \
 src/glprng01.o \

@@ -1,3 +1,37 @@
+GLPK 4.42 (release date: Jan 13, 2010)
+
+        The following new API routines were added:
+
+        glp_check_dup         check for duplicate elements in sparse
+                              matrix
+        glp_sort_matrix       sort elements of the constraint matrix
+        glp_read_prob         read problem data in GLPK format
+        glp_write_prob        write problem data in GLPK format
+        glp_analyze_bound     analyze active bound of non-basic variable
+        glp_analyze_coef      analyze objective coefficient at basic
+                              variable
+        glp_print_ranges      print sensitivity analysis report (this
+                              routine replaces lpx_print_sens_bnds and
+                              makes it deprecated)
+
+        For description of these new routines and the GLPK LP/MIP
+        format see a new edition of the reference manual included in
+        the distribution. (Chapter "Graph and network API routines" was
+        carried out from the main reference manual and included in the
+        distribution as a separate document.)
+
+        The following new command-line options were added to the stand-
+        alone solver glpsol:
+        --glp filename        read problem data in GLPK format
+        --wglp filename       write problem data in GLPK format
+        --ranges filename     print sensitivity analysis report (this
+                              option replaces --bounds)
+
+        Now all GLPK routines performing file I/O support special
+        filenames "/dev/stdin", "/dev/stdout", and "/dev/stderr", which
+        can be specified in the same way as regular filenames. This
+        feature is plaform-independent.
+
 GLPK 4.41 (release date: Dec 21, 2009)
 
         The following new API routies were added:

@@ -1,11 +1,12 @@
-/* glpnpp03.c (LP/MIP preprocessor) */
+/* glpnpp03.c */
 
 /***********************************************************************
 *  This code is part of GLPK (GNU Linear Programming Kit).
 *
-*  Copyright (C) 2000,01,02,03,04,05,06,07,08,2009 Andrew Makhorin,
-*  Department for Applied Informatics, Moscow Aviation Institute,
-*  Moscow, Russia. All rights reserved. E-mail: <mao@mai2.rcnet.ru>.
+*  Copyright (C) 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008,
+*  2009, 2010 Andrew Makhorin, Department for Applied Informatics,
+*  Moscow Aviation Institute, Moscow, Russia. All rights reserved.
+*  E-mail: <mao@gnu.org>.
 *
 *  GLPK is free software: you can redistribute it and/or modify it
 *  under the terms of the GNU General Public License as published by
@@ -866,10 +867,10 @@ struct ineq_singlet
       /* constraint coefficient a[p,q] */
       double c;
       /* objective coefficient at x[q] */
-      char lb_exists;
-      /* this flag is set if row lower bound exists */
-      char ub_exists;
-      /* this flag is set if row upper bound exists */
+      double lb;
+      /* row lower bound */
+      double ub;
+      /* row upper bound */
       char lb_changed;
       /* this flag is set if column lower bound was changed */
       char ub_changed;
@@ -884,36 +885,36 @@ int npp_ineq_singlet(NPP *npp, NPPROW *p)
 {     /* process row singleton (inequality constraint) */
       struct ineq_singlet *info;
       NPPCOL *q;
-      NPPAIJ *aij;
+      NPPAIJ *apq, *aij;
       NPPLFE *lfe;
       int lb_changed, ub_changed;
-      double l, u;
+      double ll, uu;
       /* the row must be singleton inequality constraint */
       xassert(p->lb != -DBL_MAX || p->ub != +DBL_MAX);
       xassert(p->lb < p->ub);
       xassert(p->ptr != NULL && p->ptr->r_next == NULL);
       /* compute implied column bounds */
-      aij = p->ptr;
-      q = aij->col;
+      apq = p->ptr;
+      q = apq->col;
       xassert(q->lb < q->ub);
-      if (aij->val > 0.0)
-      {  l = (p->lb == -DBL_MAX ? -DBL_MAX : p->lb / aij->val);
-         u = (p->ub == +DBL_MAX ? +DBL_MAX : p->ub / aij->val);
+      if (apq->val > 0.0)
+      {  ll = (p->lb == -DBL_MAX ? -DBL_MAX : p->lb / apq->val);
+         uu = (p->ub == +DBL_MAX ? +DBL_MAX : p->ub / apq->val);
       }
       else
-      {  l = (p->ub == +DBL_MAX ? -DBL_MAX : p->ub / aij->val);
-         u = (p->lb == -DBL_MAX ? +DBL_MAX : p->lb / aij->val);
+      {  ll = (p->ub == +DBL_MAX ? -DBL_MAX : p->ub / apq->val);
+         uu = (p->lb == -DBL_MAX ? +DBL_MAX : p->lb / apq->val);
       }
       /* process implied column lower bound */
-      if (l == -DBL_MAX)
+      if (ll == -DBL_MAX)
          lb_changed = 0;
       else
-      {  lb_changed = npp_implied_lower(npp, q, l);
+      {  lb_changed = npp_implied_lower(npp, q, ll);
          xassert(0 <= lb_changed && lb_changed <= 4);
          if (lb_changed == 4) return 4; /* infeasible */
       }
       /* process implied column upper bound */
-      if (u == +DBL_MAX)
+      if (uu == +DBL_MAX)
          ub_changed = 0;
       else if (lb_changed == 3)
       {  /* column was fixed on its upper bound due to l'[q] = u[q] */
@@ -921,7 +922,7 @@ int npp_ineq_singlet(NPP *npp, NPPROW *p)
          ub_changed = 0;
       }
       else
-      {  ub_changed = npp_implied_upper(npp, q, u);
+      {  ub_changed = npp_implied_upper(npp, q, uu);
          xassert(0 <= ub_changed && ub_changed <= 4);
          if (ub_changed == 4) return 4; /* infeasible */
       }
@@ -937,10 +938,10 @@ int npp_ineq_singlet(NPP *npp, NPPROW *p)
          rcv_ineq_singlet, sizeof(struct ineq_singlet));
       info->p = p->i;
       info->q = q->j;
-      info->apq = aij->val;
+      info->apq = apq->val;
       info->c = q->coef;
-      info->lb_exists = (char)(p->lb != -DBL_MAX);
-      info->ub_exists = (char)(p->ub != +DBL_MAX);
+      info->lb = p->lb;
+      info->ub = p->ub;
       info->lb_changed = (char)lb_changed;
       info->ub_changed = (char)ub_changed;
       info->ptr = NULL;
@@ -948,7 +949,7 @@ int npp_ineq_singlet(NPP *npp, NPPROW *p)
          solution) */
       if (npp->sol != GLP_MIP)
       {  for (aij = q->ptr; aij != NULL; aij = aij->c_next)
-         {  if (aij->row == p) continue; /* skip a[p,q] */
+         {  if (aij == apq) continue; /* skip a[p,q] */
             lfe = dmp_get_atom(npp->stack, sizeof(NPPLFE));
             lfe->ref = aij->row->i;
             lfe->val = aij->val;
@@ -1014,9 +1015,9 @@ nu:      {  /* column q is non-basic with upper bound active */
          else if (npp->c_stat[info->q] == GLP_NS)
          {  /* column q is non-basic and fixed; note, however, that in
                in the original problem it is non-fixed */
-            if (lambda > +DBL_EPSILON)
-            {  if (info->apq > 0.0 && info->lb_exists ||
-                   info->apq < 0.0 && info->ub_exists ||
+            if (lambda > +1e-7)
+            {  if (info->apq > 0.0 && info->lb != -DBL_MAX ||
+                   info->apq < 0.0 && info->ub != +DBL_MAX ||
                   !info->lb_changed)
                {  /* either corresponding bound of row p exists or
                      column q remains non-basic with its original lower
@@ -1025,9 +1026,9 @@ nu:      {  /* column q is non-basic with upper bound active */
                   goto nl;
                }
             }
-            if (lambda < -DBL_EPSILON)
-            {  if (info->apq > 0.0 && info->ub_exists ||
-                   info->apq < 0.0 && info->lb_exists ||
+            if (lambda < -1e-7)
+            {  if (info->apq > 0.0 && info->ub != +DBL_MAX ||
+                   info->apq < 0.0 && info->lb != -DBL_MAX ||
                   !info->ub_changed)
                {  /* either corresponding bound of row p exists or
                      column q remains non-basic with its original upper
@@ -1043,10 +1044,26 @@ nu:      {  /* column q is non-basic with upper bound active */
                can make row p active on its existing bound and column q
                basic; pi[p] will have wrong sign, but it also will be
                close to zero (rarus casus of dual degeneracy) */
-            if (info->lb_exists)
+            if (info->lb != -DBL_MAX && info->ub == +DBL_MAX)
+            {  /* row lower bound exists, but upper bound doesn't */
                npp->r_stat[info->p] = GLP_NL;
-            else if (info->ub_exists)
+            }
+            else if (info->lb == -DBL_MAX && info->ub != +DBL_MAX)
+            {  /* row upper bound exists, but lower bound doesn't */
                npp->r_stat[info->p] = GLP_NU;
+            }
+            else if (info->lb != -DBL_MAX && info->ub != +DBL_MAX)
+            {  /* both row lower and upper bounds exist */
+               /* to choose proper active row bound we should not use
+                  lambda~[q], because its value being close to zero is
+                  unreliable; so we choose that bound which provides
+                  primal feasibility for original constraint (1) */
+               if (info->apq * npp->c_value[info->q] <=
+                   0.5 * (info->lb + info->ub))
+                  npp->r_stat[info->p] = GLP_NL;
+               else
+                  npp->r_stat[info->p] = GLP_NU;
+            }
             else
             {  npp_error();
                return 1;
@@ -1610,6 +1627,252 @@ static int rcv_implied_free(NPP *npp, void *_info)
          {  npp_error();
             return 1;
          }
+      }
+      return 0;
+}
+
+/***********************************************************************
+*  NAME
+*
+*  npp_eq_doublet - process row doubleton (equality constraint)
+*
+*  SYNOPSIS
+*
+*  #include "glpnpp.h"
+*  NPPCOL *npp_eq_doublet(NPP *npp, NPPROW *p);
+*
+*  DESCRIPTION
+*
+*  The routine npp_eq_doublet processes row p, which is equality
+*  constraint having exactly two non-zero coefficients:
+*
+*     a[p,q] x[q] + a[p,r] x[r] = b.                                 (1)
+*
+*  As the result of processing one of columns q or r is eliminated from
+*  all other rows and, thus, becomes column singleton of type "implied
+*  slack variable". Row p is not changed and along with column q and r
+*  remains in the problem.
+*
+*  RETURNS
+*
+*  The routine npp_eq_doublet returns pointer to the descriptor of that
+*  column q or r which has been eliminated. If, due to some reason, the
+*  elimination was not performed, the routine returns NULL.
+*
+*  PROBLEM TRANSFORMATION
+*
+*  First, we decide which column q or r will be eliminated. Let it be
+*  column q. Consider i-th constraint row, where column q has non-zero
+*  coefficient a[i,q] != 0:
+*
+*     L[i] <= sum a[i,j] x[j] <= U[i].                               (2)
+*              j
+*
+*  In order to eliminate column q from row (2) we subtract from it row
+*  (1) multiplied by gamma[i] = a[i,q] / a[p,q], i.e. we replace in the
+*  transformed problem row (2) by its linear combination with row (1).
+*  This transformation changes only coefficients in columns q and r,
+*  and bounds of row i as follows:
+*
+*     a~[i,q] = a[i,q] - gamma[i] a[p,q] = 0,                        (3)
+*
+*     a~[i,r] = a[i,r] - gamma[i] a[p,r],                            (4)
+*
+*       L~[i] = L[i] - gamma[i] b,                                   (5)
+*
+*       U~[i] = U[i] - gamma[i] b.                                   (6)
+*
+*  RECOVERING BASIC SOLUTION
+*
+*  The transformation of the primal system of the original problem:
+*
+*     L <= A x <= U                                                  (7)
+*
+*  is equivalent to multiplying from the left a transformation matrix F
+*  by components of this primal system, which in the transformed problem
+*  becomes the following:
+*
+*     F L <= F A x <= F U  ==>  L~ <= A~x <= U~.                     (8)
+*
+*  The matrix F has the following structure:
+*
+*         ( 1           -gamma[1]            )
+*         (                                  )
+*         (    1        -gamma[2]            )
+*         (                                  )
+*         (      ...       ...               )
+*         (                                  )
+*     F = (          1  -gamma[p-1]          )                       (9)
+*         (                                  )
+*         (                 1                )
+*         (                                  )
+*         (             -gamma[p+1]  1       )
+*         (                                  )
+*         (                ...          ...  )
+*
+*  where its column containing elements -gamma[i] corresponds to row p
+*  of the primal system.
+*
+*  From (8) it follows that the dual system of the original problem:
+*
+*     A'pi + lambda = c,                                            (10)
+*
+*  in the transformed problem becomes the following:
+*
+*     A'F'inv(F')pi + lambda = c  ==>  (A~)'pi~ + lambda = c,       (11)
+*
+*  where:
+*
+*     pi~ = inv(F')pi                                               (12)
+*
+*  is the vector of row multipliers in the transformed problem. Thus:
+*
+*     pi = F'pi~.                                                   (13)
+*
+*  Therefore, as it follows from (13), value of multiplier for row p in
+*  solution to the original problem can be computed as follows:
+*
+*     pi[p] = pi~[p] - sum gamma[i] pi~[i],                         (14)
+*                       i
+*
+*  where pi~[i] = pi[i] is multiplier for row i (i != p).
+*
+*  Note that the statuses of all rows and columns are not changed.
+*
+*  RECOVERING INTERIOR-POINT SOLUTION
+*
+*  Multiplier for row p in solution to the original problem is computed
+*  with formula (14).
+*
+*  RECOVERING MIP SOLUTION
+*
+*  None needed. */
+
+struct eq_doublet
+{     /* row doubleton (equality constraint) */
+      int p;
+      /* row reference number */
+      double apq;
+      /* constraint coefficient a[p,q] */
+      NPPLFE *ptr;
+      /* list of non-zero coefficients a[i,q], i != p */
+};
+
+static int rcv_eq_doublet(NPP *npp, void *info);
+
+NPPCOL *npp_eq_doublet(NPP *npp, NPPROW *p)
+{     /* process row doubleton (equality constraint) */
+      struct eq_doublet *info;
+      NPPROW *i;
+      NPPCOL *q, *r;
+      NPPAIJ *apq, *apr, *aiq, *air, *next;
+      NPPLFE *lfe;
+      double gamma;
+      /* the row must be doubleton equality constraint */
+      xassert(p->lb == p->ub);
+      xassert(p->ptr != NULL && p->ptr->r_next != NULL &&
+              p->ptr->r_next->r_next == NULL);
+      /* choose column to be eliminated */
+      {  NPPAIJ *a1, *a2;
+         a1 = p->ptr, a2 = a1->r_next;
+         if (fabs(a2->val) < 0.001 * fabs(a1->val))
+         {  /* only first column can be eliminated, because second one
+               has too small constraint coefficient */
+            apq = a1, apr = a2;
+         }
+         else if (fabs(a1->val) < 0.001 * fabs(a2->val))
+         {  /* only second column can be eliminated, because first one
+               has too small constraint coefficient */
+            apq = a2, apr = a1;
+         }
+         else
+         {  /* both columns are appropriate; choose that one which is
+               shorter to minimize fill-in */
+            if (npp_col_nnz(npp, a1->col) <= npp_col_nnz(npp, a2->col))
+            {  /* first column is shorter */
+               apq = a1, apr = a2;
+            }
+            else
+            {  /* second column is shorter */
+               apq = a2, apr = a1;
+            }
+         }
+      }
+      /* now columns q and r have been chosen */
+      q = apq->col, r = apr->col;
+      /* create transformation stack entry */
+      info = npp_push_tse(npp,
+         rcv_eq_doublet, sizeof(struct eq_doublet));
+      info->p = p->i;
+      info->apq = apq->val;
+      info->ptr = NULL;
+      /* transform each row i (i != p), where a[i,q] != 0, to eliminate
+         column q */
+      for (aiq = q->ptr; aiq != NULL; aiq = next)
+      {  next = aiq->c_next;
+         if (aiq == apq) continue; /* skip row p */
+         i = aiq->row; /* row i to be transformed */
+         /* save constraint coefficient a[i,q] */
+         if (npp->sol != GLP_MIP)
+         {  lfe = dmp_get_atom(npp->stack, sizeof(NPPLFE));
+            lfe->ref = i->i;
+            lfe->val = aiq->val;
+            lfe->next = info->ptr;
+            info->ptr = lfe;
+         }
+         /* find coefficient a[i,r] in row i */
+         for (air = i->ptr; air != NULL; air = air->r_next)
+            if (air->col == r) break;
+         /* if a[i,r] does not exist, create a[i,r] = 0 */
+         if (air == NULL)
+            air = npp_add_aij(npp, i, r, 0.0);
+         /* compute gamma[i] = a[i,q] / a[p,q] */
+         gamma = aiq->val / apq->val;
+         /* (row i) := (row i) - gamma[i] * (row p); see (3)-(6) */
+         /* new a[i,q] is exact zero due to elimnation; remove it from
+            row i */
+         npp_del_aij(npp, aiq);
+         /* compute new a[i,r] */
+         air->val -= gamma * apr->val;
+         /* if new a[i,r] is close to zero due to numeric cancelation,
+            remove it from row i */
+         if (fabs(air->val) <= 1e-10)
+            npp_del_aij(npp, air);
+         /* compute new lower and upper bounds of row i */
+         if (i->lb == i->ub)
+            i->lb = i->ub = (i->lb - gamma * p->lb);
+         else
+         {  if (i->lb != -DBL_MAX)
+               i->lb -= gamma * p->lb;
+            if (i->ub != +DBL_MAX)
+               i->ub -= gamma * p->lb;
+         }
+      }
+      return q;
+}
+
+static int rcv_eq_doublet(NPP *npp, void *_info)
+{     /* recover row doubleton (equality constraint) */
+      struct eq_doublet *info = _info;
+      NPPLFE *lfe;
+      double gamma, temp;
+      /* we assume that processing row p is followed by processing
+         column q as singleton of type "implied slack variable", in
+         which case row p must always be active equality constraint */
+      if (npp->sol == GLP_SOL)
+      {  if (npp->r_stat[info->p] != GLP_NS)
+         {  npp_error();
+            return 1;
+         }
+      }
+      if (npp->sol != GLP_MIP)
+      {  /* compute value of multiplier for row p; see (14) */
+         temp = npp->r_pi[info->p];
+         for (lfe = info->ptr; lfe != NULL; lfe = lfe->next)
+         {  gamma = lfe->val / info->apq; /* a[i,q] / a[p,q] */
+            temp -= gamma * npp->r_pi[lfe->ref];
+         }
+         npp->r_pi[info->p] = temp;
       }
       return 0;
 }
@@ -2490,7 +2753,7 @@ void npp_implied_bounds(NPP *npp, NPPROW *p)
          maximal magnitude of row coefficients a[p,j] */
       big = 1.0;
       for (apj = p->ptr; apj != NULL; apj = apj->r_next)
-      {  apj->col->ll = -DBL_MAX, apj->col->uu = +DBL_MAX;
+      {  apj->col->ll.ll = -DBL_MAX, apj->col->uu.uu = +DBL_MAX;
          if (big < fabs(apj->val)) big = fabs(apj->val);
       }
       eps = 1e-6 * big;
@@ -2522,11 +2785,11 @@ void npp_implied_bounds(NPP *npp, NPPROW *p)
             for (apj = p->ptr; apj != NULL; apj = apj->r_next)
             {  if (apj->val >= +eps)
                {  /* l'[j] := u[j] + (L[p] - U'[p]) / a[p,j] */
-                  apj->col->ll = apj->col->ub + temp / apj->val;
+                  apj->col->ll.ll = apj->col->ub + temp / apj->val;
                }
                else if (apj->val <= -eps)
                {  /* u'[j] := l[j] + (L[p] - U'[p]) / a[p,j] */
-                  apj->col->uu = apj->col->lb + temp / apj->val;
+                  apj->col->uu.uu = apj->col->lb + temp / apj->val;
                }
             }
          }
@@ -2534,11 +2797,11 @@ void npp_implied_bounds(NPP *npp, NPPROW *p)
          {  /* temp = L[p,k] */
             if (apk->val >= +eps)
             {  /* l'[k] := L[p,k] / a[p,k] */
-               apk->col->ll = temp / apk->val;
+               apk->col->ll.ll = temp / apk->val;
             }
             else if (apk->val <= -eps)
             {  /* u'[k] := L[p,k] / a[p,k] */
-               apk->col->uu = temp / apk->val;
+               apk->col->uu.uu = temp / apk->val;
             }
          }
 skip1:   ;
@@ -2571,11 +2834,11 @@ skip1:   ;
             for (apj = p->ptr; apj != NULL; apj = apj->r_next)
             {  if (apj->val >= +eps)
                {  /* u'[j] := l[j] + (U[p] - L'[p]) / a[p,j] */
-                  apj->col->uu = apj->col->lb + temp / apj->val;
+                  apj->col->uu.uu = apj->col->lb + temp / apj->val;
                }
                else if (apj->val <= -eps)
                {  /* l'[j] := u[j] + (U[p] - L'[p]) / a[p,j] */
-                  apj->col->ll = apj->col->ub + temp / apj->val;
+                  apj->col->ll.ll = apj->col->ub + temp / apj->val;
                }
             }
          }
@@ -2583,11 +2846,11 @@ skip1:   ;
          {  /* temp = U[p,k] */
             if (apk->val >= +eps)
             {  /* u'[k] := U[p,k] / a[p,k] */
-               apk->col->uu = temp / apk->val;
+               apk->col->uu.uu = temp / apk->val;
             }
             else if (apk->val <= -eps)
             {  /* l'[k] := U[p,k] / a[p,k] */
-               apk->col->ll = temp / apk->val;
+               apk->col->ll.ll = temp / apk->val;
             }
          }
 skip2:   ;

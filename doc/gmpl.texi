@@ -11,8 +11,8 @@ The GLPK package is part of the GNU Project released under the aegis of
 GNU.
 
 Copyright @copyright{} 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007,
-2008, 2009 Andrew Makhorin, Department for Applied Informatics, Moscow
-Aviation Institute, Moscow, Russia. All rights reserved.
+2008, 2009, 2010 Andrew Makhorin, Department for Applied Informatics,
+Moscow Aviation Institute, Moscow, Russia. All rights reserved.
 
 Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
 02110-1301, USA.
@@ -38,8 +38,8 @@ into another language, under the above conditions for modified versions.
 @titlepage
 @title Modeling Language GNU MathProg
 @subtitle Language Reference
-@subtitle Draft Edition, for GLPK Version 4.34
-@subtitle December 2008
+@subtitle Draft Edition, for GLPK Version 4.42
+@subtitle January 2010
 @author Andrew Makhorin
 Moscow Aviation Institute, Moscow, Russia
 @page

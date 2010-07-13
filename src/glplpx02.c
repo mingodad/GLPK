@@ -3,9 +3,10 @@
 /***********************************************************************
 *  This code is part of GLPK (GNU Linear Programming Kit).
 *
-*  Copyright (C) 2000,01,02,03,04,05,06,07,08,2009 Andrew Makhorin,
-*  Department for Applied Informatics, Moscow Aviation Institute,
-*  Moscow, Russia. All rights reserved. E-mail: <mao@mai2.rcnet.ru>.
+*  Copyright (C) 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008,
+*  2009, 2010 Andrew Makhorin, Department for Applied Informatics,
+*  Moscow Aviation Institute, Moscow, Russia. All rights reserved.
+*  E-mail: <mao@gnu.org>.
 *
 *  GLPK is free software: you can redistribute it and/or modify it
 *  under the terms of the GNU General Public License as published by
@@ -22,54 +23,6 @@
 ***********************************************************************/
 
 #include "glpapi.h"
-
-/*----------------------------------------------------------------------
--- lpx_order_matrix - order rows and columns of the constraint matrix.
---
--- *Synopsis*
---
--- #include "glplpx.h"
--- void lpx_order_matrix(glp_prob *lp);
---
--- *Description*
---
--- The routine lpx_order_matrix rebuilds row and column linked lists of
--- the constraint matrix of the specified problem object.
---
--- On exit the constraint matrix is not changed, however, elements in
--- the row linked lists are ordered in ascending their column indices,
--- and elements in the column linked are ordered in ascending their row
--- indices. */
-
-void lpx_order_matrix(glp_prob *lp)
-{     GLPAIJ *aij;
-      int i, j;
-      /* rebuild row lists */
-      for (i = lp->m; i >= 1; i--)
-         lp->row[i]->ptr = NULL;
-      for (j = lp->n; j >= 1; j--)
-      {  for (aij = lp->col[j]->ptr; aij != NULL; aij = aij->c_next)
-         {  i = aij->row->i;
-            aij->r_prev = NULL;
-            aij->r_next = lp->row[i]->ptr;
-            if (aij->r_next != NULL) aij->r_next->r_prev = aij;
-            lp->row[i]->ptr = aij;
-         }
-      }
-      /* rebuild column lists */
-      for (j = lp->n; j >= 1; j--)
-         lp->col[j]->ptr = NULL;
-      for (i = lp->m; i >= 1; i--)
-      {  for (aij = lp->row[i]->ptr; aij != NULL; aij = aij->r_next)
-         {  j = aij->col->j;
-            aij->c_prev = NULL;
-            aij->c_next = lp->col[j]->ptr;
-            if (aij->c_next != NULL) aij->c_next->c_prev = aij;
-            lp->col[j]->ptr = aij;
-         }
-      }
-      return;
-}
 
 /***********************************************************************
 *  NAME

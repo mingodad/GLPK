@@ -3,9 +3,10 @@
 /***********************************************************************
 *  This code is part of GLPK (GNU Linear Programming Kit).
 *
-*  Copyright (C) 2000,01,02,03,04,05,06,07,08,2009 Andrew Makhorin,
-*  Department for Applied Informatics, Moscow Aviation Institute,
-*  Moscow, Russia. All rights reserved. E-mail: <mao@mai2.rcnet.ru>.
+*  Copyright (C) 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008,
+*  2009, 2010 Andrew Makhorin, Department for Applied Informatics,
+*  Moscow Aviation Institute, Moscow, Russia. All rights reserved.
+*  E-mail: <mao@gnu.org>.
 *
 *  GLPK is free software: you can redistribute it and/or modify it
 *  under the terms of the GNU General Public License as published by
@@ -36,7 +37,7 @@ struct csa
       /* line count */
       int c;
       /* current character */
-      char field[31+1];
+      char field[255+1];
       /* data field */
       int empty;
       /* warning 'empty line ignored' was printed */
@@ -115,7 +116,7 @@ static void read_designator(struct csa *csa)
             read_char(csa);
          }
          else
-         {  /* hmm..., looks like a line designator */
+         {  /* hmm... looks like a line designator */
             csa->field[0] = (char)csa->c, csa->field[1] = '\0';
             /* check that it is followed by a white-space character */
             read_char(csa);
@@ -138,8 +139,7 @@ static void read_field(struct csa *csa)
          error(csa, "unexpected end of line");
       while (!(csa->c == ' ' || csa->c == '\n'))
       {  if (len == sizeof(csa->field)-1)
-            error(csa, "data field `%.*s...' too long",
-               sizeof(csa->field)-1, csa->field);
+            error(csa, "data field `%.15s...' too long", csa->field);
          csa->field[len++] = (char)csa->c;
          read_char(csa);
       }
@@ -981,6 +981,478 @@ int glp_write_ccdata(glp_graph *G, int v_wgt, const char *fname)
             xfprintf(fp, "e %d %d\n", e->tail->i, e->head->i), count++;
       }
       xfprintf(fp, "c eof\n"), count++;
+      xfflush(fp);
+      if (xferror(fp))
+      {  xprintf("Write error on `%s' - %s\n", fname, xerrmsg());
+         ret = 1;
+         goto done;
+      }
+      xprintf("%d lines were written\n", count);
+      ret = 0;
+done: if (fp != NULL) xfclose(fp);
+      return ret;
+}
+
+/***********************************************************************
+*  NAME
+*
+*  glp_read_prob - read problem data in GLPK format
+*
+*  SYNOPSIS
+*
+*  int glp_read_prob(glp_prob *P, int flags, const char *fname);
+*
+*  The routine glp_read_prob reads problem data in GLPK LP/MIP format
+*  from a text file.
+*
+*  RETURNS
+*
+*  If the operation was successful, the routine returns zero. Otherwise
+*  it prints an error message and returns non-zero. */
+
+int glp_read_prob(glp_prob *P, int flags, const char *fname)
+{     struct csa _csa, *csa = &_csa;
+      int mip, m, n, nnz, ne, i, j, k, type, kind, ret, *ln = NULL,
+         *ia = NULL, *ja = NULL;
+      double lb, ub, temp, *ar = NULL;
+      char *rf = NULL, *cf = NULL;
+      if (P == NULL || P->magic != GLP_PROB_MAGIC)
+         xerror("glp_read_prob: P = %p; invalid problem object\n",
+            P);
+      if (flags != 0)
+         xerror("glp_read_prob: flags = %d; invalid parameter\n",
+            flags);
+      if (fname == NULL)
+         xerror("glp_read_prob: fname = %d; invalid parameter\n",
+            fname);
+      glp_erase_prob(P);
+      if (setjmp(csa->jump))
+      {  ret = 1;
+         goto done;
+      }
+      csa->fname = fname;
+      csa->fp = NULL;
+      csa->count = 0;
+      csa->c = '\n';
+      csa->field[0] = '\0';
+      csa->empty = csa->nonint = 0;
+      xprintf("Reading problem data from `%s'...\n", fname);
+      csa->fp = xfopen(fname, "r");
+      if (csa->fp == NULL)
+      {  xprintf("Unable to open `%s' - %s\n", fname, xerrmsg());
+         longjmp(csa->jump, 1);
+      }
+      /* read problem line */
+      read_designator(csa);
+      if (strcmp(csa->field, "p") != 0)
+         error(csa, "problem line missing or invalid");
+      read_field(csa);
+      if (strcmp(csa->field, "lp") == 0)
+         mip = 0;
+      else if (strcmp(csa->field, "mip") == 0)
+         mip = 1;
+      else
+         error(csa, "wrong problem designator; `lp' or `mip' expected\n"
+            );
+      read_field(csa);
+      if (strcmp(csa->field, "min") == 0)
+         glp_set_obj_dir(P, GLP_MIN);
+      else if (strcmp(csa->field, "max") == 0)
+         glp_set_obj_dir(P, GLP_MAX);
+      else
+         error(csa, "objective sense missing or invalid");
+      read_field(csa);
+      if (!(str2int(csa->field, &m) == 0 && m >= 0))
+         error(csa, "number of rows missing or invalid");
+      read_field(csa);
+      if (!(str2int(csa->field, &n) == 0 && n >= 0))
+         error(csa, "number of columns missing or invalid");
+      read_field(csa);
+      if (!(str2int(csa->field, &nnz) == 0 && nnz >= 0))
+         error(csa, "number of constraint coefficients missing or inval"
+            "id");
+      if (m > 0)
+      {  glp_add_rows(P, m);
+         for (i = 1; i <= m; i++)
+            glp_set_row_bnds(P, i, GLP_FX, 0.0, 0.0);
+      }
+      if (n > 0)
+      {  glp_add_cols(P, n);
+         for (j = 1; j <= n; j++)
+         {  if (!mip)
+               glp_set_col_bnds(P, j, GLP_LO, 0.0, 0.0);
+            else
+               glp_set_col_kind(P, j, GLP_BV);
+         }
+      }
+      end_of_line(csa);
+      /* allocate working arrays */
+      rf = xcalloc(1+m, sizeof(char));
+      memset(rf, 0, 1+m);
+      cf = xcalloc(1+n, sizeof(char));
+      memset(cf, 0, 1+n);
+      ln = xcalloc(1+nnz, sizeof(int));
+      ia = xcalloc(1+nnz, sizeof(int));
+      ja = xcalloc(1+nnz, sizeof(int));
+      ar = xcalloc(1+nnz, sizeof(double));
+      /* read descriptor lines */
+      ne = 0;
+      for (;;)
+      {  read_designator(csa);
+         if (strcmp(csa->field, "i") == 0)
+         {  /* row descriptor */
+            read_field(csa);
+            if (str2int(csa->field, &i) != 0)
+               error(csa, "row number missing or invalid");
+            if (!(1 <= i && i <= m))
+               error(csa, "row number out of range");
+            read_field(csa);
+            if (strcmp(csa->field, "f") == 0)
+               type = GLP_FR;
+            else if (strcmp(csa->field, "l") == 0)
+               type = GLP_LO;
+            else if (strcmp(csa->field, "u") == 0)
+               type = GLP_UP;
+            else if (strcmp(csa->field, "d") == 0)
+               type = GLP_DB;
+            else if (strcmp(csa->field, "s") == 0)
+               type = GLP_FX;
+            else
+               error(csa, "row type missing or invalid");
+            if (type == GLP_LO || type == GLP_DB || type == GLP_FX)
+            {  read_field(csa);
+               if (str2num(csa->field, &lb) != 0)
+                  error(csa, "row lower bound/fixed value missing or in"
+                     "valid");
+            }
+            else
+               lb = 0.0;
+            if (type == GLP_UP || type == GLP_DB)
+            {  read_field(csa);
+               if (str2num(csa->field, &ub) != 0)
+                  error(csa, "row upper bound missing or invalid");
+            }
+            else
+               ub = 0.0;
+            if (rf[i] & 0x01)
+               error(csa, "duplicate row descriptor");
+            glp_set_row_bnds(P, i, type, lb, ub), rf[i] |= 0x01;
+         }
+         else if (strcmp(csa->field, "j") == 0)
+         {  /* column descriptor */
+            read_field(csa);
+            if (str2int(csa->field, &j) != 0)
+               error(csa, "column number missing or invalid");
+            if (!(1 <= j && j <= n))
+               error(csa, "column number out of range");
+            if (!mip)
+               kind = GLP_CV;
+            else
+            {  read_field(csa);
+               if (strcmp(csa->field, "c") == 0)
+                  kind = GLP_CV;
+               else if (strcmp(csa->field, "i") == 0)
+                  kind = GLP_IV;
+               else if (strcmp(csa->field, "b") == 0)
+               {  kind = GLP_IV;
+                  type = GLP_DB, lb = 0.0, ub = 1.0;
+                  goto skip;
+               }
+               else
+                  error(csa, "column kind missing or invalid");
+            }
+            read_field(csa);
+            if (strcmp(csa->field, "f") == 0)
+               type = GLP_FR;
+            else if (strcmp(csa->field, "l") == 0)
+               type = GLP_LO;
+            else if (strcmp(csa->field, "u") == 0)
+               type = GLP_UP;
+            else if (strcmp(csa->field, "d") == 0)
+               type = GLP_DB;
+            else if (strcmp(csa->field, "s") == 0)
+               type = GLP_FX;
+            else
+               error(csa, "column type missing or invalid");
+            if (type == GLP_LO || type == GLP_DB || type == GLP_FX)
+            {  read_field(csa);
+               if (str2num(csa->field, &lb) != 0)
+                  error(csa, "column lower bound/fixed value missing or"
+                     " invalid");
+            }
+            else
+               lb = 0.0;
+            if (type == GLP_UP || type == GLP_DB)
+            {  read_field(csa);
+               if (str2num(csa->field, &ub) != 0)
+                  error(csa, "column upper bound missing or invalid");
+            }
+            else
+               ub = 0.0;
+skip:       if (cf[j] & 0x01)
+               error(csa, "duplicate column descriptor");
+            glp_set_col_kind(P, j, kind);
+            glp_set_col_bnds(P, j, type, lb, ub), cf[j] |= 0x01;
+         }
+         else if (strcmp(csa->field, "a") == 0)
+         {  /* coefficient descriptor */
+            read_field(csa);
+            if (str2int(csa->field, &i) != 0)
+               error(csa, "row number missing or invalid");
+            if (!(0 <= i && i <= m))
+               error(csa, "row number out of range");
+            read_field(csa);
+            if (str2int(csa->field, &j) != 0)
+               error(csa, "column number missing or invalid");
+            if (!((i == 0 ? 0 : 1) <= j && j <= n))
+               error(csa, "column number out of range");
+            read_field(csa);
+            if (i == 0)
+            {  if (str2num(csa->field, &temp) != 0)
+                  error(csa, "objective %s missing or invalid",
+                     j == 0 ? "constant term" : "coefficient");
+               if (cf[j] & 0x10)
+                  error(csa, "duplicate objective %s",
+                     j == 0 ? "constant term" : "coefficient");
+               glp_set_obj_coef(P, j, temp), cf[j] |= 0x10;
+            }
+            else
+            {  if (str2num(csa->field, &temp) != 0)
+                  error(csa, "constraint coefficient missing or invalid"
+                     );
+               if (ne == nnz)
+                  error(csa, "too many constraint coefficient descripto"
+                     "rs");
+               ln[++ne] = csa->count;
+               ia[ne] = i, ja[ne] = j, ar[ne] = temp;
+            }
+         }
+         else if (strcmp(csa->field, "n") == 0)
+         {  /* symbolic name descriptor */
+            read_field(csa);
+            if (strcmp(csa->field, "p") == 0)
+            {  /* problem name */
+               read_field(csa);
+               if (P->name != NULL)
+                  error(csa, "duplicate problem name");
+               glp_set_prob_name(P, csa->field);
+            }
+            else if (strcmp(csa->field, "z") == 0)
+            {  /* objective name */
+               read_field(csa);
+               if (P->obj != NULL)
+                  error(csa, "duplicate objective name");
+               glp_set_obj_name(P, csa->field);
+            }
+            else if (strcmp(csa->field, "i") == 0)
+            {  /* row name */
+               read_field(csa);
+               if (str2int(csa->field, &i) != 0)
+                  error(csa, "row number missing or invalid");
+               if (!(1 <= i && i <= m))
+                  error(csa, "row number out of range");
+               read_field(csa);
+               if (P->row[i]->name != NULL)
+                  error(csa, "duplicate row name");
+               glp_set_row_name(P, i, csa->field);
+            }
+            else if (strcmp(csa->field, "j") == 0)
+            {  /* column name */
+               read_field(csa);
+               if (str2int(csa->field, &j) != 0)
+                  error(csa, "column number missing or invalid");
+               if (!(1 <= j && j <= n))
+                  error(csa, "column number out of range");
+               read_field(csa);
+               if (P->col[j]->name != NULL)
+                  error(csa, "duplicate column name");
+               glp_set_col_name(P, j, csa->field);
+            }
+            else
+               error(csa, "object designator missing or invalid");
+         }
+         else if (strcmp(csa->field, "e") == 0)
+            break;
+         else
+            error(csa, "line designator missing or invalid");
+         end_of_line(csa);
+      }
+      if (ne < nnz)
+         error(csa, "too few constraint coefficient descriptors");
+      xassert(ne == nnz);
+      k = glp_check_dup(m, n, ne, ia, ja);
+      xassert(0 <= k && k <= nnz);
+      if (k > 0)
+      {  csa->count = ln[k];
+         error(csa, "duplicate constraint coefficient");
+      }
+      glp_load_matrix(P, ne, ia, ja, ar);
+      /* print some statistics */
+      if (P->name != NULL)
+         xprintf("Problem: %s\n", P->name);
+      if (P->obj != NULL)
+         xprintf("Objective: %s\n", P->obj);
+      xprintf("%d row%s, %d column%s, %d non-zero%s\n",
+         m, m == 1 ? "" : "s", n, n == 1 ? "" : "s", nnz, nnz == 1 ?
+         "" : "s");
+      if (glp_get_num_int(P) > 0)
+      {  int ni = glp_get_num_int(P);
+         int nb = glp_get_num_bin(P);
+         if (ni == 1)
+         {  if (nb == 0)
+               xprintf("One variable is integer\n");
+            else
+               xprintf("One variable is binary\n");
+         }
+         else
+         {  xprintf("%d integer variables, ", ni);
+            if (nb == 0)
+               xprintf("none");
+            else if (nb == 1)
+               xprintf("one");
+            else if (nb == ni)
+               xprintf("all");
+            else
+               xprintf("%d", nb);
+            xprintf(" of which %s binary\n", nb == 1 ? "is" : "are");
+         }
+      }
+      xprintf("%d lines were read\n", csa->count);
+      /* problem data has been successfully read */
+      glp_sort_matrix(P);
+      ret = 0;
+done: if (csa->fp != NULL) xfclose(csa->fp);
+      if (rf != NULL) xfree(rf);
+      if (cf != NULL) xfree(cf);
+      if (ln != NULL) xfree(ln);
+      if (ia != NULL) xfree(ia);
+      if (ja != NULL) xfree(ja);
+      if (ar != NULL) xfree(ar);
+      if (ret) glp_erase_prob(P);
+      return ret;
+}
+
+/***********************************************************************
+*  NAME
+*
+*  glp_write_prob - write problem data in GLPK format
+*
+*  SYNOPSIS
+*
+*  int glp_write_prob(glp_prob *P, int flags, const char *fname);
+*
+*  The routine glp_write_prob writes problem data in GLPK LP/MIP format
+*  to a text file.
+*
+*  RETURNS
+*
+*  If the operation was successful, the routine returns zero. Otherwise
+*  it prints an error message and returns non-zero. */
+
+int glp_write_prob(glp_prob *P, int flags, const char *fname)
+{     XFILE *fp;
+      GLPROW *row;
+      GLPCOL *col;
+      GLPAIJ *aij;
+      int mip, i, j, count, ret;
+      if (P == NULL || P->magic != GLP_PROB_MAGIC)
+         xerror("glp_write_prob: P = %p; invalid problem object\n",
+            P);
+      if (flags != 0)
+         xerror("glp_write_prob: flags = %d; invalid parameter\n",
+            flags);
+      if (fname == NULL)
+         xerror("glp_write_prob: fname = %d; invalid parameter\n",
+            fname);
+      xprintf("Writing problem data to `%s'...\n", fname);
+      fp = xfopen(fname, "w"), count = 0;
+      if (fp == NULL)
+      {  xprintf("Unable to create `%s' - %s\n", fname, xerrmsg());
+         ret = 1;
+         goto done;
+      }
+      /* write problem line */
+      mip = (glp_get_num_int(P) > 0);
+      xfprintf(fp, "p %s %s %d %d %d\n", !mip ? "lp" : "mip",
+         P->dir == GLP_MIN ? "min" : P->dir == GLP_MAX ? "max" : "???",
+         P->m, P->n, P->nnz), count++;
+      if (P->name != NULL)
+         xfprintf(fp, "n p %s\n", P->name), count++;
+      if (P->obj != NULL)
+         xfprintf(fp, "n z %s\n", P->obj), count++;
+      /* write row descriptors */
+      for (i = 1; i <= P->m; i++)
+      {  row = P->row[i];
+         if (row->type == GLP_FX && row->lb == 0.0)
+            goto skip1;
+         xfprintf(fp, "i %d ", i), count++;
+         if (row->type == GLP_FR)
+            xfprintf(fp, "f\n");
+         else if (row->type == GLP_LO)
+            xfprintf(fp, "l %.*g\n", DBL_DIG, row->lb);
+         else if (row->type == GLP_UP)
+            xfprintf(fp, "u %.*g\n", DBL_DIG, row->ub);
+         else if (row->type == GLP_DB)
+            xfprintf(fp, "d %.*g %.*g\n", DBL_DIG, row->lb, DBL_DIG,
+                  row->ub);
+         else if (row->type == GLP_FX)
+            xfprintf(fp, "s %.*g\n", DBL_DIG, row->lb);
+         else
+            xassert(row != row);
+skip1:   if (row->name != NULL)
+            xfprintf(fp, "n i %d %s\n", i, row->name), count++;
+      }
+      /* write column descriptors */
+      for (j = 1; j <= P->n; j++)
+      {  col = P->col[j];
+         if (!mip && col->type == GLP_LO && col->lb == 0.0)
+            goto skip2;
+         if (mip && col->kind == GLP_IV && col->type == GLP_DB &&
+             col->lb == 0.0 && col->ub == 1.0)
+            goto skip2;
+         xfprintf(fp, "j %d ", j), count++;
+         if (mip)
+         {  if (col->kind == GLP_CV)
+               xfprintf(fp, "c ");
+            else if (col->kind == GLP_IV)
+               xfprintf(fp, "i ");
+            else
+               xassert(col != col);
+         }
+         if (col->type == GLP_FR)
+            xfprintf(fp, "f\n");
+         else if (col->type == GLP_LO)
+            xfprintf(fp, "l %.*g\n", DBL_DIG, col->lb);
+         else if (col->type == GLP_UP)
+            xfprintf(fp, "u %.*g\n", DBL_DIG, col->ub);
+         else if (col->type == GLP_DB)
+            xfprintf(fp, "d %.*g %.*g\n", DBL_DIG, col->lb, DBL_DIG,
+                  col->ub);
+         else if (col->type == GLP_FX)
+            xfprintf(fp, "s %.*g\n", DBL_DIG, col->lb);
+         else
+            xassert(col != col);
+skip2:   if (col->name != NULL)
+            xfprintf(fp, "n j %d %s\n", j, col->name), count++;
+      }
+      /* write objective coefficient descriptors */
+      if (P->c0 != 0.0)
+         xfprintf(fp, "a 0 0 %.*g\n", DBL_DIG, P->c0), count++;
+      for (j = 1; j <= P->n; j++)
+      {  col = P->col[j];
+         if (col->coef != 0.0)
+            xfprintf(fp, "a 0 %d %.*g\n", j, DBL_DIG, col->coef),
+               count++;
+      }
+      /* write constraint coefficient descriptors */
+      for (i = 1; i <= P->m; i++)
+      {  row = P->row[i];
+         for (aij = row->ptr; aij != NULL; aij = aij->r_next)
+            xfprintf(fp, "a %d %d %.*g\n", i, aij->col->j, DBL_DIG,
+               aij->val), count++;
+      }
+      /* write end line */
+      xfprintf(fp, "e o f\n"), count++;
       xfflush(fp);
       if (xferror(fp))
       {  xprintf("Write error on `%s' - %s\n", fname, xerrmsg());

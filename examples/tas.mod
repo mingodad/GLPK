@@ -1,6 +1,6 @@
 /* TAS, Tail Assignment Problem */
 
-/* Written in GNU MathProg by Andrew Makhorin <mao@mai2.rcnet.ru> */
+/* Written in GNU MathProg by Andrew Makhorin <mao@gnu.org> */
 
 /* The Tail Assignment Problem (TAS) is to construct rosters for a set
    of aircrafts (tails), which cover all flights for a given scheduling

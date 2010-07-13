@@ -1,6 +1,6 @@
 /* COLOR, Graph Coloring Problem */
 
-/* Written in GNU MathProg by Andrew Makhorin <mao@mai2.rcnet.ru> */
+/* Written in GNU MathProg by Andrew Makhorin <mao@gnu.org> */
 
 /* Given an undirected loopless graph G = (V, E), where V is a set of
    nodes, E <= V x V is a set of arcs, the Graph Coloring Problem is to

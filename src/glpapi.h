@@ -3,9 +3,10 @@
 /***********************************************************************
 *  This code is part of GLPK (GNU Linear Programming Kit).
 *
-*  Copyright (C) 2000,01,02,03,04,05,06,07,08,2009 Andrew Makhorin,
-*  Department for Applied Informatics, Moscow Aviation Institute,
-*  Moscow, Russia. All rights reserved. E-mail: <mao@mai2.rcnet.ru>.
+*  Copyright (C) 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008,
+*  2009, 2010 Andrew Makhorin, Department for Applied Informatics,
+*  Moscow Aviation Institute, Moscow, Russia. All rights reserved.
+*  E-mail: <mao@gnu.org>.
 *
 *  GLPK is free software: you can redistribute it and/or modify it
 *  under the terms of the GNU General Public License as published by
@@ -33,6 +34,8 @@ typedef struct glp_prob glp_prob;
 typedef struct GLPROW GLPROW;
 typedef struct GLPCOL GLPCOL;
 typedef struct GLPAIJ GLPAIJ;
+
+#define GLP_PROB_MAGIC 0xD7D9D6C2
 
 struct glp_prob
 {     /* LP/MIP problem object */
@@ -272,10 +275,6 @@ struct GLPAIJ
 void _glp_check_kkt(glp_prob *P, int sol, int cond, double *ae_max,
       int *ae_ind, double *re_max, int *re_ind);
 /* check feasibility and optimality conditions */
-
-#define lpx_order_matrix _glp_order_matrix
-void lpx_order_matrix(LPX *lp);
-/* order rows and columns of the constraint matrix */
 
 #define lpx_put_solution _glp_put_solution
 void lpx_put_solution(glp_prob *lp, int inval, const int *p_stat,

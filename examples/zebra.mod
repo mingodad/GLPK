@@ -1,6 +1,6 @@
 /* ZEBRA, Who Owns the Zebra? */
 
-/* Written in GNU MathProg by Andrew Makhorin <mao@mai2.rcnet.ru> */
+/* Written in GNU MathProg by Andrew Makhorin <mao@gnu.org> */
 
 ########################################################################
 #  The Zebra Puzzle is a well-known logic puzzle.

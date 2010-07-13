@@ -3,9 +3,10 @@
 /***********************************************************************
 *  This code is part of GLPK (GNU Linear Programming Kit).
 *
-*  Copyright (C) 2000,01,02,03,04,05,06,07,08,2009 Andrew Makhorin,
-*  Department for Applied Informatics, Moscow Aviation Institute,
-*  Moscow, Russia. All rights reserved. E-mail: <mao@mai2.rcnet.ru>.
+*  Copyright (C) 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008,
+*  2009, 2010 Andrew Makhorin, Department for Applied Informatics,
+*  Moscow Aviation Institute, Moscow, Russia. All rights reserved.
+*  E-mail: <mao@gnu.org>.
 *
 *  GLPK is free software: you can redistribute it and/or modify it
 *  under the terms of the GNU General Public License as published by
@@ -48,6 +49,11 @@ void ffalg(int nv, int na, const int tail[], const int head[],
 #define wclique _glp_wclique
 int wclique(int n, const int w[], const unsigned char a[], int ind[]);
 /* find maximum weight clique with Ostergard's algorithm */
+
+#define kellerman _glp_kellerman
+int kellerman(int n, int (*func)(void *info, int i, int ind[]),
+      void *info, void /* glp_graph */ *H);
+/* cover edges by cliques with Kellerman's heuristic */
 
 #endif
 

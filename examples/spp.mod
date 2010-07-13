@@ -1,6 +1,6 @@
 /* SPP, Shortest Path Problem */
 
-/* Written in GNU MathProg by Andrew Makhorin <mao@mai2.rcnet.ru> */
+/* Written in GNU MathProg by Andrew Makhorin <mao@gnu.org> */
 
 /* Given a directed graph G = (V,E), its edge lengths c(i,j) for all
    (i,j) in E, and two nodes s, t in V, the Shortest Path Problem (SPP)

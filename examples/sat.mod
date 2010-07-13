@@ -1,6 +1,6 @@
 /* SAT, Satisfiability Problem */
 
-/* Written in GNU MathProg by Andrew Makhorin <mao@mai2.rcnet.ru> */
+/* Written in GNU MathProg by Andrew Makhorin <mao@gnu.org> */
 
 param m, integer, > 0;
 /* number of clauses */

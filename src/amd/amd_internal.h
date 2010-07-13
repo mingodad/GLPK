@@ -1,6 +1,6 @@
 /* amd_internal.h */
 
-/* Written by Andrew Makhorin <mao@gnu.org>, <mao@mai2.rcnet.ru>. */
+/* Written by Andrew Makhorin <mao@gnu.org>. */
 
 #ifndef AMD_INTERNAL_H
 #define AMD_INTERNAL_H

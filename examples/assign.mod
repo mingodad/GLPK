@@ -1,6 +1,6 @@
 /* ASSIGN, Assignment Problem */
 
-/* Written in GNU MathProg by Andrew Makhorin <mao@mai2.rcnet.ru> */
+/* Written in GNU MathProg by Andrew Makhorin <mao@gnu.org> */
 
 /* The assignment problem is one of the fundamental combinatorial
    optimization problems.

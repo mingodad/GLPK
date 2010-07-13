@@ -3,9 +3,10 @@
 /***********************************************************************
 *  This code is part of GLPK (GNU Linear Programming Kit).
 *
-*  Copyright (C) 2000,01,02,03,04,05,06,07,08,2009 Andrew Makhorin,
-*  Department for Applied Informatics, Moscow Aviation Institute,
-*  Moscow, Russia. All rights reserved. E-mail: <mao@mai2.rcnet.ru>.
+*  Copyright (C) 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008,
+*  2009, 2010 Andrew Makhorin, Department for Applied Informatics,
+*  Moscow Aviation Institute, Moscow, Russia. All rights reserved.
+*  E-mail: <mao@gnu.org>.
 *
 *  GLPK is free software: you can redistribute it and/or modify it
 *  under the terms of the GNU General Public License as published by
@@ -347,7 +348,14 @@ int xfclose(XFILE *fp)
 
 static void *c_fopen(const char *fname, const char *mode)
 {     FILE *fh;
-      fh = fopen(fname, mode);
+      if (strcmp(fname, "/dev/stdin") == 0)
+         fh = stdin;
+      else if (strcmp(fname, "/dev/stdout") == 0)
+         fh = stdout;
+      else if (strcmp(fname, "/dev/stderr") == 0)
+         fh = stderr;
+      else
+         fh = fopen(fname, mode);
       if (fh == NULL)
          lib_err_msg(strerror(errno));
       return fh;
@@ -411,7 +419,12 @@ static int c_fflush(void *_fh)
 static int c_fclose(void *_fh)
 {     FILE *fh = _fh;
       int ret;
-      ret = fclose(fh);
+      if (fh == stdin)
+         ret = 0;
+      else if (fh == stdout || fh == stderr)
+         fflush(fh), ret = 0;
+      else
+         ret = fclose(fh);
       if (ret != 0)
       {  lib_err_msg(strerror(errno));
          ret = XEOF;

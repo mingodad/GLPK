@@ -1,6 +1,6 @@
 /* QUEENS, a classic combinatorial optimization problem */
 
-/* Written in GNU MathProg by Andrew Makhorin <mao@mai2.rcnet.ru> */
+/* Written in GNU MathProg by Andrew Makhorin <mao@gnu.org> */
 
 /* The Queens Problem is to place as many queens as possible on the 8x8
    (or more generally, nxn) chess board in a way that they do not fight

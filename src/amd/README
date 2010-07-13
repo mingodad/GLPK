@@ -2,7 +2,7 @@ NOTE: Files in this subdirectory are NOT part of the GLPK package, but
       are used with GLPK.
 
       The original code was modified according to GLPK requirements by
-      Andrew Makhorin <mao@gnu.org>, <mao@mai2.rcnet.ru>.
+      Andrew Makhorin <mao@gnu.org>.
 ************************************************************************
 AMD Version 2.2, Copyright (C) 2007 by Timothy A. Davis,
 Patrick R. Amestoy, and Iain S. Duff.  All Rights Reserved.

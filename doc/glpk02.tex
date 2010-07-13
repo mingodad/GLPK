@@ -587,6 +587,63 @@ however, they are not stored in the constraint matrix.
 If the parameter \verb|ne| is 0, the parameters \verb|ia|, \verb|ja|,
 and/or \verb|ar| can be specified as \verb|NULL|.
 
+\subsection{glp\_check\_dup---check for duplicate elements in sparse
+matrix}
+
+\subsubsection*{Synopsis}
+
+\begin{verbatim}
+int glp_check_dup(int m, int n, int ne, const int ia[],
+   const int ja[]);
+\end{verbatim}
+
+\subsubsection*{Description}
+
+The routine \verb|glp_check_dup checks| for duplicate elements (that
+is, elements with identical indices) in a sparse matrix specified in
+the coordinate format.
+
+The parameters $m$ and $n$ specifies, respectively, the number of rows
+and columns in the matrix, $m\geq 0$, $n\geq 0$.
+
+The parameter {\it ne} specifies the number of (structurally) non-zero
+elements in the matrix, {\it ne} $\geq 0$.
+
+Elements of the matrix are specified as doublets $(ia[k],ja[k])$ for
+$k=1,\dots,ne$, where $ia[k]$ is a row index, $ja[k]$ is a column index.
+
+The routine \verb|glp_check_dup| can be used prior to a call to the
+routine \verb|glp_load_matrix| to check that the constraint matrix to
+be loaded has no duplicate elements.
+
+\subsubsection*{Returns}
+
+The routine \verb|glp_check_dup| returns one of the following values:
+
+\noindent
+\begin{tabular}{@{}r@{\ }c@{\ }l@{}}
+0&---&the matrix has no duplicate elements;\\
+$-k$&---&indices $ia[k]$ or/and $ja[k]$ are out of range;\\
+$+k$&---&element $(ia[k],ja[k])$ is duplicate.\\
+\end{tabular}
+
+\subsection{glp\_sort\_matrix---sort elements of the constraint matrix}
+
+\subsubsection*{Synopsis}
+
+\begin{verbatim}
+void glp_sort_matrix(glp_prob *P);
+\end{verbatim}
+
+\subsubsection*{Description}
+
+The routine \verb|glp_sort_matrix| sorts elements of the constraint
+matrix rebuilding its row and column linked lists. On exit from the
+routine the constraint matrix is not changed, however, elements in the
+row linked lists become ordered by ascending column indices, and the
+elements in the column linked lists become ordered by ascending row
+indices.
+
 \subsection{glp\_del\_rows---delete rows from problem object}
 
 \subsubsection*{Synopsis}
@@ -650,6 +707,8 @@ object \verb|prob| to the problem object \verb|dest|.
 The parameter \verb|names| is a flag. If it is \verb|GLP_ON|,
 the routine also copies all symbolic names; otherwise, if it is
 \verb|GLP_OFF|, no symbolic names are copied.
+
+\newpage
 
 \subsection{glp\_erase\_prob---erase problem object content}
 
@@ -1675,7 +1734,7 @@ search. (Used in the dual simplex only.)\\
 \medskip
 
 \noindent\begin{tabular}{@{}p{17pt}@{}p{120.5mm}@{}}
-\multicolumn{2}{@{}l}{{\tt int out\_frq} (default: {\tt 200})}
+\multicolumn{2}{@{}l}{{\tt int out\_frq} (default: {\tt 500})}
 \\
 &Output frequency, in iterations. This parameter specifies how
 frequently the solver sends information about the solution process to
@@ -1725,7 +1784,7 @@ int main(void)
 {     glp_prob *P;
       P = glp_create_prob();
       glp_read_mps(P, GLP_MPS_DECK, NULL, "25fv47.mps");
-      glp_adv_basis(P, NULL);
+      glp_adv_basis(P, 0);
       glp_simplex(P, NULL);
       glp_print_sol(P, "25fv47.txt");
       glp_delete_prob(P);

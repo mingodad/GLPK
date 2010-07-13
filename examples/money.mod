@@ -1,6 +1,6 @@
 /* MONEY, a crypto-arithmetic puzzle */
 
-/* Written in GNU MathProg by Andrew Makhorin <mao@mai2.rcnet.ru> */
+/* Written in GNU MathProg by Andrew Makhorin <mao@gnu.org> */
 
 /* This is the classic example of a crypto-arithmetic puzzle published
    in the Strand Magazine by Henry Dudeney:

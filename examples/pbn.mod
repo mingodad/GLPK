@@ -1,6 +1,6 @@
 /* PBN, Paint-By-Numbers Puzzle */
 
-/* Written in GNU MathProg by Andrew Makhorin <mao@mai2.rcnet.ru> */
+/* Written in GNU MathProg by Andrew Makhorin <mao@gnu.org> */
 
 /* A paint-by-number puzzle consists of an m*n grid of pixels (the
    canvas) together with m+n cluster-size sequences, one for each row

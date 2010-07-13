@@ -1287,4 +1287,125 @@ If the basic variable $x$ is presented in the LP problem object, the
 input row can be computed with the routine \verb|glp_eval_tab_row|;
 otherwise, it can be computed with the routine \verb|glp_transform_row|.
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\newpage
+
+\section{Post-optimal analysis routines}
+
+\subsection{glp\_analyze\_bound---analyze active bound of non-basic
+variable}
+
+\subsubsection*{Synopsis}
+
+\begin{verbatim}
+void glp_analyze_bound(glp_prob *P, int k, double *limit1,
+      int *var1, double *limit2, int *var2);
+\end{verbatim}
+
+\subsubsection*{Description}
+
+The routine \verb|glp_analyze_bound| analyzes the effect of varying the
+active bound of specified non-basic variable.
+
+The non-basic variable is specified by the parameter $k$, where
+$1\leq k\leq m$ means auxiliary variable of corresponding row, and
+$m+1\leq k\leq m+n$ means structural variable (column).
+
+Note that the current basic solution must be optimal, and the basis
+factorization must exist.
+
+Results of the analysis have the following meaning.
+
+\verb|value1| is the minimal value of the active bound, at which the
+basis still remains primal feasible and thus optimal. \verb|-DBL_MAX|
+means that the active bound has no lower limit.
+
+\verb|var1| is the ordinal number of an auxiliary (1 to $m$) or
+structural ($m+1$ to $m+n$) basic variable, which reaches its bound
+first and thereby limits further decreasing the active bound being
+analyzed. if \verb|value1| = \verb|-DBL_MAX|, \verb|var1| is set to 0.
+
+\verb|value2| is the maximal value of the active bound, at which the
+basis still remains primal feasible and thus optimal. \verb|+DBL_MAX|
+means that the active bound has no upper limit.
+
+\verb|var2| is the ordinal number of an auxiliary (1 to $m$) or
+structural ($m+1$ to $m+n$) basic variable, which reaches its bound
+first and thereby limits further increasing the active bound being
+analyzed. if \verb|value2| = \verb|+DBL_MAX|, \verb|var2| is set to 0.
+
+The parameters \verb|value1|, \verb|var1|, \verb|value2|, \verb|var2|
+can be specified as \verb|NULL|, in which case corresponding information
+is not stored.
+
+\newpage
+
+\subsection{glp\_analyze\_coef---analyze objective coefficient at basic
+variable}
+
+\subsubsection*{Synopsis}
+
+\begin{verbatim}
+void glp_analyze_coef(glp_prob *P, int k, double *coef1,
+      int *var1, double *value1, double *coef2, int *var2,
+      double *value2);
+\end{verbatim}
+
+\subsubsection*{Description}
+
+The routine \verb|glp_analyze_coef| analyzes the effect of varying the
+objective coefficient at specified basic variable.
+
+The basic variable is specified by the parameter $k$, where
+$1\leq k\leq m$ means auxiliary variable of corresponding row, and
+$m+1\leq k\leq m+n$ means structural variable (column).
+
+Note that the current basic solution must be optimal, and the basis
+factorization must exist.
+
+Results of the analysis have the following meaning.
+
+\verb|coef1| is the minimal value of the objective coefficient, at
+which the basis still remains dual feasible and thus optimal.
+\verb|-DBL_MAX| means that the objective coefficient has no lower limit.
+
+\verb|var1| is the ordinal number of an auxiliary (1 to $m$) or
+structural ($m+1$ to $m+n$) non-basic variable, whose reduced cost
+reaches its zero bound first and thereby limits further decreasing the
+objective coefficient being analyzed. If \verb|coef1| = \verb|-DBL_MAX|,
+\verb|var1| is set to 0.
+
+\verb|value1| is value of the basic variable being analyzed in an
+adjacent basis, which is defined as follows. Let the objective
+coefficient reaches its minimal value (\verb|coef1|) and continues
+decreasing. Then the reduced cost of the limiting non-basic variable
+(\verb|var1|) becomes dual infeasible and the current basis becomes
+non-optimal that forces the limiting non-basic variable to enter the
+basis replacing there some basic variable that leaves the basis to keep
+primal feasibility. Should note that on determining the adjacent basis
+current bounds of the basic variable being analyzed are ignored as if
+it were free (unbounded) variable, so it cannot leave the basis. It may
+happen that no dual feasible adjacent basis exists, in which case
+\verb|value1| is set to \verb|-DBL_MAX| or \verb|+DBL_MAX|.
+
+\verb|coef2| is the maximal value of the objective coefficient, at
+which the basis still remains dual feasible and thus optimal.
+\verb|+DBL_MAX| means that the objective coefficient has no upper limit.
+
+\verb|var2| is the ordinal number of an auxiliary (1 to $m$) or
+structural ($m+1$ to $m+n$) non-basic variable, whose reduced cost
+reaches its zero bound first and thereby limits further increasing the
+objective coefficient being analyzed. If \verb|coef2| = \verb|+DBL_MAX|,
+\verb|var2| is set to 0.
+
+\verb|value2| is value of the basic variable being analyzed in an
+adjacent basis, which is defined exactly in the same way as
+\verb|value1| above with exception that now the objective coefficient
+is increasing.
+
+The parameters \verb|coef1|, \verb|var1|, \verb|value1|, \verb|coef2|,
+\verb|var2|, \verb|value2| can be specified as \verb|NULL|, in which
+case corresponding information is not stored.
+
 %* eof *%

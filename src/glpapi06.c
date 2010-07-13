@@ -3,9 +3,10 @@
 /***********************************************************************
 *  This code is part of GLPK (GNU Linear Programming Kit).
 *
-*  Copyright (C) 2000,01,02,03,04,05,06,07,08,2009 Andrew Makhorin,
-*  Department for Applied Informatics, Moscow Aviation Institute,
-*  Moscow, Russia. All rights reserved. E-mail: <mao@mai2.rcnet.ru>.
+*  Copyright (C) 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008,
+*  2009, 2010 Andrew Makhorin, Department for Applied Informatics,
+*  Moscow Aviation Institute, Moscow, Russia. All rights reserved.
+*  E-mail: <mao@gnu.org>.
 *
 *  GLPK is free software: you can redistribute it and/or modify it
 *  under the terms of the GNU General Public License as published by
@@ -21,16 +22,8 @@
 *  along with GLPK. If not, see <http://www.gnu.org/licenses/>.
 ***********************************************************************/
 
-#if 1
-#define GLP_USE_NPP
-#endif
-
-#include "glpapi.h"
-#ifdef GLP_USE_NPP
+#include "glpios.h"
 #include "glpnpp.h"
-#else
-#include "glplpp.h"
-#endif
 #include "glpspx.h"
 
 /***********************************************************************
@@ -40,7 +33,7 @@
 *
 *  SYNOPSIS
 *
-*  int glp_simplex(glp_prob *lp, const glp_smcp *parm);
+*  int glp_simplex(glp_prob *P, const glp_smcp *parm);
 *
 *  DESCRIPTION
 *
@@ -111,313 +104,213 @@
 *     The LP problem instance has no dual feasible solution (only if the
 *     LP presolver is used). */
 
-static void trivial1(glp_prob *lp, const glp_smcp *parm)
-{     /* solve trivial LP problem which has no rows */
-      int j;
-      double dir;
-      xassert(lp->m == 0);
-      switch (lp->dir)
-      {  case GLP_MIN: dir = +1.0; break;
-         case GLP_MAX: dir = -1.0; break;
-         default:      xassert(lp != lp);
-      }
-      lp->pbs_stat = lp->dbs_stat = GLP_FEAS;
-      lp->obj_val = lp->c0;
-      lp->some = 0;
-      for (j = 1; j <= lp->n; j++)
-      {  GLPCOL *col = lp->col[j];
-         col->dual = col->coef;
-         switch (col->type)
-         {  case GLP_FR:
-               if (dir * col->dual < -1e-7)
-                  lp->dbs_stat = GLP_NOFEAS;
-               if (dir * col->dual > +1e-7)
-                  lp->dbs_stat = GLP_NOFEAS;
-               col->stat = GLP_NF;
-               col->prim = 0.0;
-               break;
-            case GLP_LO:
-               if (dir * col->dual < -1e-7)
-                  lp->dbs_stat = GLP_NOFEAS;
-lo:            col->stat = GLP_NL;
-               col->prim = col->lb;
-               break;
-            case GLP_UP:
-               if (dir * col->dual > +1e-7)
-                  lp->dbs_stat = GLP_NOFEAS;
-up:            col->stat = GLP_NU;
-               col->prim = col->ub;
-               break;
-            case GLP_DB:
-               if (dir * col->dual < 0.0) goto up;
-               if (dir * col->dual > 0.0) goto lo;
-               if (fabs(col->lb) <= fabs(col->ub))
-                  goto lo;
-               else
-                  goto up;
-            case GLP_FX:
-               col->stat = GLP_NS;
-               col->prim = col->lb;
-               break;
-            default:
-               xassert(lp != lp);
-         }
-         lp->obj_val += col->coef * col->prim;
-         if (lp->dbs_stat == GLP_NOFEAS && lp->some == 0)
-            lp->some = j;
-      }
-      if (parm->msg_lev >= GLP_MSG_ON && parm->out_dly == 0)
-      {  xprintf("~%6d:   objval = %17.9e   infeas = %17.9e\n",
-            lp->it_cnt, lp->obj_val, 0.0);
-         if (parm->msg_lev >= GLP_MSG_ALL)
-         {  if (lp->dbs_stat == GLP_FEAS)
-               xprintf("OPTIMAL SOLUTION FOUND\n");
-            else
-               xprintf("PROBLEM HAS UNBOUNDED SOLUTION\n");
-         }
-      }
-      return;
-}
-
-static void trivial2(glp_prob *lp, const glp_smcp *parm)
-{     /* solve trivial LP problem which has no columns */
-      int i;
-      xassert(lp->n == 0);
-      lp->pbs_stat = lp->dbs_stat = GLP_FEAS;
-      lp->obj_val = lp->c0;
-      lp->some = 0;
-      for (i = 1; i <= lp->m; i++)
-      {  GLPROW *row = lp->row[i];
+static void trivial_lp(glp_prob *P, const glp_smcp *parm)
+{     /* solve trivial LP which has empty constraint matrix */
+      GLPROW *row;
+      GLPCOL *col;
+      int i, j;
+      double p_infeas, d_infeas, zeta;
+      P->valid = 0;
+      P->pbs_stat = P->dbs_stat = GLP_FEAS;
+      P->obj_val = P->c0;
+      P->some = 0;
+      p_infeas = d_infeas = 0.0;
+      /* make all auxiliary variables basic */
+      for (i = 1; i <= P->m; i++)
+      {  row = P->row[i];
          row->stat = GLP_BS;
          row->prim = row->dual = 0.0;
-         switch (row->type)
-         {  case GLP_FR:
-               break;
-            case GLP_LO:
-               if (row->lb > +1e-8)
-                  lp->pbs_stat = GLP_NOFEAS;
-               break;
-            case GLP_UP:
-               if (row->ub < -1e-8)
-                  lp->pbs_stat = GLP_NOFEAS;
-               break;
-            case GLP_DB:
-            case GLP_FX:
-               if (row->lb > +1e-8)
-                  lp->pbs_stat = GLP_NOFEAS;
-               if (row->ub < -1e-8)
-                  lp->pbs_stat = GLP_NOFEAS;
-               break;
-            default:
-               xassert(lp != lp);
+         /* check primal feasibility */
+         if (row->type == GLP_LO || row->type == GLP_DB ||
+             row->type == GLP_FX)
+         {  /* row has lower bound */
+            if (row->lb > + parm->tol_bnd)
+            {  P->pbs_stat = GLP_NOFEAS;
+               if (P->some == 0 && parm->meth != GLP_PRIMAL)
+                  P->some = i;
+            }
+            if (p_infeas < + row->lb)
+               p_infeas = + row->lb;
+         }
+         if (row->type == GLP_UP || row->type == GLP_DB ||
+             row->type == GLP_FX)
+         {  /* row has upper bound */
+            if (row->ub < - parm->tol_bnd)
+            {  P->pbs_stat = GLP_NOFEAS;
+               if (P->some == 0 && parm->meth != GLP_PRIMAL)
+                  P->some = i;
+            }
+            if (p_infeas < - row->ub)
+               p_infeas = - row->ub;
          }
       }
-      if (parm->msg_lev >= GLP_MSG_ON && parm->out_dly == 0)
-      {  xprintf("~%6d:   objval = %17.9e   infeas = %17.9e\n",
-            lp->it_cnt, lp->obj_val);
-         if (parm->msg_lev >= GLP_MSG_ALL)
-         {  if (lp->pbs_stat == GLP_FEAS)
-               xprintf("OPTIMAL SOLUTION FOUND\n");
+      /* determine scale factor for the objective row */
+      zeta = 1.0;
+      for (j = 1; j <= P->n; j++)
+      {  col = P->col[j];
+         if (zeta < fabs(col->coef)) zeta = fabs(col->coef);
+      }
+      zeta = (P->dir == GLP_MIN ? +1.0 : -1.0) / zeta;
+      /* make all structural variables non-basic */
+      for (j = 1; j <= P->n; j++)
+      {  col = P->col[j];
+         if (col->type == GLP_FR)
+            col->stat = GLP_NF, col->prim = 0.0;
+         else if (col->type == GLP_LO)
+lo:         col->stat = GLP_NL, col->prim = col->lb;
+         else if (col->type == GLP_UP)
+up:         col->stat = GLP_NU, col->prim = col->ub;
+         else if (col->type == GLP_DB)
+         {  if (zeta * col->coef > 0.0)
+               goto lo;
+            else if (zeta * col->coef < 0.0)
+               goto up;
+            else if (fabs(col->lb) <= fabs(col->ub))
+               goto lo;
             else
-               xprintf("PROBLEM HAS NO FEASIBLE SOLUTION\n");
+               goto up;
          }
+         else if (col->type == GLP_FX)
+            col->stat = GLP_NS, col->prim = col->lb;
+         col->dual = col->coef;
+         P->obj_val += col->coef * col->prim;
+         /* check dual feasibility */
+         if (col->type == GLP_FR || col->type == GLP_LO)
+         {  /* column has no upper bound */
+            if (zeta * col->dual < - parm->tol_dj)
+            {  P->dbs_stat = GLP_NOFEAS;
+               if (P->some == 0 && parm->meth == GLP_PRIMAL)
+                  P->some = P->m + j;
+            }
+            if (d_infeas < - zeta * col->dual)
+               d_infeas = - zeta * col->dual;
+         }
+         if (col->type == GLP_FR || col->type == GLP_UP)
+         {  /* column has no lower bound */
+            if (zeta * col->dual > + parm->tol_dj)
+            {  P->dbs_stat = GLP_NOFEAS;
+               if (P->some == 0 && parm->meth == GLP_PRIMAL)
+                  P->some = P->m + j;
+            }
+            if (d_infeas < + zeta * col->dual)
+               d_infeas = + zeta * col->dual;
+         }
+      }
+      /* simulate the simplex solver output */
+      if (parm->msg_lev >= GLP_MSG_ON && parm->out_dly == 0)
+      {  xprintf("~%6d: obj = %17.9e  infeas = %10.3e\n", P->it_cnt,
+            P->obj_val, parm->meth == GLP_PRIMAL ? p_infeas : d_infeas);
+      }
+      if (parm->msg_lev >= GLP_MSG_ALL && parm->out_dly == 0)
+      {  if (P->pbs_stat == GLP_FEAS && P->dbs_stat == GLP_FEAS)
+            xprintf("OPTIMAL SOLUTION FOUND\n");
+         else if (P->pbs_stat == GLP_NOFEAS)
+            xprintf("PROBLEM HAS NO FEASIBLE SOLUTION\n");
+         else if (parm->meth == GLP_PRIMAL)
+            xprintf("PROBLEM HAS UNBOUNDED SOLUTION\n");
+         else
+            xprintf("PROBLEM HAS NO DUAL FEASIBLE SOLUTION\n");
       }
       return;
 }
 
-#if 1 /* 18/VIII-2008 */
-static int simplex1(glp_prob *lp, const glp_smcp *parm)
-{     /* base driver which does not use LP presolver */
+static int solve_lp(glp_prob *P, const glp_smcp *parm)
+{     /* solve LP directly without using the preprocessor */
       int ret;
-      if (!glp_bf_exists(lp))
-      {  ret = glp_factorize(lp);
-         switch (ret)
-         {  case 0:
-               break;
-            case GLP_EBADB:
-               if (parm->msg_lev >= GLP_MSG_ERR)
-                  xprintf("glp_simplex: initial basis is invalid\n");
-               goto done;
-            case GLP_ESING:
-               if (parm->msg_lev >= GLP_MSG_ERR)
-                  xprintf("glp_simplex: initial basis is singular\n");
-               goto done;
-            case GLP_ECOND:
-               if (parm->msg_lev >= GLP_MSG_ERR)
-                  xprintf("glp_simplex: initial basis is ill-conditione"
-                     "d\n");
-               goto done;
-            default:
-               xassert(ret != ret);
+      if (!glp_bf_exists(P))
+      {  ret = glp_factorize(P);
+         if (ret == 0)
+            ;
+         else if (ret == GLP_EBADB)
+         {  if (parm->msg_lev >= GLP_MSG_ERR)
+               xprintf("glp_simplex: initial basis is invalid\n");
          }
+         else if (ret == GLP_ESING)
+         {  if (parm->msg_lev >= GLP_MSG_ERR)
+               xprintf("glp_simplex: initial basis is singular\n");
+         }
+         else if (ret == GLP_ECOND)
+         {  if (parm->msg_lev >= GLP_MSG_ERR)
+               xprintf(
+                  "glp_simplex: initial basis is ill-conditioned\n");
+         }
+         else
+            xassert(ret != ret);
+         if (ret != 0) goto done;
       }
-      switch (parm->meth)
-      {  case GLP_PRIMAL:
-            ret = spx_primal(lp, parm);
-            break;
-         case GLP_DUALP:
-            {  glp_smcp parm1 = *parm;
-#if 0
-               parm1.msg_lev = GLP_MSG_DBG;
-               parm1.out_frq = 1;
-               parm1.out_dly = 0;
-#endif
-               ret = spx_dual(lp, &parm1);
-#if 1
-               if (ret == GLP_EFAIL && lp->valid)
-                  ret = spx_primal(lp, parm);
-#endif
-            }
-            break;
-         case GLP_DUAL:
-            ret = spx_dual(lp, parm);
-            break;
-         default:
-            xassert(parm != parm);
+      if (parm->meth == GLP_PRIMAL)
+         ret = spx_primal(P, parm);
+      else if (parm->meth == GLP_DUALP)
+      {  ret = spx_dual(P, parm);
+         if (ret == GLP_EFAIL && P->valid)
+            ret = spx_primal(P, parm);
       }
+      else if (parm->meth == GLP_DUAL)
+         ret = spx_dual(P, parm);
+      else
+         xassert(parm != parm);
 done: return ret;
 }
-#endif
 
-static int simplex2(glp_prob *orig, const glp_smcp *parm)
-{     /* extended driver which uses LP presolver */
-#ifdef GLP_USE_NPP
+static int preprocess_and_solve_lp(glp_prob *P, const glp_smcp *parm)
+{     /* solve LP using the preprocessor */
       NPP *npp;
-#else
-      LPP *lpp;
-#endif
-      glp_prob *prob;
+      glp_prob *lp = NULL;
       glp_bfcp bfcp;
-      int orig_m, orig_n, orig_nnz, ret;
-      orig_m = glp_get_num_rows(orig);
-      orig_n = glp_get_num_cols(orig);
-      orig_nnz = glp_get_num_nz(orig);
+      int ret;
       if (parm->msg_lev >= GLP_MSG_ALL)
-      {  xprintf(
-            "Original LP has %d row%s, %d column%s, %d non-zero%s\n",
-            orig_m, orig_m == 1 ? "" : "s",
-            orig_n, orig_n == 1 ? "" : "s",
-            orig_nnz, orig_nnz == 1 ? "" : "s");
-      }
-      /* the problem must have at least one row and one column */
-      xassert(orig_m > 0 && orig_n > 0);
-      /* create LP presolver workspace */
-#ifdef GLP_USE_NPP
+         xprintf("Preprocessing...\n");
+      /* create preprocessor workspace */
       npp = npp_create_wksp();
-#else
-      lpp = lpp_create_wksp();
-#endif
-      /* load the original problem into LP presolver workspace */
-#ifdef GLP_USE_NPP
-      npp_load_prob(npp, orig, GLP_OFF, GLP_SOL, GLP_OFF);
-#else
-      lpp_load_orig(lpp, orig);
-#endif
-      /* perform LP presolve analysis */
-#ifdef GLP_USE_NPP
-#if 0 /* 20/XII-2009 */
-      ret = npp_preprocess(npp);
-#else
-      ret = npp_simplex(npp);
-#endif
-#else
-      ret = lpp_presolve(lpp);
-#endif
-      switch (ret)
-      {  case 0:
-            /* presolving has been successfully completed */
-            break;
-#ifdef GLP_USE_NPP
-         case GLP_ENOPFS:
-#else
-         case 1:
-#endif
-            /* the original problem is primal infeasible */
-            if (parm->msg_lev >= GLP_MSG_ALL)
-               xprintf("PROBLEM HAS NO PRIMAL FEASIBLE SOLUTION\n");
-#ifdef GLP_USE_NPP
-            npp_delete_wksp(npp);
-#else
-            lpp_delete_wksp(lpp);
-#endif
-            return GLP_ENOPFS;
-#ifdef GLP_USE_NPP
-         case GLP_ENODFS:
-#else
-         case 2:
-#endif
-            /* the original problem is dual infeasible */
-            if (parm->msg_lev >= GLP_MSG_ALL)
-               xprintf("PROBLEM HAS NO DUAL FEASIBLE SOLUTION\n");
-#ifdef GLP_USE_NPP
-            npp_delete_wksp(npp);
-#else
-            lpp_delete_wksp(lpp);
-#endif
-            return GLP_ENODFS;
-         default:
-            xassert(ret != ret);
+      /* load original problem into the preprocessor workspace */
+      npp_load_prob(npp, P, GLP_OFF, GLP_SOL, GLP_OFF);
+      /* process LP prior to applying primal/dual simplex method */
+      ret = npp_simplex(npp, parm);
+      if (ret == 0)
+         ;
+      else if (ret == GLP_ENOPFS)
+      {  if (parm->msg_lev >= GLP_MSG_ALL)
+            xprintf("PROBLEM HAS NO PRIMAL FEASIBLE SOLUTION\n");
       }
-      /* if the resultant problem is empty, it has an empty solution,
-         which is optimal */
-#ifdef GLP_USE_NPP
-      if (npp->r_head == NULL || npp->c_head == NULL)
-      {  xassert(npp->r_head == NULL);
-         xassert(npp->c_head == NULL);
-         if (parm->msg_lev >= GLP_MSG_ALL)
-         {  xprintf("Objective value = %.10g\n",
-               npp->orig_dir == GLP_MIN ? + npp->c0 : - npp->c0);
-            xprintf("OPTIMAL SOLUTION FOUND BY LP PRESOLVER\n");
+      else if (ret == GLP_ENODFS)
+      {  if (parm->msg_lev >= GLP_MSG_ALL)
+            xprintf("PROBLEM HAS NO DUAL FEASIBLE SOLUTION\n");
+      }
+      else
+         xassert(ret != ret);
+      if (ret != 0) goto done;
+      /* build transformed LP */
+      lp = glp_create_prob();
+      npp_build_prob(npp, lp);
+      /* if the transformed LP is empty, it has empty solution, which
+         is optimal */
+      if (lp->m == 0 && lp->n == 0)
+      {  lp->pbs_stat = lp->dbs_stat = GLP_FEAS;
+         lp->obj_val = lp->c0;
+         if (parm->msg_lev >= GLP_MSG_ON && parm->out_dly == 0)
+         {  xprintf("~%6d: obj = %17.9e  infeas = %10.3e\n", P->it_cnt,
+               lp->obj_val, 0.0);
          }
-         prob = glp_create_prob();
-         npp_build_prob(npp, prob);
-         xassert(prob->m == 0 && prob->n == 0);
-         prob->pbs_stat = prob->dbs_stat = GLP_FEAS;
-         prob->obj_val = prob->c0;
+         if (parm->msg_lev >= GLP_MSG_ALL)
+            xprintf("OPTIMAL SOLUTION FOUND BY LP PREPROCESSOR\n");
          goto post;
       }
-#else
-      if (lpp->row_ptr == NULL || lpp->col_ptr == NULL)
-      {  xassert(lpp->row_ptr == NULL);
-         xassert(lpp->col_ptr == NULL);
-         if (parm->msg_lev >= GLP_MSG_ALL)
-         {  xprintf("Objective value = %.10g\n",
-               lpp->orig_dir == LPX_MIN ? + lpp->c0 : - lpp->c0);
-            xprintf("OPTIMAL SOLUTION FOUND BY LP PRESOLVER\n");
-         }
-         /* allocate recovered solution segment */
-         lpp_alloc_sol(lpp);
-         goto post;
-      }
-#endif
-      /* build resultant LP problem object */
-#ifdef GLP_USE_NPP
-      prob = glp_create_prob();
-      npp_build_prob(npp, prob);
-#else
-      prob = lpp_build_prob(lpp);
-#endif
       if (parm->msg_lev >= GLP_MSG_ALL)
-      {  int m = glp_get_num_rows(prob);
-         int n = glp_get_num_cols(prob);
-         int nnz = glp_get_num_nz(prob);
-         xprintf(
-            "Presolved LP has %d row%s, %d column%s, %d non-zero%s\n",
-            m, m == 1 ? "" : "s",
-            n, n == 1 ? "" : "s",
-            nnz, nnz == 1 ? "" : "s");
+      {  xprintf("%d row%s, %d column%s, %d non-zero%s\n",
+            lp->m, lp->m == 1 ? "" : "s", lp->n, lp->n == 1 ? "" : "s",
+            lp->nnz, lp->nnz == 1 ? "" : "s");
       }
       /* inherit basis factorization control parameters */
-      glp_get_bfcp(orig, &bfcp);
-      glp_set_bfcp(prob, &bfcp);
-      /* scale the resultant problem */
+      glp_get_bfcp(P, &bfcp);
+      glp_set_bfcp(lp, &bfcp);
+      /* scale the transformed problem */
       {  LIBENV *env = lib_link_env();
          int term_out = env->term_out;
          if (!term_out || parm->msg_lev < GLP_MSG_ALL)
             env->term_out = GLP_OFF;
          else
             env->term_out = GLP_ON;
-         glp_scale_prob(prob, GLP_SF_AUTO);
+         glp_scale_prob(lp, GLP_SF_AUTO);
          env->term_out = term_out;
       }
       /* build advanced initial basis */
@@ -427,69 +320,61 @@ static int simplex2(glp_prob *orig, const glp_smcp *parm)
             env->term_out = GLP_OFF;
          else
             env->term_out = GLP_ON;
-         lpx_adv_basis(prob);
+         glp_adv_basis(lp, 0);
          env->term_out = term_out;
       }
-      /* try to solve the resultant problem */
-      prob->it_cnt = orig->it_cnt;
-      ret = simplex1(prob, parm);
-      orig->it_cnt = prob->it_cnt;
-      /* check if the optimal solution has been found */
-      if (glp_get_status(prob) != GLP_OPT)
+      /* solve the transformed LP */
+      lp->it_cnt = P->it_cnt;
+      ret = solve_lp(lp, parm);
+      P->it_cnt = lp->it_cnt;
+      /* only optimal solution can be postprocessed */
+      if (!(ret == 0 && lp->pbs_stat == GLP_FEAS && lp->dbs_stat ==
+            GLP_FEAS))
       {  if (parm->msg_lev >= GLP_MSG_ERR)
             xprintf("glp_simplex: unable to recover undefined or non-op"
                "timal solution\n");
          if (ret == 0)
-         {  if (glp_get_prim_stat(prob) == GLP_NOFEAS)
+         {  if (lp->pbs_stat == GLP_NOFEAS)
                ret = GLP_ENOPFS;
-            else if (glp_get_dual_stat(prob) == GLP_NOFEAS)
+            else if (lp->dbs_stat == GLP_NOFEAS)
                ret = GLP_ENODFS;
+            else
+               xassert(lp != lp);
          }
-         glp_delete_prob(prob);
-#ifdef GLP_USE_NPP
-         npp_delete_wksp(npp);
-#else
-         lpp_delete_wksp(lpp);
-#endif
-         return ret;
+         goto done;
       }
-#ifdef GLP_USE_NPP
-post: npp_postprocess(npp, prob);
-#else
-      /* allocate recovered solution segment */
-      lpp_alloc_sol(lpp);
-      /* load basic solution of the resultant problem into LP presolver
-         workspace */
-      lpp_load_sol(lpp, prob);
-#endif
-      /* the resultant problem object is no longer needed */
-      glp_delete_prob(prob);
-#ifdef GLP_USE_NPP
-      npp_unload_sol(npp, orig);
+post: /* postprocess solution from the transformed LP */
+      npp_postprocess(npp, lp);
+      /* the transformed LP is no longer needed */
+      glp_delete_prob(lp), lp = NULL;
+      /* store solution to the original problem */
+      npp_unload_sol(npp, P);
+      /* the original LP has been successfully solved */
+      ret = 0;
+done: /* delete the transformed LP, if it exists */
+      if (lp != NULL) glp_delete_prob(lp);
+      /* delete preprocessor workspace */
       npp_delete_wksp(npp);
-#else
-post: /* perform LP postsolve processing */
-      lpp_postsolve(lpp);
-      /* unload recovered basic solution and store it into the original
-         problem object */
-      lpp_unload_sol(lpp, orig);
-      /* delete LP presolver workspace */
-      lpp_delete_wksp(lpp);
-#endif
-      /* the original problem has been successfully solved */
-      return 0;
+      return ret;
 }
 
-int glp_simplex(glp_prob *lp, const glp_smcp *parm)
-{     glp_smcp _parm;
+int glp_simplex(glp_prob *P, const glp_smcp *parm)
+{     /* solve LP problem with the simplex method */
+      glp_smcp _parm;
       int i, j, ret;
+      /* check problem object */
+      if (P == NULL || P->magic != GLP_PROB_MAGIC)
+         xerror("glp_simplex: P = %p; invalid problem object\n", P);
+      if (P->tree != NULL && P->tree->reason != 0)
+         xerror("glp_simplex: operation not allowed\n");
+      /* check control parameters */
       if (parm == NULL)
          parm = &_parm, glp_init_smcp((glp_smcp *)parm);
-      /* check control parameters */
       if (!(parm->msg_lev == GLP_MSG_OFF ||
             parm->msg_lev == GLP_MSG_ERR ||
             parm->msg_lev == GLP_MSG_ON  ||
-            parm->msg_lev == GLP_MSG_ALL))
+            parm->msg_lev == GLP_MSG_ALL ||
+            parm->msg_lev == GLP_MSG_DBG))
          xerror("glp_simplex: msg_lev = %d; invalid parameter\n",
             parm->msg_lev);
       if (!(parm->meth == GLP_PRIMAL ||
@@ -530,12 +415,12 @@ int glp_simplex(glp_prob *lp, const glp_smcp *parm)
          xerror("glp_simplex: presolve = %d; invalid parameter\n",
             parm->presolve);
       /* basic solution is currently undefined */
-      lp->pbs_stat = lp->dbs_stat = GLP_UNDEF;
-      lp->obj_val = 0.0;
-      lp->some = 0;
+      P->pbs_stat = P->dbs_stat = GLP_UNDEF;
+      P->obj_val = 0.0;
+      P->some = 0;
       /* check bounds of double-bounded variables */
-      for (i = 1; i <= lp->m; i++)
-      {  GLPROW *row = lp->row[i];
+      for (i = 1; i <= P->m; i++)
+      {  GLPROW *row = P->row[i];
          if (row->type == GLP_DB && row->lb >= row->ub)
          {  if (parm->msg_lev >= GLP_MSG_ERR)
                xprintf("glp_simplex: row %d: lb = %g, ub = %g; incorrec"
@@ -544,8 +429,8 @@ int glp_simplex(glp_prob *lp, const glp_smcp *parm)
             goto done;
          }
       }
-      for (j = 1; j <= lp->n; j++)
-      {  GLPCOL *col = lp->col[j];
+      for (j = 1; j <= P->n; j++)
+      {  GLPCOL *col = P->col[j];
          if (col->type == GLP_DB && col->lb >= col->ub)
          {  if (parm->msg_lev >= GLP_MSG_ERR)
                xprintf("glp_simplex: column %d: lb = %g, ub = %g; incor"
@@ -555,14 +440,18 @@ int glp_simplex(glp_prob *lp, const glp_smcp *parm)
          }
       }
       /* solve LP problem */
-      if (lp->m == 0)
-         trivial1(lp, parm), ret = 0;
-      else if (lp->n == 0)
-         trivial2(lp, parm), ret = 0;
+      if (parm->msg_lev >= GLP_MSG_ALL)
+      {  xprintf("GLPK Simplex Optimizer, v%s\n", glp_version());
+         xprintf("%d row%s, %d column%s, %d non-zero%s\n",
+            P->m, P->m == 1 ? "" : "s", P->n, P->n == 1 ? "" : "s",
+            P->nnz, P->nnz == 1 ? "" : "s");
+      }
+      if (P->nnz == 0)
+         trivial_lp(P, parm), ret = 0;
       else if (!parm->presolve)
-         ret = simplex1(lp, parm);
+         ret = solve_lp(P, parm);
       else
-         ret = simplex2(lp, parm);
+         ret = preprocess_and_solve_lp(P, parm);
 done: /* return to the application program */
       return ret;
 }
@@ -596,7 +485,7 @@ void glp_init_smcp(glp_smcp *parm)
       parm->obj_ul = +DBL_MAX;
       parm->it_lim = INT_MAX;
       parm->tm_lim = INT_MAX;
-      parm->out_frq = 200;
+      parm->out_frq = 500;
       parm->out_dly = 0;
       parm->presolve = GLP_OFF;
       return;

@@ -78,7 +78,7 @@
 
    (From Wikipedia, the free encyclopedia.) */
 
-/* Translated from GAMS by Andrew Makhorin <mao@mai2.rcnet.ru>.
+/* Translated from GAMS by Andrew Makhorin <mao@gnu.org>.
 
    For the original GAMS model stigler1939.gms see [3].
 

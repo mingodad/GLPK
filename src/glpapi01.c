@@ -3,9 +3,10 @@
 /***********************************************************************
 *  This code is part of GLPK (GNU Linear Programming Kit).
 *
-*  Copyright (C) 2000,01,02,03,04,05,06,07,08,2009 Andrew Makhorin,
-*  Department for Applied Informatics, Moscow Aviation Institute,
-*  Moscow, Russia. All rights reserved. E-mail: <mao@mai2.rcnet.ru>.
+*  Copyright (C) 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008,
+*  2009, 2010 Andrew Makhorin, Department for Applied Informatics,
+*  Moscow Aviation Institute, Moscow, Russia. All rights reserved.
+*  E-mail: <mao@gnu.org>.
 *
 *  GLPK is free software: you can redistribute it and/or modify it
 *  under the terms of the GNU General Public License as published by
@@ -54,7 +55,8 @@
 *  used in any subsequent operations on this object. */
 
 static void create_prob(glp_prob *lp)
-{     lp->pool = dmp_create_pool();
+{     lp->magic = GLP_PROB_MAGIC;
+      lp->pool = dmp_create_pool();
 #if 0 /* 17/XI-2009 */
       lp->cps = xmalloc(sizeof(struct LPXCPS));
       lpx_reset_parms(lp);
@@ -1069,6 +1071,166 @@ void glp_load_matrix(glp_prob *lp, int ne, const int ia[],
 /***********************************************************************
 *  NAME
 *
+*  glp_check_dup - check for duplicate elements in sparse matrix
+*
+*  SYNOPSIS
+*
+*  int glp_check_dup(int m, int n, int ne, const int ia[],
+*     const int ja[]);
+*
+*  DESCRIPTION
+*
+*  The routine glp_check_dup checks for duplicate elements (that is,
+*  elements with identical indices) in a sparse matrix specified in the
+*  coordinate format.
+*
+*  The parameters m and n specifies, respectively, the number of rows
+*  and columns in the matrix, m >= 0, n >= 0.
+*
+*  The parameter ne specifies the number of (structurally) non-zero
+*  elements in the matrix, ne >= 0.
+*
+*  Elements of the matrix are specified as doublets (ia[k],ja[k]) for
+*  k = 1,...,ne, where ia[k] is a row index, ja[k] is a column index.
+*
+*  The routine glp_check_dup can be used prior to a call to the routine
+*  glp_load_matrix to check that the constraint matrix to be loaded has
+*  no duplicate elements.
+*
+*  RETURNS
+*
+*  The routine glp_check_dup returns one of the following values:
+*
+*   0 - the matrix has no duplicate elements;
+*
+*  -k - indices ia[k] or/and ja[k] are out of range;
+*
+*  +k - element (ia[k],ja[k]) is duplicate. */
+
+int glp_check_dup(int m, int n, int ne, const int ia[], const int ja[])
+{     int i, j, k, *ptr, *next, ret;
+      char *flag;
+      if (m < 0)
+         xerror("glp_check_dup: m = %d; invalid parameter\n");
+      if (n < 0)
+         xerror("glp_check_dup: n = %d; invalid parameter\n");
+      if (ne < 0)
+         xerror("glp_check_dup: ne = %d; invalid parameter\n");
+      if (ne > 0 && ia == NULL)
+         xerror("glp_check_dup: ia = %p; invalid parameter\n", ia);
+      if (ne > 0 && ja == NULL)
+         xerror("glp_check_dup: ja = %p; invalid parameter\n", ja);
+      for (k = 1; k <= ne; k++)
+      {  i = ia[k], j = ja[k];
+         if (!(1 <= i && i <= m && 1 <= j && j <= n))
+         {  ret = -k;
+            goto done;
+         }
+      }
+      if (m == 0 || n == 0)
+      {  ret = 0;
+         goto done;
+      }
+      /* allocate working arrays */
+      ptr = xcalloc(1+m, sizeof(int));
+      next = xcalloc(1+ne, sizeof(int));
+      flag = xcalloc(1+n, sizeof(char));
+      /* build row lists */
+      for (i = 1; i <= m; i++)
+         ptr[i] = 0;
+      for (k = 1; k <= ne; k++)
+      {  i = ia[k];
+         next[k] = ptr[i];
+         ptr[i] = k;
+      }
+      /* clear column flags */
+      for (j = 1; j <= n; j++)
+         flag[j] = 0;
+      /* check for duplicate elements */
+      for (i = 1; i <= m; i++)
+      {  for (k = ptr[i]; k != 0; k = next[k])
+         {  j = ja[k];
+            if (flag[j])
+            {  /* find first element (i,j) */
+               for (k = 1; k <= ne; k++)
+                  if (ia[k] == i && ja[k] == j) break;
+               xassert(k <= ne);
+               /* find next (duplicate) element (i,j) */
+               for (k++; k <= ne; k++)
+                  if (ia[k] == i && ja[k] == j) break;
+               xassert(k <= ne);
+               ret = +k;
+               goto skip;
+            }
+            flag[j] = 1;
+         }
+         /* clear column flags */
+         for (k = ptr[i]; k != 0; k = next[k])
+            flag[ja[k]] = 0;
+      }
+      /* no duplicate element found */
+      ret = 0;
+skip: /* free working arrays */
+      xfree(ptr);
+      xfree(next);
+      xfree(flag);
+done: return ret;
+}
+
+/***********************************************************************
+*  NAME
+*
+*  glp_sort_matrix - sort elements of the constraint matrix
+*
+*  SYNOPSIS
+*
+*  void glp_sort_matrix(glp_prob *P);
+*
+*  DESCRIPTION
+*
+*  The routine glp_sort_matrix sorts elements of the constraint matrix
+*  rebuilding its row and column linked lists. On exit from the routine
+*  the constraint matrix is not changed, however, elements in the row
+*  linked lists become ordered by ascending column indices, and the
+*  elements in the column linked lists become ordered by ascending row
+*  indices. */
+
+void glp_sort_matrix(glp_prob *P)
+{     GLPAIJ *aij;
+      int i, j;
+      if (P == NULL || P->magic != GLP_PROB_MAGIC)
+         xerror("glp_sort_matrix: P = %p; invalid problem object\n",
+            P);
+      /* rebuild row linked lists */
+      for (i = P->m; i >= 1; i--)
+         P->row[i]->ptr = NULL;
+      for (j = P->n; j >= 1; j--)
+      {  for (aij = P->col[j]->ptr; aij != NULL; aij = aij->c_next)
+         {  i = aij->row->i;
+            aij->r_prev = NULL;
+            aij->r_next = P->row[i]->ptr;
+            if (aij->r_next != NULL) aij->r_next->r_prev = aij;
+            P->row[i]->ptr = aij;
+         }
+      }
+      /* rebuild column linked lists */
+      for (j = P->n; j >= 1; j--)
+         P->col[j]->ptr = NULL;
+      for (i = P->m; i >= 1; i--)
+      {  for (aij = P->row[i]->ptr; aij != NULL; aij = aij->r_next)
+         {  j = aij->col->j;
+            aij->c_prev = NULL;
+            aij->c_next = P->col[j]->ptr;
+            if (aij->c_next != NULL) aij->c_next->c_prev = aij;
+            P->col[j]->ptr = aij;
+         }
+      }
+      return;
+}
+
+/***********************************************************************
+*  NAME
+*
 *  glp_del_rows - delete rows from problem object
 *
 *  SYNOPSIS
@@ -1375,7 +1537,8 @@ void glp_erase_prob(glp_prob *lp)
 *  frees all the memory allocated to it. */
 
 static void delete_prob(glp_prob *lp)
-{     dmp_delete_pool(lp->pool);
+{     lp->magic = 0x3F3F3F3F;
+      dmp_delete_pool(lp->pool);
 #if 0 /* 17/XI-2009 */
       xfree(lp->cps);
 #else

@@ -1,6 +1,6 @@
 /* JSSP, Job-Shop Scheduling Problem */
 
-/* Written in GNU MathProg by Andrew Makhorin <mao@mai2.rcnet.ru> */
+/* Written in GNU MathProg by Andrew Makhorin <mao@gnu.org> */
 
 /* The Job-Shop Scheduling Problem (JSSP) is to schedule a set of jobs
    on a set of machines, subject to the constraint that each machine can

@@ -1,8 +1,8 @@
 /* cal.mod - print an ASCII calendar of the given year */
 
-/* Written in GNU MathProg by Andrew Makhorin <mao@mai2.rcnet.ru> */
+/* Written in GNU MathProg by Andrew Makhorin <mao@gnu.org> */
 
-param year, integer, >= 0001, <= 3999, default 2008;
+param year, integer, >= 0001, <= 3999, default 2010;
 
 param first_day{m in 1..12}, integer, >= 0, <= 6, :=
       time2str(str2time(year & "-" & m & "-01", "%Y-%m-%d"), "%w");

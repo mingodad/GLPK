@@ -1,6 +1,6 @@
 /* GAP, Generalized Assignment Problem */
 
-/* Written in GNU MathProg by Andrew Makhorin <mao@mai2.rcnet.ru> */
+/* Written in GNU MathProg by Andrew Makhorin <mao@gnu.org> */
 
 /* The Generalized Assignment Problem (GAP) is to assign a set of jobs
    to a set of agents subject to the constraints that each job must be

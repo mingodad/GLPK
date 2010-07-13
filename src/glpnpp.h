@@ -3,9 +3,10 @@
 /***********************************************************************
 *  This code is part of GLPK (GNU Linear Programming Kit).
 *
-*  Copyright (C) 2000,01,02,03,04,05,06,07,08,2009 Andrew Makhorin,
-*  Department for Applied Informatics, Moscow Aviation Institute,
-*  Moscow, Russia. All rights reserved. E-mail: <mao@mai2.rcnet.ru>.
+*  Copyright (C) 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008,
+*  2009, 2010 Andrew Makhorin, Department for Applied Informatics,
+*  Moscow Aviation Institute, Moscow, Russia. All rights reserved.
+*  E-mail: <mao@gnu.org>.
 *
 *  GLPK is free software: you can redistribute it and/or modify it
 *  under the terms of the GNU General Public License as published by
@@ -196,9 +197,22 @@ struct NPPCOL
       /* pointer to the linked list of constraint coefficients */
       int temp;
       /* working field used by preprocessor routines */
-#if 1 /* 18/XII-2009 */
-      double ll, uu;
-      /* column implied bounds */
+#if 1 /* 28/XII-2009 */
+      union
+      {  double ll;
+         /* implied column lower bound */
+         int pos;
+         /* vertex ordinal number corresponding to this binary column
+            in the conflict graph (0, if the vertex does not exist) */
+      }  ll;
+      union
+      {  double uu;
+         /* implied column upper bound */
+         int neg;
+         /* vertex ordinal number corresponding to complement of this
+            binary column in the conflict graph (0, if the vertex does
+            not exist) */
+      }  uu;
 #endif
       NPPCOL *prev;
       /* pointer to previous column in the column list */
@@ -282,28 +296,44 @@ void npp_deactivate_col(NPP *npp, NPPCOL *col);
 
 #define npp_add_row _glp_npp_add_row
 NPPROW *npp_add_row(NPP *npp);
-/* add new row to the transformed problem */
+/* add new row to the current problem */
 
 #define npp_add_col _glp_npp_add_col
 NPPCOL *npp_add_col(NPP *npp);
-/* add new column to the transformed problem */
+/* add new column to the current problem */
 
 #define npp_add_aij _glp_npp_add_aij
 NPPAIJ *npp_add_aij(NPP *npp, NPPROW *row, NPPCOL *col, double val);
 /* add new element to the constraint matrix */
+
+#define npp_row_nnz _glp_npp_row_nnz
+int npp_row_nnz(NPP *npp, NPPROW *row);
+/* count number of non-zero coefficients in row */
+
+#define npp_col_nnz _glp_npp_col_nnz
+int npp_col_nnz(NPP *npp, NPPCOL *col);
+/* count number of non-zero coefficients in column */
 
 #define npp_push_tse _glp_npp_push_tse
 void *npp_push_tse(NPP *npp, int (*func)(NPP *npp, void *info),
       int size);
 /* push new entry to the transformation stack */
 
+#define npp_erase_row _glp_npp_erase_row
+void npp_erase_row(NPP *npp, NPPROW *row);
+/* erase row content to make it empty */
+
 #define npp_del_row _glp_npp_del_row
 void npp_del_row(NPP *npp, NPPROW *row);
-/* remove row from the transformed problem */
+/* remove row from the current problem */
 
 #define npp_del_col _glp_npp_del_col
 void npp_del_col(NPP *npp, NPPCOL *col);
-/* remove column from the transformed problem */
+/* remove column from the current problem */
+
+#define npp_del_aij _glp_npp_del_aij
+void npp_del_aij(NPP *npp, NPPAIJ *aij);
+/* remove element from the constraint matrix */
 
 #define npp_load_prob _glp_npp_load_prob
 void npp_load_prob(NPP *npp, glp_prob *orig, int names, int sol,
@@ -404,6 +434,10 @@ void npp_implied_slack(NPP *npp, NPPCOL *q);
 int npp_implied_free(NPP *npp, NPPCOL *q);
 /* process column singleton (implied free variable) */
 
+#define npp_eq_doublet _glp_npp_eq_doublet
+NPPCOL *npp_eq_doublet(NPP *npp, NPPROW *p);
+/* process row doubleton (equality constraint) */
+
 #define npp_forcing_row _glp_npp_forcing_row
 int npp_forcing_row(NPP *npp, NPPROW *p, int at);
 /* process forcing row */
@@ -420,25 +454,66 @@ void npp_inactive_bound(NPP *npp, NPPROW *p, int which);
 void npp_implied_bounds(NPP *npp, NPPROW *p);
 /* determine implied column bounds */
 
+#define npp_binarize_prob _glp_npp_binarize_prob
+int npp_binarize_prob(NPP *npp);
+/* binarize MIP problem */
+
+#define npp_is_packing _glp_npp_is_packing
+int npp_is_packing(NPP *npp, NPPROW *row);
+/* test if constraint is packing inequality */
+
+#define npp_hidden_packing _glp_npp_hidden_packing
+int npp_hidden_packing(NPP *npp, NPPROW *row);
+/* identify hidden packing inequality */
+
+#define npp_implied_packing _glp_npp_implied_packing
+int npp_implied_packing(NPP *npp, NPPROW *row, int which,
+      NPPCOL *var[], char set[]);
+/* identify implied packing inequality */
+
+#define npp_is_covering _glp_npp_is_covering
+int npp_is_covering(NPP *npp, NPPROW *row);
+/* test if constraint is covering inequality */
+
+#define npp_hidden_covering _glp_npp_hidden_covering
+int npp_hidden_covering(NPP *npp, NPPROW *row);
+/* identify hidden covering inequality */
+
+#define npp_is_partitioning _glp_npp_is_partitioning
+int npp_is_partitioning(NPP *npp, NPPROW *row);
+/* test if constraint is partitioning equality */
+
+#define npp_reduce_ineq_coef _glp_npp_reduce_ineq_coef
+int npp_reduce_ineq_coef(NPP *npp, NPPROW *row);
+/* reduce inequality constraint coefficients */
+
 #define npp_clean_prob _glp_npp_clean_prob
 void npp_clean_prob(NPP *npp);
 /* perform initial LP/MIP processing */
 
 #define npp_process_row _glp_npp_process_row
-int npp_process_row(NPP *npp, NPPROW *row);
+int npp_process_row(NPP *npp, NPPROW *row, int hard);
 /* perform basic row processing */
+
+#define npp_improve_bounds _glp_npp_improve_bounds
+int npp_improve_bounds(NPP *npp, NPPROW *row, int flag);
+/* improve current column bounds */
 
 #define npp_process_col _glp_npp_process_col
 int npp_process_col(NPP *npp, NPPCOL *col);
 /* perform basic column processing */
 
 #define npp_process_prob _glp_npp_process_prob
-int npp_process_prob(NPP *npp);
+int npp_process_prob(NPP *npp, int hard);
 /* perform basic LP/MIP processing */
 
 #define npp_simplex _glp_npp_simplex
-int npp_simplex(NPP *npp);
+int npp_simplex(NPP *npp, const glp_smcp *parm);
 /* process LP prior to applying primal/dual simplex method */
+
+#define npp_integer _glp_npp_integer
+int npp_integer(NPP *npp, const glp_iocp *parm);
+/* process MIP prior to applying branch-and-bound method */
 
 #endif
 

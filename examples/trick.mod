@@ -1,7 +1,7 @@
 /* TRICK, A Transportation Design Problem */
 
 /* Translated from the Mosel modeling language to GNU MathProg by
-   Andrew Makhorin <mao@mai2.rcnet.ru> */
+   Andrew Makhorin <mao@gnu.org> */
 
 /* This example model is described in the article "Formulations and
    Reformulations in Integer Programming" by Michael Trick (it is

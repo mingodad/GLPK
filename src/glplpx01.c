@@ -3,9 +3,10 @@
 /***********************************************************************
 *  This code is part of GLPK (GNU Linear Programming Kit).
 *
-*  Copyright (C) 2000,01,02,03,04,05,06,07,08,2009 Andrew Makhorin,
-*  Department for Applied Informatics, Moscow Aviation Institute,
-*  Moscow, Russia. All rights reserved. E-mail: <mao@mai2.rcnet.ru>.
+*  Copyright (C) 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008,
+*  2009, 2010 Andrew Makhorin, Department for Applied Informatics,
+*  Moscow Aviation Institute, Moscow, Russia. All rights reserved.
+*  E-mail: <mao@gnu.org>.
 *
 *  GLPK is free software: you can redistribute it and/or modify it
 *  under the terms of the GNU General Public License as published by
@@ -1507,6 +1508,13 @@ int lpx_print_prob(LPX *lp, const char *fname)
 int lpx_print_sol(LPX *lp, const char *fname)
 {     /* write LP problem solution in printable format */
       return glp_print_sol(lp, fname);
+}
+
+int lpx_print_sens_bnds(LPX *lp, const char *fname)
+{     /* write bounds sensitivity information */
+      if (glp_get_status(lp) == GLP_OPT && !glp_bf_exists(lp))
+         glp_factorize(lp);
+      return glp_print_ranges(lp, 0, NULL, 0, fname);
 }
 
 int lpx_print_ips(LPX *lp, const char *fname)

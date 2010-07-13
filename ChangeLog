@@ -1,3 +1,50 @@
+Wed Jan 13 12:00:00 2010 Andrew Makhorin <mao@gnu.org>
+
+        * GLPK 4.42 (27:0:27) has been released
+
+        * glpapi01.c, glpapi11.c, glpapi12.c, glpdmx.c
+        The following new API routines were added and documented:
+        glp_check_dup (check for duplicate elements in sparse matrix);
+        glp_sort_matrix (sort elements of the constraint matrix);
+        glp_read_prob (read problem data in GLPK format);
+        glp_write_prob (write problem data in GLPK format);
+        glp_analyze_bound (analyze active bound of non-basic variable);
+        glp_analyze_coef (analyze obj. coefficient at basic variable);
+        glp_print_ranges (print sensitivity analysis report; replaces
+        lpx_print_sens_bnds).
+
+        * glpapi20.c
+        New command-line options were added to glpsol:
+        --glp (read problem data in GLPK format);
+        --wglp (write problem data in GLPK format);
+        --lp (replaces --cpxlp);
+        --wlp (replaces --wcpxlp);
+        --ranges (print sensitivity analysis report).
+
+        * glpapi06.c
+        In the routine glp_init_smcp default value of the parameter
+        out_frq was changed to 500 (it was 200).
+
+        * glpipp.h, glpipp01.c, glpipp02.c
+        The old MIP preprocessor module was removed.
+
+        * glpapi09.c
+        Now the MIP solver uses the new MIP preprocessor (NPP).
+
+        * glplpx03.c
+        lpx_write_opb was disabled due to replacing IPP with NPP.
+
+        * glpnet09.c
+        Kellerman's heuristic to cover edges by cliques was added.
+
+        * glplib08.c
+        Recognition of special filenames "/dev/stdin", "/dev/stdout",
+        and "/dev/stderr" was added.
+
+        * glpk.tex
+        Chapter "Graph and network routines" was carried out from the
+        reference manual as a separate document.
+
 Mon Dec 21 12:00:00 2009 Andrew Makhorin <mao@gnu.org>
 
         * GLPK 4.41 (26:0:26) has been released

@@ -1,6 +1,6 @@
 /* colamd.h */
 
-/* Written by Andrew Makhorin <mao@gnu.org>, <mao@mai2.rcnet.ru>. */
+/* Written by Andrew Makhorin <mao@gnu.org>. */
 
 #ifndef COLAMD_H
 #define COLAMD_H

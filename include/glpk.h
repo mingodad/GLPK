@@ -3,9 +3,10 @@
 /***********************************************************************
 *  This code is part of GLPK (GNU Linear Programming Kit).
 *
-*  Copyright (C) 2000,01,02,03,04,05,06,07,08,2009 Andrew Makhorin,
-*  Department for Applied Informatics, Moscow Aviation Institute,
-*  Moscow, Russia. All rights reserved. E-mail: <mao@mai2.rcnet.ru>.
+*  Copyright (C) 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008,
+*  2009, 2010 Andrew Makhorin, Department for Applied Informatics,
+*  Moscow Aviation Institute, Moscow, Russia. All rights reserved.
+*  E-mail: <mao@gnu.org>.
 *
 *  GLPK is free software: you can redistribute it and/or modify it
 *  under the terms of the GNU General Public License as published by
@@ -33,7 +34,7 @@ extern "C" {
 
 /* library version numbers: */
 #define GLP_MAJOR_VERSION  4
-#define GLP_MINOR_VERSION  41
+#define GLP_MINOR_VERSION  42
 
 #ifndef GLPAPI_H
 typedef struct { double _opaque_prob[100]; } glp_prob;
@@ -327,6 +328,12 @@ void glp_load_matrix(glp_prob *P, int ne, const int ia[],
       const int ja[], const double ar[]);
 /* load (replace) the whole constraint matrix */
 
+int glp_check_dup(int m, int n, int ne, const int ia[], const int ja[]);
+/* check for duplicate elements in sparse matrix */
+
+void glp_sort_matrix(glp_prob *P);
+/* sort elements of the constraint matrix */
+
 void glp_del_rows(glp_prob *P, int nrs, const int num[]);
 /* delete specified rows from problem object */
 
@@ -543,6 +550,10 @@ int glp_read_sol(glp_prob *P, const char *fname);
 int glp_write_sol(glp_prob *P, const char *fname);
 /* write basic solution to text file */
 
+int glp_print_ranges(glp_prob *P, int len, const int list[],
+      int flags, const char *fname);
+/* print sensitivity analysis report */
+
 int glp_print_ipt(glp_prob *P, const char *fname);
 /* write interior-point solution in printable format */
 
@@ -613,6 +624,14 @@ int glp_prim_rtest(glp_prob *P, int len, const int ind[],
 int glp_dual_rtest(glp_prob *P, int len, const int ind[],
       const double val[], int dir, double eps);
 /* perform dual ratio test */
+
+void glp_analyze_bound(glp_prob *P, int k, double *value1, int *var1,
+      double *value2, int *var2);
+/* analyze active bound of non-basic variable */
+
+void glp_analyze_coef(glp_prob *P, int k, double *coef1, int *var1,
+      double *value1, double *coef2, int *var2, double *value2);
+/* analyze objective coefficient at basic variable */
 
 int glp_ios_reason(glp_tree *T);
 /* determine reason for calling the callback routine */
@@ -702,6 +721,12 @@ int glp_read_lp(glp_prob *P, const glp_cpxcp *parm, const char *fname);
 
 int glp_write_lp(glp_prob *P, const glp_cpxcp *parm, const char *fname);
 /* write problem data in CPLEX LP format */
+
+int glp_read_prob(glp_prob *P, int flags, const char *fname);
+/* read problem data in GLPK format */
+
+int glp_write_prob(glp_prob *P, int flags, const char *fname);
+/* write problem data in GLPK format */
 
 glp_tran *glp_mpl_alloc_wksp(void);
 /* allocate the MathProg translator workspace */

@@ -1,11 +1,12 @@
-/* glpnpp01.c (LP/MIP preprocessor) */
+/* glpnpp01.c */
 
 /***********************************************************************
 *  This code is part of GLPK (GNU Linear Programming Kit).
 *
-*  Copyright (C) 2000,01,02,03,04,05,06,07,08,2009 Andrew Makhorin,
-*  Department for Applied Informatics, Moscow Aviation Institute,
-*  Moscow, Russia. All rights reserved. E-mail: <mao@mai2.rcnet.ru>.
+*  Copyright (C) 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008,
+*  2009, 2010 Andrew Makhorin, Department for Applied Informatics,
+*  Moscow Aviation Institute, Moscow, Russia. All rights reserved.
+*  E-mail: <mao@gnu.org>.
 *
 *  GLPK is free software: you can redistribute it and/or modify it
 *  under the terms of the GNU General Public License as published by
@@ -172,7 +173,7 @@ void npp_deactivate_col(NPP *npp, NPPCOL *col)
 }
 
 NPPROW *npp_add_row(NPP *npp)
-{     /* add new row to the transformed problem */
+{     /* add new row to the current problem */
       NPPROW *row;
       row = dmp_get_atom(npp->pool, sizeof(NPPROW));
       row->i = ++(npp->nrows);
@@ -185,7 +186,7 @@ NPPROW *npp_add_row(NPP *npp)
 }
 
 NPPCOL *npp_add_col(NPP *npp)
-{     /* add new column to the transformed problem */
+{     /* add new column to the current problem */
       NPPCOL *col;
       col = dmp_get_atom(npp->pool, sizeof(NPPCOL));
       col->j = ++(npp->ncols);
@@ -221,6 +222,28 @@ NPPAIJ *npp_add_aij(NPP *npp, NPPROW *row, NPPCOL *col, double val)
       return aij;
 }
 
+int npp_row_nnz(NPP *npp, NPPROW *row)
+{     /* count number of non-zero coefficients in row */
+      NPPAIJ *aij;
+      int nnz;
+      xassert(npp == npp);
+      nnz = 0;
+      for (aij = row->ptr; aij != NULL; aij = aij->r_next)
+         nnz++;
+      return nnz;
+}
+
+int npp_col_nnz(NPP *npp, NPPCOL *col)
+{     /* count number of non-zero coefficients in column */
+      NPPAIJ *aij;
+      int nnz;
+      xassert(npp == npp);
+      nnz = 0;
+      for (aij = col->ptr; aij != NULL; aij = aij->c_next)
+         nnz++;
+      return nnz;
+}
+
 void *npp_push_tse(NPP *npp, int (*func)(NPP *npp, void *info),
       int size)
 {     /* push new entry to the transformation stack */
@@ -233,11 +256,10 @@ void *npp_push_tse(NPP *npp, int (*func)(NPP *npp, void *info),
       return tse->info;
 }
 
-void npp_del_row(NPP *npp, NPPROW *row)
-{     /* remove row from the transformed problem */
+#if 1 /* 23/XII-2009 */
+void npp_erase_row(NPP *npp, NPPROW *row)
+{     /* erase row content to make it empty */
       NPPAIJ *aij;
-      if (row->name != NULL)
-         dmp_free_atom(npp->pool, row->name, strlen(row->name)+1);
       while (row->ptr != NULL)
       {  aij = row->ptr;
          row->ptr = aij->r_next;
@@ -251,13 +273,41 @@ void npp_del_row(NPP *npp, NPPROW *row)
             aij->c_next->c_prev = aij->c_prev;
          dmp_free_atom(npp->pool, aij, sizeof(NPPAIJ));
       }
+      return;
+}
+#endif
+
+void npp_del_row(NPP *npp, NPPROW *row)
+{     /* remove row from the current problem */
+#if 0 /* 23/XII-2009 */
+      NPPAIJ *aij;
+#endif
+      if (row->name != NULL)
+         dmp_free_atom(npp->pool, row->name, strlen(row->name)+1);
+#if 0 /* 23/XII-2009 */
+      while (row->ptr != NULL)
+      {  aij = row->ptr;
+         row->ptr = aij->r_next;
+         if (aij->c_prev == NULL)
+            aij->col->ptr = aij->c_next;
+         else
+            aij->c_prev->c_next = aij->c_next;
+         if (aij->c_next == NULL)
+            ;
+         else
+            aij->c_next->c_prev = aij->c_prev;
+         dmp_free_atom(npp->pool, aij, sizeof(NPPAIJ));
+      }
+#else
+      npp_erase_row(npp, row);
+#endif
       npp_remove_row(npp, row);
       dmp_free_atom(npp->pool, row, sizeof(NPPROW));
       return;
 }
 
 void npp_del_col(NPP *npp, NPPCOL *col)
-{     /* remove column from the transformed problem */
+{     /* remove column from the current problem */
       NPPAIJ *aij;
       if (col->name != NULL)
          dmp_free_atom(npp->pool, col->name, strlen(col->name)+1);
@@ -276,6 +326,28 @@ void npp_del_col(NPP *npp, NPPCOL *col)
       }
       npp_remove_col(npp, col);
       dmp_free_atom(npp->pool, col, sizeof(NPPCOL));
+      return;
+}
+
+void npp_del_aij(NPP *npp, NPPAIJ *aij)
+{     /* remove element from the constraint matrix */
+      if (aij->r_prev == NULL)
+         aij->row->ptr = aij->r_next;
+      else
+         aij->r_prev->r_next = aij->r_next;
+      if (aij->r_next == NULL)
+         ;
+      else
+         aij->r_next->r_prev = aij->r_prev;
+      if (aij->c_prev == NULL)
+         aij->col->ptr = aij->c_next;
+      else
+         aij->c_prev->c_next = aij->c_next;
+      if (aij->c_next == NULL)
+         ;
+      else
+         aij->c_next->c_prev = aij->c_prev;
+      dmp_free_atom(npp->pool, aij, sizeof(NPPAIJ));
       return;
 }
 
@@ -684,6 +756,7 @@ void npp_unload_sol(NPP *npp, glp_prob *orig)
             }
             if (col->stat == GLP_BS)
                col->dual = 0.0;
+#if 1
             else if (col->stat == GLP_NL)
             {  xassert(col->type == GLP_LO || col->type == GLP_DB);
                col->prim = col->lb;
@@ -702,6 +775,7 @@ void npp_unload_sol(NPP *npp, glp_prob *orig)
             }
             else
                xassert(col != col);
+#endif
             orig->obj_val += col->coef * col->prim;
          }
 #if 1
@@ -781,7 +855,6 @@ void npp_unload_sol(NPP *npp, glp_prob *orig)
                col->dval = temp;
             }
          }
-/*xprintf("++++++++++++++++++\n");*/
 #endif
       }
       else if (npp->sol == GLP_MIP)
@@ -814,7 +887,6 @@ void npp_unload_sol(NPP *npp, glp_prob *orig)
                row->mipx = temp;
             }
          }
-/*xprintf("iiiiiiiiiii\n");*/
 #endif
       }
       else

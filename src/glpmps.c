@@ -3,9 +3,10 @@
 /***********************************************************************
 *  This code is part of GLPK (GNU Linear Programming Kit).
 *
-*  Copyright (C) 2000,01,02,03,04,05,06,07,08,2009 Andrew Makhorin,
-*  Department for Applied Informatics, Moscow Aviation Institute,
-*  Moscow, Russia. All rights reserved. E-mail: <mao@mai2.rcnet.ru>.
+*  Copyright (C) 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008,
+*  2009, 2010 Andrew Makhorin, Department for Applied Informatics,
+*  Moscow Aviation Institute, Moscow, Russia. All rights reserved.
+*  E-mail: <mao@gnu.org>.
 *
 *  GLPK is free software: you can redistribute it and/or modify it
 *  under the terms of the GNU General Public License as published by
@@ -1001,7 +1002,7 @@ int glp_read_mps(glp_prob *P, int fmt, const glp_mpscp *parm,
       xprintf("%d records were read\n", csa->recno);
       /* problem data has been successfully read */
       glp_delete_index(P);
-      lpx_order_matrix(P);
+      glp_sort_matrix(P);
       ret = 0;
 done: if (csa->fp != NULL) xfclose(csa->fp);
       if (csa->work1 != NULL) xfree(csa->work1);

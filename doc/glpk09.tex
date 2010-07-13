@@ -1,696 +1,413 @@
 %* glpk09.tex *%
 
-\chapter{MPS Format}
-\label{champs}
+\chapter{CPLEX LP Format}
+\label{chacplex}
 
-\section{Fixed MPS Format}
-\label{secmps}
+\section{Prelude}
 
-The MPS format\footnote{The MPS format was developed in 1960's by IBM
-as input format for their mathematical programming system MPS/360.
-Today the MPS format is a most widely used format understood by most
-mathematical programming packages. This appendix describes only the
-features of the MPS format, which are implemented in the GLPK package.}
-is intended for coding LP/MIP problem data. This format assumes the
-formulation of LP/MIP problem (1.1)---(1.3) (see Section \ref{seclp},
-page \pageref{seclp}).
+The CPLEX LP format\footnote{The CPLEX LP format was developed in
+the end of 1980's by CPLEX Optimization, Inc. as an input format for
+the CPLEX linear programming system. Although the CPLEX LP format is
+not as widely used as the MPS format, being row-oriented it is more
+convenient for coding mathematical programming models by human. This
+appendix describes only the features of the CPLEX LP format which are
+implemented in the GLPK package.} is intended for coding LP/MIP problem
+data. It is a row-oriented format that assumes the formulation of LP/MIP
+problem (1.1)---(1.3) (see Section \ref{seclp}, page \pageref{seclp}).
 
-{\it MPS file} is a text file, which contains two types of
-cards\footnote{In 1960's MPS file was a deck of 80-column punched cards,
-so the author decided to keep the word ``card'', which may be understood
-as ``line of text file''.}: indicator cards and data cards.
+CPLEX LP file is a plain text file written in CPLEX LP format. Each text
+line of this file may contain up to 255 characters\footnote{GLPK allows
+text lines of arbitrary length.}. Blank lines are ignored. If a line
+contains the backslash character ($\backslash$), this character and
+everything that follows it until the end of line are considered as a
+comment and also ignored.
 
-Indicator cards determine a kind of succeeding data. Each indicator card
-has one word in uppercase letters beginning in column 1.
+An LP file is coded by the user using the following elements:
 
-Data cards contain problem data. Each data card is divided into six
-fixed fields:
+$\bullet$ keywords;
+
+$\bullet$ symbolic names;
+
+$\bullet$ numeric constants;
+
+$\bullet$ delimiters;
+
+$\bullet$ blanks.
+
+\newpage
+
+{\it Keywords} which may be used in the LP file are the following:
+
+\begin{verbatim}
+      minimize        minimum        min
+      maximize        maximum        max
+      subject to      such that      s.t.      st.      st
+      bounds          bound
+      general         generals       gen
+      integer         integers       int
+      binary          binaries       bin
+      infinity        inf
+      free
+      end
+\end{verbatim}
+
+\noindent
+All the keywords are case insensitive. Keywords given above on the same
+line are equivalent. Any keyword (except \verb|infinity|, \verb|inf|,
+and \verb|free|) being used in the LP file must start at the beginning
+of a text line.
+
+{\it Symbolic names} are used to identify the objective function,
+constraints (rows), and variables (columns). All symbolic names are case
+sensitive and may contain up to 16 alphanumeric characters\footnote{GLPK
+allows symbolic names having up to 255 characters.} (\verb|a|, \dots,
+\verb|z|, \verb|A|, \dots, \verb|Z|, \verb|0|, \dots, \verb|9|) as well
+as the following characters:
+
+\begin{verbatim}
+!  "  #  $  %  &  (  )  /  ,  .  ;  ?  @  _  `  '  {  }  |  ~
+\end{verbatim}
+
+\noindent
+with exception that no symbolic name can begin with a digit or a period.
+
+{\it Numeric constants} are used to denote constraint and objective
+coefficients, right-hand sides of constraints, and bounds of variables.
+They are coded in the standard form $xx$\verb|E|$syy$, where $xx$ is
+a real number with optional decimal point, $s$ is a sign (\verb|+| or
+\verb|-|), $yy$ is an integer decimal exponent. Numeric constants may
+contain arbitrary number of characters. The exponent part is optional.
+The letter `\verb|E|' can be coded as `\verb|e|'. If the sign $s$ is
+omitted, plus is assumed.
+
+{\it Delimiters} that may be used in the LP file are the following:
+
+\begin{verbatim}
+      :
+      +
+      -
+      <   <=   =<
+      >   >=   =>
+      =
+\end{verbatim}
+
+\noindent
+Delimiters given above on the same line are equivalent. The meaning of
+the delimiters will be explained below.
+
+{\it Blanks} are non-significant characters. They may be used freely to
+improve readability of the LP file. Besides, blanks should be used to
+separate elements from each other if there is no other way to do that
+(for example, to separate a keyword from a following symbolic name).
+
+The order of an LP file is:
+
+$\bullet$ objective function definition;
+
+$\bullet$ constraints section;
+
+$\bullet$ bounds section;
+
+$\bullet$ general, integer, and binary sections (can appear in arbitrary
+order);
+
+$\bullet$ end keyword.
+
+These components are discussed in following sections.
+
+\section{Objective function definition}
+
+The objective function definition must appear first in the LP file. It
+defines the objective function and specifies the optimization direction.
+
+The objective function definition has the following form:
+$$
+\left\{
+\begin{array}{@{}c@{}}
+{\tt minimize} \\ {\tt maximize}
+\end{array}
+\right\}\ f\ {\tt :}\ s\ c\ x\ s\ c\ x\ \dots\ s\ c\ x
+$$
+where $f$ is a symbolic name of the objective function, $s$ is a sign
+\verb|+| or \verb|-|, $c$ is a numeric constant that denotes an
+objective coefficient, $x$ is a symbolic name of a variable.
+
+If necessary, the objective function definition can be continued on as
+many text lines as desired.
+
+The name of the objective function is optional and may be omitted
+(together with the semicolon that follows it). In this case the default
+name `\verb|obj|' is assigned to the objective function.
+
+If the very first sign $s$ is omitted, the sign plus is assumed. Other
+signs cannot be omitted.
+
+If some objective coefficient $c$ is omitted, 1 is assumed.
+
+Symbolic names $x$ used to denote variables are recognized by context
+and therefore needn't to be declared somewhere else.
+
+Here is an example of the objective function definition:
+
+\begin{verbatim}
+   Minimize Z : - x1 + 2 x2 - 3.5 x3 + 4.997e3x(4) + x5 + x6 +
+      x7 - .01x8
+\end{verbatim}
+
+\section{Constraints section}
+
+The constraints section must follow the objective function definition.
+It defines a system of equality and/or inequality constraints.
+
+The constraint section has the following form:
 
 \begin{center}
-\begin{tabular}{lcccccc}
-& Field 1 & Field 2 & Field 3 & Field 4 & Field 5 & Feld 6 \\
-\hline
-Columns & 2---3 & 5---12 & 15---22 & 25---36 & 40---47 & 50---61 \\
-Contents & Code & Name & Name & Number & Name & Number \\
+\begin{tabular}{l}
+\verb|subject to| \\
+{\it constraint}$_1$ \\
+{\it constraint}$_2$ \\
+\hspace{20pt}\dots \\
+{\it constraint}$_m$ \\
 \end{tabular}
 \end{center}
 
-On a particular data card some fields may be optional.
-
-Names are used to identify rows, columns, and some vectors (see below).
-
-Aligning the indicator code in the field 1 to the left margin is
-optional.
-
-All names specified in the fields 2, 3, and 5 should contain from 1 up
-to 8 arbitrary characters (except control characters). If a name is
-placed in the field 3 or 5, its first character should not be the dollar
-sign `\verb|$|'. If a name contains spaces, the spaces are ignored.
-
-All numerical values in the fields 4 and 6 should be coded in the form
-$sxx$\verb|E|$syy$, where $s$ is the plus `\verb|+|' or the minus
-`\verb|-|' sign, $xx$ is a real number with optional decimal point,
-$yy$ is an integer decimal exponent. Any number should contain up to 12
-characters. If the sign $s$ is omitted, the plus sign is assumed. The
-exponent part is optional. If a number contains spaces, the spaces are
-ignored.
-
-If a card has the asterisk `\verb|*|' in the column 1, this card is
-considered as a comment and ignored. Besides, if the first character in
-the field 3 or 5 is the dollar sign `\verb|$|', all characters from the
-dollar sign to the end of card are considered as a comment and ignored.
-
-MPS file should contain cards in the following order:
-
-$\bullet$ NAME indicator card;
-
-$\bullet$ ROWS indicator card;
-
-$\bullet$ data cards specifying rows (constraints);
-
-$\bullet$ COLUMNS indicator card;
-
-$\bullet$ data cards specifying columns (structural variables) and
-constraint coefficients;
-
-$\bullet$ RHS indicator card;
-
-$\bullet$ data cards specifying right-hand sides of constraints;
-
-$\bullet$ RANGES indicator card;
-
-$\bullet$ data cards specifying ranges for double-bounded constraints;
-
-$\bullet$ BOUNDS indicator card;
-
-$\bullet$ data cards specifying types and bounds of structural
-variables;
-
-$\bullet$ ENDATA indicator card.
-
-{\it Section} is a group of cards consisting of an indicator card and
-data cards succeeding this indicator card. For example, the ROWS section
-consists of the ROWS indicator card and data cards specifying rows.
-
-The sections RHS, RANGES, and BOUNDS are optional and may be omitted.
-
-\section{Free MPS Format}
-
-{\it Free MPS format} is an improved version of the standard (fixed)
-MPS format described above.\footnote{This format was developed in the
-beginning of 1990's by IBM as an alternative to the standard fixed MPS
-format for Optimization Subroutine Library (OSL).} Note that all
-changes in free MPS format concern only the coding of data while the
-structure of data is the same for both fixed and free versions of the
-MPS format.
-
-In free MPS format indicator and data records\footnote{{\it Record} in
-free MPS format has the same meaning as {\it card} in fixed MPS format.}
-may have arbitrary length not limited to 80 characters. Fields of data
-records have no predefined positions, i.e. the fields may begin in any
-position, except position 1, which must be blank, and must be separated
-from each other by one or more blanks. However, the fields must appear
-in the same order as in fixed MPS format.
-
-Symbolic names in fields 2, 3, and 5 may be longer than 8
-characters\footnote{GLPK allows symbolic names having up to 255
-characters.}
-and must not contain embedded blanks.
-
-Numeric values in fields 4 and 6 are limited to 12 characters and must
-not contain embedded blanks.
-
-Only six fields on each data record are used. Any other fields are
-ignored.
-
-If the first character of any field (not necessarily fields 3 and 5)
-is the dollar sign (\$), all characters from the dollar sign to the end
-of record are considered as a comment and ignored.
-
-\section{NAME indicator card}
-
-The NAME indicator card should be the first card in the MPS file (except
-optional comment cards, which may precede the NAME card). This card
-should contain the word \verb|NAME| in the columns 1---4 and the problem
-name in the field 3. The problem name is optional and may be omitted.
-
-\section{ROWS section}
-\label{secrows}
-
-The ROWS section should start with the indicator card, which contains
-the word \verb|ROWS| in the columns 1---4.
-
-Each data card in the ROWS section specifies one row (constraint) of the
-problem. All these data cards have the following format.
-
-`\verb|N|' in the field 1 means that the row is free (unbounded):
-$$-\infty < x_i = a_{i1}x_{m+1} + a_{i2}x_{m+2} + \dots + a_{in}x_{m+n}
-< +\infty;$$
-
-`\verb|L|' in the field 1 means that the row is of ``less than or equal
-to'' type:
-$$-\infty < x_i = a_{i1}x_{m+1} + a_{i2}x_{m+2} + \dots + a_{in}x_{m+n}
-\leq b_i;$$
-
-`\verb|G|' in the field 1 means that the row is of ``greater than or
-equal to'' type:
-$$b_i \leq x_i = a_{i1}x_{m+1} + a_{i2}x_{m+2} + \dots + a_{in}x_{m+n}
-< +\infty;$$
-
-`\verb|E|' in the field 1 means that the row is of ``equal to'' type:
-$$x_i = a_{i1}x_{m+1} + a_{i2}x_{m+2} + \dots + a_{in}x_{m+n} \leq
-b_i,$$
-where $b_i$ is a right-hand side. Note that each constraint has a
-corresponding implictly defined auxiliary variable ($x_i$ above), whose
-value is a value of the corresponding linear form, therefore row bounds
-can be considered as bounds of such auxiliary variable.
-
-The filed 2 specifies a row name (which is considered as the name of
-the corresponding auxiliary variable).
-
-The fields 3, 4, 5, and 6 are not used and should be empty.
-
-Numerical values of all non-zero right-hand sides $b_i$ should be
-specified in the RHS section (see below). All double-bounded (ranged)
-constraints should be specified in the RANGES section (see below).
-
-\section{COLUMNS section}
-
-The COLUMNS section should start with the indicator card, which contains
-the word \verb|COLUMNS| in the columns 1---7.
-
-Each data card in the COLUMNS section specifies one or two constraint
-coefficients $a_{ij}$ and also introduces names of columns, i.e. names
-of structural variables. All these data cards have the following format.
-
-The field 1 is not used and should be empty.
-
-The field 2 specifies a column name. If this field is empty, the column
-name from the immediately preceeding data card is assumed.
-
-The field 3 specifies a row name defined in the ROWS section.
-
-The field 4 specifies a numerical value of the constraint coefficient
-$a_{ij}$, which is placed in the corresponding row and column.
-
-The fields 5 and 6 are optional. If they are used, they should contain
-a second pair ``row name---constraint coefficient'' for the same column.
-
-Elements of the constraint matrix (i.e. constraint coefficients) should
-be enumerated in the column wise manner: all elements for the current
-column should be specified before elements for the next column. However,
-the order of rows in the COLUMNS section may differ from the order of
-rows in the ROWS section.
-
-Constraint coefficients not specified in the COLUMNS section are
-considered as zeros. Therefore zero coefficients may be omitted,
-although it is allowed to explicitly specify them.
-
-\section{RHS section}
-
-The RHS section should start with the indicator card, which contains the
-word \verb|RHS| in the columns 1---3.
-
-Each data card in the RHS section specifies one or two right-hand sides
-$b_i$ (see Section \ref{secrows}, page \pageref{secrows}). All these
-data cards have the following format.
-
-The field 1 is not used and should be empty.
-
-The field 2 specifies a name of the right-hand side (RHS)
-vector\footnote{This feature allows the user to specify several RHS
-vectors in the same MPS file. However, before solving the problem a
-particular RHS vector should be chosen.}. If this field is empty, the
-RHS vector name from the immediately preceeding data card is assumed.
-
-The field 3 specifies a row name defined in the ROWS section.
-
-The field 4 specifies a right-hand side $b_i$ for the row, whose name is
-specified in the field 3. Depending on the row type $b_i$ is a lower
-bound (for the row of \verb|G| type), an upper bound (for the row of
-\verb|L| type), or a fixed value (for the row of \verb|E|
-type).\footnote{If the row is of {\tt N} type, $b_i$ is considered as
-a constant term of the corresponding linear form. Should note, however,
-this convention is non-standard.}
-
-The fields 5 and 6 are optional. If they are used, they should contain
-a second pair ``row name---right-hand side'' for the same RHS vector.
-
-All right-hand sides for the current RHS vector should be specified
-before right-hand sides for the next RHS vector. However, the order of
-rows in the RHS section may differ from the order of rows in the ROWS
-section.
-
-Right-hand sides not specified in the RHS section are considered as
-zeros. Therefore zero right-hand sides may be omitted, although it is
-allowed to explicitly specify them.
-
-\section{RANGES section}
-
-The RANGES section should start with the indicator card, which contains
-the word \verb|RANGES| in the columns 1---6.
-
-Each data card in the RANGES section specifies one or two ranges for
-double-side constraints, i.e. for constraints that are of the types
-\verb|L| and \verb|G| at the same time:
-$$l_i \leq x_i = a_{i1}x_{m+1} + a_{i2}x_{m+2} + \dots + a_{in}x_{m+n}
-\leq u_i,$$
-where $l_i$ is a lower bound, $u_i$ is an upper bound. All these data
-cards have the following format.
-
-The field 1 is not used and should be empty.
-
-The field 2 specifies a name of the range vector\footnote{This feature
-allows the user to specify several range vectors in the same MPS file.
-However, before solving the problem a particular range vector should be
-chosen.}. If this field is empty, the range vector name from the
-immediately preceeding data card is assumed.
-
-The field 3 specifies a row name defined in the ROWS section.
-
-The field 4 specifies a range value $r_i$ (see the table below) for the
-row, whose name is specified in the field 3.
-
-The fields 5 and 6 are optional. If they are used, they should contain
-a second pair ``row name---range value'' for the same range vector.
-
-All range values for the current range vector should be specified before
-range values for the next range vector. However, the order of rows in
-the RANGES section may differ from the order of rows in the ROWS
-section.
-
-For each double-side constraint specified in the RANGES section its
-lower and upper bounds are determined as follows:
+\noindent where {\it constraint}$_i, i=1,\dots,m,$ is a particular
+constraint definition.
+
+Each constraint definition can be continued on as many text lines as
+desired. However, each constraint definition must begin on a new line
+except the very first constraint definition which can begin on the same
+line as the keyword `\verb|subject to|'.
+
+Constraint definitions have the following form:
+$$
+r\ {\tt:}\ s\ c\ x\ s\ c\ x\ \dots\ s\ c\ x
+\ \left\{
+\begin{array}{@{}c@{}}
+\mbox{\tt<=} \\ \mbox{\tt>=} \\ \mbox{\tt=}
+\end{array}
+\right\}\ b
+$$
+where $r$ is a symbolic name of a constraint, $s$ is a sign \verb|+| or
+\verb|-|, $c$ is a numeric constant that denotes a constraint
+coefficient, $x$ is a symbolic name of a variable, $b$ is a right-hand
+side.
+
+The name $r$ of a constraint (which is the name of the corresponding
+auxiliary variable) is optional and may be omitted (together with the
+semicolon that follows it). In this case the default names like
+`\verb|r.nnn|' are assigned to unnamed constraints.
+
+The linear form $s\ c\ x\ s\ c\ x\ \dots\ s\ c\ x$ in the left-hand
+side of a constraint definition has exactly the same meaning as in the
+case of the objective function definition (see above).
+
+After the linear form one of the following delimiters that indicate
+the constraint sense must be specified:
+
+\verb|<=| \ means `less than or equal to'
+
+\verb|>=| \ means `greater than or equal to'
+
+\verb|= | \ means `equal to'
+
+The right hand side $b$ is a numeric constant with an optional sign.
+
+Here is an example of the constraints section:
+
+\begin{verbatim}
+   Subject To
+      one: y1 + 3 a1 - a2 - b >= 1.5
+      y2 + 2 a3 + 2
+         a4 - b >= -1.5
+      two : y4 + 3 a1 + 4 a5 - b <= +1
+      .20y5 + 5 a2 - b = 0
+      1.7 y6 - a6 + 5 a777 - b >= 1
+\end{verbatim}
+
+(Should note that it is impossible to express ranged constraints in the
+CPLEX LP format. Each a ranged constraint can be coded as two
+constraints with identical linear forms in the left-hand side, one of
+which specifies a lower bound and other does an upper one of the
+original ranged constraint.)
+
+\section{Bounds section}
+
+The bounds section is intended to define bounds of variables. This
+section is optional; if it is specified, it must follow the constraints
+section. If the bound section is omitted, all variables are assumed to
+be non-negative (i.e. that they have zero lower bound and no upper
+bound).
+
+The bounds section has the following form:
 
 \begin{center}
-\begin{tabular}{cccc}
-Row type & Sign of $r_i$ & Lower bound & Upper bound \\
-\hline
-{\tt G} & $+$ or $-$ & $b_i$ & $b_i + |r_i|$ \\
-{\tt L} & $+$ or $-$ & $b_i - |r_i|$ & $b_i$ \\
-{\tt E} & $+$ & $b_i$ & $b_i + |r_i|$ \\
-{\tt E} & $-$ & $b_i - |r_i|$ & $b_i$ \\
+\begin{tabular}{l}
+\verb|bounds| \\
+{\it definition}$_1$ \\
+{\it definition}$_2$ \\
+\hspace{20pt}\dots \\
+{\it definition}$_p$ \\
 \end{tabular}
 \end{center}
 
 \noindent
-where $b_i$ is a right-hand side specified in the RHS section (if $b_i$
-is not specified, it is considered as zero), $r_i$ is a range value
-specified in the RANGES section.
+where {\it definition}$_k, k=1,\dots,p,$ is a particular bound
+definition.
 
-\section{BOUNDS section}
-\label{secbounds}
+Each bound definition must begin on a new line\footnote{The GLPK
+implementation allows several bound definitions to be placed on the same
+line.} except the very first bound definition which can begin on the
+same line as the keyword `\verb|bounds|'.
 
-The BOUNDS section should start with the indicator card, which contains
-the word \verb|BOUNDS| in the columns 1---6.
+Syntactically constraint definitions can have one of the following six
+forms:
 
-Each data card in the BOUNDS section specifies one (lower or upper)
-bound for one structural variable (column). All these data cards have
-the following format.
-
-The indicator in the field 1 specifies the bound type:
-
-\begin{tabular}{@{}ll}
-\verb|LO| & lower bound; \\
-\verb|UP| & upper bound; \\
-\verb|FX| & fixed variable (lower and upper bounds are equal); \\
-\verb|FR| & free variable (no bounds); \\
-\verb|MI| & no lower bound (lower bound is ``minus infinity''); \\
-\verb|PL| & no upper bound (upper bound is ``plus infinity''); \\
+\begin{center}
+\begin{tabular}{ll}
+$x$ \verb|>=| $l$ &              specifies a lower bound \\
+$l$ \verb|<=| $x$ &              specifies a lower bound \\
+$x$ \verb|<=| $u$ &              specifies an upper bound \\
+$l$ \verb|<=| $x$ \verb|<=| $u$ &specifies both lower and upper bounds\\
+$x$ \verb|=| $t$                &specifies a fixed value \\
+$x$ \verb|free|                 &specifies free variable
 \end{tabular}
-
-The field 2 specifies a name of the bound vector\footnote{This feature
-allows the user to specify several bound vectors in the same MPS file.
-However, before solving the problem a particular bound vector should be
-chosen.}. If this field is empty, the bound vector name from the
-immediately preceeding data card is assumed.
-
-The field 3 specifies a column name defined in the COLUMNS section.
-
-The field 4 specifies a bound value. If the bound type in the field 1
-differs from \verb|LO|, \verb|UP|, and \verb|FX|, the value in the field
-4 is ignored and may be omitted.
-
-The fields 5 and 6 are not used and should be empty.
-
-All bound values for the current bound vector should be specified before
-bound values for the next bound vector. However, the order of columns in
-the BOUNDS section may differ from the order of columns in the COLUMNS
-section. Specification of a lower bound should precede specification of
-an upper bound for the same column (if both the lower and upper bounds
-are explicitly specified).
-
-By default, all columns (structural variables) are non-negative, i.e.
-have zero lower bound and no upper bound. Lower ($l_j$) and upper
-($u_j$) bounds of some column (structural variable $x_j$) are set in the
-following way, where $s_j$ is a corresponding bound value explicitly
-specified in the BOUNDS section:
-
-\begin{tabular}{@{}ll}
-\verb|LO| & sets $l_j$ to $s_j$; \\
-\verb|UP| & sets $u_j$ to $s_j$; \\
-\verb|FX| & sets both $l_j$ and $u_j$ to $s_j$; \\
-\verb|FR| & sets $l_j$ to $-\infty$ and $u_j$ to $+\infty$; \\
-\verb|MI| & sets $l_j$ to $-\infty$; \\
-\verb|PL| & sets $u_j$ to $+\infty$. \\
-\end{tabular}
-
-\section{ENDATA indicator card}
-
-The ENDATA indicator card should be the last card of MPS file (except
-optional comment cards, which may follow the ENDATA card). This card
-should contain the word \verb|ENDATA| in the columns 1---6.
-
-\section{Specifying objective function}
-
-It is impossible to explicitly specify the objective function and
-optimization direction in the MPS file. However, the following implicit
-rule is used by default: the first row of \verb|N| type is considered
-as a row of the objective function (i.e. the objective function is the
-corresponding auxiliary variable), which should be {\it minimized}.
-
-GLPK also allows specifying a constant term of the objective function
-as a right-hand side of the corresponding row in the RHS section.
-
-\section{Example of MPS file}
-\label{secmpsex}
-
-In order to illustrate what the MPS format is, consider the following
-example of LP problem:
-
-\medskip
-\noindent minimize
-$$
-value = .03\ bin_1 + .08\ bin_2 + .17\ bin_3 + .12\ bin_4 + .15\ bin_5
-+ .21\ al + .38\ si
-$$
-
-\noindent subject to linear constraints
-$$
-\begin{array}{@{}l@{\:}l@{}}
-yield &= \ \ \ \ \;bin_1 + \ \ \ \ \;bin_2 + \ \ \ \ \;bin_3 +
-         \ \ \ \ \;bin_4 + \ \ \ \ \;bin_5 + \ \ \ \ \;al +
-         \ \ \ \ \;si \\
-FE    &= .15\ bin_1 + .04\ bin_2 + .02\ bin_3 + .04\ bin_4 + .02\ bin_5
-         + .01\ al + .03\ si \\
-CU    &= .03\ bin_1 + .05\ bin_2 + .08\ bin_3 + .02\ bin_4 + .06\ bin_5
-         + .01\ al \\
-MN    &= .02\ bin_1 + .04\ bin_2 + .01\ bin_3 + .02\ bin_4 + .02\ bin_5
-         \\
-MG    &= .02\ bin_1 + .03\ bin_2
-\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ + .01\ bin_5 \\
-AL    &= .70\ bin_1 + .75\ bin_2 + .80\ bin_3 + .75\ bin_4 + .80\ bin_5
-         + .97\ al \\
-SI    &= .02\ bin_1 + .06\ bin_2 + .08\ bin_3 + .12\ bin_4 + .02\ bin_5
-         + .01\ al + .97\ si \\
-\end{array}
-$$
-and bounds of (auxiliary and structural) variables
-$$
-\begin{array}{r@{\ }l@{\ }l@{\ }l@{\ }rcr@{\ }l@{\ }l@{\ }l@{\ }r}
-&&yield&=&2000&&0&\leq&bin_1&\leq&200\\
--\infty&<&FE&\leq&60&&0&\leq&bin_2&\leq&2500\\
--\infty&<&CU&\leq&100&&400&\leq&bin_3&\leq&800\\
--\infty&<&MN&\leq&40&&100&\leq&bin_4&\leq&700\\
--\infty&<&MG&\leq&30&&0&\leq&bin_5&\leq&1500\\
-1500&\leq&AL&<&+\infty&&0&\leq&al&<&+\infty\\
-250&\leq&SI&\leq&300&&0&\leq&si&<&+\infty\\
-\end{array}
-$$
-
-A complete MPS file which specifies data for this example is shown
-below (the first two comment lines show card positions).
-
-\begin{verbatim}
-*000000001111111111222222222233333333334444444444555555555566
-*234567890123456789012345678901234567890123456789012345678901
-NAME          PLAN
-ROWS
- N  VALUE
- E  YIELD
- L  FE
- L  CU
- L  MN
- L  MG
- G  AL
- L  SI
-COLUMNS
-    BIN1      VALUE           .03000   YIELD          1.00000
-              FE              .15000   CU              .03000
-              MN              .02000   MG              .02000
-              AL              .70000   SI              .02000
-    BIN2      VALUE           .08000   YIELD          1.00000
-              FE              .04000   CU              .05000
-              MN              .04000   MG              .03000
-              AL              .75000   SI              .06000
-    BIN3      VALUE           .17000   YIELD          1.00000
-              FE              .02000   CU              .08000
-              MN              .01000   AL              .80000
-              SI              .08000
-    BIN4      VALUE           .12000   YIELD          1.00000
-              FE              .04000   CU              .02000
-              MN              .02000   AL              .75000
-              SI              .12000
-    BIN5      VALUE           .15000   YIELD          1.00000
-              FE              .02000   CU              .06000
-              MN              .02000   MG              .01000
-              AL              .80000   SI              .02000
-    ALUM      VALUE           .21000   YIELD          1.00000
-              FE              .01000   CU              .01000
-              AL              .97000   SI              .01000
-    SILICON   VALUE           .38000   YIELD          1.00000
-              FE              .03000   SI              .97000
-RHS
-    RHS1      YIELD       2000.00000   FE            60.00000
-              CU           100.00000   MN            40.00000
-              SI           300.00000
-              MG            30.00000   AL          1500.00000
-RANGES
-    RNG1      SI            50.00000
-BOUNDS
- UP BND1      BIN1         200.00000
- UP           BIN2        2500.00000
- LO           BIN3         400.00000
- UP           BIN3         800.00000
- LO           BIN4         100.00000
- UP           BIN4         700.00000
- UP           BIN5        1500.00000
-ENDATA
-\end{verbatim}
-
-\section{MIP features}
-
-The MPS format provides two ways for introducing integer variables into
-the problem.
-
-The first way is most general and based on using special marker cards
-INTORG and INTEND. These marker cards are placed in the COLUMNS section.
-The INTORG card indicates the start of a group of integer variables
-(columns), and the card INTEND indicates the end of the group. The MPS
-file may contain arbitrary number of the marker cards.
-
-The marker cards have the same format as the data cards (see Section
-\ref{secmps}, page \pageref{secmps}).
-
-The fields 1, 2, and 6 are not used and should be empty.
-
-The field 2 should contain a marker name. This name may be arbitrary.
-
-The field 3 should contain the word \verb|'MARKER'| (including
-apostrophes).
-
-The field 5 should contain either the word \verb|'INTORG'| (including
-apostrophes) for the marker card, which begins a group of integer
-columns, or the word \verb|'INTEND'| (including apostrophes) for the
-marker card, which ends the group.
-
-The second way is less general but more convenient in some cases. It
-allows the user declaring integer columns using three additional types
-of bounds, which are specified in the field 1 of data cards in the
-BOUNDS section (see Section \ref{secbounds}, page \pageref{secbounds}):
-
-\begin{tabular}{@{}lp{112.3mm}@{}}
-\verb|LI| & lower integer. This bound type specifies that the
-corresponding column (structural variable), whose name is specified in
-field 3, is of integer kind. In this case an lower bound of the
-column should be specified in field 4 (like in the case of \verb|LO|
-bound type). \\
-\verb|UI| & upper integer. This bound type specifies that the
-corresponding column (structural variable), whose name is specified in
-field 3, is of integer kind. In this case an upper bound of the
-column should be specified in field 4 (like in the case of \verb|UP|
-bound type). \\
-\end{tabular}
-
-\pagebreak
-
-\begin{tabular}{@{}lp{112.3mm}@{}}
-\verb|BV| & binary variable. This bound type specifies that the
-corresponding column (structural variable), whose name is specified in
-the field 3, is of integer kind, its lower bound is zero, and its upper
-bound is one (thus, such variable being of integer kind can have only
-two values zero and one). In this case a numeric value specified in the
-field 4 is ignored and may be omitted.\\
-\end{tabular}
-
-Consider the following example of MIP problem:
-
-\medskip
+\end{center}
 
 \noindent
-\hspace{1in} minimize
-$$Z = 3 x_1 + 7 x_2 - x_3 + x4$$
-\hspace{1in} subject to linear constraints
-$$
-\begin{array}{c}
-\nonumber r_1 = 2   x_1 - \ \ x_2 + \ \ x_3 - \ \;x_4 \\
-\nonumber r_2 = \ \;x_1 - \ \;x_2 - 6   x_3 + 4   x_4 \\
-\nonumber r_3 = 5   x_1 +   3 x_2 \ \ \ \ \ \ \ \ \ + \ \ x_4 \\
-\end{array}
-$$
-\hspace{1in} and bound of variables
-$$
-\begin{array}{cccl}
-\nonumber 1 \leq r_1 < +\infty && 0 \leq x_1 \leq 4 &{\rm(continuous)}\\
-\nonumber 8 \leq r_2 < +\infty && 2 \leq x_2 \leq 5 &{\rm(integer)}   \\
-\nonumber 5 \leq r_3 < +\infty && 0 \leq x_3 \leq 1 &{\rm(integer)}   \\
-\nonumber                      && 3 \leq x_4 \leq 8 &{\rm(continuous)}\\
-\end{array}
-$$
+where $x$ is a symbolic name of a variable, $l$ is a numeric constant
+with an optional sign that defines a lower bound of the variable or
+\verb|-inf| that means that the variable has no lower bound, $u$ is a
+numeric constant with an optional sign that defines an upper bound of
+the variable or \verb|+inf| that means that the variable has no upper
+bound, $t$ is a numeric constant with an optional sign that defines a
+fixed value of the variable.
 
-The corresponding MPS file may look like the following:
+By default all variables are non-negative, i.e. have zero lower bound
+and no upper bound. Therefore definitions of these default bounds can be
+omitted in the bounds section.
+
+Here is an example of the bounds section:
 
 \begin{verbatim}
-NAME          SAMP1
-ROWS
- N  Z
- G  R1
- G  R2
- G  R3
-COLUMNS
-    X1        R1                2.0    R2                 1.0
-    X1        R3                5.0    Z                  3.0
-    MARK0001  'MARKER'                 'INTORG'
-    X2        R1               -1.0    R2                -1.0
-    X2        R3                3.0    Z                  7.0
-    X3        R1                1.0    R2                -6.0
-    X3        Z                -1.0
-    MARK0002  'MARKER'                 'INTEND'
-    X4        R1               -1.0    R2                 4.0
-    X4        R3                1.0    Z                  1.0
-RHS
-    RHS1      R1                1.0
-    RHS1      R2                8.0
-    RHS1      R3                5.0
-BOUNDS
- UP BND1      X1                4.0
- LO BND1      X2                2.0
- UP BND1      X2                5.0
- UP BND1      X3                1.0
- LO BND1      X4                3.0
- UP BND1      X4                8.0
-ENDATA
+   Bounds
+      -inf <= a1 <= 100
+      -100 <= a2
+      b <= 100
+      x2 = +123.456
+      x3 free
 \end{verbatim}
 
-The same example may be coded without INTORG/INTEND markers using the
-bound type UI for the variable $x_2$ and the bound type BV for the
-variable $x_3$:
+\section{General, integer, and binary sections}
+
+The general, integer, and binary sections are intended to define
+some variables as integer or binary. All these sections are optional
+and needed only in case of MIP problems. If they are specified, they
+must follow the bounds section or, if the latter is omitted, the
+constraints section.
+
+All the general, integer, and binary sections have the same form as
+follows:
+
+\begin{center}
+\begin{tabular}{l}
+$
+\left\{
+\begin{array}{@{}l@{}}
+\verb|general| \\
+\verb|integer| \\
+\verb|binary | \\
+\end{array}
+\right\}
+$ \\
+\hspace{10pt}$x_1$ \\
+\hspace{10pt}$x_2$ \\
+\hspace{10pt}\dots \\
+\hspace{10pt}$x_q$ \\
+\end{tabular}
+\end{center}
+
+\noindent
+where $x_k$ is a symbolic name of variable, $k=1,\dots,q$.
+
+Each symbolic name must begin on a new line\footnote{The GLPK
+implementation allows several symbolic names to be placed on the same
+line.} except the very first symbolic name which can begin on the same
+line as the keyword `\verb|general|', `\verb|integer|', or
+`\verb|binary|'.
+
+If a variable appears in the general or the integer section, it is
+assumed to be general integer variable. If a variable appears in the
+binary section, it is assumed to be binary variable, i.e. an integer
+variable whose lower bound is zero and upper bound is one. (Note that
+if bounds of a variable are specified in the bounds section and then
+the variable appears in the binary section, its previously specified
+bounds are ignored.)
+
+Here is an example of the integer section:
 
 \begin{verbatim}
-NAME          SAMP2
-ROWS
- N  Z
- G  R1
- G  R2
- G  R3
-COLUMNS
-    X1        R1                2.0    R2                 1.0
-    X1        R3                5.0    Z                  3.0
-    X2        R1               -1.0    R2                -1.0
-    X2        R3                3.0    Z                  7.0
-    X3        R1                1.0    R2                -6.0
-    X3        Z                -1.0
-    X4        R1               -1.0    R2                 4.0
-    X4        R3                1.0    Z                  1.0
-RHS
-    RHS1      R1                1.0
-    RHS1      R2                8.0
-    RHS1      R3                5.0
-BOUNDS
- UP BND1      X1                4.0
- LO BND1      X2                2.0
- UI BND1      X2                5.0
- BV BND1      X3
- LO BND1      X4                3.0
- UP BND1      X4                8.0
-ENDATA
+   Integer
+      z12
+      z22
+      z35
 \end{verbatim}
 
-%\section{Specifying predefined basis}
-%\label{secbas}
-%
-%The MPS format can also be used to specify some predefined basis for an
-%LP problem, i.e. to specify which rows and columns are basic and which
-%are non-basic.
-%
-%The order of a basis file in the MPS format is:
-%
-%$\bullet$ NAME indicator card;
-%
-%$\bullet$ data cards (can appear in arbitrary order);
-%
-%$\bullet$ ENDATA indicator card.
-%
-%Each data card specifies either a pair "basic column---non-basic row"
-%or a non-basic column. All the data cards have the following format.
-%
-%`\verb|XL|' in the field 1 means that a column, whose name is given in
-%the field 2, is basic, and a row, whose name is given in the field 3,
-%is non-basic and placed on its lower bound.
-%
-%`\verb|XU|' in the field 1 means that a column, whose name is given in
-%the field 2, is basic, and a row, whose name is given in the field 3,
-%is non-basic and placed on its upper bound.
-%
-%`\verb|LL|' in the field 1 means that a column, whose name is given in
-%the field 3, is non-basic and placed on its lower bound.
-%
-%`\verb|UL|' in the field 1 means that a column, whose name is given in
-%the field 3, is non-basic and placed on its upper bound.
-%
-%The field 2 contains a column name.
-%
-%If the indicator given in the field 1 is `\verb|XL|' or `\verb|XU|',
-%the field 3 contains a row name. Otherwise, if the indicator is
-%`\verb|LL|' or `\verb|UL|', the field 3 is not used and should be
-%empty.
-%
-%The field 4, 5, and 6 are not used and should be empty.
-%
-%A basis file in the MPS format acts like a patch: it doesn't specify
-%a basis completely, instead that it is just shows in what a given basis
-%differs from the "standard" basis, where all rows (auxiliary variables)
-%are assumed to be basic and all columns (structural variables) are
-%assumed to be non-basic.
-%
-%As an example here is a basis file that specifies an optimal basis
-%for the example LP problem given in Section \ref{secmpsex},
-%Page \pageref{secmpsex}:
-%
-%\pagebreak
-%
-%\begin{verbatim}
-%*000000001111111111222222222233333333334444444444555555555566
-%*234567890123456789012345678901234567890123456789012345678901
-%NAME          PLAN
-% XL BIN2      YIELD
-% XL BIN3      FE
-% XL BIN4      MN
-% XL ALUM      AL
-% XL SILICON   SI
-% LL BIN1
-% LL BIN5
-%ENDATA
-%\end{verbatim}
+\section{End keyword}
+
+The keyword `\verb|end|' is intended to end the LP file. It must begin
+on a separate line and no other elements (except comments and blank
+lines) must follow it. Although this keyword is optional, it is strongly
+recommended to include it in the LP file.
+
+\section{Example of CPLEX LP file}
+
+Here is a complete example of CPLEX LP file that corresponds to the
+example given in Section \ref{secmpsex}, page \pageref{secmpsex}.
+
+{\footnotesize
+\begin{verbatim}
+\* plan.lp *\
+
+Minimize
+   value: .03 bin1 + .08 bin2 + .17 bin3 + .12 bin4 + .15 bin5 +
+          .21 alum + .38 silicon
+
+Subject To
+   yield:     bin1 +     bin2 +     bin3 +     bin4 +     bin5 +
+              alum +     silicon                                 =  2000
+
+   fe:    .15 bin1 + .04 bin2 + .02 bin3 + .04 bin4 + .02 bin5 +
+          .01 alum + .03 silicon                                 <=   60
+
+   cu:    .03 bin1 + .05 bin2 + .08 bin3 + .02 bin4 + .06 bin5 +
+          .01 alum                                               <=  100
+
+   mn:    .02 bin1 + .04 bin2 + .01 bin3 + .02 bin4 + .02 bin5   <=   40
+
+   mg:    .02 bin1 + .03 bin2                       + .01 bin5   <=   30
+
+   al:    .70 bin1 + .75 bin2 + .80 bin3 + .75 bin4 + .80 bin5 +
+          .97 alum                                               >= 1500
+
+   si1:   .02 bin1 + .06 bin2 + .08 bin3 + .12 bin4 + .02 bin5 +
+          .01 alum + .97 silicon                                 >=  250
+
+   si2:   .02 bin1 + .06 bin2 + .08 bin3 + .12 bin4 + .02 bin5 +
+          .01 alum + .97 silicon                                 <=  300
+
+Bounds
+          bin1 <=  200
+          bin2 <= 2500
+   400 <= bin3 <=  800
+   100 <= bin4 <=  700
+          bin5 <= 1500
+
+End
+
+\* eof *\
+\end{verbatim}
+
+}
 
 %* eof *%

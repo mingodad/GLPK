@@ -1,5 +1,5 @@
-LIBRARY glpk_4_41
-VERSION 4.41
+LIBRARY glpk_4_42
+VERSION 4.42
 DESCRIPTION "GNU Linear Programming Kit"
 EXPORTS
 ;; from amd_1 ;;
@@ -35,6 +35,7 @@ EXPORTS
 ;; from glpapi01 ;;
  glp_add_cols
  glp_add_rows
+ glp_check_dup
  glp_copy_prob
  glp_create_prob
  glp_del_cols
@@ -52,6 +53,7 @@ EXPORTS
  glp_set_prob_name
  glp_set_row_bnds
  glp_set_row_name
+ glp_sort_matrix
 ;; from glpapi02 ;;
  glp_get_col_lb
  glp_get_col_name
@@ -126,6 +128,7 @@ EXPORTS
 ;; from glpapi11 ;;
  glp_print_ipt
  glp_print_mip
+ glp_print_ranges
  glp_print_sol
  glp_read_ipt
  glp_read_mip
@@ -135,6 +138,8 @@ EXPORTS
  glp_write_sol
 ;; from glpapi12 ;;
  _glp_analyze_row
+ glp_analyze_bound
+ glp_analyze_coef
  glp_bf_exists
  glp_bf_updated
  glp_btran
@@ -271,10 +276,12 @@ EXPORTS
  glp_read_ccdata
  glp_read_maxflow
  glp_read_mincost
+ glp_read_prob
  glp_write_asnprob
  glp_write_ccdata
  glp_write_maxflow
  glp_write_mincost
+ glp_write_prob
 ;; from glpfhv ;;
  _glp_fhv_btran
  _glp_fhv_create_it
@@ -388,42 +395,6 @@ EXPORTS
  _glp_ios_choose_node
 ;; from glpipm ;;
  _glp_ipm_solve
-;; from glpipp01 ;;
- _glp_ipp_add_aij
- _glp_ipp_add_col
- _glp_ipp_add_row
- _glp_ipp_append_tqe
- _glp_ipp_build_prob
- _glp_ipp_create_wksp
- _glp_ipp_delete_wksp
- _glp_ipp_deque_col
- _glp_ipp_deque_row
- _glp_ipp_enque_col
- _glp_ipp_enque_row
- _glp_ipp_load_orig
- _glp_ipp_load_sol
- _glp_ipp_remove_col
- _glp_ipp_remove_row
- _glp_ipp_tight_bnds
- _glp_ipp_unload_sol
-;; from glpipp02 ;;
- _glp_ipp_analyze_row
- _glp_ipp_basic_tech
- _glp_ipp_binarize
- _glp_ipp_empty_col
- _glp_ipp_empty_row
- _glp_ipp_fixed_col
- _glp_ipp_fixed_col_r
- _glp_ipp_free_row
- _glp_ipp_nonbin_col
- _glp_ipp_nonbin_col_r
- _glp_ipp_postsolve
- _glp_ipp_reduce_bnds
- _glp_ipp_reduce_coef
- _glp_ipp_reduction
- _glp_ipp_row_sing
- _glp_ipp_shift_col
- _glp_ipp_shift_col_r
 ;; from glplib01 ;;
  _glp_lib_free_env
  _glp_lib_init_env
@@ -583,6 +554,7 @@ EXPORTS
  _glp_lpx_print_ips
  _glp_lpx_print_mip
  _glp_lpx_print_prob
+ _glp_lpx_print_sens_bnds
  _glp_lpx_print_sol
  _glp_lpx_read_bas
  _glp_lpx_read_cpxlp
@@ -618,12 +590,9 @@ EXPORTS
  _glp_lpx_write_freemps
  _glp_lpx_write_mps
 ;; from glplpx02 ;;
- _glp_order_matrix
  _glp_put_mip_soln
  _glp_put_solution
 ;; from glplpx03 ;;
- _glp_lpx_print_sens_bnds
-;; from glplpx04 ;;
  _glp_lpx_write_pb
 ;; from glpluf ;;
  _glp_luf_a_solve
@@ -940,6 +909,8 @@ EXPORTS
  _glp_ffalg
 ;; from glpnet08 ;;
  _glp_wclique
+;; from glpnet09 ;;
+ _glp_kellerman
 ;; from glpnpp01 ;;
  _glp_npp_activate_col
  _glp_npp_activate_row
@@ -947,12 +918,15 @@ EXPORTS
  _glp_npp_add_col
  _glp_npp_add_row
  _glp_npp_build_prob
+ _glp_npp_col_nnz
  _glp_npp_create_wksp
  _glp_npp_deactivate_col
  _glp_npp_deactivate_row
+ _glp_npp_del_aij
  _glp_npp_del_col
  _glp_npp_del_row
  _glp_npp_delete_wksp
+ _glp_npp_erase_row
  _glp_npp_insert_col
  _glp_npp_insert_row
  _glp_npp_load_prob
@@ -960,6 +934,7 @@ EXPORTS
  _glp_npp_push_tse
  _glp_npp_remove_col
  _glp_npp_remove_row
+ _glp_npp_row_nnz
  _glp_npp_unload_sol
 ;; from glpnpp02 ;;
  _glp_npp_dbnd_col
@@ -976,6 +951,7 @@ EXPORTS
  _glp_npp_analyze_row
  _glp_npp_empty_col
  _glp_npp_empty_row
+ _glp_npp_eq_doublet
  _glp_npp_eq_singlet
  _glp_npp_forcing_row
  _glp_npp_implied_bounds
@@ -987,7 +963,18 @@ EXPORTS
  _glp_npp_inactive_bound
  _glp_npp_ineq_singlet
 ;; from glpnpp04 ;;
+ _glp_npp_binarize_prob
+ _glp_npp_hidden_covering
+ _glp_npp_hidden_packing
+ _glp_npp_implied_packing
+ _glp_npp_is_covering
+ _glp_npp_is_packing
+ _glp_npp_is_partitioning
+ _glp_npp_reduce_ineq_coef
+;; from glpnpp05 ;;
  _glp_npp_clean_prob
+ _glp_npp_improve_bounds
+ _glp_npp_integer
  _glp_npp_process_col
  _glp_npp_process_prob
  _glp_npp_process_row

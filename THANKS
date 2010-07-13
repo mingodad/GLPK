@@ -1,3 +1,13 @@
+Noli Sicad <nsicad@gmail.com> for example model in MathProg.
+
+Nigel Galloway <nigel_galloway@operamail.com> for example model in
+MathProg.
+
+Thanks to Xypron <xypron.glpk@gmx.de> for contribution and testing
+batch scripts to build Glpk with MS Visual Studio 2010.
+
+Xypron <xypron.glpk@gmx.de> for improving the SQL table driver.
+
 Stefan Vigerske <stefan@math.hu-berlin.de> for bug report.
 
 Uday Venkatadri <Uday.Venkatadri@dal.ca> for bug report.

@@ -3,9 +3,10 @@
 /***********************************************************************
 *  This code is part of GLPK (GNU Linear Programming Kit).
 *
-*  Copyright (C) 2000,01,02,03,04,05,06,07,08,2009 Andrew Makhorin,
-*  Department for Applied Informatics, Moscow Aviation Institute,
-*  Moscow, Russia. All rights reserved. E-mail: <mao@mai2.rcnet.ru>.
+*  Copyright (C) 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008,
+*  2009, 2010 Andrew Makhorin, Department for Applied Informatics,
+*  Moscow Aviation Institute, Moscow, Russia. All rights reserved.
+*  E-mail: <mao@gnu.org>.
 *
 *  GLPK is free software: you can redistribute it and/or modify it
 *  under the terms of the GNU General Public License as published by
@@ -45,10 +46,11 @@ struct csa
       /* problem file format: */
 #define FMT_MPS_DECK    1  /* fixed MPS */
 #define FMT_MPS_FILE    2  /* free MPS */
-#define FMT_CPLEX_LP    3  /* CPLEX LP */
-#define FMT_MATHPROG    4  /* MathProg */
-#define FMT_MIN_COST    5  /* DIMACS min-cost flow */
-#define FMT_MAX_FLOW    6  /* DIMACS maximum flow */
+#define FMT_LP          3  /* CPLEX LP */
+#define FMT_GLP         4  /* GLPK LP/MIP */
+#define FMT_MATHPROG    5  /* MathProg */
+#define FMT_MIN_COST    6  /* DIMACS min-cost flow */
+#define FMT_MAX_FLOW    7  /* DIMACS maximum flow */
       const char *in_file;
       /* name of input problem file */
 #define DATA_MAX 10
@@ -60,11 +62,9 @@ struct csa
       const char *out_dpy;
       /* name of output file to send display output; NULL means the
          display output is sent to the terminal */
-#if 1 /* 08/XII-2009 */
       int seed;
       /* seed value to be passed to the MathProg translator; initially
          set to 1; 0x80000000 means the value is omitted */
-#endif
       int solution;
       /* solution type flag: */
 #define SOL_BASIC       1  /* basic */
@@ -83,8 +83,8 @@ struct csa
       /* name of output solution file in printable format */
       const char *out_res;
       /* name of output solution file in raw format */
-      const char *out_bnds;
-      /* name of output sensitivity bounds file in printable format */
+      const char *out_ranges;
+      /* name of output file to write sensitivity analysis report */
       int check;
       /* input data checking flag; no solution is performed */
       const char *new_name;
@@ -95,6 +95,8 @@ struct csa
       /* name of output problem file in free MPS format */
       const char *out_cpxlp;
       /* name of output problem file in CPLEX LP format */
+      const char *out_glp;
+      /* name of output problem file in GLPK format */
       const char *out_pb;
       /* name of output problem file in OPB format */
       const char *out_npb;
@@ -126,15 +128,17 @@ static void print_help(const char *my_name)
          "rmat\n");
       xprintf("   --freemps         read LP/MIP problem in free MPS for"
          "mat (default)\n");
-      xprintf("   --cpxlp           read LP/MIP problem in CPLEX LP for"
+      xprintf("   --lp              read LP/MIP problem in CPLEX LP for"
          "mat\n");
+      xprintf("   --glp             read LP/MIP problem in GLPK format "
+         "\n");
       xprintf("   --math            read LP/MIP model written in GNU Ma"
          "thProg modeling\n");
       xprintf("                     language\n");
       xprintf("   -m filename, --model filename\n");
       xprintf("                     read model section and optional dat"
          "a section from\n");
-      xprintf("                     filename (the same as --math)\n");
+      xprintf("                     filename (same as --math)\n");
       xprintf("   -d filename, --data filename\n");
       xprintf("                     read data section from filename (fo"
          "r --math only);\n");
@@ -145,14 +149,12 @@ static void print_help(const char *my_name)
          "r --math only);\n");
       xprintf("                     by default the output is sent to te"
          "rminal\n");
-#if 1 /* 08/XII-2009 */
       xprintf("   --seed value      initialize pseudo-random number gen"
          "erator used in\n");
       xprintf("                     MathProg model with specified seed "
          "(any integer);\n");
       xprintf("                     if seed value is ?, some random see"
          "d will be used\n");
-#endif
       xprintf("   --mincost         read min-cost flow problem in DIMAC"
          "S format\n");
       xprintf("   --maxflow         read maximum flow problem in DIMACS"
@@ -174,10 +176,10 @@ static void print_help(const char *my_name)
       xprintf("   -w filename, --write filename\n");
       xprintf("                     write solution to filename in plain"
          " text format\n");
-      xprintf("   --bounds filename\n");
-      xprintf("                     write sensitivity bounds to filenam"
-         "e in printable\n");
-      xprintf("                     format (LP only)\n");
+      xprintf("   --ranges filename\n");
+      xprintf("                     write sensitivity analysis report t"
+         "o filename in\n");
+      xprintf("                     printable format (simplex only)\n");
       xprintf("   --tmlim nnn       limit solution time to nnn seconds "
          "\n");
       xprintf("   --memlim nnn      limit available memory to nnn megab"
@@ -190,12 +192,16 @@ static void print_help(const char *my_name)
       xprintf("   --wfreemps filename\n");
       xprintf("                     write problem to filename in free M"
          "PS format\n");
-      xprintf("   --wcpxlp filename write problem to filename in CPLEX "
+      xprintf("   --wlp filename    write problem to filename in CPLEX "
          "LP format\n");
+      xprintf("   --wglp filename   write problem to filename in GLPK f"
+         "ormat\n");
+#if 0
       xprintf("   --wpb filename    write problem to filename in OPB fo"
          "rmat\n");
       xprintf("   --wnpb filename   write problem to filename in normal"
          "ized OPB format\n");
+#endif
       xprintf("   --log filename    write copy of terminal output to fi"
          "lename\n");
       xprintf("   -h, --help        display this help information and e"
@@ -306,13 +312,15 @@ static void print_help(const char *my_name)
 
 static void print_version(int briefly)
 {     /* print version information */
-      xprintf("GLPSOL: GLPK LP/MIP Solver %s\n", glp_version());
+      xprintf("GLPSOL: GLPK LP/MIP Solver, v%s\n", glp_version());
       if (briefly) goto done;
       xprintf("\n");
-      xprintf("Copyright (C) 2009 Andrew Makhorin, Department for Appli"
-         "ed Informatics,\n");
-      xprintf("Moscow Aviation Institute, Moscow, Russia. All rights re"
-         "served.\n");
+      xprintf("Copyright (C) 2000, 2001, 2002, 2003, 2004, 2005, 2006, "
+         "2007, 2008,\n");
+      xprintf("2009, 2010 Andrew Makhorin, Department for Applied Infor"
+         "matics, Moscow\n");
+      xprintf("Aviation Institute, Moscow, Russia. All rights reserved."
+         "\n");
       xprintf("\n");
       xprintf("This program has ABSOLUTELY NO WARRANTY.\n");
       xprintf("\n");
@@ -332,8 +340,10 @@ static int parse_cmdline(struct csa *csa, int argc, const char *argv[])
             csa->format = FMT_MPS_DECK;
          else if (p("--freemps"))
             csa->format = FMT_MPS_FILE;
-         else if (p("--cpxlp"))
-            csa->format = FMT_CPLEX_LP;
+         else if (p("--lp") || p("--cpxlp"))
+            csa->format = FMT_LP;
+         else if (p("--glp"))
+            csa->format = FMT_GLP;
          else if (p("--math") || p("-m") || p("--model"))
             csa->format = FMT_MATHPROG;
          else if (p("-d") || p("--data"))
@@ -360,7 +370,6 @@ static int parse_cmdline(struct csa *csa, int argc, const char *argv[])
             }
             csa->out_dpy = argv[k];
          }
-#if 1 /* 08/XII-2009 */
          else if (p("--seed"))
          {  k++;
             if (k == argc || argv[k][0] == '\0' ||
@@ -375,7 +384,6 @@ static int parse_cmdline(struct csa *csa, int argc, const char *argv[])
                return 1;
             }
          }
-#endif
          else if (p("--mincost"))
             csa->format = FMT_MIN_COST;
          else if (p("--maxflow"))
@@ -428,18 +436,19 @@ static int parse_cmdline(struct csa *csa, int argc, const char *argv[])
             }
             csa->out_res = argv[k];
          }
-         else if (p("--bounds"))
+         else if (p("--ranges") || p("--bounds"))
          {  k++;
             if (k == argc || argv[k][0] == '\0' || argv[k][0] == '-')
-            {  xprintf("No sensitivity bounds output file specified\n");
+            {  xprintf("No output file specified to write sensitivity a"
+                  "nalysis report\n");
                return 1;
             }
-            if (csa->out_bnds != NULL)
-            {  xprintf("Only one sensitivity bounds output file allowed"
-                  "\n");
+            if (csa->out_ranges != NULL)
+            {  xprintf("Only one output file allowed to write sensitivi"
+                  "ty analysis report\n");
                return 1;
             }
-            csa->out_bnds = argv[k];
+            csa->out_ranges = argv[k];
          }
          else if (p("--tmlim"))
          {  int tm_lim;
@@ -508,7 +517,7 @@ static int parse_cmdline(struct csa *csa, int argc, const char *argv[])
             }
             csa->out_freemps = argv[k];
          }
-         else if (p("--wcpxlp") || p("--wlpt"))
+         else if (p("--wlp") || p("--wcpxlp") || p("--wlpt"))
          {  k++;
             if (k == argc || argv[k][0] == '\0' || argv[k][0] == '-')
             {  xprintf("No CPLEX LP output file specified\n");
@@ -519,6 +528,18 @@ static int parse_cmdline(struct csa *csa, int argc, const char *argv[])
                return 1;
             }
             csa->out_cpxlp = argv[k];
+         }
+         else if (p("--wglp"))
+         {  k++;
+            if (k == argc || argv[k][0] == '\0' || argv[k][0] == '-')
+            {  xprintf("No GLPK LP/MIP output file specified\n");
+               return 1;
+            }
+            if (csa->out_glp != NULL)
+            {  xprintf("Only one GLPK LP/MIP output file allowed\n");
+               return 1;
+            }
+            csa->out_glp = argv[k];
          }
          else if (p("--wpb"))
          {  k++;
@@ -711,21 +732,20 @@ int glp_main(int argc, const char *argv[])
       csa->in_file = NULL;
       csa->ndf = 0;
       csa->out_dpy = NULL;
-#if 1 /* 08/XII-2009 */
       csa->seed = 1;
-#endif
       csa->solution = SOL_BASIC;
       csa->in_res = NULL;
       csa->dir = 0;
       csa->scale = 1;
       csa->out_sol = NULL;
       csa->out_res = NULL;
-      csa->out_bnds = NULL;
+      csa->out_ranges = NULL;
       csa->check = 0;
       csa->new_name = NULL;
       csa->out_mps = NULL;
       csa->out_freemps = NULL;
       csa->out_cpxlp = NULL;
+      csa->out_glp = NULL;
       csa->out_pb = NULL;
       csa->out_npb = NULL;
       csa->log_file = NULL;
@@ -749,10 +769,11 @@ int glp_main(int argc, const char *argv[])
       if (csa->out_dpy != NULL) remove(csa->out_dpy);
       if (csa->out_sol != NULL) remove(csa->out_sol);
       if (csa->out_res != NULL) remove(csa->out_res);
-      if (csa->out_bnds != NULL) remove(csa->out_bnds);
+      if (csa->out_ranges != NULL) remove(csa->out_ranges);
       if (csa->out_mps != NULL) remove(csa->out_mps);
       if (csa->out_freemps != NULL) remove(csa->out_freemps);
       if (csa->out_cpxlp != NULL) remove(csa->out_cpxlp);
+      if (csa->out_glp != NULL) remove(csa->out_glp);
       if (csa->out_pb != NULL) remove(csa->out_pb);
       if (csa->out_npb != NULL) remove(csa->out_npb);
       if (csa->log_file != NULL) remove(csa->log_file);
@@ -803,10 +824,18 @@ err1:    {  xprintf("MPS file processing error\n");
             csa->in_file);
          if (ret != 0) goto err1;
       }
-      else if (csa->format == FMT_CPLEX_LP)
+      else if (csa->format == FMT_LP)
       {  ret = glp_read_lp(csa->prob, NULL, csa->in_file);
          if (ret != 0)
          {  xprintf("CPLEX LP file processing error\n");
+            ret = EXIT_FAILURE;
+            goto done;
+         }
+      }
+      else if (csa->format == FMT_GLP)
+      {  ret = glp_read_prob(csa->prob, 0, csa->in_file);
+         if (ret != 0)
+         {  xprintf("GLPK LP/MIP file processing error\n");
             ret = EXIT_FAILURE;
             goto done;
          }
@@ -815,14 +844,12 @@ err1:    {  xprintf("MPS file processing error\n");
       {  int k;
          /* allocate the translator workspace */
          csa->tran = glp_mpl_alloc_wksp();
-#if 1 /* 08/XII-2009 */
          /* set seed value */
          if (csa->seed == 0x80000000)
          {  csa->seed = glp_time().lo;
             xprintf("Seed value %d will be used\n", csa->seed);
          }
          _glp_mpl_init_rand(csa->tran, csa->seed);
-#endif
          /* read model section and optional data section */
          if (glp_mpl_read_model(csa->tran, csa->in_file, csa->ndf > 0))
 err2:    {  xprintf("MathProg model processing error\n");
@@ -877,8 +904,8 @@ err2:    {  xprintf("MathProg model processing error\n");
       /* change optimization direction, if required */
       if (csa->dir != 0)
          glp_set_obj_dir(csa->prob, csa->dir);
-      /* order rows and columns of the constraint matrix */
-      lpx_order_matrix(csa->prob);
+      /* sort elements of the constraint matrix */
+      glp_sort_matrix(csa->prob);
       /*--------------------------------------------------------------*/
       /* write problem data in fixed MPS format, if required */
       if (csa->out_mps != NULL)
@@ -905,6 +932,15 @@ err2:    {  xprintf("MathProg model processing error\n");
       {  ret = glp_write_lp(csa->prob, NULL, csa->out_cpxlp);
          if (ret != 0)
          {  xprintf("Unable to write problem in CPLEX LP format\n");
+            ret = EXIT_FAILURE;
+            goto done;
+         }
+      }
+      /* write problem data in GLPK format, if required */
+      if (csa->out_glp != NULL)
+      {  ret = glp_write_prob(csa->prob, 0, csa->out_glp);
+         if (ret != 0)
+         {  xprintf("Unable to write problem in GLPK format\n");
             ret = EXIT_FAILURE;
             goto done;
          }
@@ -1092,20 +1128,35 @@ skip: /* postsolve the model, if necessary */
             goto done;
          }
       }
-      /* write sensitivity bounds information, if required */
-      if (csa->out_bnds != NULL)
+      /* write sensitivity analysis report, if required */
+      if (csa->out_ranges != NULL)
       {  if (csa->solution == SOL_BASIC)
-         {  ret = lpx_print_sens_bnds(csa->prob, csa->out_bnds);
-            if (ret != 0)
-            {  xprintf("Unable to write sensitivity bounds information "
-                  "\n");
-               ret = EXIT_FAILURE;
-               goto done;
+         {  if (glp_get_status(csa->prob) == GLP_OPT)
+            {  if (glp_bf_exists(csa->prob))
+ranges:        {  ret = glp_print_ranges(csa->prob, 0, NULL, 0,
+                     csa->out_ranges);
+                  if (ret != 0)
+                  {  xprintf("Unable to write sensitivity analysis repo"
+                        "rt\n");
+                     ret = EXIT_FAILURE;
+                     goto done;
+                  }
+               }
+               else
+               {  ret = glp_factorize(csa->prob);
+                  if (ret == 0) goto ranges;
+                  xprintf("Cannot produce sensitivity analysis report d"
+                     "ue to error in basis factorization (glp_factorize"
+                     " returned %d); try --nopresol\n", ret);
+               }
             }
+            else
+               xprintf("Cannot produce sensitivity analysis report for "
+                  "non-optimal basic solution\n");
          }
          else
-            xprintf("Cannot write sensitivity bounds information for in"
-               "terior-point or MIP solution\n");
+            xprintf("Cannot produce sensitivity analysis report for int"
+               "erior-point or MIP solution\n");
       }
       /*--------------------------------------------------------------*/
       /* all seems to be ok */

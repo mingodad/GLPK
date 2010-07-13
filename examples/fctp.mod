@@ -1,6 +1,6 @@
 /* FCTP, Fixed-Charge Transportation Problem */
 
-/* Written in GNU MathProg by Andrew Makhorin <mao@mai2.rcnet.ru> */
+/* Written in GNU MathProg by Andrew Makhorin <mao@gnu.org> */
 
 /* The Fixed-Charge Transportation Problem (FCTP) is obtained from
    classical transportation problem by imposing a fixed cost on each

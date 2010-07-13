@@ -1,6 +1,6 @@
 /* amd.h */
 
-/* Written by Andrew Makhorin <mao@gnu.org>, <mao@mai2.rcnet.ru>. */
+/* Written by Andrew Makhorin <mao@gnu.org>. */
 
 #ifndef GLPAMD_H
 #define GLPAMD_H

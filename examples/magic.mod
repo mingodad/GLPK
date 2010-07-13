@@ -1,6 +1,6 @@
 /* MAGIC, Magic Square */
 
-/* Written in GNU MathProg by Andrew Makhorin <mao@mai2.rcnet.ru> */
+/* Written in GNU MathProg by Andrew Makhorin <mao@gnu.org> */
 
 /* In recreational mathematics, a magic square of order n is an
    arrangement of n^2 numbers, usually distinct integers, in a square,

@@ -1,6 +1,6 @@
 /* MAXFLOW, Maximum Flow Problem */
 
-/* Written in GNU MathProg by Andrew Makhorin <mao@mai2.rcnet.ru> */
+/* Written in GNU MathProg by Andrew Makhorin <mao@gnu.org> */
 
 /* The Maximum Flow Problem in a network G = (V, E), where V is a set
    of nodes, E within V x V is a set of arcs, is to maximize the flow

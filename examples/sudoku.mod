@@ -1,6 +1,6 @@
 /* SUDOKU, Number Placement Puzzle */
 
-/* Written in GNU MathProg by Andrew Makhorin <mao@mai2.rcnet.ru> */
+/* Written in GNU MathProg by Andrew Makhorin <mao@gnu.org> */
 
 /* Sudoku, also known as Number Place, is a logic-based placement
    puzzle. The aim of the canonical puzzle is to enter a numerical

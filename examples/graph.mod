@@ -1,6 +1,6 @@
 /* graph.mod - graph visualization */
 
-/* Written in GNU MathProg by Andrew Makhorin <mao@mai2.rcnet.ru> */
+/* Written in GNU MathProg by Andrew Makhorin <mao@gnu.org> */
 
 /* This model creates a picture in EPS format to visualize a graph. */
 

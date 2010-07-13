@@ -2,7 +2,7 @@ NOTE: Files in this subdirectory are NOT part of the GLPK package, but
       are used with GLPK.
 
       The original code was modified according to GLPK requirements by
-      Andrew Makhorin <mao@gnu.org>, <mao@mai2.rcnet.ru>.
+      Andrew Makhorin <mao@gnu.org>.
 ************************************************************************
 COLAMD/SYMAMD Version 2.7, Copyright (C) 1998-2007, Timothy A. Davis,
 All Rights Reserved.

@@ -12,7 +12,7 @@
 *  Use of ACM Algorithms is subject to the ACM Software Copyright and
 *  License Agreement. See <http://www.acm.org/publications/policies>.
 *
-*  The translation was made by Andrew Makhorin <mao@mai2.rcnet.ru>.
+*  The translation was made by Andrew Makhorin <mao@gnu.org>.
 *
 *  GLPK is free software: you can redistribute it and/or modify it
 *  under the terms of the GNU General Public License as published by

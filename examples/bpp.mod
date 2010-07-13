@@ -1,6 +1,6 @@
 /* BPP, Bin Packing Problem */
 
-/* Written in GNU MathProg by Andrew Makhorin <mao@mai2.rcnet.ru> */
+/* Written in GNU MathProg by Andrew Makhorin <mao@gnu.org> */
 
 /* Given a set of items I = {1,...,m} with weight w[i] > 0, the Bin
    Packing Problem (BPP) is to pack the items into bins of capacity c
