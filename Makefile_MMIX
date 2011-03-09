@@ -43,6 +43,7 @@ src/glpapi16.o \
 src/glpapi17.o \
 src/glpapi18.o \
 src/glpapi19.o \
+src/glpapi20.o \
 src/glpavl.o \
 src/glpbfd.o \
 src/glpbfx.o \
@@ -132,10 +133,27 @@ src/amd/amd_post_tree.o \
 src/amd/amd_postorder.o \
 src/amd/amd_preprocess.o \
 src/amd/amd_valid.o \
-src/colamd/colamd.o
+src/colamd/colamd.o \
+src/minisat/minisat.o \
+src/zlib/adler32.o \
+src/zlib/compress.o \
+src/zlib/crc32.o \
+src/zlib/deflate.o \
+src/zlib/gzclose.o \
+src/zlib/gzlib.o \
+src/zlib/gzread.o \
+src/zlib/gzwrite.o \
+src/zlib/infback.o \
+src/zlib/inffast.o \
+src/zlib/inflate.o \
+src/zlib/inftrees.o \
+src/zlib/trees.o \
+src/zlib/uncompr.o \
+src/zlib/zio.o \
+src/zlib/zutil.o
 
 .c.o:
-	$(GCC) $(CFLAGS) -Iinclude -Isrc -o $@ -c $<
+	$(GCC) $(CFLAGS) -Isrc -o $@ -c $<
 
 all: libglpk.a glpsol.mmo
 

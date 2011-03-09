@@ -1,8 +1,8 @@
 dnl Process this file with autoconf to produce a configure script
 
-AC_INIT([GLPK], [4.45], [bug-glpk@gnu.org])
+AC_INIT([GLPK], [4.46], [bug-glpk@gnu.org])
 
-AC_CONFIG_SRCDIR([include/glpk.h])
+AC_CONFIG_SRCDIR([src/glpk.h])
 
 AC_CONFIG_MACRO_DIR([m4])
 
@@ -18,15 +18,6 @@ AC_HELP_STRING([--with-gmp],
       *) AC_MSG_ERROR([invalid value `$withval' for --with-gmp]);;
       esac],
    [with_gmp=no])
-
-AC_ARG_WITH(zlib,
-AC_HELP_STRING([--with-zlib],
-   [use zlib data compression library [[default=no]]]),
-   [case $withval in
-      yes | no) ;;
-      *) AC_MSG_ERROR([invalid value `$withval' for --with-zlib]);;
-      esac],
-   [with_zlib=no])
 
 AC_ARG_ENABLE(dl,
 AC_HELP_STRING([--enable-dl],
@@ -81,15 +72,6 @@ if test "$with_gmp" = "yes"; then
    AC_MSG_RESULT([yes])
    AC_DEFINE([HAVE_GMP], [1], [N/A])
    LIBS="-lgmp $LIBS"
-else
-   AC_MSG_RESULT([no])
-fi
-
-AC_MSG_CHECKING([whether to use zlib data compression library])
-if test "$with_zlib" = "yes"; then
-   AC_MSG_RESULT([yes])
-   AC_DEFINE([HAVE_ZLIB], [1], [N/A])
-   LIBS="-lz $LIBS"
 else
    AC_MSG_RESULT([no])
 fi
@@ -153,7 +135,7 @@ else
 fi
 
 AC_CONFIG_FILES(
-   [include/Makefile src/Makefile examples/Makefile Makefile])
+   [src/Makefile examples/Makefile Makefile])
 AC_OUTPUT
 
 dnl eof

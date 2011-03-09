@@ -1,7 +1,17 @@
-# Build GLPK DLL with Microsoft Visual Studio Express
+## Build GLPK DLL with Microsoft Visual Studio Express ##
 
-CFLAGS = /I. /I..\include /I..\src /I..\src\amd /I..\src\colamd \
-        /DHAVE_CONFIG_H /D_CRT_SECURE_NO_WARNINGS /nologo /W3 /O2
+CFLAGS = \
+/I. \
+/I..\src \
+/I..\src\amd \
+/I..\src\colamd \
+/I..\src\minisat \
+/I..\src\zlib \
+/DHAVE_CONFIG_H=1 \
+/D_CRT_SECURE_NO_WARNINGS=1 \
+/nologo \
+/W3 \
+/O2
 
 OBJSET = \
 ..\src\glpapi01.obj \
@@ -23,6 +33,7 @@ OBJSET = \
 ..\src\glpapi17.obj \
 ..\src\glpapi18.obj \
 ..\src\glpapi19.obj \
+..\src\glpapi20.obj \
 ..\src\glpavl.obj \
 ..\src\glpbfd.obj \
 ..\src\glpbfx.obj \
@@ -112,21 +123,45 @@ OBJSET = \
 ..\src\amd\amd_postorder.obj \
 ..\src\amd\amd_preprocess.obj \
 ..\src\amd\amd_valid.obj \
-..\src\colamd\colamd.obj
+..\src\colamd\colamd.obj \
+..\src\minisat\minisat.obj \
+..\src\zlib\adler32.obj \
+..\src\zlib\compress.obj \
+..\src\zlib\crc32.obj \
+..\src\zlib\deflate.obj \
+..\src\zlib\gzclose.obj \
+..\src\zlib\gzlib.obj \
+..\src\zlib\gzread.obj \
+..\src\zlib\gzwrite.obj \
+..\src\zlib\infback.obj \
+..\src\zlib\inffast.obj \
+..\src\zlib\inflate.obj \
+..\src\zlib\inftrees.obj \
+..\src\zlib\trees.obj \
+..\src\zlib\uncompr.obj \
+..\src\zlib\zio.obj \
+..\src\zlib\zutil.obj
 
 .c.obj:
         cl.exe $(CFLAGS) /Fo$*.obj /c $*.c
 
-all: glpk_4_45.dll glpsol.exe
+all: glpk_4_46.dll glpsol.exe
 
-glpk_4_45.dll: $(OBJSET)
-        cl.exe $(CFLAGS) /LD /Feglpk_4_45.dll ..\src\*.obj \
-                ..\src\amd\*.obj ..\src\colamd\*.obj glpk_4_45.def
+glpk_4_46.dll: $(OBJSET)
+        cl.exe $(CFLAGS) /LD /Feglpk_4_46.dll \
+                ..\src\*.obj \
+                ..\src\amd\*.obj \
+                ..\src\colamd\*.obj \
+                ..\src\minisat\*.obj \
+                ..\src\zlib\*.obj \
+                glpk_4_46.def
 
-glpsol.exe: ..\examples\glpsol.obj glpk_4_45.dll
-        cl.exe $(CFLAGS) /Feglpsol.exe ..\examples\glpsol.obj \
-                glpk_4_45.lib
+glpsol.exe: ..\examples\glpsol.obj glpk_4_46.dll
+        cl.exe $(CFLAGS) /Feglpsol.exe \
+                ..\examples\glpsol.obj glpk_4_46.lib
 
 check: glpsol.exe
         .\glpsol.exe --version
         .\glpsol.exe --mps ..\examples\plan.mps
+
+## eof ##

@@ -184,7 +184,7 @@ to_host_path_cmd = @to_host_path_cmd@
 top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
-INCLUDES = -I$(srcdir)/../include
+INCLUDES = -I../src
 LDADD = ../src/libglpk.la
 glpsol_SOURCES = glpsol.c
 all: all-am
@@ -506,7 +506,7 @@ uninstall-am: uninstall-binPROGRAMS
 
 check: glpsol$(EXEEXT)
 	./glpsol$(EXEEXT) --version
-	./glpsol$(EXEEXT) --mps $(srcdir)/plan.mps
+	./glpsol$(EXEEXT) --mps plan.mps
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.

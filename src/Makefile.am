@@ -1,10 +1,10 @@
 ## Process this file with automake to produce Makefile.in ##
 
-INCLUDES = -I$(srcdir)/../include
+include_HEADERS = glpk.h
 
 lib_LTLIBRARIES = libglpk.la
 
-libglpk_la_LDFLAGS = -version-info 30:0:30 \
+libglpk_la_LDFLAGS = -version-info 31:0:31 \
 -export-symbols-regex '^(glp_|_glp_lpx_).*'
 
 libglpk_la_SOURCES = \
@@ -27,6 +27,7 @@ glpapi16.c \
 glpapi17.c \
 glpapi18.c \
 glpapi19.c \
+glpapi20.c \
 glpavl.c \
 glpbfd.c \
 glpbfx.c \
@@ -116,6 +117,23 @@ amd/amd_post_tree.c \
 amd/amd_postorder.c \
 amd/amd_preprocess.c \
 amd/amd_valid.c \
-colamd/colamd.c
+colamd/colamd.c \
+minisat/minisat.c \
+zlib/adler32.c \
+zlib/compress.c \
+zlib/crc32.c \
+zlib/deflate.c \
+zlib/gzclose.c \
+zlib/gzlib.c \
+zlib/gzread.c \
+zlib/gzwrite.c \
+zlib/infback.c \
+zlib/inffast.c \
+zlib/inflate.c \
+zlib/inftrees.c \
+zlib/trees.c \
+zlib/uncompr.c \
+zlib/zio.c \
+zlib/zutil.c
 
 ## eof ##

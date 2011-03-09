@@ -15,6 +15,7 @@
 
 @SET_MAKE@
 
+
 VPATH = @srcdir@
 pkgdatadir = $(datadir)/@PACKAGE@
 pkgincludedir = $(includedir)/@PACKAGE@
@@ -35,7 +36,8 @@ POST_UNINSTALL = :
 build_triplet = @build@
 host_triplet = @host@
 subdir = src
-DIST_COMMON = $(srcdir)/Makefile.am $(srcdir)/Makefile.in
+DIST_COMMON = $(include_HEADERS) $(srcdir)/Makefile.am \
+	$(srcdir)/Makefile.in
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/m4/libtool.m4 \
 	$(top_srcdir)/m4/ltoptions.m4 $(top_srcdir)/m4/ltsugar.m4 \
@@ -68,32 +70,35 @@ am__nobase_list = $(am__nobase_strip_setup); \
 am__base_list = \
   sed '$$!N;$$!N;$$!N;$$!N;$$!N;$$!N;$$!N;s/\n/ /g' | \
   sed '$$!N;$$!N;$$!N;$$!N;s/\n/ /g'
-am__installdirs = "$(DESTDIR)$(libdir)"
+am__installdirs = "$(DESTDIR)$(libdir)" "$(DESTDIR)$(includedir)"
 LTLIBRARIES = $(lib_LTLIBRARIES)
 libglpk_la_LIBADD =
 am_libglpk_la_OBJECTS = glpapi01.lo glpapi02.lo glpapi03.lo \
 	glpapi04.lo glpapi05.lo glpapi06.lo glpapi07.lo glpapi08.lo \
 	glpapi09.lo glpapi10.lo glpapi11.lo glpapi12.lo glpapi13.lo \
 	glpapi14.lo glpapi15.lo glpapi16.lo glpapi17.lo glpapi18.lo \
-	glpapi19.lo glpavl.lo glpbfd.lo glpbfx.lo glpcpx.lo glpdmp.lo \
-	glpdmx.lo glpenv01.lo glpenv02.lo glpenv03.lo glpenv04.lo \
-	glpenv05.lo glpenv06.lo glpenv07.lo glpenv08.lo glpfhv.lo \
-	glpgmp.lo glphbm.lo glpini01.lo glpini02.lo glpios01.lo \
-	glpios02.lo glpios03.lo glpios04.lo glpios05.lo glpios06.lo \
-	glpios07.lo glpios08.lo glpios09.lo glpios10.lo glpios11.lo \
-	glpios12.lo glpipm.lo glplib01.lo glplib02.lo glplib03.lo \
-	glplpf.lo glplpx01.lo glplpx02.lo glplpx03.lo glpluf.lo \
-	glplux.lo glpmat.lo glpmpl01.lo glpmpl02.lo glpmpl03.lo \
-	glpmpl04.lo glpmpl05.lo glpmpl06.lo glpmps.lo glpnet01.lo \
-	glpnet02.lo glpnet03.lo glpnet04.lo glpnet05.lo glpnet06.lo \
-	glpnet07.lo glpnet08.lo glpnet09.lo glpnpp01.lo glpnpp02.lo \
-	glpnpp03.lo glpnpp04.lo glpnpp05.lo glpqmd.lo glprgr.lo \
-	glprng01.lo glprng02.lo glpscf.lo glpscl.lo glpsdf.lo \
-	glpspm.lo glpspx01.lo glpspx02.lo glpsql.lo glpssx01.lo \
-	glpssx02.lo glptsp.lo amd_1.lo amd_2.lo amd_aat.lo \
-	amd_control.lo amd_defaults.lo amd_dump.lo amd_info.lo \
-	amd_order.lo amd_post_tree.lo amd_postorder.lo \
-	amd_preprocess.lo amd_valid.lo colamd.lo
+	glpapi19.lo glpapi20.lo glpavl.lo glpbfd.lo glpbfx.lo \
+	glpcpx.lo glpdmp.lo glpdmx.lo glpenv01.lo glpenv02.lo \
+	glpenv03.lo glpenv04.lo glpenv05.lo glpenv06.lo glpenv07.lo \
+	glpenv08.lo glpfhv.lo glpgmp.lo glphbm.lo glpini01.lo \
+	glpini02.lo glpios01.lo glpios02.lo glpios03.lo glpios04.lo \
+	glpios05.lo glpios06.lo glpios07.lo glpios08.lo glpios09.lo \
+	glpios10.lo glpios11.lo glpios12.lo glpipm.lo glplib01.lo \
+	glplib02.lo glplib03.lo glplpf.lo glplpx01.lo glplpx02.lo \
+	glplpx03.lo glpluf.lo glplux.lo glpmat.lo glpmpl01.lo \
+	glpmpl02.lo glpmpl03.lo glpmpl04.lo glpmpl05.lo glpmpl06.lo \
+	glpmps.lo glpnet01.lo glpnet02.lo glpnet03.lo glpnet04.lo \
+	glpnet05.lo glpnet06.lo glpnet07.lo glpnet08.lo glpnet09.lo \
+	glpnpp01.lo glpnpp02.lo glpnpp03.lo glpnpp04.lo glpnpp05.lo \
+	glpqmd.lo glprgr.lo glprng01.lo glprng02.lo glpscf.lo \
+	glpscl.lo glpsdf.lo glpspm.lo glpspx01.lo glpspx02.lo \
+	glpsql.lo glpssx01.lo glpssx02.lo glptsp.lo amd_1.lo amd_2.lo \
+	amd_aat.lo amd_control.lo amd_defaults.lo amd_dump.lo \
+	amd_info.lo amd_order.lo amd_post_tree.lo amd_postorder.lo \
+	amd_preprocess.lo amd_valid.lo colamd.lo minisat.lo adler32.lo \
+	compress.lo crc32.lo deflate.lo gzclose.lo gzlib.lo gzread.lo \
+	gzwrite.lo infback.lo inffast.lo inflate.lo inftrees.lo \
+	trees.lo uncompr.lo zio.lo zutil.lo
 libglpk_la_OBJECTS = $(am_libglpk_la_OBJECTS)
 libglpk_la_LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) \
 	$(LIBTOOLFLAGS) --mode=link $(CCLD) $(AM_CFLAGS) $(CFLAGS) \
@@ -113,6 +118,7 @@ LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
 	$(LDFLAGS) -o $@
 SOURCES = $(libglpk_la_SOURCES)
 DIST_SOURCES = $(libglpk_la_SOURCES)
+HEADERS = $(include_HEADERS)
 ETAGS = etags
 CTAGS = ctags
 DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
@@ -228,9 +234,9 @@ to_host_path_cmd = @to_host_path_cmd@
 top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
-INCLUDES = -I$(srcdir)/../include
+include_HEADERS = glpk.h
 lib_LTLIBRARIES = libglpk.la
-libglpk_la_LDFLAGS = -version-info 30:0:30 \
+libglpk_la_LDFLAGS = -version-info 31:0:31 \
 -export-symbols-regex '^(glp_|_glp_lpx_).*'
 
 libglpk_la_SOURCES = \
@@ -253,6 +259,7 @@ glpapi16.c \
 glpapi17.c \
 glpapi18.c \
 glpapi19.c \
+glpapi20.c \
 glpavl.c \
 glpbfd.c \
 glpbfx.c \
@@ -342,7 +349,24 @@ amd/amd_post_tree.c \
 amd/amd_postorder.c \
 amd/amd_preprocess.c \
 amd/amd_valid.c \
-colamd/colamd.c
+colamd/colamd.c \
+minisat/minisat.c \
+zlib/adler32.c \
+zlib/compress.c \
+zlib/crc32.c \
+zlib/deflate.c \
+zlib/gzclose.c \
+zlib/gzlib.c \
+zlib/gzread.c \
+zlib/gzwrite.c \
+zlib/infback.c \
+zlib/inffast.c \
+zlib/inflate.c \
+zlib/inftrees.c \
+zlib/trees.c \
+zlib/uncompr.c \
+zlib/zio.c \
+zlib/zutil.c
 
 all: all-am
 
@@ -418,6 +442,7 @@ mostlyclean-compile:
 distclean-compile:
 	-rm -f *.tab.c
 
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/adler32.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/amd_1.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/amd_2.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/amd_aat.Plo@am__quote@
@@ -431,6 +456,9 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/amd_preprocess.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/amd_valid.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/colamd.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/compress.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/crc32.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/deflate.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/glpapi01.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/glpapi02.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/glpapi03.Plo@am__quote@
@@ -450,6 +478,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/glpapi17.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/glpapi18.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/glpapi19.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/glpapi20.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/glpavl.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/glpbfd.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/glpbfx.Plo@am__quote@
@@ -527,6 +556,19 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/glpssx01.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/glpssx02.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/glptsp.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gzclose.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gzlib.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gzread.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gzwrite.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/infback.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/inffast.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/inflate.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/inftrees.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/minisat.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/trees.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/uncompr.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/zio.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/zutil.Plo@am__quote@
 
 .c.o:
 @am__fastdepCC_TRUE@	$(COMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ $<
@@ -640,11 +682,150 @@ colamd.lo: colamd/colamd.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(LIBTOOL)  --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o colamd.lo `test -f 'colamd/colamd.c' || echo '$(srcdir)/'`colamd/colamd.c
 
+minisat.lo: minisat/minisat.c
+@am__fastdepCC_TRUE@	$(LIBTOOL)  --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT minisat.lo -MD -MP -MF $(DEPDIR)/minisat.Tpo -c -o minisat.lo `test -f 'minisat/minisat.c' || echo '$(srcdir)/'`minisat/minisat.c
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/minisat.Tpo $(DEPDIR)/minisat.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='minisat/minisat.c' object='minisat.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(LIBTOOL)  --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o minisat.lo `test -f 'minisat/minisat.c' || echo '$(srcdir)/'`minisat/minisat.c
+
+adler32.lo: zlib/adler32.c
+@am__fastdepCC_TRUE@	$(LIBTOOL)  --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT adler32.lo -MD -MP -MF $(DEPDIR)/adler32.Tpo -c -o adler32.lo `test -f 'zlib/adler32.c' || echo '$(srcdir)/'`zlib/adler32.c
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/adler32.Tpo $(DEPDIR)/adler32.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='zlib/adler32.c' object='adler32.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(LIBTOOL)  --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o adler32.lo `test -f 'zlib/adler32.c' || echo '$(srcdir)/'`zlib/adler32.c
+
+compress.lo: zlib/compress.c
+@am__fastdepCC_TRUE@	$(LIBTOOL)  --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT compress.lo -MD -MP -MF $(DEPDIR)/compress.Tpo -c -o compress.lo `test -f 'zlib/compress.c' || echo '$(srcdir)/'`zlib/compress.c
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/compress.Tpo $(DEPDIR)/compress.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='zlib/compress.c' object='compress.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(LIBTOOL)  --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o compress.lo `test -f 'zlib/compress.c' || echo '$(srcdir)/'`zlib/compress.c
+
+crc32.lo: zlib/crc32.c
+@am__fastdepCC_TRUE@	$(LIBTOOL)  --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT crc32.lo -MD -MP -MF $(DEPDIR)/crc32.Tpo -c -o crc32.lo `test -f 'zlib/crc32.c' || echo '$(srcdir)/'`zlib/crc32.c
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/crc32.Tpo $(DEPDIR)/crc32.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='zlib/crc32.c' object='crc32.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(LIBTOOL)  --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o crc32.lo `test -f 'zlib/crc32.c' || echo '$(srcdir)/'`zlib/crc32.c
+
+deflate.lo: zlib/deflate.c
+@am__fastdepCC_TRUE@	$(LIBTOOL)  --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT deflate.lo -MD -MP -MF $(DEPDIR)/deflate.Tpo -c -o deflate.lo `test -f 'zlib/deflate.c' || echo '$(srcdir)/'`zlib/deflate.c
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/deflate.Tpo $(DEPDIR)/deflate.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='zlib/deflate.c' object='deflate.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(LIBTOOL)  --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o deflate.lo `test -f 'zlib/deflate.c' || echo '$(srcdir)/'`zlib/deflate.c
+
+gzclose.lo: zlib/gzclose.c
+@am__fastdepCC_TRUE@	$(LIBTOOL)  --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT gzclose.lo -MD -MP -MF $(DEPDIR)/gzclose.Tpo -c -o gzclose.lo `test -f 'zlib/gzclose.c' || echo '$(srcdir)/'`zlib/gzclose.c
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/gzclose.Tpo $(DEPDIR)/gzclose.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='zlib/gzclose.c' object='gzclose.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(LIBTOOL)  --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o gzclose.lo `test -f 'zlib/gzclose.c' || echo '$(srcdir)/'`zlib/gzclose.c
+
+gzlib.lo: zlib/gzlib.c
+@am__fastdepCC_TRUE@	$(LIBTOOL)  --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT gzlib.lo -MD -MP -MF $(DEPDIR)/gzlib.Tpo -c -o gzlib.lo `test -f 'zlib/gzlib.c' || echo '$(srcdir)/'`zlib/gzlib.c
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/gzlib.Tpo $(DEPDIR)/gzlib.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='zlib/gzlib.c' object='gzlib.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(LIBTOOL)  --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o gzlib.lo `test -f 'zlib/gzlib.c' || echo '$(srcdir)/'`zlib/gzlib.c
+
+gzread.lo: zlib/gzread.c
+@am__fastdepCC_TRUE@	$(LIBTOOL)  --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT gzread.lo -MD -MP -MF $(DEPDIR)/gzread.Tpo -c -o gzread.lo `test -f 'zlib/gzread.c' || echo '$(srcdir)/'`zlib/gzread.c
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/gzread.Tpo $(DEPDIR)/gzread.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='zlib/gzread.c' object='gzread.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(LIBTOOL)  --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o gzread.lo `test -f 'zlib/gzread.c' || echo '$(srcdir)/'`zlib/gzread.c
+
+gzwrite.lo: zlib/gzwrite.c
+@am__fastdepCC_TRUE@	$(LIBTOOL)  --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT gzwrite.lo -MD -MP -MF $(DEPDIR)/gzwrite.Tpo -c -o gzwrite.lo `test -f 'zlib/gzwrite.c' || echo '$(srcdir)/'`zlib/gzwrite.c
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/gzwrite.Tpo $(DEPDIR)/gzwrite.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='zlib/gzwrite.c' object='gzwrite.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(LIBTOOL)  --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o gzwrite.lo `test -f 'zlib/gzwrite.c' || echo '$(srcdir)/'`zlib/gzwrite.c
+
+infback.lo: zlib/infback.c
+@am__fastdepCC_TRUE@	$(LIBTOOL)  --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT infback.lo -MD -MP -MF $(DEPDIR)/infback.Tpo -c -o infback.lo `test -f 'zlib/infback.c' || echo '$(srcdir)/'`zlib/infback.c
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/infback.Tpo $(DEPDIR)/infback.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='zlib/infback.c' object='infback.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(LIBTOOL)  --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o infback.lo `test -f 'zlib/infback.c' || echo '$(srcdir)/'`zlib/infback.c
+
+inffast.lo: zlib/inffast.c
+@am__fastdepCC_TRUE@	$(LIBTOOL)  --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT inffast.lo -MD -MP -MF $(DEPDIR)/inffast.Tpo -c -o inffast.lo `test -f 'zlib/inffast.c' || echo '$(srcdir)/'`zlib/inffast.c
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/inffast.Tpo $(DEPDIR)/inffast.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='zlib/inffast.c' object='inffast.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(LIBTOOL)  --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o inffast.lo `test -f 'zlib/inffast.c' || echo '$(srcdir)/'`zlib/inffast.c
+
+inflate.lo: zlib/inflate.c
+@am__fastdepCC_TRUE@	$(LIBTOOL)  --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT inflate.lo -MD -MP -MF $(DEPDIR)/inflate.Tpo -c -o inflate.lo `test -f 'zlib/inflate.c' || echo '$(srcdir)/'`zlib/inflate.c
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/inflate.Tpo $(DEPDIR)/inflate.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='zlib/inflate.c' object='inflate.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(LIBTOOL)  --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o inflate.lo `test -f 'zlib/inflate.c' || echo '$(srcdir)/'`zlib/inflate.c
+
+inftrees.lo: zlib/inftrees.c
+@am__fastdepCC_TRUE@	$(LIBTOOL)  --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT inftrees.lo -MD -MP -MF $(DEPDIR)/inftrees.Tpo -c -o inftrees.lo `test -f 'zlib/inftrees.c' || echo '$(srcdir)/'`zlib/inftrees.c
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/inftrees.Tpo $(DEPDIR)/inftrees.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='zlib/inftrees.c' object='inftrees.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(LIBTOOL)  --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o inftrees.lo `test -f 'zlib/inftrees.c' || echo '$(srcdir)/'`zlib/inftrees.c
+
+trees.lo: zlib/trees.c
+@am__fastdepCC_TRUE@	$(LIBTOOL)  --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT trees.lo -MD -MP -MF $(DEPDIR)/trees.Tpo -c -o trees.lo `test -f 'zlib/trees.c' || echo '$(srcdir)/'`zlib/trees.c
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/trees.Tpo $(DEPDIR)/trees.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='zlib/trees.c' object='trees.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(LIBTOOL)  --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o trees.lo `test -f 'zlib/trees.c' || echo '$(srcdir)/'`zlib/trees.c
+
+uncompr.lo: zlib/uncompr.c
+@am__fastdepCC_TRUE@	$(LIBTOOL)  --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT uncompr.lo -MD -MP -MF $(DEPDIR)/uncompr.Tpo -c -o uncompr.lo `test -f 'zlib/uncompr.c' || echo '$(srcdir)/'`zlib/uncompr.c
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/uncompr.Tpo $(DEPDIR)/uncompr.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='zlib/uncompr.c' object='uncompr.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(LIBTOOL)  --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o uncompr.lo `test -f 'zlib/uncompr.c' || echo '$(srcdir)/'`zlib/uncompr.c
+
+zio.lo: zlib/zio.c
+@am__fastdepCC_TRUE@	$(LIBTOOL)  --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT zio.lo -MD -MP -MF $(DEPDIR)/zio.Tpo -c -o zio.lo `test -f 'zlib/zio.c' || echo '$(srcdir)/'`zlib/zio.c
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/zio.Tpo $(DEPDIR)/zio.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='zlib/zio.c' object='zio.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(LIBTOOL)  --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o zio.lo `test -f 'zlib/zio.c' || echo '$(srcdir)/'`zlib/zio.c
+
+zutil.lo: zlib/zutil.c
+@am__fastdepCC_TRUE@	$(LIBTOOL)  --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT zutil.lo -MD -MP -MF $(DEPDIR)/zutil.Tpo -c -o zutil.lo `test -f 'zlib/zutil.c' || echo '$(srcdir)/'`zlib/zutil.c
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/zutil.Tpo $(DEPDIR)/zutil.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='zlib/zutil.c' object='zutil.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(LIBTOOL)  --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o zutil.lo `test -f 'zlib/zutil.c' || echo '$(srcdir)/'`zlib/zutil.c
+
 mostlyclean-libtool:
 	-rm -f *.lo
 
 clean-libtool:
 	-rm -rf .libs _libs
+install-includeHEADERS: $(include_HEADERS)
+	@$(NORMAL_INSTALL)
+	test -z "$(includedir)" || $(MKDIR_P) "$(DESTDIR)$(includedir)"
+	@list='$(include_HEADERS)'; test -n "$(includedir)" || list=; \
+	for p in $$list; do \
+	  if test -f "$$p"; then d=; else d="$(srcdir)/"; fi; \
+	  echo "$$d$$p"; \
+	done | $(am__base_list) | \
+	while read files; do \
+	  echo " $(INSTALL_HEADER) $$files '$(DESTDIR)$(includedir)'"; \
+	  $(INSTALL_HEADER) $$files "$(DESTDIR)$(includedir)" || exit $$?; \
+	done
+
+uninstall-includeHEADERS:
+	@$(NORMAL_UNINSTALL)
+	@list='$(include_HEADERS)'; test -n "$(includedir)" || list=; \
+	files=`for p in $$list; do echo $$p; done | sed -e 's|^.*/||'`; \
+	test -n "$$files" || exit 0; \
+	echo " ( cd '$(DESTDIR)$(includedir)' && rm -f" $$files ")"; \
+	cd "$(DESTDIR)$(includedir)" && rm -f $$files
 
 ID: $(HEADERS) $(SOURCES) $(LISP) $(TAGS_FILES)
 	list='$(SOURCES) $(HEADERS) $(LISP) $(TAGS_FILES)'; \
@@ -730,9 +911,9 @@ distdir: $(DISTFILES)
 	done
 check-am: all-am
 check: check-am
-all-am: Makefile $(LTLIBRARIES)
+all-am: Makefile $(LTLIBRARIES) $(HEADERS)
 installdirs:
-	for dir in "$(DESTDIR)$(libdir)"; do \
+	for dir in "$(DESTDIR)$(libdir)" "$(DESTDIR)$(includedir)"; do \
 	  test -z "$$dir" || $(MKDIR_P) "$$dir"; \
 	done
 install: install-am
@@ -783,7 +964,7 @@ info: info-am
 
 info-am:
 
-install-data-am:
+install-data-am: install-includeHEADERS
 
 install-dvi: install-dvi-am
 
@@ -829,7 +1010,7 @@ ps: ps-am
 
 ps-am:
 
-uninstall-am: uninstall-libLTLIBRARIES
+uninstall-am: uninstall-includeHEADERS uninstall-libLTLIBRARIES
 
 .MAKE: install-am install-strip
 
@@ -839,13 +1020,14 @@ uninstall-am: uninstall-libLTLIBRARIES
 	distclean-tags distdir dvi dvi-am html html-am info info-am \
 	install install-am install-data install-data-am install-dvi \
 	install-dvi-am install-exec install-exec-am install-html \
-	install-html-am install-info install-info-am \
-	install-libLTLIBRARIES install-man install-pdf install-pdf-am \
-	install-ps install-ps-am install-strip installcheck \
-	installcheck-am installdirs maintainer-clean \
+	install-html-am install-includeHEADERS install-info \
+	install-info-am install-libLTLIBRARIES install-man install-pdf \
+	install-pdf-am install-ps install-ps-am install-strip \
+	installcheck installcheck-am installdirs maintainer-clean \
 	maintainer-clean-generic mostlyclean mostlyclean-compile \
 	mostlyclean-generic mostlyclean-libtool pdf pdf-am ps ps-am \
-	tags uninstall uninstall-am uninstall-libLTLIBRARIES
+	tags uninstall uninstall-am uninstall-includeHEADERS \
+	uninstall-libLTLIBRARIES
 
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.

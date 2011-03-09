@@ -4,7 +4,7 @@
 *  This code is part of GLPK (GNU Linear Programming Kit).
 *
 *  Copyright (C) 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008,
-*  2009, 2010 Andrew Makhorin, Department for Applied Informatics,
+*  2009, 2010, 2011 Andrew Makhorin, Department for Applied Informatics,
 *  Moscow Aviation Institute, Moscow, Russia. All rights reserved.
 *  E-mail: <mao@gnu.org>.
 *
@@ -1453,6 +1453,216 @@ skip2:   if (col->name != NULL)
       }
       /* write end line */
       xfprintf(fp, "e o f\n"), count++;
+      xfflush(fp);
+      if (xferror(fp))
+      {  xprintf("Write error on `%s' - %s\n", fname, xerrmsg());
+         ret = 1;
+         goto done;
+      }
+      xprintf("%d lines were written\n", count);
+      ret = 0;
+done: if (fp != NULL) xfclose(fp);
+      return ret;
+}
+
+/**********************************************************************/
+
+int glp_read_cnfsat(glp_prob *P, const char *fname)
+{     /* read CNF-SAT problem data in DIMACS format */
+      struct csa _csa, *csa = &_csa;
+      int m, n, i, j, len, neg, rhs, ret = 0, *ind = NULL;
+      double *val = NULL;
+      char *map = NULL;
+      if (P == NULL || P->magic != GLP_PROB_MAGIC)
+         xerror("glp_read_cnfsat: P = %p; invalid problem object\n",
+            P);
+      if (fname == NULL)
+         xerror("glp_read_cnfsat: fname = %p; invalid parameter\n",
+            fname);
+      glp_erase_prob(P);
+      if (setjmp(csa->jump))
+      {  ret = 1;
+         goto done;
+      }
+      csa->fname = fname;
+      csa->fp = NULL;
+      csa->count = 0;
+      csa->c = '\n';
+      csa->field[0] = '\0';
+      csa->empty = csa->nonint = 0;
+      xprintf("Reading CNF-SAT problem data from `%s'...\n", fname);
+      csa->fp = xfopen(fname, "r");
+      if (csa->fp == NULL)
+      {  xprintf("Unable to open `%s' - %s\n", fname, xerrmsg());
+         longjmp(csa->jump, 1);
+      }
+      /* read problem line */
+      read_designator(csa);
+      if (strcmp(csa->field, "p") != 0)
+         error(csa, "problem line missing or invalid");
+      read_field(csa);
+      if (strcmp(csa->field, "cnf") != 0)
+         error(csa, "wrong problem designator; `cnf' expected\n");
+      read_field(csa);
+      if (!(str2int(csa->field, &n) == 0 && n >= 0))
+         error(csa, "number of variables missing or invalid\n");
+      read_field(csa);
+      if (!(str2int(csa->field, &m) == 0 && m >= 0))
+         error(csa, "number of clauses missing or invalid\n");
+      xprintf("Instance has %d variable%s and %d clause%s\n",
+         n, n == 1 ? "" : "s", m, m == 1 ? "" : "s");
+      end_of_line(csa);
+      if (m > 0)
+         glp_add_rows(P, m);
+      if (n > 0)
+      {  glp_add_cols(P, n);
+         for (j = 1; j <= n; j++)
+            glp_set_col_kind(P, j, GLP_BV);
+      }
+      /* allocate working arrays */
+      ind = xcalloc(1+n, sizeof(int));
+      val = xcalloc(1+n, sizeof(double));
+      map = xcalloc(1+n, sizeof(char));
+      for (j = 1; j <= n; j++) map[j] = 0;
+      /* read clauses */
+      for (i = 1; i <= m; i++)
+      {  /* read i-th clause */
+         len = 0, rhs = 1;
+         for (;;)
+         {  /* skip white-space characters */
+            while (csa->c == ' ' || csa->c == '\n')
+               read_char(csa);
+            /* read term */
+            read_field(csa);
+            if (str2int(csa->field, &j) != 0)
+               error(csa, "variable number missing or invalid\n");
+            if (j > 0)
+               neg = 0;
+            else if (j < 0)
+               neg = 1, j = -j, rhs--;
+            else
+               break;
+            if (!(1 <= j && j <= n))
+               error(csa, "variable number out of range\n");
+            if (map[j])
+               error(csa, "duplicate variable number\n");
+            len++, ind[len] = j, val[len] = (neg ? -1.0 : +1.0);
+            map[j] = 1;
+         }
+         glp_set_row_bnds(P, i, GLP_LO, (double)rhs, 0.0);
+         glp_set_mat_row(P, i, len, ind, val);
+         while (len > 0) map[ind[len--]] = 0;
+      }
+      xprintf("%d lines were read\n", csa->count);
+      /* problem data has been successfully read */
+      glp_sort_matrix(P);
+done: if (csa->fp != NULL) xfclose(csa->fp);
+      if (ind != NULL) xfree(ind);
+      if (val != NULL) xfree(val);
+      if (map != NULL) xfree(map);
+      if (ret) glp_erase_prob(P);
+      return ret;
+}
+
+/**********************************************************************/
+
+int glp_check_cnfsat(glp_prob *P)
+{     /* check for CNF-SAT problem instance */
+      int m = P->m;
+      int n = P->n;
+      GLPROW *row;
+      GLPCOL *col;
+      GLPAIJ *aij;
+      int i, j, neg;
+      if (P == NULL || P->magic != GLP_PROB_MAGIC)
+         xerror("glp_check_cnfsat: P = %p; invalid problem object\n",
+            P);
+      /* check columns */
+      for (j = 1; j <= n; j++)
+      {  col = P->col[j];
+         /* the variable should be binary */
+         if (!(col->kind == GLP_IV && col->type == GLP_DB &&
+               col->lb == 0.0 && col->ub == 1.0))
+            return 1;
+      }
+      /* objective function should be zero */
+      if (P->c0 != 0.0)
+         return 2;
+      for (j = 1; j <= n; j++)
+      {  col = P->col[j];
+         if (col->coef != 0.0)
+            return 3;
+      }
+      /* check rows */
+      for (i = 1; i <= m; i++)
+      {  row = P->row[i];
+         /* the row should be of ">=" type */
+         if (row->type != GLP_LO)
+            return 4;
+         /* check constraint coefficients */
+         neg = 0;
+         for (aij = row->ptr; aij != NULL; aij = aij->r_next)
+         {  /* the constraint coefficient should be +1 or -1 */
+            if (aij->val == +1.0)
+               ;
+            else if (aij->val == -1.0)
+               neg++;
+            else
+               return 5;
+         }
+         /* the right-hand side should be (1 - neg), where neg is the
+            number of negative constraint coefficients in the row */
+         if (row->lb != (double)(1 - neg))
+            return 6;
+      }
+      /* congratulations; this is CNF-SAT */
+      return 0;
+}
+
+/**********************************************************************/
+
+int glp_write_cnfsat(glp_prob *P, const char *fname)
+{     /* write CNF-SAT problem data in DIMACS format */
+      XFILE *fp = NULL;
+      GLPAIJ *aij;
+      int i, j, len, count = 0, ret;
+      char s[50];
+      if (P == NULL || P->magic != GLP_PROB_MAGIC)
+         xerror("glp_write_cnfsat: P = %p; invalid problem object\n",
+            P);
+      if (glp_check_cnfsat(P) != 0)
+      {  xprintf("glp_write_cnfsat: problem object does not encode CNF-"
+            "SAT instance\n");
+         ret = 1;
+         goto done;
+      }
+      xprintf("Writing CNF-SAT problem data to `%s'...\n", fname);
+      fp = xfopen(fname, "w");
+      if (fp == NULL)
+      {  xprintf("Unable to create `%s' - %s\n", fname, xerrmsg());
+         ret = 1;
+         goto done;
+      }
+      xfprintf(fp, "c %s\n",
+         P->name == NULL ? "unknown" : P->name), count++;
+      xfprintf(fp, "p cnf %d %d\n", P->n, P->m), count++;
+      for (i = 1; i <= P->m; i++)
+      {  len = 0;
+         for (aij = P->row[i]->ptr; aij != NULL; aij = aij->r_next)
+         {  j = aij->col->j;
+            if (aij->val < 0.0) j = -j;
+            sprintf(s, "%d", j);
+            if (len > 0 && len + 1 + strlen(s) > 72)
+               xfprintf(fp, "\n"), count++, len = 0;
+            xfprintf(fp, "%s%s", len == 0 ? "" : " ", s);
+            if (len > 0) len++;
+            len += strlen(s);
+         }
+         if (len > 0 && len + 1 + 1 > 72)
+            xfprintf(fp, "\n"), count++, len = 0;
+         xfprintf(fp, "%s0\n", len == 0 ? "" : " "), count++;
+      }
+      xfprintf(fp, "c eof\n"), count++;
       xfflush(fp);
       if (xferror(fp))
       {  xprintf("Write error on `%s' - %s\n", fname, xerrmsg());

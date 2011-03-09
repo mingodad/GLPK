@@ -1,7 +1,11 @@
-LIBRARY glpk_4_45
-VERSION 4.45
+LIBRARY glpk_4_46
+VERSION 4.46
 DESCRIPTION "GNU Linear Programming Kit"
 EXPORTS
+;; from adler32 ;;
+ _glp_zlib_adler32
+ _glp_zlib_adler32_combine
+ _glp_zlib_adler32_combine64
 ;; from amd_1 ;;
  _glp_amd_1
 ;; from amd_2 ;;
@@ -32,6 +36,29 @@ EXPORTS
  _glp_colamd_set_defaults
  _glp_symamd
  _glp_symamd_report
+;; from compress ;;
+ _glp_zlib_compress
+ _glp_zlib_compress2
+ _glp_zlib_compressBound
+;; from crc32 ;;
+ _glp_zlib_crc32
+ _glp_zlib_crc32_combine
+ _glp_zlib_crc32_combine64
+ _glp_zlib_get_crc_table
+;; from deflate ;;
+ _glp_zlib_deflate
+ _glp_zlib_deflateBound
+ _glp_zlib_deflateCopy
+ _glp_zlib_deflateEnd
+ _glp_zlib_deflateInit2_
+ _glp_zlib_deflateInit_
+ _glp_zlib_deflateParams
+ _glp_zlib_deflatePrime
+ _glp_zlib_deflateReset
+ _glp_zlib_deflateSetDictionary
+ _glp_zlib_deflateSetHeader
+ _glp_zlib_deflateTune
+ _glp_zlib_deflate_copyright
 ;; from glpapi01 ;;
  glp_add_cols
  glp_add_rows
@@ -113,6 +140,7 @@ EXPORTS
  glp_ipt_row_prim
  glp_ipt_status
 ;; from glpapi09 ;;
+ _glp_intopt1
  glp_get_col_kind
  glp_get_num_bin
  glp_get_num_int
@@ -221,6 +249,8 @@ EXPORTS
 ;; from glpapi18 ;;
  glp_wclique_exact
 ;; from glpapi19 ;;
+ glp_minisat1
+;; from glpapi20 ;;
  glp_main
 ;; from glpavl ;;
  _glp_avl_create_tree
@@ -260,13 +290,16 @@ EXPORTS
  _glp_dmp_get_atom
  _glp_dmp_in_use
 ;; from glpdmx ;;
+ glp_check_cnfsat
  glp_read_asnprob
  glp_read_ccdata
+ glp_read_cnfsat
  glp_read_maxflow
  glp_read_mincost
  glp_read_prob
  glp_write_asnprob
  glp_write_ccdata
+ glp_write_cnfsat
  glp_write_maxflow
  glp_write_mincost
  glp_write_prob
@@ -1060,3 +1093,95 @@ EXPORTS
  _glp_tsp_distance
  _glp_tsp_free_data
  _glp_tsp_read_data
+;; from gzclose ;;
+ _glp_zlib_gzclose
+;; from gzlib ;;
+ _glp_zlib_gz_error
+ _glp_zlib_gzbuffer
+ _glp_zlib_gzclearerr
+ _glp_zlib_gzdopen
+ _glp_zlib_gzeof
+ _glp_zlib_gzerror
+ _glp_zlib_gzoffset
+ _glp_zlib_gzoffset64
+ _glp_zlib_gzopen
+ _glp_zlib_gzopen64
+ _glp_zlib_gzrewind
+ _glp_zlib_gzseek
+ _glp_zlib_gzseek64
+ _glp_zlib_gztell
+ _glp_zlib_gztell64
+;; from gzread ;;
+ _glp_zlib_gzclose_r
+ _glp_zlib_gzdirect
+ _glp_zlib_gzgetc
+ _glp_zlib_gzgets
+ _glp_zlib_gzread
+ _glp_zlib_gzungetc
+;; from gzwrite ;;
+ _glp_zlib_gzclose_w
+ _glp_zlib_gzflush
+ _glp_zlib_gzprintf
+ _glp_zlib_gzputc
+ _glp_zlib_gzputs
+ _glp_zlib_gzsetparams
+ _glp_zlib_gzwrite
+;; from infback ;;
+ _glp_zlib_inflateBack
+ _glp_zlib_inflateBackEnd
+ _glp_zlib_inflateBackInit_
+;; from inffast ;;
+ _glp_zlib_inflate_fast
+;; from inflate ;;
+ _glp_zlib_inflate
+ _glp_zlib_inflateCopy
+ _glp_zlib_inflateEnd
+ _glp_zlib_inflateGetHeader
+ _glp_zlib_inflateInit2_
+ _glp_zlib_inflateInit_
+ _glp_zlib_inflateMark
+ _glp_zlib_inflatePrime
+ _glp_zlib_inflateReset
+ _glp_zlib_inflateReset2
+ _glp_zlib_inflateSetDictionary
+ _glp_zlib_inflateSync
+ _glp_zlib_inflateSyncPoint
+ _glp_zlib_inflateUndermine
+;; from inftrees ;;
+ _glp_zlib_inflate_copyright
+ _glp_zlib_inflate_table
+;; from minisat ;;
+ _glp_minisat_addclause
+ _glp_minisat_delete
+ _glp_minisat_nclauses
+ _glp_minisat_nconflicts
+ _glp_minisat_new
+ _glp_minisat_nvars
+ _glp_minisat_propagate
+ _glp_minisat_reducedb
+ _glp_minisat_setnvars
+ _glp_minisat_simplify
+ _glp_minisat_solve
+;; from trees ;;
+ _glp_zlib_dist_code
+ _glp_zlib_length_code
+ _glp_zlib_tr_align
+ _glp_zlib_tr_flush_block
+ _glp_zlib_tr_init
+ _glp_zlib_tr_stored_block
+ _glp_zlib_tr_tally
+;; from uncompr ;;
+ _glp_zlib_uncompress
+;; from zio ;;
+ _glp_zlib_close
+ _glp_zlib_lseek
+ _glp_zlib_open
+ _glp_zlib_read
+ _glp_zlib_write
+;; from zutil ;;
+ _glp_zlib_zError
+ _glp_zlib_z_errmsg
+ _glp_zlib_zcalloc
+ _glp_zlib_zcfree
+ _glp_zlib_zlibCompileFlags
+ _glp_zlib_zlibVersion

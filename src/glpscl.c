@@ -1,10 +1,10 @@
-/* glpscl.c */
+/* glpscl.c (problem scaling routines) */
 
 /***********************************************************************
 *  This code is part of GLPK (GNU Linear Programming Kit).
 *
 *  Copyright (C) 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008,
-*  2009, 2010 Andrew Makhorin, Department for Applied Informatics,
+*  2009, 2010, 2011 Andrew Makhorin, Department for Applied Informatics,
 *  Moscow Aviation Institute, Moscow, Russia. All rights reserved.
 *  E-mail: <mao@gnu.org>.
 *
@@ -190,7 +190,7 @@ static double max_mat_aij(glp_prob *lp, int scaled)
 *
 *  Columns are scaled as follows:
 *
-*                         n
+*                         m
 *     a'[i,j] = a[i,j] / max |a[i,j]|,  j = 1,...,n.
 *                        i=1
 *

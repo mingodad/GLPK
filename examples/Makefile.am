@@ -1,6 +1,6 @@
 ## Process this file with automake to produce Makefile.in ##
 
-INCLUDES = -I$(srcdir)/../include
+INCLUDES = -I../src
 
 LDADD = ../src/libglpk.la
 
@@ -10,6 +10,6 @@ glpsol_SOURCES = glpsol.c
 
 check: glpsol$(EXEEXT)
 	./glpsol$(EXEEXT) --version
-	./glpsol$(EXEEXT) --mps $(srcdir)/plan.mps
+	./glpsol$(EXEEXT) --mps plan.mps
 
 ## eof ##

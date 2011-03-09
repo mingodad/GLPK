@@ -10,10 +10,6 @@
 /* defined if the GNU MP bignum library is available */
 /* requires <gmp.h> and -lgmp */
 
-#undef HAVE_ZLIB
-/* defined if the zlib data compression library is available */
-/* requires <zlib.h> and -lz */
-
 #undef HAVE_LTDL
 /* defined if the GNU Libtool shared library support is enabled */
 /* requires <ltdl.h> and -lltdl */

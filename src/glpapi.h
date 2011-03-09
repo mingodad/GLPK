@@ -4,7 +4,7 @@
 *  This code is part of GLPK (GNU Linear Programming Kit).
 *
 *  Copyright (C) 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008,
-*  2009, 2010 Andrew Makhorin, Department for Applied Informatics,
+*  2009, 2010, 2011 Andrew Makhorin, Department for Applied Informatics,
 *  Moscow Aviation Institute, Moscow, Russia. All rights reserved.
 *  E-mail: <mao@gnu.org>.
 *
@@ -40,7 +40,7 @@ typedef struct GLPAIJ GLPAIJ;
 
 struct glp_prob
 {     /* LP/MIP problem object */
-      int magic;
+      unsigned magic;
       /* magic value used for debugging */
       DMP *pool;
       /* memory pool to store problem object components */

@@ -4,7 +4,7 @@
 *  This code is part of GLPK (GNU Linear Programming Kit).
 *
 *  Copyright (C) 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008,
-*  2009, 2010 Andrew Makhorin, Department for Applied Informatics,
+*  2009, 2010, 2011 Andrew Makhorin, Department for Applied Informatics,
 *  Moscow Aviation Institute, Moscow, Russia. All rights reserved.
 *  E-mail: <mao@gnu.org>.
 *
@@ -34,7 +34,7 @@ extern "C" {
 
 /* library version numbers: */
 #define GLP_MAJOR_VERSION  4
-#define GLP_MINOR_VERSION  45
+#define GLP_MINOR_VERSION  46
 
 #ifndef GLP_PROB_DEFINED
 #define GLP_PROB_DEFINED
@@ -757,6 +757,20 @@ void glp_mpl_free_wksp(glp_tran *tran);
 
 int glp_main(int argc, const char *argv[]);
 /* stand-alone LP/MIP solver */
+
+/**********************************************************************/
+
+int glp_read_cnfsat(glp_prob *P, const char *fname);
+/* read CNF-SAT problem data in DIMACS format */
+
+int glp_check_cnfsat(glp_prob *P);
+/* check for CNF-SAT problem instance */
+
+int glp_write_cnfsat(glp_prob *P, const char *fname);
+/* write CNF-SAT problem data in DIMACS format */
+
+int glp_minisat1(glp_prob *P);
+/* solve CNF-SAT problem with MiniSat solver */
 
 /**********************************************************************/
 

@@ -1,3 +1,40 @@
+GLPK 4.46 (release date: Aug 09, 2011)
+
+        The following new API routines were added:
+
+        glp_read_cnfsat    read CNF-SAT problem data in DIMACS format
+        glp_check_cnfsat   check for CNF-SAT problem instance
+        glp_write_cnfsat   write CNF-SAT problem data in DIMACS format
+        glp_minisat1       solve CNF-SAT problem instance with MiniSat
+
+        The routine glp_minisat1 is a driver to MiniSat, a CNF-SAT
+        solver developed by Niklas Een and Niklas Sorensson, Chalmers
+        University of Technology, Sweden. This routine is similar to
+        the routine glp_intopt, however, it is intended to solve a 0-1
+        programming problem instance, which is the MIP translation of
+        a CNF-SAT problem instance.
+
+        Detailed description of these new API routines can be found in
+        the document "CNF Satisfiability Problem", which is included in
+        the distribution (see files doc/cnfsat.tex and doc/cnfsat.pdf).
+
+        The following new glpsol command-line options were added:
+
+        --cnf filename     read CNF-SAT problem instance in DIMACS
+                           format from filename and translate it to MIP
+        --wcnf filename    write CNF-SAT problem instance in DIMACS
+                           format to filename
+        --minisat          solve CNF-SAT problem instance with MiniSat
+                           solver
+
+        The zlib compression library (version 1.2.5) was ANSIfied,
+        modified according to GLPK requirements and included in the
+        distribution as an external software module. Thus, now this
+        feature is platform independent.
+
+        Some bugs were fixed in the SQL table driver. Thanks to Xypron
+        <xypron.glpk@gmx.de>.
+
 GLPK 4.45 (release date: Dec 05, 2010)
 
         This is a bug-fix release.

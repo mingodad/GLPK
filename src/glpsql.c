@@ -116,10 +116,14 @@ static char **args_concat(TABDCA *dca)
    {
       arg = mpl_tab_get_arg(dca, j);
       len = strlen(arg);
+      /* add length of part */
       lentot += len;
+      /* add length of space separating parts or 0x00 at end of SQL
+         statement */
+      lentot++;
       if (arg[len-1] == ';' || j == narg)
       {  /* Join arguments for a single SQL statement */
-         sqllines[i] = xmalloc(lentot+1);
+         sqllines[i] = xmalloc(lentot);
          sqllines[i+1] = NULL;
          sqllines[i][0] = 0x00;
          for (j1 = j0; j1 <= j; j1++)
@@ -840,8 +844,13 @@ static void *db_iodbc_open_int(TABDCA *dca, int mode, const char
             &nullable);
          sql->isnumeric[i] = is_numeric(sql->coltype[i]);
          /* bind columns to program vars, converting all types to CHAR*/
-         dl_SQLBindCol(sql->hstmt, i, SQL_CHAR, sql->data[i],
-            SQL_FDLEN_MAX, &(sql->outlen[i]));
+         if (sql->isnumeric[i])
+         {  dl_SQLBindCol(sql->hstmt, i, SQL_DOUBLE, sql->data[i],
+               SQL_FDLEN_MAX, &(sql->outlen[i]));
+         } else
+         {  dl_SQLBindCol(sql->hstmt, i, SQL_CHAR, sql->data[i],
+               SQL_FDLEN_MAX, &(sql->outlen[i]));
+         }
          for (j = sql->nf; j >= 1; j--)
          {  if (strcmp(mpl_tab_get_name(dca, j), sql->colname[i]) == 0)
             break;
@@ -893,23 +902,18 @@ int db_iodbc_read(TABDCA *dca, void *link)
          len = sql->outlen[i];
          if (len != SQL_NULL_DATA)
          {
-            if (len > SQL_FDLEN_MAX)
-               len = SQL_FDLEN_MAX;
-            else if (len < 0)
-               len = 0;
-            strncpy(buf, (const char *) sql->data[i], len);
-            buf[len] = 0x00;
-            if (0 != (sql->isnumeric[i]))
-            {  strspx(buf); /* remove spaces*/
-               if (str2num(buf, &num) != 0)
-               {  xprintf("'%s' cannot be converted to a number.\n",
-                     buf);
-                  return 1;
-               }
-               mpl_tab_set_num(dca, sql->ref[i], num);
+            if (sql->isnumeric[i])
+            {  mpl_tab_set_num(dca, sql->ref[i],
+                               *((const double *) sql->data[i]));
             }
             else
-            {  mpl_tab_set_str(dca, sql->ref[i], strtrim(buf));
+            {  if (len > SQL_FDLEN_MAX)
+                  len = SQL_FDLEN_MAX;
+               else if (len < 0)
+                  len = 0;
+               strncpy(buf, (const char *) sql->data[i], len);
+               buf[len] = 0x00;
+               mpl_tab_set_str(dca, sql->ref[i], strtrim(buf));
             }
          }
       }

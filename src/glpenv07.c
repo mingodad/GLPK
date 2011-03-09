@@ -4,7 +4,7 @@
 *  This code is part of GLPK (GNU Linear Programming Kit).
 *
 *  Copyright (C) 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008,
-*  2009, 2010 Andrew Makhorin, Department for Applied Informatics,
+*  2009, 2010, 2011 Andrew Makhorin, Department for Applied Informatics,
 *  Moscow Aviation Institute, Moscow, Russia. All rights reserved.
 *  E-mail: <mao@gnu.org>.
 *
@@ -501,7 +501,8 @@ static int c_fclose(void *_fh)
 *  The following routines implement stream input/output based on the
 *  zlib library, which provides processing .gz files "on the fly". */
 
-#ifndef HAVE_ZLIB
+/*#ifndef HAVE_ZLIB*/
+#if 0 /* 27/IV-2011 */
 
 static void *z_fopen(const char *fname, const char *mode)
 {     xassert(fname == fname);
@@ -543,7 +544,7 @@ static int z_fclose(void *fh)
 
 #else
 
-#include <zlib.h>
+#include "zlib/zlib.h"
 
 struct z_file
 {     /* .gz file handle */

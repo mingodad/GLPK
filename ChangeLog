@@ -1,3 +1,45 @@
+Tue Aug 09 12:00:00 2011 Andrew Makhorin <mao@gnu.org>
+
+        * GLPK 4.46 (31:0:31) has been released
+
+        * src/glpk.h, src/Makefile
+        glpk.h was relocated from 'include' to 'src', and 'include'
+        subdir was removed; src/Makefile.am was changed appropriately.
+
+        * src/zlib/*.*
+        zlib general purpose compression library, version 1.2.5,
+        was ANSIfied and modified according to GLPK requirements and
+        included in the distribution as an external software module.
+
+        For details see src/zlib/README.
+
+        * src/glpdmx.c
+        The following new API routines were added:
+        glp_read_cnfsat  - read CNF-SAT problem data in DIMACS format
+        glp_check_cnfsat - check for CNF-SAT problem instance
+        glp_write_cnfsat - write CNF-SAT problem data in DIMACS format
+
+        * src/minisat/*.*
+        MiniSat, a CNF-SAT solver, version 1.14.1, was ANSIfied and
+        modified according to GLPK requirements and included in the
+        distribution as an external software module.
+
+        For details see minisat/README and minisat/LICENSE.
+
+        * src/glpapi19.c
+        The API routine glp_minisat1, which is a driver to the MiniSat
+        solver, was included in the package.
+
+        * doc/satcnf.*
+        The document "CNF Satisfiability Problem" was included in the
+        package. It is a supplement to the GLPK Reference Manual.
+
+        * src/glpapi20.c
+        New glpsol options (--cnf, --wcnf, and --minisat) was added.
+
+        * glpsql.c
+        Some bugs were fixed. Thanks to Xypron <xypron.glpk@gmx.de>.
+
 Sun Dec 05 12:00:00 2010 Andrew Makhorin <mao@gnu.org>
 
         * GLPK 4.45 (30:0:30) has been released
