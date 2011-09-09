@@ -77,28 +77,29 @@ am_libglpk_la_OBJECTS = glpapi01.lo glpapi02.lo glpapi03.lo \
 	glpapi04.lo glpapi05.lo glpapi06.lo glpapi07.lo glpapi08.lo \
 	glpapi09.lo glpapi10.lo glpapi11.lo glpapi12.lo glpapi13.lo \
 	glpapi14.lo glpapi15.lo glpapi16.lo glpapi17.lo glpapi18.lo \
-	glpapi19.lo glpapi20.lo glpavl.lo glpbfd.lo glpbfx.lo \
-	glpcpx.lo glpdmp.lo glpdmx.lo glpenv01.lo glpenv02.lo \
-	glpenv03.lo glpenv04.lo glpenv05.lo glpenv06.lo glpenv07.lo \
-	glpenv08.lo glpfhv.lo glpgmp.lo glphbm.lo glpini01.lo \
-	glpini02.lo glpios01.lo glpios02.lo glpios03.lo glpios04.lo \
-	glpios05.lo glpios06.lo glpios07.lo glpios08.lo glpios09.lo \
-	glpios10.lo glpios11.lo glpios12.lo glpipm.lo glplib01.lo \
-	glplib02.lo glplib03.lo glplpf.lo glplpx01.lo glplpx02.lo \
-	glplpx03.lo glpluf.lo glplux.lo glpmat.lo glpmpl01.lo \
-	glpmpl02.lo glpmpl03.lo glpmpl04.lo glpmpl05.lo glpmpl06.lo \
-	glpmps.lo glpnet01.lo glpnet02.lo glpnet03.lo glpnet04.lo \
-	glpnet05.lo glpnet06.lo glpnet07.lo glpnet08.lo glpnet09.lo \
-	glpnpp01.lo glpnpp02.lo glpnpp03.lo glpnpp04.lo glpnpp05.lo \
-	glpqmd.lo glprgr.lo glprng01.lo glprng02.lo glpscf.lo \
-	glpscl.lo glpsdf.lo glpspm.lo glpspx01.lo glpspx02.lo \
-	glpsql.lo glpssx01.lo glpssx02.lo glptsp.lo amd_1.lo amd_2.lo \
-	amd_aat.lo amd_control.lo amd_defaults.lo amd_dump.lo \
-	amd_info.lo amd_order.lo amd_post_tree.lo amd_postorder.lo \
-	amd_preprocess.lo amd_valid.lo colamd.lo minisat.lo adler32.lo \
-	compress.lo crc32.lo deflate.lo gzclose.lo gzlib.lo gzread.lo \
-	gzwrite.lo infback.lo inffast.lo inflate.lo inftrees.lo \
-	trees.lo uncompr.lo zio.lo zutil.lo
+	glpapi19.lo glpapi20.lo glpapi21.lo glpavl.lo glpbfd.lo \
+	glpbfx.lo glpcpx.lo glpdmp.lo glpdmx.lo glpenv01.lo \
+	glpenv02.lo glpenv03.lo glpenv04.lo glpenv05.lo glpenv06.lo \
+	glpenv07.lo glpenv08.lo glpfhv.lo glpgmp.lo glphbm.lo \
+	glpini01.lo glpini02.lo glpios01.lo glpios02.lo glpios03.lo \
+	glpios04.lo glpios05.lo glpios06.lo glpios07.lo glpios08.lo \
+	glpios09.lo glpios10.lo glpios11.lo glpios12.lo glpipm.lo \
+	glplib01.lo glplib02.lo glplib03.lo glplpf.lo glplpx01.lo \
+	glplpx02.lo glplpx03.lo glpluf.lo glplux.lo glpmat.lo \
+	glpmpl01.lo glpmpl02.lo glpmpl03.lo glpmpl04.lo glpmpl05.lo \
+	glpmpl06.lo glpmps.lo glpnet01.lo glpnet02.lo glpnet03.lo \
+	glpnet04.lo glpnet05.lo glpnet06.lo glpnet07.lo glpnet08.lo \
+	glpnet09.lo glpnpp01.lo glpnpp02.lo glpnpp03.lo glpnpp04.lo \
+	glpnpp05.lo glpnpp06.lo glpqmd.lo glprgr.lo glprng01.lo \
+	glprng02.lo glpscf.lo glpscl.lo glpsdf.lo glpspm.lo \
+	glpspx01.lo glpspx02.lo glpsql.lo glpssx01.lo glpssx02.lo \
+	glptsp.lo amd_1.lo amd_2.lo amd_aat.lo amd_control.lo \
+	amd_defaults.lo amd_dump.lo amd_info.lo amd_order.lo \
+	amd_post_tree.lo amd_postorder.lo amd_preprocess.lo \
+	amd_valid.lo colamd.lo minisat.lo adler32.lo compress.lo \
+	crc32.lo deflate.lo gzclose.lo gzlib.lo gzread.lo gzwrite.lo \
+	infback.lo inffast.lo inflate.lo inftrees.lo trees.lo \
+	uncompr.lo zio.lo zutil.lo
 libglpk_la_OBJECTS = $(am_libglpk_la_OBJECTS)
 libglpk_la_LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) \
 	$(LIBTOOLFLAGS) --mode=link $(CCLD) $(AM_CFLAGS) $(CFLAGS) \
@@ -236,7 +237,7 @@ top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
 include_HEADERS = glpk.h
 lib_LTLIBRARIES = libglpk.la
-libglpk_la_LDFLAGS = -version-info 31:0:31 \
+libglpk_la_LDFLAGS = -version-info 32:0:32 \
 -export-symbols-regex '^(glp_|_glp_lpx_).*'
 
 libglpk_la_SOURCES = \
@@ -260,6 +261,7 @@ glpapi17.c \
 glpapi18.c \
 glpapi19.c \
 glpapi20.c \
+glpapi21.c \
 glpavl.c \
 glpbfd.c \
 glpbfx.c \
@@ -323,6 +325,7 @@ glpnpp02.c \
 glpnpp03.c \
 glpnpp04.c \
 glpnpp05.c \
+glpnpp06.c \
 glpqmd.c \
 glprgr.c \
 glprng01.c \
@@ -479,6 +482,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/glpapi18.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/glpapi19.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/glpapi20.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/glpapi21.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/glpavl.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/glpbfd.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/glpbfx.Plo@am__quote@
@@ -542,6 +546,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/glpnpp03.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/glpnpp04.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/glpnpp05.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/glpnpp06.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/glpqmd.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/glprgr.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/glprng01.Plo@am__quote@

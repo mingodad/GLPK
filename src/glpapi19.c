@@ -49,8 +49,9 @@ int glp_minisat1(glp_prob *P)
       }
       /* solve CNF-SAT problem */
       xprintf("Solving CNF-SAT problem...\n");
-      xprintf("Instance has %d variable%s and %d clause%s\n",
-         P->n, P->n == 1 ? "" : "s", P->m, P->m == 1 ? "" : "s");
+      xprintf("Instance has %d variable%s, %d clause%s, and %d literal%"
+         "s\n", P->n, P->n == 1 ? "" : "s", P->m, P->m == 1 ? "" : "s",
+         P->nnz, P->nnz == 1 ? "" : "s");
       /* if CNF-SAT has no clauses, it is satisfiable */
       if (P->m == 0)
       {  P->mip_stat = GLP_OPT;

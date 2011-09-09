@@ -1,5 +1,5 @@
-LIBRARY glpk_4_46
-VERSION 4.46
+LIBRARY glpk_4_47
+VERSION 4.47
 DESCRIPTION "GNU Linear Programming Kit"
 EXPORTS
 ;; from adler32 ;;
@@ -251,6 +251,8 @@ EXPORTS
 ;; from glpapi19 ;;
  glp_minisat1
 ;; from glpapi20 ;;
+ glp_intfeas1
+;; from glpapi21 ;;
  glp_main
 ;; from glpavl ;;
  _glp_avl_create_tree
@@ -996,6 +998,27 @@ EXPORTS
  _glp_npp_process_prob
  _glp_npp_process_row
  _glp_npp_simplex
+;; from glpnpp06 ;;
+ _glp_npp_sat_encode_clause
+ _glp_npp_sat_encode_geq
+ _glp_npp_sat_encode_leq
+ _glp_npp_sat_encode_pack
+ _glp_npp_sat_encode_prob
+ _glp_npp_sat_encode_row
+ _glp_npp_sat_encode_sum2
+ _glp_npp_sat_encode_sum3
+ _glp_npp_sat_encode_sum_ax
+ _glp_npp_sat_fixed_col
+ _glp_npp_sat_free_row
+ _glp_npp_sat_is_bin_comb
+ _glp_npp_sat_is_cover_ineq
+ _glp_npp_sat_is_pack_ineq
+ _glp_npp_sat_is_partn_eq
+ _glp_npp_sat_normalize_clause
+ _glp_npp_sat_num_neg_coef
+ _glp_npp_sat_num_pos_coef
+ _glp_npp_sat_reverse_row
+ _glp_npp_sat_split_pack
 ;; from glpqmd ;;
  _glp_qmd_genqmd
  _glp_qmd_qmdmrg

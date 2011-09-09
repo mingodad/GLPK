@@ -1,3 +1,37 @@
+Fri Sep 09 12:00:00 2011 Andrew Makhorin <mao@gnu.org>
+
+        * GLPK 4.47 (32:0:32) has been released
+
+        * src/glpapi20.c
+        New API routine glp_infeas1 to solve 0-1 feasibility problem
+        was added and documented (see doc/cnfsat.pdf).
+
+        * src/glpnpp06.c
+        Some new preprocessor routines for SAT-CNF encoding, which are
+        used by the routine glp_intfeas1, were added.
+
+        * src/glpnpp.h
+        The header was modified due to additions.
+
+        * src/glpapi21.c
+        The glpsol solver was modified to bypass model postprocessing
+        if the solution reported is neither optimal nor feasible.
+
+        * src/glpapi21.c
+        New glpsol options (--minisat and --objbnd) were added.
+
+        * examples/pbn/*.*
+        The paint-by-numbers puzzle model (pbn.mod) was modified to
+        print solution in PostScript format and to check for multiple
+        solutions. Some benchmark examples from <webpbn.com> encoded
+        in MathProg were included in the distribution. For more details
+        see examples/pbn/README and examples/pbn/pbn.pdf.
+
+        * examples/Makefile.am
+        A minor bug was fixed to correctly build glpk in a separate
+        directory. Thanks to Marco Atzeri <marco.atzeri@gmail.com> for
+        bug report.
+
 Tue Aug 09 12:00:00 2011 Andrew Makhorin <mao@gnu.org>
 
         * GLPK 4.46 (31:0:31) has been released

@@ -34,7 +34,7 @@ extern "C" {
 
 /* library version numbers: */
 #define GLP_MAJOR_VERSION  4
-#define GLP_MINOR_VERSION  46
+#define GLP_MINOR_VERSION  47
 
 #ifndef GLP_PROB_DEFINED
 #define GLP_PROB_DEFINED
@@ -771,6 +771,9 @@ int glp_write_cnfsat(glp_prob *P, const char *fname);
 
 int glp_minisat1(glp_prob *P);
 /* solve CNF-SAT problem with MiniSat solver */
+
+int glp_intfeas1(glp_prob *P, int use_bound, int obj_bound);
+/* solve integer feasibility problem */
 
 /**********************************************************************/
 

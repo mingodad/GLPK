@@ -44,6 +44,7 @@ src/glpapi17.o \
 src/glpapi18.o \
 src/glpapi19.o \
 src/glpapi20.o \
+src/glpapi21.o \
 src/glpavl.o \
 src/glpbfd.o \
 src/glpbfx.o \
@@ -107,6 +108,7 @@ src/glpnpp02.o \
 src/glpnpp03.o \
 src/glpnpp04.o \
 src/glpnpp05.o \
+src/glpnpp06.o \
 src/glpqmd.o \
 src/glprgr.o \
 src/glprng01.o \

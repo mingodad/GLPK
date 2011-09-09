@@ -29,7 +29,7 @@ misp.mod       Maximum independent set problem
 money.mod      A crypto-arithmetic puzzle
 mvcp.mod       Minimum vertex cover problem
 numbrix.mod    Number placement puzzle
-pbn.mod        Paint-by-numbers puzzle
+pbn/*.*        Paint-by-numbers puzzle
 plan.mod       A simple LP problem
 prod.mod       A multiperiod production model
 qfit.mod       Quadratic curve fitting solution

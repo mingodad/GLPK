@@ -2,7 +2,10 @@
 
 /* Written in GNU MathProg by Andrew Makhorin <mao@gnu.org> */
 
-/* A paint-by-number puzzle consists of an m*n grid of pixels (the
+/* NOTE: See also the document "Solving Paint-By-Numbers Puzzles with
+         GLPK", which is included in the GLPK distribution. */
+
+/* A paint-by-numbers puzzle consists of an m*n grid of pixels (the
    canvas) together with m+n cluster-size sequences, one for each row
    and column. The goal is to paint the canvas with a picture that
    satisfies the following constraints:
@@ -34,11 +37,14 @@
         1 1   . . . # . . . . . #
           3   . . # # # . . . . .
 
-   (In Russia this sort of puzzles is known as "Japanese crossword".)
+   (In Russia such puzzles are known as "Japanese crosswords".)
 
    References:
    Robert A. Bosch, "Painting by Numbers", 2000.
    <http://www.oberlin.edu/~math/faculty/bosch/pbn-page.html> */
+
+/*--------------------------------------------------------------------*/
+/* Main part based on the formulation proposed by Robert Bosch. */
 
 param m, integer, >= 1;
 /* the number of rows */
@@ -150,45 +156,113 @@ s.t. fh{i in 1..m, j in 1..n, t in 1..kc[j], ip in ec[j,t]..lc[j,t]:
 /* the constraint to prevent white pixels from being covered by the
    column clusters */
 
-/* there is no need for an objective function here */
+/* this is a feasibility problem, so no objective is needed */
+
+/*--------------------------------------------------------------------*/
+/* The following part is used only to check for multiple solutions. */
+
+param zz{i in 1..m, j in 1..n}, binary, default 0;
+/* zz[i,j] is z[i,j] for a previously found solution */
+
+s.t. fz{1..1 : sum{i in 1..m, j in 1..n} zz[i,j] > 0}:
+     sum{i in 1..m, j in 1..n}
+         (if zz[i,j] then (1 - z[i,j]) else z[i,j]) >= 1;
+/* the constraint to forbid finding a solution, which is identical to
+   the previously found one; this constraint is included in the model
+   only if the previously found solution specified by the parameter zz
+   is provided in the data section */
 
 solve;
+
+/*--------------------------------------------------------------------*/
+/* Print solution to the standard output. */
 
 for {i in 1..m}
 {  printf{j in 1..n} " %s", if z[i,j] then "#" else ".";
    printf "\n";
 }
 
-data;
+/*--------------------------------------------------------------------*/
+/* Write solution to a text file in PostScript format. */
 
-/* These data correspond to the example above. */
+param ps, symbolic, default "solution.ps";
+
+printf "%%!PS-Adobe-3.0\n" > ps;
+printf "%%%%Creator: GLPK (pbn.mod)\n" >> ps;
+printf "%%%%BoundingBox: 0 0 %d %d\n",
+       6 * (n + 2), 6 * (m + 2) >> ps;
+printf "%%%%EndComments\n" >> ps;
+printf "<</PageSize [%d %d]>> setpagedevice\n",
+       6 * (n + 2), 6 * (m + 2) >> ps;
+printf "0.1 setlinewidth\n" >> ps;
+printf "/A { 2 copy 2 copy 2 copy newpath moveto exch 6 add exch line" &
+       "to\n" >> ps;
+printf "exch 6 add exch 6 add lineto 6 add lineto closepath } bind de" &
+       "f\n" >> ps;
+printf "/W { A stroke } def\n" >> ps;
+printf "/B { A fill } def\n" >> ps;
+printf {i in 1..m, j in 1..n} "%d %d %s\n",
+       (j - 1) * 6 + 6, (m - i) * 6 + 6,
+       if z[i,j] then "B" else "W" >> ps;
+printf "%%%%EOF\n" >> ps;
+
+printf "Solution has been written to file %s\n", ps;
+
+/*--------------------------------------------------------------------*/
+/* Write solution to a text file in the form of MathProg data section,
+   which can be used later to check for multiple solutions. */
+
+param dat, symbolic, default "solution.dat";
+
+printf "data;\n" > dat;
+printf "\n" >> dat;
+printf "param zz :" >> dat;
+printf {j in 1..n} " %d", j >> dat;
+printf " :=\n" >> dat;
+for {i in 1..m}
+{  printf " %2d", i >> dat;
+   printf {j in 1..n} " %s", if z[i,j] then "1" else "." >> dat;
+   printf "\n" >> dat;
+}
+printf ";\n" >> dat;
+printf "\n" >> dat;
+printf "end;\n" >> dat;
+
+printf "Solution has also been written to file %s\n", dat;
+
+/*--------------------------------------------------------------------*/
+/* The following data correspond to the example above. */
+
+data;
 
 param m := 10;
 
 param n := 10;
 
-param row : 1 2 3 4 :=
-         1  3 6 . .
-         2  1 4 . .
-         3  1 1 3 .
-         4  2 . . .
-         5  3 3 . .
-         6  1 4 . .
-         7  2 5 . .
-         8  2 5 . .
-         9  1 1 . .
-        10  3 . . . ;
+param row : 1  2  3  :=
+      1     3  6  .
+      2     1  4  .
+      3     1  1  3
+      4     2  .  .
+      5     3  3  .
+      6     1  4  .
+      7     2  5  .
+      8     2  5  .
+      9     1  1  .
+      10    3  .  .
+;
 
-param col : 1 2 3 4 :=
-         1  2 3 . .
-         2  1 2 . .
-         3  1 1 1 1
-         4  1 2 . .
-         5  1 1 1 1
-         6  1 2 . .
-         7  2 3 . .
-         8  3 4 . .
-         9  8 . . .
-        10  9 . . . ;
+param col : 1  2  3  4  :=
+      1     2  3  .  .
+      2     1  2  .  .
+      3     1  1  1  1
+      4     1  2  .  .
+      5     1  1  1  1
+      6     1  2  .  .
+      7     2  3  .  .
+      8     3  4  .  .
+      9     8  .  .  .
+      10    9  .  .  .
+;
 
 end;

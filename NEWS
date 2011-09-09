@@ -1,3 +1,41 @@
+GLPK 4.47 (release date: Sep 09, 2011)
+
+        The new API routine glp_intfeas1 was added to the package.
+        This routine is a tentative implementation of the integer (0-1)
+        feasibility solver based on the CNF-SAT solver (which currently
+        is MiniSat). It may be used in the same way as glp_intopt to
+        find either any integer feasible solution or a solution, for
+        which the objective function is not worse than the specified
+        value. Detailed description of this routine can be found in the
+        document "CNF Satisfiability Problem", which is included in the
+        distribution (see doc/cnfsat.pdf).
+
+        The following two options were added to glpsol:
+
+        --minisat       translate 0-1 feasibility problem to CNF-SAT
+                        problem and solve it with glp_intfeas1/MiniSat
+                        (if the problem instance is already in CNF-SAT
+                        format, no translation is performed)
+
+        --objbnd bound  add inequality obj <= bound (minimization) or
+                        obj >= bound (maximization) to 0-1 feasibility
+                        problem (this option assumes --minisat)
+
+        The paint-by-numbers puzzle model (pbn.mod) included in the
+        distribution is a nice example of the 0-1 feasibility problem,
+        which can be efficiently solved with glp_intfeas1/MiniSat. This
+        model along with a brief instruction (pbn.pdf) and benchmark
+        examples from <webpbn.com> encoded in GNU MathProg (*.dat) can
+        be found in subdirectory examples/pbn/.
+
+        The glpsol lp/mip solver was modified to bypass postprocessing
+        of MathProg models if the solution reported is neither optimal
+        nor feasible.
+
+        A minor bug in examples/Makefile.am was fixed to correctly
+        build glpk in a separate directory. Thanks to Marco Atzeri
+        <marco.atzeri@gmail.com> for bug report and patch.
+
 GLPK 4.46 (release date: Aug 09, 2011)
 
         The following new API routines were added:

@@ -1,6 +1,12 @@
-/* dragon.dat, a hard Paint-By-Numbers puzzle */
+/* dragon.dat */
 
-/* To reduce the solution time the clique cuts may be used. */
+/***********************************************************************
+*  Hard 20x20 paint-by-numbers puzzle designed by Won Yoon Jo
+*  from the article "Painting by Numbers" by Robert A. Bosch (2000),
+*  <http://www.oberlin.edu/~math/faculty/bosch/pbn-page.html>.
+*
+*  Encoded in GNU MathProg by Andrew Makhorin <mao@gnu.org>.
+***********************************************************************/
 
 data;
 
