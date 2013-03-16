@@ -194,7 +194,7 @@ static int branch_drtom(glp_tree *T, int *_next)
 {     glp_prob *mip = T->mip;
       int m = mip->m;
       int n = mip->n;
-      char *non_int = T->non_int;
+      unsigned char *non_int = T->non_int;
       int j, jj, k, t, next, kase, len, stat, *ind;
       double x, dk, alfa, delta_j, delta_k, delta_z, dz_dn, dz_up,
          dd_dn, dd_up, degrad, *val;

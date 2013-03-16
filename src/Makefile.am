@@ -4,7 +4,7 @@ include_HEADERS = glpk.h
 
 lib_LTLIBRARIES = libglpk.la
 
-libglpk_la_LDFLAGS = -version-info 33:0:0 \
+libglpk_la_LDFLAGS = -version-info 34:0:0 \
 -export-symbols-regex '^(glp_|_glp_lpx_).*'
 
 libglpk_la_SOURCES = \

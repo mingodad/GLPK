@@ -4,9 +4,9 @@
 
 GLPK (\underline{G}NU \underline{L}inear \underline{P}rogramming
 \underline{K}it) is a set of routines written in the ANSI C programming
-language and organized in the form of a callable library. It is intended
-for solving linear programming (LP), mixed integer programming (MIP),
-and other related problems.
+language and organized in the form of a callable library. It is
+intended for solving linear programming (LP), mixed integer programming
+(MIP), and other related problems.
 
 \section{LP problem}
 \label{seclp}
@@ -14,9 +14,7 @@ and other related problems.
 GLPK assumes the following formulation of {\it linear programming (LP)}
 problem:
 
-\medskip
-
-\noindent
+\medskip\noindent
 \hspace{.5in} minimize (or maximize)
 $$z = c_1x_{m+1} + c_2x_{m+2} + \dots + c_nx_{m+n} + c_0 \eqno (1.1)$$
 \hspace{.5in} subject to linear constraints
@@ -38,8 +36,10 @@ l_2&\leq&x_2&\leq&u_2 \\
 l_{m+n}&\leq&x_{m+n}&\leq&u_{m+n} \\
 \end{array} \eqno (1.3)
 $$
+
+\medskip\noindent
 where: $x_1, x_2, \dots, x_m$ are auxiliary variables;
-$x_{m+1}, x_{m+2}, \dots, x_{m+n}$ are\linebreak structural variables;
+$x_{m+1}, x_{m+2}, \dots, x_{m+n}$ are structural variables;
 $z$ is the objective function;
 $c_1, c_2, \dots, c_n$ are objective coefficients;
 $c_0$ is the constant term (``shift'') of the objective function;
@@ -56,6 +56,7 @@ matrix.
 Bounds of variables can be finite as well as infinite. Besides, lower
 and upper bounds can be equal to each other. Thus, the following types
 of variables are possible:
+
 \begin{center}
 \begin{tabular}{r@{}c@{}ll}
 \multicolumn{3}{c}{Bounds of variable} & Type of variable \\
@@ -67,6 +68,7 @@ $l_k \leq$ &$\ x_k\ $& $\leq u_k$   & Double-bounded variable \\
 $l_k =$ &$\ x_k\ $& $= u_k$         & Fixed variable \\
 \end{tabular}
 \end{center}
+
 \noindent
 Note that the types of variables shown above are applicable to
 structural as well as to auxiliary variables.
@@ -74,22 +76,26 @@ structural as well as to auxiliary variables.
 To solve the LP problem (1.1)---(1.3) is to find such values of all
 structural and auxiliary variables, which:
 
-$\bullet$ satisfy to all the linear constraints (1.2), and
+\vspace*{-10pt}
 
-$\bullet$ are within their bounds (1.3), and
+\begin{itemize}\setlength{\itemsep}{0pt}
+\item satisfy to all the linear constraints (1.2), and
 
-$\bullet$ provide the smallest (in case of minimization) or the largest
-(in case of maximization) value of the objective function (1.1).
+\item are within their bounds (1.3), and
+
+\item provide smallest (in case of minimization) or largest (in case of
+maximization) value of the objective function (1.1).
+\end{itemize}
 
 \section{MIP problem}
 
-{\it Mixed integer linear programming (MIP)} problem is LP problem in
-which some variables are additionally required to be integer.
+{\it Mixed integer linear programming (MIP)} problem is an LP problem
+in which some variables are additionally required to be integer.
 
 GLPK assumes that MIP problem has the same formulation as ordinary
 (pure) LP problem (1.1)---(1.3), i.e. includes auxiliary and structural
-variables, which may have lower and/or upper bounds. However, in case of
-MIP problem some variables may be required to be integer. This
+variables, which may have lower and/or upper bounds. However, in case
+of MIP problem some variables may be required to be integer. This
 additional constraint means that a value of each {\it integer variable}
 must be only integer number. (Should note that GLPK allows only
 structural variables to be of integer kind.)
@@ -117,7 +123,7 @@ $$
 \hspace{.5in} where all variables are non-negative
 $$x_1 \geq 0, \ x_2 \geq 0, \ x_3 \geq 0$$
 
-At first this LP problem should be transformed to the standard form
+At first, this LP problem should be transformed to the standard form
 (1.1)---(1.3). This can be easily done by introducing auxiliary
 variables, by one for each original inequality constraint. Thus, the
 problem can be reformulated as follows:
@@ -143,6 +149,9 @@ $$
 \nonumber -\infty < r \leq 300 && 0 \leq x_3 < +\infty \\
 \end{array}
 $$
+
+\medskip
+
 where $p, q, r$ are auxiliary variables (rows), and $x_1, x_2, x_3$ are
 structural variables (columns).
 
@@ -152,8 +161,7 @@ instance, you may write it in MPS or CPLEX LP format and then use the
 GLPK stand-alone solver to obtain a solution. This is much less
 time-consuming than programming in C with GLPK API routines.}
 
-\newpage
-
+\begin{footnotesize}
 \begin{verbatim}
 /* sample.c */
 
@@ -208,14 +216,15 @@ s37:  glp_delete_prob(lp);
 
 /* eof */
 \end{verbatim}
+\end{footnotesize}
 
 The statement \verb|s1| creates a problem object. Being created the
 object is initially empty. The statement \verb|s2| assigns a symbolic
 name to the problem object.
 
 The statement \verb|s3| calls the routine \verb|glp_set_obj_dir| in
-order to set the optimization direction flag, where \verb|GLP_MAX| means
-maximization.
+order to set the optimization direction flag, where \verb|GLP_MAX|
+means maximization.
 
 The statement \verb|s4| adds three rows to the problem object.
 
@@ -232,10 +241,10 @@ The statement \verb|s12| assigns the symbolic name `\verb|x1|' to the
 first column, the statement \verb|s13| sets the type and bounds of the
 first column, where \verb|GLP_LO| means that the column has an lower
 bound, and the statement \verb|s14| sets the objective coefficient for
-the first column. The statements \verb|s15|---\verb|s20| are used in the
-same way in order to assign the symbolic names `\verb|x2|' and
-`\verb|x3|' to the second and third columns and set their types, bounds,
-and objective coefficients.
+the first column. The statements \verb|s15|---\verb|s20| are used in
+the same way in order to assign the symbolic names `\verb|x2|' and
+`\verb|x3|' to the second and third columns and set their types,
+bounds, and objective coefficients.
 
 The statements \verb|s21|---\verb|s29| prepare non-zero elements of the
 constraint matrix (i.e. constraint coefficients). Row indices of each
@@ -259,7 +268,7 @@ optimal basic solution found by the solver.
 The statement \verb|s36| writes the optimal solution to the standard
 output. The printout may look like follows:
 
-{\footnotesize
+\begin{footnotesize}
 \begin{verbatim}
 *     0:   objval =   0.000000000e+00   infeas =   0.000000000e+00 (0)
 *     2:   objval =   7.333333333e+02   infeas =   0.000000000e+00 (0)
@@ -267,8 +276,7 @@ OPTIMAL SOLUTION FOUND
 
 z = 733.333; x1 = 33.3333; x2 = 66.6667; x3 = 0
 \end{verbatim}
-
-}
+\end{footnotesize}
 
 Finally, the statement \verb|s37| calls the routine
 \verb|glp_delete_prob|, which frees all the memory allocated to the
@@ -322,24 +330,11 @@ directory containing it should be made known to the linker through
 \end{verbatim}
 
 Depending on configuration of the package linking against with the GLPK
-library may require the following optional libraries:
-
-\bigskip
-
-\begin{tabular}{@{}ll}
-\verb|-lgmp|  & the GNU MP bignum library; \\
-\verb|-lz|    & the zlib data compression library; \\
-\verb|-lltdl| & the GNU ltdl shared support library. \\
-\end{tabular}
-
-\bigskip
-
-\noindent
-in which case corresponding libraries should be also made known to the
-linker, for example:
+library may require optional libraries, in which case these libraries
+should be also made known to the linker, for example:
 
 \begin{verbatim}
-   $ gcc sample.o -lglpk -lz -lltdl -lm
+   $ gcc sample.o -lglpk -lgmp -lm
 \end{verbatim}
 
 For more details about configuration options of the GLPK package see

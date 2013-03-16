@@ -12,29 +12,19 @@ not as widely used as the MPS format, being row-oriented it is more
 convenient for coding mathematical programming models by human. This
 appendix describes only the features of the CPLEX LP format which are
 implemented in the GLPK package.} is intended for coding LP/MIP problem
-data. It is a row-oriented format that assumes the formulation of LP/MIP
-problem (1.1)---(1.3) (see Section \ref{seclp}, page \pageref{seclp}).
+data. It is a row-oriented format that assumes the formulation of
+LP/MIP problem (1.1)---(1.3) (see Section \ref{seclp}, page
+\pageref{seclp}).
 
-CPLEX LP file is a plain text file written in CPLEX LP format. Each text
-line of this file may contain up to 255 characters\footnote{GLPK allows
-text lines of arbitrary length.}. Blank lines are ignored. If a line
-contains the backslash character ($\backslash$), this character and
-everything that follows it until the end of line are considered as a
-comment and also ignored.
+CPLEX LP file is a plain text file written in CPLEX LP format. Each
+text line of this file may contain up to 255 characters\footnote{GLPK
+allows text lines of arbitrary length.}. Blank lines are ignored.
+If a line contains the backslash character ($\backslash$), this
+character and everything that follows it until the end of line are
+considered as a comment and also ignored.
 
-An LP file is coded by the user using the following elements:
-
-$\bullet$ keywords;
-
-$\bullet$ symbolic names;
-
-$\bullet$ numeric constants;
-
-$\bullet$ delimiters;
-
-$\bullet$ blanks.
-
-\newpage
+An LP file is coded by the user using the following elements: keywords,
+symbolic names, numeric constants, delimiters, and blanks.
 
 {\it Keywords} which may be used in the LP file are the following:
 
@@ -57,6 +47,8 @@ line are equivalent. Any keyword (except \verb|infinity|, \verb|inf|,
 and \verb|free|) being used in the LP file must start at the beginning
 of a text line.
 
+\newpage
+
 {\it Symbolic names} are used to identify the objective function,
 constraints (rows), and variables (columns). All symbolic names are case
 sensitive and may contain up to 16 alphanumeric characters\footnote{GLPK
@@ -65,11 +57,12 @@ allows symbolic names having up to 255 characters.} (\verb|a|, \dots,
 as the following characters:
 
 \begin{verbatim}
-!  "  #  $  %  &  (  )  /  ,  .  ;  ?  @  _  `  '  {  }  |  ~
+      !  "  #  $  %  &  (  )  /  ,  .  ;  ?  @  _  `  '  {  }  |  ~
 \end{verbatim}
 
 \noindent
-with exception that no symbolic name can begin with a digit or a period.
+with exception that no symbolic name can begin with a digit or
+a period.
 
 {\it Numeric constants} are used to denote constraint and objective
 coefficients, right-hand sides of constraints, and bounds of variables.
@@ -102,23 +95,30 @@ separate elements from each other if there is no other way to do that
 
 The order of an LP file is:
 
-$\bullet$ objective function definition;
+\vspace*{-8pt}
 
-$\bullet$ constraints section;
+\begin{itemize}
+\item objective function definition;
 
-$\bullet$ bounds section;
+\item constraints section;
 
-$\bullet$ general, integer, and binary sections (can appear in arbitrary
+\item bounds section;
+
+\item general, integer, and binary sections (can appear in arbitrary
 order);
 
-$\bullet$ end keyword.
+\item end keyword.
+\end{itemize}
+
+\vspace*{-8pt}
 
 These components are discussed in following sections.
 
 \section{Objective function definition}
 
-The objective function definition must appear first in the LP file. It
-defines the objective function and specifies the optimization direction.
+The objective function definition must appear first in the LP file.
+It defines the objective function and specifies the optimization
+direction.
 
 The objective function definition has the following form:
 $$
@@ -202,7 +202,7 @@ The linear form $s\ c\ x\ s\ c\ x\ \dots\ s\ c\ x$ in the left-hand
 side of a constraint definition has exactly the same meaning as in the
 case of the objective function definition (see above).
 
-After the linear form one of the following delimiters that indicate
+After the linear form one of the following delimiters that indicates
 the constraint sense must be specified:
 
 \verb|<=| \ means `less than or equal to'
@@ -225,11 +225,17 @@ Here is an example of the constraints section:
       1.7 y6 - a6 + 5 a777 - b >= 1
 \end{verbatim}
 
-(Should note that it is impossible to express ranged constraints in the
+Should note that it is impossible to express ranged constraints in the
 CPLEX LP format. Each a ranged constraint can be coded as two
 constraints with identical linear forms in the left-hand side, one of
 which specifies a lower bound and other does an upper one of the
-original ranged constraint.)
+original ranged constraint. Another way is to introduce a slack
+double-bounded variable; for example, the
+constraint
+$$10\leq x+2y+3z\leq 50$$
+can be written as follows:
+$$x+2y+3z+t=50,$$
+where $0\leq t\leq 40$ is a slack variable.
 
 \section{Bounds section}
 
@@ -256,9 +262,11 @@ where {\it definition}$_k, k=1,\dots,p,$ is a particular bound
 definition.
 
 Each bound definition must begin on a new line\footnote{The GLPK
-implementation allows several bound definitions to be placed on the same
-line.} except the very first bound definition which can begin on the
-same line as the keyword `\verb|bounds|'.
+implementation allows several bound definitions to be placed on the
+same line.} except the very first bound definition which can begin on
+the same line as the keyword `\verb|bounds|'.
+
+\newpage
 
 Syntactically constraint definitions can have one of the following six
 forms:
@@ -284,8 +292,8 @@ bound, $t$ is a numeric constant with an optional sign that defines a
 fixed value of the variable.
 
 By default all variables are non-negative, i.e. have zero lower bound
-and no upper bound. Therefore definitions of these default bounds can be
-omitted in the bounds section.
+and no upper bound. Therefore definitions of these default bounds can
+be omitted in the bounds section.
 
 Here is an example of the bounds section:
 
@@ -336,6 +344,8 @@ line.} except the very first symbolic name which can begin on the same
 line as the keyword `\verb|general|', `\verb|integer|', or
 `\verb|binary|'.
 
+\newpage
+
 If a variable appears in the general or the integer section, it is
 assumed to be general integer variable. If a variable appears in the
 binary section, it is assumed to be binary variable, i.e. an integer
@@ -365,7 +375,9 @@ recommended to include it in the LP file.
 Here is a complete example of CPLEX LP file that corresponds to the
 example given in Section \ref{secmpsex}, page \pageref{secmpsex}.
 
-{\footnotesize
+\medskip
+
+\begin{footnotesize}
 \begin{verbatim}
 \* plan.lp *\
 
@@ -407,7 +419,6 @@ End
 
 \* eof *\
 \end{verbatim}
-
-}
+\end{footnotesize}
 
 %* eof *%

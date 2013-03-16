@@ -1,4 +1,4 @@
-# Build GLPK for MMIX with GCC cross-compiler
+## Build GLPK for MMIX with GCC cross-compiler ##
 
 #**********************************************************************#
 # You can use this Makefile to build GLPK with GCC cross-compiler for  #
@@ -168,3 +168,5 @@ glpsol.mmo: examples/glpsol.o libglpk.a
 
 check: glpsol.mmo
 	$(MMIX) glpsol.mmo --mps examples/plan.mps
+
+## eof ##

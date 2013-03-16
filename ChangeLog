@@ -1,3 +1,35 @@
+Tue Apr 16 12:00:00 2013 Andrew Makhorin <mao@gnu.org>
+
+        * GLPK 4.49 (34:0:0) has been released
+
+        * glprlx.c, glprlx.h
+        C version of the Fortran code RELAX-IV (relaxation method of
+        Bertsekas and Tseng) was added.
+
+        * glpapi17.c
+        API routine glp_mincost_relax4, which is a driver to RELAX-IV
+        code, was added and documented.
+
+        * glpnet03.c
+        API routine glp_netgen_prob (Klingman's standard network
+        problems) was added and documented.
+
+        * glpapi12.c
+        A bug (wrong dual feasibility test) was fixed in API routine
+        glp_warm_up. Thanks to David T. Price <dtprice@speakeasy.net>
+        for bug report.
+
+        * glpapi10.c
+        Obsolete API routine lpx_check_kkt was replaced by API routine
+        glp_check_kkt.
+
+        * glpk.h
+        All old API routines whose names begin with 'lpx_' were removed
+        from API and no more available.
+
+        * glpk.tex, graphs.tex
+        These documents were essentially reformatted.
+
 Mon Jan 28 12:00:00 2013 Andrew Makhorin <mao@gnu.org>
 
         * GLPK 4.48 (33:0:0) has been released

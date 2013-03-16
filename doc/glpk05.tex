@@ -17,7 +17,7 @@ user and has the following specification:\footnote{The name
 name.}
 
 \begin{verbatim}
-   void foo_bar(glp_tree *tree, void *info);
+   void foo_bar(glp_tree *T, void *info);
 \end{verbatim}
 
 \noindent
@@ -28,11 +28,9 @@ routines, and \verb|info| is a transit pointer passed to the routine
 some external data to the callback routine.
 
 The callback routine is passed to the MIP solver through the control
-parameter structure \verb|glp_iocp| (see Chapter ``Basic API Routines'',
-Section ``Mixed integer programming routines'', Subsection ``Solve MIP
-problem with the branch-and-cut method'') as follows:
-
-\newpage
+parameter structure \verb|glp_iocp| (see Chapter ``Basic API
+Routines'', Section ``Mixed integer programming routines'', Subsection
+``Solve MIP problem with the branch-and-cut method'') as follows:
 
 \begin{verbatim}
    glp_prob *mip;
@@ -57,13 +55,13 @@ branch-and-cut algorithm implemented in the MIP solver, are described
 in Subsection ``Reasons for calling the callback routine'' below.
 
 To ignore calls for reasons, which are not processed by the callback
-routine, it should just return to the MIP solver doing nothing. For
+routine, it should simply return to the MIP solver doing nothing. For
 example:
 
 \begin{verbatim}
-void foo_bar(glp_tree *tree, void *info)
+void foo_bar(glp_tree *T, void *info)
 {     . . .
-      switch (glp_ios_reason(tree))
+      switch (glp_ios_reason(T))
       {  case GLP_IBRANCH:
             . . .
             break;
@@ -88,8 +86,6 @@ with `\verb|glp_ios_|'.
 This section gives a schematic description of the branch-and-cut
 algorithm as it is implemented in the GLPK MIP solver.
 
-\medskip
-
 {\it 1. Initialization}
 
 Set $L:=\{P_0\}$, where $L$ is the {\it active list} (i.e. the list of
@@ -101,15 +97,13 @@ is {\it incumbent value}, i.e. an upper (minimization) or lower
 (maximization) global bound for $z^{\it opt}$, the optimal objective
 value for $P^0$.
 
-\medskip
-
 {\it 2. Subproblem selection}
 
 If $L=\varnothing$ then GO TO 9.
 
 Select $P\in L$, i.e. make active subproblem $P$ current.
 
-\medskip
+\newpage
 
 {\it 3. Solving LP relaxation}
 
@@ -119,10 +113,8 @@ If $P^{\it LP}$ has no primal feasible solution then GO TO 8.
 
 Let $z^{\it LP}$ be the optimal objective value for $P^{\it LP}$.
 
-If $z^{\it LP}\geq z^{\it best}$ (in case of minimization) or
-$z^{\it LP}\leq z^{\rm best}$ (in case of maximization) then GO TO 8.
-
-\medskip
+If $z^{\it LP}\geq z^{\it best}$ (minimization) or
+$z^{\it LP}\leq z^{\rm best}$ (), GO TO 8.
 
 {\it 4. Adding ``lazy'' constraints}
 
@@ -131,8 +123,6 @@ Let $x^{\it LP}$ be the optimal solution to $P^{\it LP}$.
 If there are ``lazy'' constraints (i.e. essential constraints not
 included in the original MIP problem $P_0$), which are violated at the
 optimal point $x^{\it LP}$, add them to $P$, and GO TO 3.
-
-\medskip
 
 {\it 5. Check for integrality}
 
@@ -144,15 +134,11 @@ If $x^{\it LP}_j$ are integral for all integer variables, then a better
 integer feasible solution is found. Store its components, set
 $z^{\it best}:=z^{\it LP}$, and GO TO 8.
 
-\medskip
-
 {\it 6. Adding cutting planes}
 
 If there are cutting planes (i.e. valid constraints for $P$),
 which are violated at the optimal point $x^{\it LP}$, add them to $P$,
 and GO TO 3.
-
-\medskip
 
 {\it 7. Branching}
 
@@ -176,8 +162,6 @@ Set $L:=(L\backslash\{P\})\cup\{P^D,P^U\}$, i.e. remove the current
 subproblem $P$ from the active list $L$ and add two new subproblems
 $P^D$ and $P^U$ to it. Then GO TO 2.
 
-\medskip
-
 {\it 8. Pruning}
 
 Remove from the active list $L$ all subproblems (including the current
@@ -194,8 +178,6 @@ bound is local in the sense that only subproblems in the subtree rooted
 at node $P$ cannot have better integer feasible solutions. Note that
 the local bound is not necessarily the optimal objective value to LP
 relaxation $P^{\it LP}$.
-
-\medskip
 
 {\it 9. Termination}
 
@@ -216,8 +198,6 @@ tree, which is called the {\it search} or {\it branch-and-bound} tree.
 An example of the search tree is shown on Fig.~1. Each node of the
 search tree corresponds to a subproblem, so the terms `node' and
 `subproblem' may be used synonymously.
-
-\newpage
 
 \begin{figure}[t]
 \noindent\hfil
@@ -242,6 +222,8 @@ search tree corresponds to a subproblem, so the terms `node' and
 *+<14pt>[o][F-]{\times}&*\txt{\makebox[1in][l]{Fathomed}}\\
 }
 
+\bigskip
+
 \begin{center}
 Fig. 1. An example of the search tree.
 \end{center}
@@ -249,17 +231,23 @@ Fig. 1. An example of the search tree.
 
 In GLPK each node may have one of the following four statuses:
 
-$\bullet$ {\it current node} is the active node currently being
+\vspace*{-8pt}
+
+\begin{itemize}
+\item {\it current node} is the active node currently being
 processed;
 
-$\bullet$ {\it active node} is a leaf node, which still has to be
+\item {\it active node} is a leaf node, which still has to be
 processed;
 
-$\bullet$ {\it non-active node} is a node, which has been processed,
+\item {\it non-active node} is a node, which has been processed,
 but not fathomed;
 
-$\bullet$ {\it fathomed node} is a node, which has been processed and
+\item {\it fathomed node} is a node, which has been processed and
 fathomed.
+\end{itemize}
+
+\vspace*{-8pt}
 
 In the data structure representing the search tree GLPK keeps only
 current, active, and non-active nodes. Once a node has been fathomed,
@@ -275,11 +263,11 @@ solved is always assigned the reference number 1.
 
 The current subproblem is a MIP problem corresponding to the current
 node of the search tree. It is represented as the GLPK problem object
-(\verb|glp_prob|) that allows the application program using API routines
-to access its content in the standard way. If the MIP presolver is not
-used, it is the original problem object passed to the routine
-\verb|glp_intopt|; otherwise, it is an internal problem object built by
-the MIP presolver.
+(\verb|glp_prob|) that allows the application program using API
+routines to access its content in the standard way. If the MIP
+presolver is not used, it is the original problem object passed to the
+routine \verb|glp_intopt|; otherwise, it is an internal problem object
+built by the MIP presolver.
 
 Note that the problem object is used by the MIP solver itself during
 the solution process for various purposes (to solve LP relaxations, to
@@ -311,7 +299,7 @@ and adds them to the problem object.
 The callback routine may be called by the MIP solver for the following
 reasons.
 
-\subsubsection*{Request for subproblem selection}
+\para{Request for subproblem selection}
 
 The callback routine is called with the reason code \verb|GLP_ISELECT|
 if the current subproblem has been fathomed and therefore there is no
@@ -320,15 +308,15 @@ current subproblem.
 In response the callback routine may select some subproblem from the
 active list and pass its reference number to the solver using the
 routine \verb|glp_ios_select_node|, in which case the solver continues
-the search from the specified active subproblem. If no selection is made
-by the callback routine, the solver uses a backtracking technique
+the search from the specified active subproblem. If no selection is
+made by the callback routine, the solver uses a backtracking technique
 specified by the control parameter \verb|bt_tech|.
 
 To explore the active list (i.e. active nodes of the branch-and-bound
 tree) the callback routine may use the routines \verb|glp_ios_next_node|
 and \verb|glp_ios_prev_node|.
 
-\subsubsection*{Request for preprocessing}
+\para{Request for preprocessing}
 
 The callback routine is called with the reason code \verb|GLP_IPREPRO|
 if the current subproblem has just been selected from the active list
@@ -338,12 +326,12 @@ In response the callback routine may perform some preprocessing of the
 current subproblem like tightening bounds of some variables or removing
 bounds of some redundant constraints.
 
-\subsubsection*{Request for row generation}
+\para{Request for row generation}
 
 The callback routine is called with the reason code \verb|GLP_IROWGEN|
 if LP relaxation of the current subproblem has just been solved to
-optimality and its objective value is better than the best known integer
-feasible solution.
+optimality and its objective value is better than the best known
+integer feasible solution.
 
 In response the callback routine may add one or more ``lazy''
 constraints (rows), which are violated by the current optimal solution
@@ -353,12 +341,12 @@ of LP relaxation, using API routines \verb|glp_add_rows|,
 re-optimization of LP relaxation. If there are no violated constraints,
 the callback routine should just return.
 
-Optimal solution components for LP relaxation can be obtained with API
-routines \verb|glp_get_obj_val|, \verb|glp_get_row_prim|,
-\verb|glp_get_row_dual|, \verb|glp_get_col_prim|, and
-\verb|glp_get_col_dual|.
+Note that components of optimal solution to LP relaxation can be
+obtained with API\linebreak routines \verb|glp_get_obj_val|,
+\verb|glp_get_row_prim|, \verb|glp_get_row_dual|,
+\verb|glp_get_col_prim|, and\linebreak \verb|glp_get_col_dual|.
 
-\subsubsection*{Request for heuristic solution}
+\para{Request for heuristic solution}
 
 The callback routine is called with the reason code \verb|GLP_IHEUR|
 if LP relaxation of the current subproblem being solved to optimality
@@ -373,7 +361,7 @@ than the best known one. In case of success the callback routine may
 store such better solution in the problem object using the routine
 \verb|glp_ios_heur_sol|.
 
-\subsubsection*{Request for cut generation}
+\para{Request for cut generation}
 
 The callback routine is called with the reason code \verb|GLP_ICUTGEN|
 if LP relaxation of the current subproblem being solved to optimality
@@ -382,9 +370,9 @@ integer kind are fractional), though its objective value is better than
 the best known integer feasible solution.
 
 In response the callback routine may reformulate the {\it current}
-subproblem (before it will be splitted up due to branching) by adding to
-the problem object one or more {\it cutting plane constraints}, which
-cut off the fractional optimal point from the MIP
+subproblem (before it will be splitted up due to branching) by adding
+to the problem object one or more {\it cutting plane constraints},
+which cut off the fractional optimal point from the MIP
 polytope.\footnote{Since these constraints are added to the current
 subproblem, they may be globally as well as locally valid.}
 
@@ -393,14 +381,15 @@ One way is the same as for the reason code \verb|GLP_IROWGEN| (see
 above), in which case the callback routine adds new rows corresponding
 to cutting plane constraints directly to the current subproblem.
 
-The other way is to add cutting plane constraints to the {\it cut pool},
-a set of cutting plane constraints maintained by the solver, rather than
-directly to the current subproblem. In this case after return from the
-callback routine the solver looks through the cut pool, selects
-efficient cutting plane constraints, adds them to the current
-subproblem, drops other constraints, and then performs re-optimization.
+The other way is to add cutting plane constraints to the
+{\it cut pool}, a set of cutting plane constraints maintained by the
+solver, rather than directly to the current subproblem. In this case
+after return from the callback routine the solver looks through the
+cut pool, selects efficient cutting plane constraints, adds them to the
+current subproblem, drops other constraints, and then performs
+re-optimization.
 
-\subsubsection*{Request for branching}
+\para{Request for branching}
 
 The callback routine is called with the reason code \verb|GLP_IBRANCH|
 if LP relaxation of the current subproblem being solved to optimality
@@ -413,11 +402,11 @@ branching (i.e. integer variable, whose value in optimal solution to
 LP relaxation of the current subproblem is fractional) and pass its
 ordinal number to the solver using the routine
 \verb|glp_ios_branch_upon|, in which case the solver splits the current
-subproblem in two new subproblems and continues the search. If no choice
-is made by the callback routine, the solver uses a branching technique
-specified by the control parameter \verb|br_tech|.
+subproblem in two new subproblems and continues the search.
+If no choice is made by the callback routine, the solver uses
+a branching technique specified by the control parameter \verb|br_tech|.
 
-\subsubsection*{Better integer solution found}
+\para{Better integer solution found}
 
 The callback routine is called with the reason code \verb|GLP_IBINGO|
 if LP relaxation of the current subproblem being solved to optimality
@@ -449,43 +438,43 @@ in this case.
 
 \section{Basic routines}
 
-\subsection{glp\_ios\_reason---determine reason for calling the
+\subsection{glp\_ios\_reason --- determine reason for calling the
 callback routine}
 
-\subsubsection*{Synopsis}
+\synopsis
 
 \begin{verbatim}
-int glp_ios_reason(glp_tree *tree);
+   int glp_ios_reason(glp_tree *T);
 \end{verbatim}
 
-\subsubsection*{Returns}
+\returns
 
 The routine \verb|glp_ios_reason| returns a code, which indicates why
 the user-defined callback routine is being called:
 
-\verb|GLP_ISELECT|---request for subproblem selection;
+\verb|GLP_ISELECT| --- request for subproblem selection;
 
-\verb|GLP_IPREPRO|---request for preprocessing;
+\verb|GLP_IPREPRO| --- request for preprocessing;
 
-\verb|GLP_IROWGEN|---request for row generation;
+\verb|GLP_IROWGEN| --- request for row generation;
 
-\verb|GLP_IHEUR  |---request for heuristic solution;
+\verb|GLP_IHEUR  | --- request for heuristic solution;
 
-\verb|GLP_ICUTGEN|---request for cut generation;
+\verb|GLP_ICUTGEN| --- request for cut generation;
 
-\verb|GLP_IBRANCH|---request for branching;
+\verb|GLP_IBRANCH| --- request for branching;
 
-\verb|GLP_IBINGO |---better integer solution found.
+\verb|GLP_IBINGO | --- better integer solution found.
 
-\subsection{glp\_ios\_get\_prob---access the problem object}
+\subsection{glp\_ios\_get\_prob --- access the problem object}
 
-\subsubsection*{Synopsis}
+\synopsis
 
 \begin{verbatim}
-glp_prob *glp_ios_get_prob(glp_tree *tree);
+   glp_prob *glp_ios_get_prob(glp_tree *T);
 \end{verbatim}
 
-\subsubsection*{Description}
+\description
 
 The routine \verb|glp_ios_get_prob| can be called from the user-defined
 callback routine to access the problem object, which is used by the MIP
@@ -493,12 +482,12 @@ solver. It is the original problem object passed to the routine
 \verb|glp_intopt| if the MIP presolver is not used; otherwise it is an
 internal problem object built by the presolver.
 
-\subsubsection*{Returns}
+\returns
 
 The routine \verb|glp_ios_get_prob| returns a pointer to the problem
 object used by the MIP solver.
 
-\subsubsection*{Comments}
+\para{Comments}
 
 To obtain various information about the problem instance the callback
 routine can access the problem object (i.e. the object of type
@@ -507,15 +496,18 @@ original problem object passed to the routine \verb|glp_intopt| if the
 MIP presolver is not used; otherwise it is an internal problem object
 built by the presolver.
 
-\subsection{glp\_ios\_row\_attr---determine additional row attributes}
+\newpage
 
-\subsubsection*{Synopsis}
+\subsection{glp\_ios\_row\_attr --- determine additional row
+attributes}
+
+\synopsis
 
 \begin{verbatim}
-void glp_ios_row_attr(glp_tree *tree, int i, glp_attr *attr);
+   void glp_ios_row_attr(glp_tree *T, int i, glp_attr *attr);
 \end{verbatim}
 
-\subsubsection*{Description}
+\description
 
 The routine \verb|glp_ios_row_attr| retrieves additional attributes of
 $i$-th row of the current subproblem and stores them in the structure
@@ -525,49 +517,51 @@ The structure \verb|glp_attr| has the following fields:
 
 \medskip
 
-\noindent\begin{tabular}{@{}p{17pt}@{}p{120.5mm}@{}}
-\multicolumn{2}{@{}l}{{\tt int level}}\\
-&Subproblem level at which the row was created. (If \verb|level| = 0,
+{\tt int level}
+
+Subproblem level at which the row was created. (If \verb|level| = 0,
 the row was added either to the original problem object passed to the
 routine \verb|glp_intopt| or to the root subproblem on generating
-``lazy'' or/and cutting plane constraints.)\\
-\end{tabular}
+``lazy'' or/and cutting plane constraints.)
 
 \medskip
 
-\noindent\begin{tabular}{@{}p{17pt}@{}p{120.5mm}@{}}
-\multicolumn{2}{@{}l}{{\tt int origin}}\\
-&The row origin flag:\\
-&\verb|GLP_RF_REG |---regular constraint;\\
-&\verb|GLP_RF_LAZY|---``lazy'' constraint;\\
-&\verb|GLP_RF_CUT |---cutting plane constraint.\\
-\end{tabular}
+{\tt int origin}
+
+The row origin flag:
+
+\verb|GLP_RF_REG | --- regular constraint;
+
+\verb|GLP_RF_LAZY| --- ``lazy'' constraint;
+
+\verb|GLP_RF_CUT | --- cutting plane constraint.
 
 \medskip
 
-\noindent\begin{tabular}{@{}p{17pt}@{}p{120.5mm}@{}}
-\multicolumn{2}{@{}l}{{\tt int klass}}\\
-&The row class descriptor, which is a number passed to the routine
+{\tt int klass}
+
+The row class descriptor, which is a number passed to the routine
 \verb|glp_ios_add_row| as its third parameter. If the row is a cutting
 plane constraint generated by the solver, its class may be the
-following:\\
-&\verb|GLP_RF_GMI |---Gomory's mixed integer cut;\\
-&\verb|GLP_RF_MIR |---mixed integer rounding cut;\\
-&\verb|GLP_RF_COV |---mixed cover cut;\\
-&\verb|GLP_RF_CLQ |---clique cut.\\
-\end{tabular}
+following:
 
-\newpage
+\verb|GLP_RF_GMI | --- Gomory's mixed integer cut;
 
-\subsection{glp\_ios\_mip\_gap---compute relative MIP gap}
+\verb|GLP_RF_MIR | --- mixed integer rounding cut;
 
-\subsubsection*{Synopsis}
+\verb|GLP_RF_COV | --- mixed cover cut;
+
+\verb|GLP_RF_CLQ | --- clique cut.
+
+\subsection{glp\_ios\_mip\_gap --- compute relative MIP gap}
+
+\synopsis
 
 \begin{verbatim}
-double glp_ios_mip_gap(glp_tree *tree);
+   double glp_ios_mip_gap(glp_tree *T);
 \end{verbatim}
 
-\subsubsection*{Description}
+\description
 
 The routine \verb|glp_ios_mip_gap| computes the relative MIP gap (also
 called {\it duality gap}) with the following formula:
@@ -577,11 +571,11 @@ where \verb|best_mip| is the best integer feasible solution found so
 far, \verb|best_bnd| is the best (global) bound. If no integer feasible
 solution has been found yet, \verb|gap| is set to \verb|DBL_MAX|.
 
-\subsubsection*{Returns}
+\returns
 
 The routine \verb|glp_ios_mip_gap| returns the relative MIP gap.
 
-\subsubsection*{Comments}
+\para{Comments}
 
 The relative MIP gap is used to measure the quality of the best integer
 feasible solution found so far, because the optimal solution value
@@ -594,64 +588,64 @@ in case of maximization.
 To express the relative MIP gap in percents the value returned by the
 routine \verb|glp_ios_mip_gap| should be multiplied by 100\%.
 
-\newpage
+\subsection{glp\_ios\_node\_data --- access application-specific data}
 
-\subsection{glp\_ios\_node\_data---access application-specific data}
-
-\subsubsection*{Synopsis}
+\synopsis
 
 \begin{verbatim}
-void *glp_ios_node_data(glp_tree *tree, int p);
+   void *glp_ios_node_data(glp_tree *T, int p);
 \end{verbatim}
 
-\subsubsection*{Description}
+\description
 
-The routine \verb|glp_ios_node_data| allows the application accessing a
-memory block allocated for the subproblem (which may be active or
+The routine \verb|glp_ios_node_data| allows the application accessing
+a memory block allocated for the subproblem (which may be active or
 inactive), whose reference number is $p$.
 
-The size of the block is defined by the control parameter \verb|cb_size|
-passed to the routine \verb|glp_intopt|. The block is initialized by
-binary zeros on creating corresponding subproblem, and its contents is
-kept until the subproblem will be removed from the tree.
+The size of the block is defined by the control parameter
+\verb|cb_size| passed to the routine \verb|glp_intopt|. The block is
+initialized by binary zeros on creating corresponding subproblem, and
+its contents is kept until the subproblem will be removed from the
+tree.
 
 The application may use these memory blocks to store specific data for
 each subproblem.
 
-\subsubsection*{Returns}
+\returns
 
 The routine \verb|glp_ios_node_data| returns a pointer to the memory
-block for the specified subproblem. Note that if \verb|cb_size| = 0, the
-routine returns a null pointer.
+block for the specified subproblem. Note that if \verb|cb_size| = 0,
+the routine returns a null pointer.
 
-\subsection{glp\_ios\_select\_node---select subproblem to continue the
-search}
+\subsection{glp\_ios\_select\_node --- select subproblem to continue
+the search}
 
-\subsubsection*{Synopsis}
+\synopsis
 
 \begin{verbatim}
-void glp_ios_select_node(glp_tree *tree, int p);
+   void glp_ios_select_node(glp_tree *T, int p);
 \end{verbatim}
 
-\subsubsection*{Description}
+\description
 
 The routine \verb|glp_ios_select_node| can be called from the
 user-defined callback routine in response to the reason
 \verb|GLP_ISELECT| to select an active subproblem, whose reference
-number is $p$. The search will be continued from the subproblem
-selected.
+number\linebreak is $p$. The search will be continued from the
+subproblem selected.
 
 \newpage
 
-\subsection{glp\_ios\_heur\_sol---provide solution found by heuristic}
+\subsection{glp\_ios\_heur\_sol --- provide solution found by
+heuristic}
 
-\subsubsection*{Synopsis}
+\synopsis
 
 \begin{verbatim}
-int glp_ios_heur_sol(glp_tree *tree, const double x[]);
+   int glp_ios_heur_sol(glp_tree *T, const double x[]);
 \end{verbatim}
 
-\subsubsection*{Description}
+\description
 
 The routine \verb|glp_ios_heur_sol| can be called from the user-defined
 callback routine in response to the reason \verb|GLP_IHEUR| to provide
@@ -669,54 +663,57 @@ best known integer feasible solution, the routine computes values of
 auxiliary variables (rows) and stores all solution components in the
 problem object.
 
-\subsubsection*{Returns}
+\returns
 
 If the provided solution is accepted, the routine
 \verb|glp_ios_heur_sol| returns zero. Otherwise, if the provided
 solution is rejected, the routine returns non-zero.
 
-\subsection{glp\_ios\_can\_branch---check if can branch upon specified
-variable}
+\vspace*{-5pt}
 
-\subsubsection*{Synopsis}
+\subsection{glp\_ios\_can\_branch --- check if can branch upon
+specified variable}
+
+\synopsis
 
 \begin{verbatim}
-int glp_ios_can_branch(glp_tree *tree, int j);
+   int glp_ios_can_branch(glp_tree *T, int j);
 \end{verbatim}
 
-\subsubsection*{Returns}
+\returns
 
 If $j$-th variable (column) can be used to branch upon, the routine
 returns non-zero, otherwise zero.
 
-\newpage
+\vspace*{-5pt}
 
-\subsection{glp\_ios\_branch\_upon---choose variable to branch upon}
+\subsection{glp\_ios\_branch\_upon --- choose variable to branch upon}
 
-\subsubsection*{Synopsis}
+\synopsis
 
 \begin{verbatim}
-void glp_ios_branch_upon(glp_tree *tree, int j, int sel);
+   void glp_ios_branch_upon(glp_tree *T, int j, int sel);
 \end{verbatim}
 
-\subsubsection*{Description}
+\description
 
 The routine \verb|glp_ios_branch_upon| can be called from the
 user-defined callback routine in response to the reason
 \verb|GLP_IBRANCH| to choose a branching variable, whose ordinal number
-is $j$. Should note that only variables, for which the routine
-\verb|glp_ios_can_branch| returns non-zero, can be used to branch upon.
+\linebreak is $j$. Should note that only variables, for which the
+routine \verb|glp_ios_can_branch| returns non-zero, can be used to
+branch upon.
 
 The parameter \verb|sel| is a flag that indicates which branch
 (subproblem) should be selected next to continue the search:
 
-\verb|GLP_DN_BRNCH|---select down-branch;
+\verb|GLP_DN_BRNCH| --- select down-branch;
 
-\verb|GLP_UP_BRNCH|---select up-branch;
+\verb|GLP_UP_BRNCH| --- select up-branch;
 
-\verb|GLP_NO_BRNCH|---use general selection technique.
+\verb|GLP_NO_BRNCH| --- use general selection technique.
 
-\subsubsection*{Comments}
+\para{Comments}
 
 On branching the solver removes the current active subproblem from the
 active list and creates two new subproblems ({\it down-} and {\it
@@ -738,17 +735,15 @@ Additionally the callback routine may select either down- or up-branch,
 from which the solver will continue the search. If none of the branches
 is selected, a general selection technique will be used.
 
-\newpage
+\subsection{glp\_ios\_terminate --- terminate the solution process}
 
-\subsection{glp\_ios\_terminate---terminate the solution process}
-
-\subsubsection*{Synopsis}
+\synopsis
 
 \begin{verbatim}
-void glp_ios_terminate(glp_tree *tree);
+   void glp_ios_terminate(glp_tree *T);
 \end{verbatim}
 
-\subsubsection*{Description}
+\description
 
 The routine \verb|glp_ios_terminate| sets a flag indicating that the
 MIP solver should prematurely terminate the search.
@@ -759,16 +754,15 @@ MIP solver should prematurely terminate the search.
 
 \section{The search tree exploring routines}
 
-\subsection{glp\_ios\_tree\_size---determine size of the search tree}
+\subsection{glp\_ios\_tree\_size --- determine size of the search tree}
 
-\subsubsection*{Synopsis}
+\synopsis
 
 \begin{verbatim}
-void glp_ios_tree_size(glp_tree *tree, int *a_cnt, int *n_cnt,
-      int *t_cnt);
+   void glp_ios_tree_size(glp_tree *T, int *a_cnt, int *n_cnt, int *t_cnt);
 \end{verbatim}
 
-\subsubsection*{Description}
+\description
 
 The routine \verb|glp_ios_tree_size| stores the following three counts
 which characterize the current size of the search tree:
@@ -785,32 +779,30 @@ a new node appears in the tree and never decreased.
 If some of the parameters \verb|a_cnt|, \verb|n_cnt|, \verb|t_cnt| is
 a null pointer, the corresponding count is not stored.
 
-\subsection{glp\_ios\_curr\_node---determine current active subprob-\\
-lem}
+\subsection{glp\_ios\_curr\_node --- determine current active
+subproblem}
 
-\subsubsection*{Synopsis}
-
-\begin{verbatim}
-int glp_ios_curr_node(glp_tree *tree);
-\end{verbatim}
-
-\subsubsection*{Returns}
-
-The routine \verb|glp_ios_curr_node| returns the reference number of the
-current active subproblem. However, if the current subproblem does not
-exist, the routine returns zero.
-
-\newpage
-
-\subsection{glp\_ios\_next\_node---determine next active subproblem}
-
-\subsubsection*{Synopsis}
+\synopsis
 
 \begin{verbatim}
-int glp_ios_next_node(glp_tree *tree, int p);
+   int glp_ios_curr_node(glp_tree *T);
 \end{verbatim}
 
-\subsubsection*{Returns}
+\returns
+
+The routine \verb|glp_ios_curr_node| returns the reference number of
+the current active subproblem. However, if the current subproblem does
+not exist, the routine returns zero.
+
+\subsection{glp\_ios\_next\_node --- determine next active subproblem}
+
+\synopsis
+
+\begin{verbatim}
+   int glp_ios_next_node(glp_tree *T, int p);
+\end{verbatim}
+
+\returns
 
 If the parameter $p$ is zero, the routine \verb|glp_ios_next_node|
 returns the reference number of the first active subproblem. However,
@@ -824,15 +816,18 @@ no next active subproblem in the list, zero is returned.
 All subproblems in the active list are ordered chronologically, i.e.
 subproblem $A$ precedes subproblem $B$ if $A$ was created before $B$.
 
-\subsection{glp\_ios\_prev\_node---determine previous active subproblem}
+\newpage
 
-\subsubsection*{Synopsis}
+\subsection{glp\_ios\_prev\_node --- determine previous active
+subproblem}
+
+\synopsis
 
 \begin{verbatim}
-int glp_ios_prev_node(glp_tree *tree, int p);
+   int glp_ios_prev_node(glp_tree *T, int p);
 \end{verbatim}
 
-\subsubsection*{Returns}
+\returns
 
 If the parameter $p$ is zero, the routine \verb|glp_ios_prev_node|
 returns the reference number of the last active subproblem. However, if
@@ -846,17 +841,15 @@ is no previous active subproblem in the list, zero is returned.
 All subproblems in the active list are ordered chronologically, i.e.
 subproblem $A$ precedes subproblem $B$ if $A$ was created before $B$.
 
-\newpage
+\subsection{glp\_ios\_up\_node --- determine parent subproblem}
 
-\subsection{glp\_ios\_up\_node---determine parent subproblem}
-
-\subsubsection*{Synopsis}
+\synopsis
 
 \begin{verbatim}
-int glp_ios_up_node(glp_tree *tree, int p);
+   int glp_ios_up_node(glp_tree *T, int p);
 \end{verbatim}
 
-\subsubsection*{Returns}
+\returns
 
 The parameter $p$ must specify the reference number of some (active or
 inactive) subproblem, in which case the routine \verb|iet_get_up_node|
@@ -864,35 +857,35 @@ returns the reference number of its parent subproblem. However, if the
 specified subproblem is the root of the tree and, therefore, has
 no parent, the routine returns zero.
 
-\subsection{glp\_ios\_node\_level---determine subproblem level}
+\subsection{glp\_ios\_node\_level --- determine subproblem level}
 
-\subsubsection*{Synopsis}
+\synopsis
 
 \begin{verbatim}
-int glp_ios_node_level(glp_tree *tree, int p);
+   int glp_ios_node_level(glp_tree *T, int p);
 \end{verbatim}
 
-\subsubsection*{Returns}
+\returns
 
 The routine \verb|glp_ios_node_level| returns the level of the
-subproblem,\linebreak whose reference number is $p$, in the
-branch-and-bound tree. (The root subproblem has level 0, and the level
-of any other subproblem is the level of its parent plus one.)
+subproblem, whose reference number is $p$, in the branch-and-bound
+tree. (The root subproblem has level 0, and the level of any other
+subproblem is the level of its parent plus one.)
 
-\subsection{glp\_ios\_node\_bound---determine subproblem local\\bound}
+\subsection{glp\_ios\_node\_bound --- determine subproblem local bound}
 
-\subsubsection*{Synopsis}
+\synopsis
 
 \begin{verbatim}
-double glp_ios_node_bound(glp_tree *tree, int p);
+   double glp_ios_node_bound(glp_tree *T, int p);
 \end{verbatim}
 
-\subsubsection*{Returns}
+\returns
 
 The routine \verb|glp_ios_node_bound| returns the local bound for
 (active or inactive) subproblem, whose reference number is $p$.
 
-\subsubsection*{Comments}
+\para{Comments}
 
 The local bound for subproblem $p$ is an lower (minimization) or upper
 (maximization) bound for integer optimal solution to {\it this}
@@ -906,26 +899,26 @@ For the root subproblem its local bound is initially set to
 \verb|-DBL_MAX| (minimization) or \verb|+DBL_MAX| (maximization) and
 then improved as the root LP relaxation has been solved.
 
-Note that the local bound is not necessarily the optimal objective value
-to corresponding LP relaxation.
+Note that the local bound is not necessarily the optimal objective
+value to corresponding LP relaxation.
 
-\subsection{glp\_ios\_best\_node---find active subproblem with best
+\subsection{glp\_ios\_best\_node --- find active subproblem with best
 local bound}
 
-\subsubsection*{Synopsis}
+\synopsis
 
 \begin{verbatim}
-int glp_ios_best_node(glp_tree *tree);
+   int glp_ios_best_node(glp_tree *T);
 \end{verbatim}
 
-\subsubsection*{Returns}
+\returns
 
 The routine \verb|glp_ios_best_node| returns the reference number of
 the active subproblem, whose local bound is best (i.e. smallest in case
 of minimization or largest in case of maximization). However, if the
 tree is empty, the routine returns zero.
 
-\subsubsection*{Comments}
+\para{Comments}
 
 The best local bound is an lower (minimization) or upper (maximization)
 bound for integer optimal solution to the original MIP problem.
@@ -936,32 +929,31 @@ bound for integer optimal solution to the original MIP problem.
 
 \section{The cut pool routines}
 
-\subsection{glp\_ios\_pool\_size---determine current size of the cut\\
+\subsection{glp\_ios\_pool\_size --- determine current size of the cut
 pool}
 
-\subsubsection*{Synopsis}
+\synopsis
 
 \begin{verbatim}
-int glp_ios_pool_size(glp_tree *tree);
+   int glp_ios_pool_size(glp_tree *T);
 \end{verbatim}
 
-\subsubsection*{Returns}
+\returns
 
 The routine \verb|glp_ios_pool_size| returns the current size of the
 cut pool, that is, the number of cutting plane constraints currently
 added to it.
 
-\subsection{glp\_ios\_add\_row---add constraint to the cut pool}
+\subsection{glp\_ios\_add\_row --- add constraint to the cut pool}
 
-\subsubsection*{Synopsis}
+\synopsis
 
 \begin{verbatim}
-int glp_ios_add_row(glp_tree *tree, const char *name,
-      int klass, int flags, int len, const int ind[],
-      const double val[], int type, double rhs);
+   int glp_ios_add_row(glp_tree *T, const char *name, int klass, int flags,
+       int len, const int ind[], const double val[], int type, double rhs);
 \end{verbatim}
 
-\subsubsection*{Description}
+\description
 
 The routine \verb|glp_ios_add_row| adds specified row (cutting plane
 constraint) to the cut pool.
@@ -969,25 +961,25 @@ constraint) to the cut pool.
 The cutting plane constraint should have the following format:
 $$\sum_{j\in J}a_jx_j\left\{\begin{array}{@{}c@{}}\geq\\\leq\\
 \end{array}\right\}b,$$
-where $J$ is a set of indices (ordinal numbers) of structural variables,
-$a_j$ are constraint coefficients, $x_j$ are structural variables, $b$
-is the right-hand side.
+where $J$ is a set of indices (ordinal numbers) of structural
+variables, $a_j$ are constraint coefficients, $x_j$ are structural
+variables, $b$ is the right-hand side.
 
 The parameter \verb|name| specifies a symbolic name assigned to the
 constraint (1 up to 255 characters). If it is \verb|NULL| or an empty
 string, no name is assigned.
 
 The parameter \verb|klass| specifies the constraint class, which must
-be either zero or a number in the range from 101 to 200. The application
-may use this attribute to distinguish between cutting plane constraints
-of different classes.\footnote{Constraint classes numbered from 1 to 100
-are reserved for GLPK cutting plane generators.}
+be either zero or a number in the range from 101 to 200.
+The application may use this attribute to distinguish between cutting
+plane constraints of different classes.\footnote{Constraint classes
+numbered from 1 to 100 are reserved for GLPK cutting plane generators.}
 
 The parameter \verb|flags| currently is not used and must be zero.
 
 Ordinal numbers of structural variables (i.e. column indices) $j\in J$
-and numerical values of corresponding constraint coefficients $a_j$ must
-be placed in locations \verb|ind[1]|, \dots, \verb|ind[len]| and
+and numerical values of corresponding constraint coefficients $a_j$
+should be placed in locations \verb|ind[1]|, \dots, \verb|ind[len]| and
 \verb|val[1]|, \dots, \verb|val[len]|, respectively, where
 ${\tt len}=|J|$ is the number of constraint coefficients,
 $0\leq{\tt len}\leq n$, and $n$ is the number of columns in the problem
@@ -1008,12 +1000,12 @@ of the cut pool. New constraints are always added to the end of the cut
 pool, thus, ordinal numbers of previously added constraints are not
 changed.
 
-\subsubsection*{Returns}
+\returns
 
 The routine \verb|glp_ios_add_row| returns the ordinal number of the
 cutting plane constraint added, which is the new size of the cut pool.
 
-\subsubsection*{Example}
+\para{Example}
 
 \begin{verbatim}
 /* generate triangle cutting plane:
@@ -1023,11 +1015,10 @@ cutting plane constraint added, which is the new size of the cut pool.
 ind[1] = i, val[1] = 1.0;
 ind[2] = j, val[2] = 1.0;
 ind[3] = k, val[3] = 1.0;
-glp_ios_add_row(tree, NULL, TRIANGLE_CUT, 0, 3, ind, val,
-                GLP_UP, 1.0);
+glp_ios_add_row(tree, NULL, TRIANGLE_CUT, 0, 3, ind, val, GLP_UP, 1.0);
 \end{verbatim}
 
-\subsubsection*{Comments}
+\para{Comments}
 
 Cutting plane constraints added to the cut pool are intended to be then
 added only to the {\it current} subproblem, so these constraints can be
@@ -1040,19 +1031,19 @@ constraints could be saved and then re-used for other subproblems, but
 currently such feature is not implemented.}
 
 Normally, every time the callback routine is called for cut generation,
-the cut pool is empty. On the other hand, the solver itself can generate
-cutting plane constraints (like Gomory's or mixed integer rounding
-cuts), in which case the cut pool may be non-empty.
+the cut pool is empty. On the other hand, the solver itself can
+generate cutting plane constraints (like Gomory's or mixed integer
+rounding cuts), in which case the cut pool may be non-empty.
 
-\subsection{glp\_ios\_del\_row---remove constraint from the cut pool}
+\subsection{glp\_ios\_del\_row --- remove constraint from the cut pool}
 
-\subsubsection*{Synopsis}
+\synopsis
 
 \begin{verbatim}
-void glp_ios_del_row(glp_tree *tree, int i);
+   void glp_ios_del_row(glp_tree *T, int i);
 \end{verbatim}
 
-\subsubsection*{Description}
+\description
 
 The routine \verb|glp_ios_del_row| deletes $i$-th row (cutting plane
 constraint) from the cut pool, where $1\leq i\leq size$ is the ordinal
@@ -1069,10 +1060,11 @@ $b$ have been deleted. Then after deletion the remaining constraint $a$,
 $c$ and $d$ are assigned new ordinal numbers 1, 2 and 3, respectively.
 
 To find the constraint to be deleted the routine \verb|glp_ios_del_row|
-uses ``smart'' linear search, so it is recommended to remove constraints
-in a natural or reverse order and avoid removing them in a random order.
+uses ``smart'' linear search, so it is recommended to remove
+constraints in a natural or reverse order and avoid removing them in
+a random order.
 
-\subsubsection*{Example}
+\para{Example}
 
 \begin{verbatim}
 /* keep first 10 constraints in the cut pool and remove other
@@ -1081,18 +1073,16 @@ while (glp_ios_pool_size(tree) > 10)
    glp_ios_del_row(tree, glp_ios_pool_size(tree));
 \end{verbatim}
 
-\newpage
+\subsection{glp\_ios\_clear\_pool --- remove all constraints from the
+cut pool}
 
-\subsection{glp\_ios\_clear\_pool---remove all constraints from the cut
-pool}
-
-\subsubsection*{Synopsis}
+\synopsis
 
 \begin{verbatim}
-void glp_ios_clear_pool(glp_tree *tree);
+   void glp_ios_clear_pool(glp_tree *T);
 \end{verbatim}
 
-\subsubsection*{Description}
+\description
 
 The routine \verb|glp_ios_clear_pool| makes the cut pool empty deleting
 all existing rows (cutting plane constraints) from it.

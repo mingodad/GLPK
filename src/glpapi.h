@@ -28,6 +28,9 @@
 #include "glpk.h"
 #include "glpavl.h"
 #include "glpbfd.h"
+#if 1 /* 14/IV-2013 */
+#include "glplpx.h"
+#endif
 
 typedef struct GLPROW GLPROW;
 typedef struct GLPCOL GLPCOL;
@@ -269,10 +272,6 @@ struct GLPAIJ
       GLPAIJ *c_next;
       /* pointer to next coefficient in the same column */
 };
-
-void _glp_check_kkt(glp_prob *P, int sol, int cond, double *ae_max,
-      int *ae_ind, double *re_max, int *re_ind);
-/* check feasibility and optimality conditions */
 
 #define lpx_put_solution _glp_put_solution
 void lpx_put_solution(glp_prob *lp, int inval, const int *p_stat,

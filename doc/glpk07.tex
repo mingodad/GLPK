@@ -37,43 +37,24 @@ form of packed archive. This is one file named \verb|glpk-X.Y.tar.gz|,
 where {\it X} is the major version number and {\it Y} is the minor
 version number.
 
-In order to prepare the distribution for installation you should:
-
-\medskip
-
-1. Copy the GLPK distribution file to a working subdirectory.
-
-\medskip
-
-2. Unpack the distribution file with the following command:
+In order to prepare the distribution for installation you need to copy
+the GLPK distribution file to a working subdirectory and then unpack
+and unarchive the distribution file with the following command:
 
 \begin{verbatim}
-   gzip -d glpk-X.Y.tar.gz
+   tar zx < glpk-X.Y.tar
 \end{verbatim}
 
-\noindent
-that renames the distribution file to \verb|glpk-X.Y.tar|.
-
-\medskip
-
-3. Unarchive the distribution file with the following command:
-
-\begin{verbatim}
-   tar -x < glpk-X.Y.tar
-\end{verbatim}
-
-\noindent
-that automatically creates the subdirectory \verb|glpk-X.Y| containing
-the GLPK distribution.
-
+\newpage
 
 \section{Configuring the package}
 
 After unpacking and unarchiving the GLPK distribution you should
-configure the package, i.e. automatically tune it for your platform.
+configure the package,\linebreak i.e. automatically tune it for your
+platform.
 
-Normally, you should just \verb|cd| to the subdirectory
-\verb|glpk-X.Y| and run the configure script, e.g.
+Normally, you should just \verb|cd| to the subdirectory \verb|glpk-X.Y|
+and run the configure script, e.g.
 
 \begin{verbatim}
    ./configure
@@ -90,16 +71,15 @@ results of its tests to speed up reconfiguring, and a file
 `\verb|config.log|' containing compiler output (useful mainly for
 debugging `\verb|configure|').
 
-Running `\verb|configure|' takes about a few minutes. While it is
-running, it displays some informational messages that tell you what it
+Running `\verb|configure|' takes about a minute. While it is running,
+it displays some informational messages that tell you what it
 is doing. If you don't want to see these messages, run
 `\verb|configure|' with its standard output redirected to
 `\verb|dev/null|'; for example, `\verb|./configure > /dev/null|'.
 
 By default both static and shared versions of the GLPK library will be
 compiled. Compilation of the shared librariy can be turned off by
-specifying the `\verb|--disable-shared|' option to `\verb|configure|',
-e.g.
+specifying the `\verb|--disable-shared|' option to `\verb|configure|':
 
 \begin{verbatim}
    ./configure --disable-shared
@@ -109,18 +89,11 @@ e.g.
 If you encounter problems building the library try using the above
 option, because some platforms do not support shared libraries.
 
-\newpage
-
 The GLPK package has some optional features listed below. By default
 all these features are disabled. To enable a feature the corresponding
 option should be passed to the configure script.
 
-\bigskip
-
-\noindent
 \verb|--with-gmp         | Enable using the GNU MP bignum library
-
-\medskip
 
 This feature allows the exact simplex solver to use the GNU MP bignum
 library. If it is disabled, the exact simplex solver uses the GLPK
@@ -130,35 +103,11 @@ it is much less efficient.
 For details about the GNU MP bignum library see its web page at
 \url{http://gmplib.org/}.
 
-\bigskip
-
-\noindent
-\verb|--with-zlib        |
-Enable using the zlib data compression library
-
-\medskip
-
-This feature allows GLPK API routines and the stand-alone solver to
-read and write compressed data files performing compression and
-decompression ``on the fly'' (compressed data files are recognized by
-suffix `\verb|.gz|' in the file name). It may be useful in case of
-large MPS files to save the disk space.
-
-For details about the zlib compression library see its web page at
-\url{http://www.zlib.net/}.
-
-\bigskip
-
-\noindent
 \verb|--enable-dl        | The same as `\verb|--enable-dl=ltdl|'
 
-\noindent
 \verb|--enable-dl=ltdl   | Enable shared library support (GNU)
 
-\noindent
 \verb|--enable-dl=dlfcn  | Enable shared library support (POSIX)
-
-\medskip
 
 Currently this feature is only needed to provide dynamic linking to
 ODBC and MySQL shared libraries (see below).
@@ -166,17 +115,11 @@ ODBC and MySQL shared libraries (see below).
 For details about the GNU shared library support see the manual at
 \url{http://www.gnu.org/software/libtool/manual/}.
 
-\bigskip
-
-\noindent
 \verb|--enable-odbc      |
 Enable using ODBC table driver (\verb|libiodbc|)
 
-\noindent
 \verb|--enable-odbc=unix |
 Enable using ODBC table driver (\verb|libodbc|)
-
-\medskip
 
 This feature allows transmitting data between MathProg model objects
 and relational databases accessed through ODBC.
@@ -184,13 +127,8 @@ and relational databases accessed through ODBC.
 For more details about this feature see the supplement ``Using Data
 Tables in the GNU MathProg Modeling Language'' (\verb|doc/tables.pdf|).
 
-\bigskip
-
-\noindent
 \verb|--enable-mysql     |
 Enable using MySQL table driver (\verb|libmysql|)
-
-\medskip
 
 This feature allows transmitting data between MathProg model objects
 and MySQL relational databases.
@@ -224,10 +162,10 @@ directory where you want the object files and executables to go and run
 the `\verb|configure|' script. `\verb|configure|' automatically checks
 for the source code in the directory that `\verb|configure|' is in and
 in `\verb|..|'. If for some reason `\verb|configure|' is not in the
-source code directory that you are configuring, then it will report that
-it can't find the source code. In that case, run `\verb|configure|' with
-the option `\verb|--srcdir=DIR|', where \verb|DIR| is the directory that
-contains the source code.
+source code directory that you are configuring, then it will report
+that it can't find the source code. In that case, run `\verb|configure|'
+with the option `\verb|--srcdir=DIR|', where \verb|DIR| is the
+directory that contains the source code.
 
 Some systems require unusual options for compilation or linking that
 the `\verb|configure|' script does not know about. You can give
@@ -253,34 +191,18 @@ with environment variables when running `\verb|configure|'.
 For these variables, any value given in the environment overrides the
 value that `\verb|configure|' would choose:
 
-\medskip
-
-\noindent
 \verb|CC      | C compiler program. The default is `\verb|cc|'.
 
-\medskip
-
-\noindent
 \verb|INSTALL | Program used to install files. The default value is
-`\verb|install|' if
-
-\noindent
-\verb|        | you have it, otherwise `\verb|cp|'.
-
-\medskip
+`\verb|install|' if you have it,\\
+\verb|           | otherwise `\verb|cp|'.
 
 For these variables, any value given in the environment is added to the
 value that `\verb|configure|' chooses:
 
-\medskip
-
-\noindent
 \verb|DEFS    | Configuration options, in the form
 `\verb|-Dfoo -Dbar| \dots'.
 
-\medskip
-
-\noindent
 \verb|LIBS    | Libraries to link with, in the form
 `\verb|-lfoo -lbar| \dots'.
 

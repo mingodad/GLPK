@@ -24,7 +24,7 @@
 
 #include "glpapi.h"
 
-void _glp_check_kkt(glp_prob *P, int sol, int cond, double *_ae_max,
+void glp_check_kkt(glp_prob *P, int sol, int cond, double *_ae_max,
       int *_ae_ind, double *_re_max, int *_re_ind)
 {     /* check feasibility and optimality conditions */
       int m = P->m;
@@ -219,7 +219,14 @@ void _glp_check_kkt(glp_prob *P, int sol, int cond, double *_ae_max,
             else
                xassert(P != P);
             /* check for positivity */
+#if 1 /* 08/III-2013 */
+            /* the former check was correct */
+            /* the bug reported by David Price is related to violation
+               of complementarity slackness, not to this condition */
             if (row->type == GLP_FR || row->type == GLP_LO)
+#else
+            if (row->stat == GLP_NF || row->stat == GLP_NL)
+#endif
             {  if (t < 0.0)
                {  e = - t;
                   if (ae_max < e)
@@ -227,7 +234,12 @@ void _glp_check_kkt(glp_prob *P, int sol, int cond, double *_ae_max,
                }
             }
             /* check for negativity */
+#if 1 /* 08/III-2013 */
+            /* see comment above */
             if (row->type == GLP_FR || row->type == GLP_UP)
+#else
+            if (row->stat == GLP_NF || row->stat == GLP_NU)
+#endif
             {  if (t > 0.0)
                {  e = + t;
                   if (ae_max < e)
@@ -253,7 +265,12 @@ void _glp_check_kkt(glp_prob *P, int sol, int cond, double *_ae_max,
             else
                xassert(P != P);
             /* check for positivity */
+#if 1 /* 08/III-2013 */
+            /* see comment above */
             if (col->type == GLP_FR || col->type == GLP_LO)
+#else
+            if (col->stat == GLP_NF || col->stat == GLP_NL)
+#endif
             {  if (t < 0.0)
                {  e = - t;
                   if (ae_max < e)
@@ -261,7 +278,12 @@ void _glp_check_kkt(glp_prob *P, int sol, int cond, double *_ae_max,
                }
             }
             /* check for negativity */
+#if 1 /* 08/III-2013 */
+            /* see comment above */
             if (col->type == GLP_FR || col->type == GLP_UP)
+#else
+            if (col->stat == GLP_NF || col->stat == GLP_NU)
+#endif
             {  if (t > 0.0)
                {  e = + t;
                   if (ae_max < e)

@@ -134,7 +134,7 @@ int glp_print_sol(glp_prob *P, const char *fname)
       xfprintf(fp, "\n");
       xfprintf(fp, "Karush-Kuhn-Tucker optimality conditions:\n");
       xfprintf(fp, "\n");
-      _glp_check_kkt(P, GLP_SOL, GLP_KKT_PE, &ae_max, &ae_ind, &re_max,
+      glp_check_kkt(P, GLP_SOL, GLP_KKT_PE, &ae_max, &ae_ind, &re_max,
          &re_ind);
       xfprintf(fp, "KKT.PE: max.abs.err = %.2e on row %d\n",
          ae_max, ae_ind);
@@ -145,7 +145,7 @@ int glp_print_sol(glp_prob *P, const char *fname)
          re_max <= 1e-6 ? "Medium quality" :
          re_max <= 1e-3 ? "Low quality" : "PRIMAL SOLUTION IS WRONG");
       xfprintf(fp, "\n");
-      _glp_check_kkt(P, GLP_SOL, GLP_KKT_PB, &ae_max, &ae_ind, &re_max,
+      glp_check_kkt(P, GLP_SOL, GLP_KKT_PB, &ae_max, &ae_ind, &re_max,
          &re_ind);
       xfprintf(fp, "KKT.PB: max.abs.err = %.2e on %s %d\n",
             ae_max, ae_ind <= P->m ? "row" : "column",
@@ -159,7 +159,7 @@ int glp_print_sol(glp_prob *P, const char *fname)
          re_max <= 1e-3 ? "Low quality" : "PRIMAL SOLUTION IS INFEASIBL"
             "E");
       xfprintf(fp, "\n");
-      _glp_check_kkt(P, GLP_SOL, GLP_KKT_DE, &ae_max, &ae_ind, &re_max,
+      glp_check_kkt(P, GLP_SOL, GLP_KKT_DE, &ae_max, &ae_ind, &re_max,
          &re_ind);
       xfprintf(fp, "KKT.DE: max.abs.err = %.2e on column %d\n",
          ae_max, ae_ind == 0 ? 0 : ae_ind - P->m);
@@ -170,7 +170,7 @@ int glp_print_sol(glp_prob *P, const char *fname)
          re_max <= 1e-6 ? "Medium quality" :
          re_max <= 1e-3 ? "Low quality" : "DUAL SOLUTION IS WRONG");
       xfprintf(fp, "\n");
-      _glp_check_kkt(P, GLP_SOL, GLP_KKT_DB, &ae_max, &ae_ind, &re_max,
+      glp_check_kkt(P, GLP_SOL, GLP_KKT_DB, &ae_max, &ae_ind, &re_max,
          &re_ind);
       xfprintf(fp, "KKT.DB: max.abs.err = %.2e on %s %d\n",
             ae_max, ae_ind <= P->m ? "row" : "column",
@@ -736,7 +736,7 @@ int glp_print_ipt(glp_prob *P, const char *fname)
       xfprintf(fp, "\n");
       xfprintf(fp, "Karush-Kuhn-Tucker optimality conditions:\n");
       xfprintf(fp, "\n");
-      _glp_check_kkt(P, GLP_IPT, GLP_KKT_PE, &ae_max, &ae_ind, &re_max,
+      glp_check_kkt(P, GLP_IPT, GLP_KKT_PE, &ae_max, &ae_ind, &re_max,
          &re_ind);
       xfprintf(fp, "KKT.PE: max.abs.err = %.2e on row %d\n",
          ae_max, ae_ind);
@@ -747,7 +747,7 @@ int glp_print_ipt(glp_prob *P, const char *fname)
          re_max <= 1e-6 ? "Medium quality" :
          re_max <= 1e-3 ? "Low quality" : "PRIMAL SOLUTION IS WRONG");
       xfprintf(fp, "\n");
-      _glp_check_kkt(P, GLP_IPT, GLP_KKT_PB, &ae_max, &ae_ind, &re_max,
+      glp_check_kkt(P, GLP_IPT, GLP_KKT_PB, &ae_max, &ae_ind, &re_max,
          &re_ind);
       xfprintf(fp, "KKT.PB: max.abs.err = %.2e on %s %d\n",
             ae_max, ae_ind <= P->m ? "row" : "column",
@@ -761,7 +761,7 @@ int glp_print_ipt(glp_prob *P, const char *fname)
          re_max <= 1e-3 ? "Low quality" : "PRIMAL SOLUTION IS INFEASIBL"
             "E");
       xfprintf(fp, "\n");
-      _glp_check_kkt(P, GLP_IPT, GLP_KKT_DE, &ae_max, &ae_ind, &re_max,
+      glp_check_kkt(P, GLP_IPT, GLP_KKT_DE, &ae_max, &ae_ind, &re_max,
          &re_ind);
       xfprintf(fp, "KKT.DE: max.abs.err = %.2e on column %d\n",
          ae_max, ae_ind == 0 ? 0 : ae_ind - P->m);
@@ -772,7 +772,7 @@ int glp_print_ipt(glp_prob *P, const char *fname)
          re_max <= 1e-6 ? "Medium quality" :
          re_max <= 1e-3 ? "Low quality" : "DUAL SOLUTION IS WRONG");
       xfprintf(fp, "\n");
-      _glp_check_kkt(P, GLP_IPT, GLP_KKT_DB, &ae_max, &ae_ind, &re_max,
+      glp_check_kkt(P, GLP_IPT, GLP_KKT_DB, &ae_max, &ae_ind, &re_max,
          &re_ind);
       xfprintf(fp, "KKT.DB: max.abs.err = %.2e on %s %d\n",
             ae_max, ae_ind <= P->m ? "row" : "column",
@@ -1039,7 +1039,7 @@ int glp_print_mip(glp_prob *P, const char *fname)
       xfprintf(fp, "\n");
       xfprintf(fp, "Integer feasibility conditions:\n");
       xfprintf(fp, "\n");
-      _glp_check_kkt(P, GLP_MIP, GLP_KKT_PE, &ae_max, &ae_ind, &re_max,
+      glp_check_kkt(P, GLP_MIP, GLP_KKT_PE, &ae_max, &ae_ind, &re_max,
          &re_ind);
       xfprintf(fp, "KKT.PE: max.abs.err = %.2e on row %d\n",
          ae_max, ae_ind);
@@ -1050,7 +1050,7 @@ int glp_print_mip(glp_prob *P, const char *fname)
          re_max <= 1e-6 ? "Medium quality" :
          re_max <= 1e-3 ? "Low quality" : "SOLUTION IS WRONG");
       xfprintf(fp, "\n");
-      _glp_check_kkt(P, GLP_MIP, GLP_KKT_PB, &ae_max, &ae_ind, &re_max,
+      glp_check_kkt(P, GLP_MIP, GLP_KKT_PB, &ae_max, &ae_ind, &re_max,
          &re_ind);
       xfprintf(fp, "KKT.PB: max.abs.err = %.2e on %s %d\n",
             ae_max, ae_ind <= P->m ? "row" : "column",

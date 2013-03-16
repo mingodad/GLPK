@@ -1,3 +1,23 @@
+GLPK 4.49 (release date: Apr 16, 2013)
+
+        The new API routine glp_mincost_relax4, which is a driver to
+        relaxation method of Bertsekas and Tseng (RELAX-IV), was added
+        to the package. RELAX-IV is a code for solving minimum cost
+        flow problems. On large instances it is 100-1000 times faster
+        than the standard primal simplex method. Prof. Bertsekas, the
+        author of the original RELAX-IV Fortran code, kindly permitted
+        to include a C translation of his code in GLPK under GPLv3.
+
+        A bug (wrong dual feasibility test) was fixed in API routine
+        glp_warm_up. Thanks to David T. Price <dtprice@speakeasy.net>
+        for bug report.
+
+        Obsolete API routine lpx_check_kkt was replaced by new routine
+        glp_check_kkt.
+
+        IMPORTANT: All old API routines whose names begin with 'lpx_'
+        were removed from API level and NO MORE AVAILABLE.
+
 GLPK 4.48 (release date: Jan 28, 2013)
 
         This is a maintainer release.

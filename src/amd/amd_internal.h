@@ -54,7 +54,7 @@
 #if 0 /* 24/V-2009 */
 #define amd_free xfree
 #else
-#define amd_free(ptr) { if ((ptr) != NULL) xfree(ptr); } 
+#define amd_free(ptr) { if ((ptr) != NULL) xfree(ptr); }
 #endif
 #define amd_printf xprintf
 

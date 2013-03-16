@@ -1,6 +1,6 @@
 ## Process this file with automake to produce Makefile.in ##
 
-INCLUDES = -I$(srcdir)/../src
+AM_CPPFLAGS = -I$(srcdir)/../src
 
 LDADD = ../src/libglpk.la
 

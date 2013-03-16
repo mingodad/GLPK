@@ -24,14 +24,43 @@
 
 \documentclass[11pt]{report}
 \usepackage{amssymb}
-\usepackage{lscape}
 \usepackage[dvipdfm,linktocpage,colorlinks,linkcolor=blue,
 urlcolor=blue]{hyperref}
+\usepackage{indentfirst}
+\usepackage{lscape}
 \usepackage[all]{xy}
+
+\setlength{\textwidth}{6.5in}
+\setlength{\textheight}{8.5in}
+\setlength{\oddsidemargin}{0in}
+\setlength{\topmargin}{0in}
+\setlength{\headheight}{0in}
+\setlength{\headsep}{0in}
+\setlength{\footskip}{0.5in}
+\setlength{\parindent}{16pt}
+\setlength{\parskip}{5pt}
+\setlength{\topsep}{0pt}
+\setlength{\partopsep}{0pt}
+\setlength{\itemsep}{\parskip}
+\setlength{\parsep}{0pt}
+\setlength{\leftmargini}{\parindent}
+\renewcommand{\labelitemi}{---}
+
+\def\para#1{\noindent{\bf#1}}
+\def\synopsis{\para{Synopsis}}
+\def\description{\para{Description}}
+\def\returns{\para{Returns}}
 
 \renewcommand\contentsname{\sf\bfseries Contents}
 \renewcommand\chaptername{\sf\bfseries Chapter}
 \renewcommand\appendixname{\sf\bfseries Appendix}
+
+\newenvironment{retlist}
+{  \def\arraystretch{1.5}
+   \noindent
+   \begin{tabular}{@{}p{1in}@{}p{5.5in}@{}}
+}
+{\end{tabular}}
 
 \begin{document}
 
@@ -39,7 +68,7 @@ urlcolor=blue]{hyperref}
 
 \begin{center}
 
-\vspace*{1in}
+\vspace*{1.5in}
 
 \begin{huge}
 \sf\bfseries GNU Linear Programming Kit
@@ -54,12 +83,12 @@ urlcolor=blue]{hyperref}
 \vspace{0.5in}
 
 \begin{LARGE}
-\sf for GLPK Version 4.48
+\sf for GLPK Version 4.49
 \end{LARGE}
 
 \vspace{0.5in}
 \begin{Large}
-\sf (DRAFT, January 2013)
+\sf (DRAFT, April 2013)
 \end{Large}
 \end{center}
 
@@ -73,32 +102,41 @@ urlcolor=blue]{hyperref}
 The GLPK package is part of the GNU Project released under the aegis of
 GNU.
 
-\medskip \noindent
+\noindent
 Copyright \copyright{} 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007,
 2008, 2009, 2010, 2011, 2013 Andrew Makhorin, Department for Applied
 Informatics, Moscow Aviation Institute, Moscow, Russia. All rights
 reserved.
 
-\medskip \noindent
+\noindent
 Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
 02110-1301, USA.
 
-\medskip \noindent
+\noindent
 Permission is granted to make and distribute verbatim copies of this
 manual provided the copyright notice and this permission notice are
 preserved on all copies.
 
-\medskip \noindent
+\noindent
 Permission is granted to copy and distribute modified versions of this
-manual under the conditions for verbatim copying, provided also that the
-entire resulting derived work is distributed under the terms of
+manual under the conditions for verbatim copying, provided also that
+the entire resulting derived work is distributed under the terms of
 a permission notice identical to this one.
 
-\medskip \noindent
-Permission is granted to copy and distribute translations of this manual
-into another language, under the above conditions for modified versions.
+\noindent
+Permission is granted to copy and distribute translations of this
+manual into another language, under the above conditions for modified
+versions.
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\newpage
+
+{\setlength{\parskip}{0pt}
 \tableofcontents
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \include{glpk01}
 

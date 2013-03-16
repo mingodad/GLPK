@@ -4,16 +4,16 @@
 
 \section{Problem data reading/writing routines}
 
-\subsection{glp\_read\_mps---read problem data in MPS format}
+\subsection{glp\_read\_mps --- read problem data in MPS format}
 
-\subsubsection*{Synopsis}
+\synopsis
 
 \begin{verbatim}
-int glp_read_mps(glp_prob *lp, int fmt, const void *parm,
-      const char *fname);
+   int glp_read_mps(glp_prob *P, int fmt, const glp_mpscp *parm,
+                    const char *fname);
 \end{verbatim}
 
-\subsubsection*{Description}
+\description
 
 The routine \verb|glp_read_mps| reads problem data in MPS format from a
 text file. (The MPS format is described in Appendix \ref{champs}, page
@@ -21,133 +21,131 @@ text file. (The MPS format is described in Appendix \ref{champs}, page
 
 The parameter \verb|fmt| specifies the MPS format version as follows:
 
-\begin{tabular}{@{}ll}
-\verb|GLP_MPS_DECK| & fixed (ancient) MPS format; \\
-\verb|GLP_MPS_FILE| & free (modern) MPS format. \\
-\end{tabular}
+\verb|GLP_MPS_DECK| --- fixed (ancient) MPS format;
 
-The parameter \verb|parm| is reserved for use in the future and must be
-specified as \verb|NULL|.
+\verb|GLP_MPS_FILE| --- free (modern) MPS format.
+
+The parameter \verb|parm| is reserved for use in the future and should
+be specified as \verb|NULL|.
 
 The character string \verb|fname| specifies a name of the text file to
-be read in. (If the file name ends with suffix `\verb|.gz|', the file is
-assumed to be compressed, in which case the routine \verb|glp_read_mps|
-decompresses it ``on the fly''.)
+be read in. (If the file name ends with suffix `\verb|.gz|', the file
+is assumed to be compressed, in which case the routine
+\verb|glp_read_mps| decompresses it ``on the fly''.)
 
 Note that before reading data the current content of the problem object
 is completely erased with the routine \verb|glp_erase_prob|.
 
-\subsubsection*{Returns}
+\returns
 
 If the operation was successful, the routine \verb|glp_read_mps|
 returns zero. Otherwise, it prints an error message and returns
 non-zero.
 
-\subsection{glp\_write\_mps---write problem data in MPS format}
+\newpage
 
-\subsubsection*{Synopsis}
+\subsection{glp\_write\_mps --- write problem data in MPS format}
+
+\synopsis
 
 \begin{verbatim}
-int glp_write_mps(glp_prob *lp, int fmt, const void *parm,
-      const char *fname);
+   int glp_write_mps(glp_prob *P, int fmt, const glp_mpscp *parm,
+                     const char *fname);
 \end{verbatim}
 
-\subsubsection*{Description}
+\description
 
-The routine \verb|glp_write_mps| writes problem data in MPS format to a
-text file. (The MPS format is described in Appendix \ref{champs}, page
-\pageref{champs}.)
+The routine \verb|glp_write_mps| writes problem data in MPS format to
+a text file. (The MPS format is described in Appendix \ref{champs},
+page \pageref{champs}.)
 
 The parameter \verb|fmt| specifies the MPS format version as follows:
 
-\begin{tabular}{@{}ll}
-\verb|GLP_MPS_DECK| & fixed (ancient) MPS format; \\
-\verb|GLP_MPS_FILE| & free (modern) MPS format. \\
-\end{tabular}
+\verb|GLP_MPS_DECK| --- fixed (ancient) MPS format;
 
-The parameter \verb|parm| is reserved for use in the future and must be
-specified as \verb|NULL|.
+\verb|GLP_MPS_FILE| --- free (modern) MPS format.
+
+The parameter \verb|parm| is reserved for use in the future and should
+be specified as \verb|NULL|.
 
 The character string \verb|fname| specifies a name of the text file to
 be written out. (If the file name ends with suffix `\verb|.gz|', the
 file is assumed to be compressed, in which case the routine
 \verb|glp_write_mps| performs automatic compression on writing it.)
 
-\subsubsection*{Returns}
+\returns
 
 If the operation was successful, the routine \verb|glp_write_mps|
 returns zero. Otherwise, it prints an error message and returns
 non-zero.
 
-\subsection{glp\_read\_lp---read problem data in CPLEX LP format}
+\subsection{glp\_read\_lp --- read problem data in CPLEX LP format}
 
-\subsubsection*{Synopsis}
+\synopsis
 
-\begin{verbatim}
-int glp_read_lp(glp_prob *lp, const void *parm,
-      const char *fname);
-\end{verbatim}
+{\tt int glp\_read\_lp(glp\_prob *P, const glp\_cpxcp *parm,
+const char *fname);}
 
-\subsubsection*{Description}
+\description
 
 The routine \verb|glp_read_lp| reads problem data in CPLEX LP format
 from a text file. (The CPLEX LP format is described in Appendix
 \ref{chacplex}, page \pageref{chacplex}.)
 
-The parameter \verb|parm| is reserved for use in the future and must be
-specified as \verb|NULL|.
+The parameter \verb|parm| is reserved for use in the future and should
+be specified as \verb|NULL|.
 
 The character string \verb|fname| specifies a name of the text file to
-be read in. (If the file name ends with suffix `\verb|.gz|', the file is
-assumed to be compressed, in which case the routine \verb|glp_read_lp|
-decompresses it ``on the fly''.)
+be read in. (If the file name ends with suffix `\verb|.gz|', the file
+is assumed to be compressed, in which case the routine
+\verb|glp_read_lp| decompresses it ``on the fly''.)
 
 Note that before reading data the current content of the problem object
 is completely erased with the routine \verb|glp_erase_prob|.
 
-\subsubsection*{Returns}
+\returns
 
 If the operation was successful, the routine \verb|glp_read_lp| returns
 zero. Otherwise, it prints an error message and returns non-zero.
 
-\subsection{glp\_write\_lp---write problem data in CPLEX LP format}
+\newpage
 
-\subsubsection*{Synopsis}
+\subsection{glp\_write\_lp --- write problem data in CPLEX LP format}
 
-\begin{verbatim}
-int glp_write_lp(glp_prob *lp, const void *parm,
-      const char *fname);
-\end{verbatim}
+\synopsis
 
-\subsubsection*{Description}
+{\tt int glp\_write\_lp(glp\_prob *P, const glp\_cpxcp *parm,
+const char *fname);}
+
+\description
 
 The routine \verb|glp_write_lp| writes problem data in CPLEX LP format
 to a text file. (The CPLEX LP format is described in Appendix
 \ref{chacplex}, page \pageref{chacplex}.)
 
-The parameter \verb|parm| is reserved for use in the future and must be
-specified as \verb|NULL|.
+The parameter \verb|parm| is reserved for use in the future and should
+be specified as \verb|NULL|.
 
 The character string \verb|fname| specifies a name of the text file to
 be written out. (If the file name ends with suffix `\verb|.gz|', the
 file is assumed to be compressed, in which case the routine
 \verb|glp_write_lp| performs automatic compression on writing it.)
 
-\subsubsection*{Returns}
+\returns
 
 If the operation was successful, the routine \verb|glp_write_lp|
 returns zero. Otherwise, it prints an error message and returns
 non-zero.
 
-\subsection{glp\_read\_prob---read problem data in GLPK format}
+\subsection{glp\_read\_prob --- read problem data in GLPK format}
 
-\subsubsection*{Synopsis}
+\synopsis
 
 \begin{verbatim}
-int glp_read_prob(glp_prob *P, int flags, const char *fname);
+   int glp_read_prob(glp_prob *P, int flags, const char *fname);
 \end{verbatim}
 
-\subsubsection*{Description}
+\description
 
 The routine \verb|glp_read_prob| reads problem data in the GLPK LP/MIP
 format from a text file. (For description of the GLPK LP/MIP format see
@@ -164,30 +162,32 @@ is assumed to be compressed, in which case the routine
 Note that before reading data the current content of the problem object
 is completely erased with the routine \verb|glp_erase_prob|.
 
-\subsubsection*{Returns}
+\returns
 
 If the operation was successful, the routine \verb|glp_read_prob|
 returns zero. Otherwise, it prints an error message and returns
 non-zero.
 
-\subsubsection*{GLPK LP/MIP format}
+\newpage
+
+\para{GLPK LP/MIP format}
 
 The GLPK LP/MIP format is a DIMACS-like format.\footnote{The DIMACS
 formats were developed by the Center for Discrete Mathematics and
 Theoretical Computer Science (DIMACS) to facilitate exchange of problem
 data. For details see: {\tt <http://dimacs.rutgers.edu/Challenges/>}. }
 The file in this format is a plain ASCII text file containing lines of
-several types described below. A line is terminated with the end-of-line
-character. Fields in each line are separated by at least one blank
-space. Each line begins with a one-character designator to identify the
-line type.
+several types described below. A line is terminated with the
+end-of-line character. Fields in each line are separated by at least
+one blank space. Each line begins with a one-character designator to
+identify the line type.
 
 The first line of the data file must be the problem line (except
 optional comment lines, which may precede the problem line). The last
 line of the data file must be the end line. Other lines may follow in
 arbitrary order, however, duplicate lines are not allowed.
 
-\paragraph{Comment lines.} Comment lines give human-readable
+\para{Comment lines.} Comment lines give human-readable
 information about the data file and are ignored by GLPK routines.
 Comment lines can appear anywhere in the data file. Each comment line
 begins with the lower-case character \verb|c|.
@@ -196,7 +196,7 @@ begins with the lower-case character \verb|c|.
    c This is an example of comment line
 \end{verbatim}
 
-\paragraph{Problem line.} There must be exactly one problem line in the
+\para{Problem line.} There must be exactly one problem line in the
 data file. This line must appear before any other lines except comment
 lines and has the following format:
 
@@ -220,9 +220,9 @@ rows (constraints), columns (variables), and non-zero constraint
 coefficients in the problem instance. Note that \verb|NONZ| value does
 not account objective coefficients.
 
-\paragraph{Row descriptors.} There must be at most one row descriptor
-line in the data file for each row (constraint). This line has one of
-the following formats:
+\para{Row descriptors.} There must be at most one row descriptor line
+in the data file for each row (constraint). This line has one of the
+following formats:
 
 \begin{verbatim}
    i ROW f
@@ -263,12 +263,10 @@ If for some row its descriptor line does not appear in the data file,
 by default that row is assumed to be an equality constraint with zero
 right-hand side.
 
-\paragraph{Column descriptors.} There must be at most one column
-descriptor line in the data file for each column (variable). This line
-has one of the following formats depending on the problem class
-specified in the problem line:
-
-\bigskip
+\para{Column descriptors.} There must be at most one column descriptor
+line in the data file for each column (variable). This line has one of
+the following formats depending on the problem class specified in the
+problem line:
 
 \begin{tabular}{@{}l@{\hspace*{40pt}}l}
 LP class & MIP class \\
@@ -279,8 +277,6 @@ LP class & MIP class \\
 \verb|j COL d BND1 BND2| & \verb|j COL KIND d BND1 BND2| \\
 \verb|j COL s BND|       & \verb|j COL KIND s BND|       \\
 \end{tabular}
-
-\bigskip
 
 The lower-case letter \verb|j| specifies that this is the column
 descriptor line.
@@ -320,9 +316,9 @@ If for some column its descriptor line does not appear in the file, by
 default that column is assumed to be non-negative (in case of LP class)
 or binary (in case of MIP class).
 
-\paragraph{Coefficient descriptors.} There must be exactly one
-coefficient descriptor line in the data file for each non-zero
-objective or constraint coefficient. This line has the following format:
+\para{Coefficient descriptors.} There must be exactly one coefficient
+descriptor line in the data file for each non-zero objective or
+constraint coefficient. This line has the following format:
 
 \begin{verbatim}
    a ROW COL VAL
@@ -350,10 +346,10 @@ allowed to specify zero value in this field).
 The number of constraint coefficient descriptor lines must be exactly
 the same as specified in the field \verb|NONZ| of the problem line.
 
-\paragraph{Symbolic name descriptors.} There must be at most one
-symbolic name descriptor line for the problem instance, objective
-function, each row (constraint), and each column (variable). This line
-has one of the following formats:
+\para{Symbolic name descriptors.} There must be at most one symbolic
+name descriptor line for the problem instance, objective function, each
+row (constraint), and each column (variable). This line has one of the
+following formats:
 
 \begin{verbatim}
    n p NAME
@@ -388,9 +384,8 @@ The \verb|NAME| field contains the symbolic name, a sequence from 1 to
 255 arbitrary graphic ASCII characters, assigned to corresponding
 object.
 
-\paragraph{End line.} There must be exactly one end line in the data
-file. This line must appear last in the file and has the following
-format:
+\para{End line.} There must be exactly one end line in the data file.
+This line must appear last in the file and has the following format:
 
 \begin{verbatim}
    e
@@ -399,10 +394,14 @@ format:
 The lower-case letter \verb|e| specifies that this is the end line.
 Anything that follows the end line is ignored by GLPK routines.
 
-\subsubsection*{Example of data file in GLPK LP/MIP format}
+\newpage
+
+\para{Example of data file in GLPK LP/MIP format}
 
 The following example of a data file in GLPK LP/MIP format specifies
 the same LP problem as in Subsection ``Example of MPS file''.
+
+\bigskip
 
 \begin{center}
 \footnotesize\tt
@@ -502,15 +501,15 @@ e o f             \\
 
 \newpage
 
-\subsection{glp\_write\_prob---write problem data in GLPK format}
+\subsection{glp\_write\_prob --- write problem data in GLPK format}
 
-\subsubsection*{Synopsis}
+\synopsis
 
 \begin{verbatim}
 int glp_write_prob(glp_prob *P, int flags, const char *fname);
 \end{verbatim}
 
-\subsubsection*{Description}
+\description
 
 The routine \verb|glp_write_prob| writes problem data in the GLPK
 LP/MIP format to a text file. (For description of the GLPK LP/MIP
@@ -524,7 +523,7 @@ be written out. (If the file name ends with suffix `\verb|.gz|', the
 file is assumed to be compressed, in which case the routine
 \verb|glp_write_prob| performs automatic compression on writing it.)
 
-\subsubsection*{Returns}
+\returns
 
 If the operation was successful, the routine \verb|glp_read_prob|
 returns zero. Otherwise, it prints an error message and returns
@@ -554,46 +553,61 @@ an internal code and then interprets (executes) this code.
 The processing of a model written in GNU MathProg includes several
 steps, which should be performed in the following order:
 
+\vspace*{-8pt}
+
 \begin{enumerate}
 \item{\it Allocating the workspace.}
 The translator allocates the workspace, an internal data structure used
 on all subsequent steps.
+
 \item{\it Reading model section.} The translator reads model section
 and, optionally, data section from a specified text file and translates
 them into the internal code. If necessary, on this step data section
 may be ignored.
+
 \item{\it Reading data section(s).} The translator reads one or more
 data sections from specified text file(s) and translates them into the
 internal code.
+
 \item{\it Generating the model.} The translator executes the internal
 code to evaluate the content of the model objects such as sets,
 parameters, variables, constraints, and objectives. On this step the
 execution is suspended at the solve statement.
+
 \item {\it Building the problem object.} The translator obtains all
 necessary information from the workspace and builds the standard
 problem object (that is, the program object of type \verb|glp_prob|).
+
 \item{\it Solving the problem.} On this step the problem object built
 on the previous step is passed to a solver, which solves the problem
 instance and stores its solution back to the problem object.
+
 \item{\it Postsolving the model.} The translator copies the solution
 from the problem object to the workspace and then executes the internal
 code from the solve statement to the end of the model. (If model has
 no solve statement, the translator does nothing on this step.)
+
 \item{\it Freeing the workspace.} The translator frees all the memory
 allocated to the workspace.
 \end{enumerate}
 
+\vspace*{-8pt}
+
 Note that the MathProg translator performs no error correction, so if
 any of steps 2 to 7 fails (due to errors in the model), the application
-program should terminate processing and go to step 8.
+program should terminate processing and go to\linebreak step 8.
 
-\subsubsection*{Example 1}
+\newpage
+
+\para{Example 1}
 
 In this example the program reads model and data sections from input
 file \verb|egypt.mod|\footnote{This is an example model included in
 the GLPK distribution.} and writes the model to output file
 \verb|egypt.mps| in free MPS format (see Appendix B). No solution is
 performed.
+
+\bigskip
 
 \begin{small}
 \begin{verbatim}
@@ -632,6 +646,8 @@ skip: glp_mpl_free_wksp(tran);
 \end{verbatim}
 \end{small}
 
+\newpage
+
 \subsubsection*{Example 2}
 
 In this example the program reads model section from file
@@ -640,6 +656,8 @@ in the GLPK distribution along with alternative data file
 {\tt sudoku.dat}.} ignoring data section in this file, reads alternative
 data section from file \verb|sudoku.dat|, solves the problem instance
 and passes the solution found back to the model.
+
+\bigskip
 
 \begin{small}
 \begin{verbatim}
@@ -685,35 +703,37 @@ skip: glp_mpl_free_wksp(tran);
 \end{verbatim}
 \end{small}
 
-\subsection{glp\_mpl\_alloc\_wksp---allocate the translator workspace}
+\newpage
 
-\subsubsection*{Synopsis}
+\subsection{glp\_mpl\_alloc\_wksp --- allocate the translator
+workspace}
+
+\synopsis
 
 \begin{verbatim}
-glp_tran *glp_mpl_alloc_wksp(void);
+   glp_tran *glp_mpl_alloc_wksp(void);
 \end{verbatim}
 
-\subsubsection*{Description}
+\description
 
 The routine \verb|glp_mpl_alloc_wksp| allocates the MathProg translator
 work\-space. (Note that multiple instances of the workspace may be
 allocated, if necessary.)
 
-\subsubsection*{Returns}
+\returns
 
 The routine returns a pointer to the workspace, which should be used in
 all subsequent operations.
 
-\subsection{glp\_mpl\_read\_model---read and translate model section}
+\subsection{glp\_mpl\_read\_model --- read and translate model section}
 
-\subsubsection*{Synopsis}
+\synopsis
 
 \begin{verbatim}
-int glp_mpl_read_model(glp_tran *tran, const char *fname,
-      int skip);
+   int glp_mpl_read_model(glp_tran *tran, const char *fname, int skip);
 \end{verbatim}
 
-\subsubsection*{Description}
+\description
 
 The routine \verb|glp_mpl_read_model| reads model section and,
 optionally, data section, which may follow the model section, from a
@@ -726,40 +746,42 @@ data section and this flag is non-zero, the data section is not read as
 if there were no data section and a warning message is printed. This
 allows reading data section(s) from other file(s).
 
-\subsubsection*{Returns}
+\returns
 
 If the operation is successful, the routine returns zero. Otherwise
 the routine prints an error message and returns non-zero.
 
-\subsection{glp\_mpl\_read\_data---read and translate data section}
+\subsection{glp\_mpl\_read\_data --- read and translate data section}
 
-\subsubsection*{Synopsis}
+\synopsis
 
 \begin{verbatim}
-int glp_mpl_read_data(glp_tran *tran, const char *fname);
+   int glp_mpl_read_data(glp_tran *tran, const char *fname);
 \end{verbatim}
 
-\subsubsection*{Description}
+\description
 
 The routine \verb|glp_mpl_read_data| reads data section from a text
 file, whose name is the character string \verb|fname|, performs
 translation of data blocks, and stores the data read in the translator
 workspace. If necessary, this routine may be called more than once.
 
-\subsubsection*{Returns}
+\returns
 
 If the operation is successful, the routine returns zero. Otherwise
 the routine prints an error message and returns non-zero.
 
-\subsection{glp\_mpl\_generate---generate the model}
+\newpage
 
-\subsubsection*{Synopsis}
+\subsection{glp\_mpl\_generate --- generate the model}
+
+\synopsis
 
 \begin{verbatim}
-int glp_mpl_generate(glp_tran *tran, const char *fname);
+   int glp_mpl_generate(glp_tran *tran, const char *fname);
 \end{verbatim}
 
-\subsubsection*{Description}
+\description
 
 The routine \verb|glp_mpl_generate| generates the model using its
 description stored in the translator workspace. This operation means
@@ -771,37 +793,40 @@ The character string \verb|fname| specifies the name of an output text
 file, to which output produced by display statements should be written.
 If \verb|fname| is \verb|NULL|, the output is sent to the terminal.
 
-\subsubsection*{Returns}
+\returns
 
 If the operation is successful, the routine returns zero. Otherwise
 the routine prints an error message and returns non-zero.
 
-\subsection{glp\_mpl\_build\_prob---build problem instance from the
+\vspace*{-6pt}
+
+\subsection{glp\_mpl\_build\_prob --- build problem instance from the
 model}
 
-\subsubsection*{Synopsis}
+\synopsis
 
 \begin{verbatim}
-void glp_mpl_build_prob(glp_tran *tran, glp_prob *prob);
+   void glp_mpl_build_prob(glp_tran *tran, glp_prob *P);
 \end{verbatim}
 
-\subsubsection*{Description}
+\description
 
 The routine \verb|glp_mpl_build_prob| obtains all necessary information
-from the translator workspace and stores it in the specified problem
-object \verb|prob|. Note that before building the current content of
-the problem object is erased with the routine \verb|glp_erase_prob|.
+from the translator work\-space and stores it in the specified problem
+object \verb|P|. Note that before building the current content of the
+problem object is erased with the routine \verb|glp_erase_prob|.
 
-\subsection{glp\_mpl\_postsolve---postsolve the model}
+\vspace*{-6pt}
 
-\subsubsection*{Synopsis}
+\subsection{glp\_mpl\_postsolve --- postsolve the model}
+
+\synopsis
 
 \begin{verbatim}
-int glp_mpl_postsolve(glp_tran *tran, glp_prob *prob,
-      int sol);
+   int glp_mpl_postsolve(glp_tran *tran, glp_prob *P, int sol);
 \end{verbatim}
 
-\subsubsection*{Description}
+\description
 
 The routine \verb|glp_mpl_postsolve| copies the solution from the
 specified problem object \verb|prob| to the translator workspace and
@@ -811,26 +836,26 @@ solve statement.
 The parameter \verb|sol| specifies which solution should be copied
 from the problem object to the workspace as follows:
 
-\begin{tabular}{@{}ll}
-\verb|GLP_SOL| & basic solution; \\
-\verb|GLP_IPT| & interior-point solution; \\
-\verb|GLP_MIP| & mixed integer solution. \\
-\end{tabular}
+\verb|GLP_SOL| --- basic solution;
 
-\subsubsection*{Returns}
+\verb|GLP_IPT| --- interior-point solution;
+
+\verb|GLP_MIP| --- mixed integer solution.
+
+\returns
 
 If the operation is successful, the routine returns zero. Otherwise
 the routine prints an error message and returns non-zero.
 
-\subsection{glp\_mpl\_free\_wksp---free the translator workspace}
+\subsection{glp\_mpl\_free\_wksp --- free the translator workspace}
 
-\subsubsection*{Synopsis}
+\synopsis
 
 \begin{verbatim}
-void glp_mpl_free_wksp(glp_tran *tran);
+   void glp_mpl_free_wksp(glp_tran *tran);
 \end{verbatim}
 
-\subsubsection*{Description}
+\description
 
 The routine \verb|glp_mpl_free_wksp| frees all the memory allocated to
 the translator workspace. It also frees all other resources, which are
@@ -842,70 +867,72 @@ still used by the translator.
 
 \section{Problem solution reading/writing routines}
 
-\subsection{glp\_print\_sol---write basic solution in printable format}
+\subsection{glp\_print\_sol --- write basic solution in printable
+format}
 
-\subsubsection*{Synopsis}
+\synopsis
 
 \begin{verbatim}
-int glp_print_sol(glp_prob *lp, const char *fname);
+   int glp_print_sol(glp_prob *P, const char *fname);
 \end{verbatim}
 
-\subsubsection*{Description}
+\description
 
 The routine \verb|glp_print_sol writes| the current basic solution of
-an LP problem, which is specified by the pointer \verb|lp|, to a text
+an LP problem, which is specified by the pointer \verb|P|, to a text
 file, whose name is the character string \verb|fname|, in printable
 format.
 
 Information reported by the routine \verb|glp_print_sol| is intended
 mainly for visual analysis.
 
-\subsubsection*{Returns}
+\returns
 
 If no errors occurred, the routine returns zero. Otherwise the routine
 prints an error message and returns non-zero.
 
-\subsection{glp\_read\_sol---read basic solution from text file}
+\subsection{glp\_read\_sol --- read basic solution from text file}
 
-\subsubsection*{Synopsis}
+\synopsis
 
 \begin{verbatim}
-int glp_read_sol(glp_prob *lp, const char *fname);
+   int glp_read_sol(glp_prob *P, const char *fname);
 \end{verbatim}
 
-\subsubsection*{Description}
+\description
 
 The routine \verb|glp_read_sol| reads basic solution from a text file
 whose name is specified by the parameter \verb|fname| into the problem
 object.
 
-For the file format see description of the routine \verb|glp_write_sol|.
+For the file format see description of the routine
+\verb|glp_write_sol|.
 
-\subsubsection*{Returns}
+\returns
+
+On success the routine returns zero, otherwise non-zero.
+
+\subsection{glp\_write\_sol --- write basic solution to text file}
+
+\synopsis
+
+\begin{verbatim}
+   int glp_write_sol(glp_prob *P, const char *fname);
+\end{verbatim}
+
+\description
+
+The routine \verb|glp_write_sol| writes the current basic solution to
+a text file whose name is specified by the parameter \verb|fname|. This
+file can be read back with the routine \verb|glp_read_sol|.
+
+\returns
 
 On success the routine returns zero, otherwise non-zero.
 
 \newpage
 
-\subsection{glp\_write\_sol---write basic solution to text file}
-
-\subsubsection*{Synopsis}
-
-\begin{verbatim}
-int glp_write_sol(glp_prob *lp, const char *fname);
-\end{verbatim}
-
-\subsubsection*{Description}
-
-The routine \verb|glp_write_sol| writes the current basic solution to a
-text file whose name is specified by the parameter \verb|fname|. This
-file can be read back with the routine \verb|glp_read_sol|.
-
-\subsubsection*{Returns}
-
-On success the routine returns zero, otherwise non-zero.
-
-\subsubsection*{File format}
+\para{File format}
 
 The file created by the routine \verb|glp_write_sol| is a plain text
 file, which contains the following information:
@@ -931,12 +958,12 @@ $m$ is the number of rows (auxiliary variables);
 $n$ is the number of columns (structural variables);
 
 \noindent
-\verb|p_stat| is the primal status of the basic solution
+\verb|p_stat| is the primal status of the basic solution\\
 (\verb|GLP_UNDEF| = 1, \verb|GLP_FEAS| = 2, \verb|GLP_INFEAS| = 3, or
 \verb|GLP_NOFEAS| = 4);
 
 \noindent
-\verb|d_stat| is the dual status of the basic solution
+\verb|d_stat| is the dual status of the basic solution\\
 (\verb|GLP_UNDEF| = 1, \verb|GLP_FEAS| = 2, \verb|GLP_INFEAS| = 3, or
 \verb|GLP_NOFEAS| = 4);
 
@@ -944,7 +971,7 @@ $n$ is the number of columns (structural variables);
 \verb|obj_val| is the objective value;
 
 \noindent
-\verb|r_stat[i]|, $i=1,\dots,m$, is the status of $i$-th row
+\verb|r_stat[i]|, $i=1,\dots,m$, is the status of $i$-th row\\
 (\verb|GLP_BS| = 1, \verb|GLP_NL| = 2, \verb|GLP_NU| = 3,
 \verb|GLP_NF| = 4, or \verb|GLP_NS| = 5);
 
@@ -955,7 +982,7 @@ $n$ is the number of columns (structural variables);
 \verb|r_dual[i]|, $i=1,\dots,m$, is the dual value of $i$-th row;
 
 \noindent
-\verb|c_stat[j]|, $j=1,\dots,n$, is the status of $j$-th column
+\verb|c_stat[j]|, $j=1,\dots,n$, is the status of $j$-th column\\
 (\verb|GLP_BS| = 1, \verb|GLP_NL| = 2, \verb|GLP_NU| = 3,
 \verb|GLP_NF| = 4, or \verb|GLP_NS| = 5);
 
@@ -965,72 +992,75 @@ $n$ is the number of columns (structural variables);
 \noindent
 \verb|c_dual[j]|, $j=1,\dots,n$, is the dual value of $j$-th column.
 
-\subsection{glp\_print\_ipt---write interior-point solution in
+\subsection{glp\_print\_ipt --- write interior-point solution in
 printable format}
 
-\subsubsection*{Synopsis}
+\synopsis
 
 \begin{verbatim}
-int glp_print_ipt(glp_prob *lp, const char *fname);
+   int glp_print_ipt(glp_prob *P, const char *fname);
 \end{verbatim}
 
-\subsubsection*{Description}
+\description
 
 The routine \verb|glp_print_ipt| writes the current interior point
-solution  of an LP problem, which the parameter \verb|lp| points to, to
+solution  of an LP problem, which the parameter \verb|P| points to, to
 a text file, whose name is the character string \verb|fname|, in
 printable format.
 
 Information reported by the routine \verb|glp_print_ipt| is intended
 mainly for visual analysis.
 
-\subsubsection*{Returns}
+\newpage
+
+\returns
 
 If no errors occurred, the routine returns zero. Otherwise the routine
 prints an error message and returns non-zero.
 
-\subsection{glp\_read\_ipt---read interior-point solution from text
+\subsection{glp\_read\_ipt --- read interior-point solution from text
 file}
 
-\subsubsection*{Synopsis}
+\synopsis
 
 \begin{verbatim}
-int glp_read_ipt(glp_prob *lp, const char *fname);
+   int glp_read_ipt(glp_prob *P, const char *fname);
 \end{verbatim}
 
-\subsubsection*{Description}
+\description
 
-The routine \verb|glp_read_ipt| reads interior-point solution from a
-text file whose name is specified by the parameter \verb|fname| into the
-problem object.
+The routine \verb|glp_read_ipt| reads interior-point solution from
+a text file whose name is specified by the parameter \verb|fname| into
+the problem object.
 
-For the file format see description of the routine \verb|glp_write_ipt|.
+For the file format see description of the routine
+\verb|glp_write_ipt|.
 
-\subsubsection*{Returns}
+\returns
 
 On success the routine returns zero, otherwise non-zero.
 
-\subsection{glp\_write\_ipt---write interior-point solution to text
+\subsection{glp\_write\_ipt --- write interior-point solution to text
 file}
 
-\subsubsection*{Synopsis}
+\synopsis
 
 \begin{verbatim}
-int glp_write_ipt(glp_prob *lp, const char *fname);
+   int glp_write_ipt(glp_prob *P, const char *fname);
 \end{verbatim}
 
-\subsubsection*{Description}
+\description
 
 The routine \verb|glp_write_ipt| writes the current interior-point
 solution to a text file whose name is specified by the parameter
 \verb|fname|. This file can be read back with the routine
 \verb|glp_read_ipt|.
 
-\subsubsection*{Returns}
+\returns
 
 On success the routine returns zero, otherwise non-zero.
 
-\subsubsection*{File format}
+\para{File format}
 
 The file created by the routine \verb|glp_write_ipt| is a plain text
 file, which contains the following information:
@@ -1074,70 +1104,71 @@ $n$ is the number of columns (structural variables);
 \noindent
 \verb|c_dual[j]|, $j=1,\dots,n$, is the dual value of $j$-th column.
 
-\subsection{glp\_print\_mip---write MIP solution in printable format}
+\subsection{glp\_print\_mip --- write MIP solution in printable format}
 
-\subsubsection*{Synopsis}
+\synopsis
 
 \begin{verbatim}
-int glp_print_mip(glp_prob *lp, const char *fname);
+   int glp_print_mip(glp_prob *P, const char *fname);
 \end{verbatim}
 
-\subsubsection*{Description}
+\description
 
 The routine \verb|glp_print_mip| writes a best known integer solution
-of a MIP problem, which is specified by the pointer \verb|lp|, to a text
-file, whose name is the character string \verb|fname|, in printable
-format.
+of a MIP problem, which is specified by the pointer \verb|P|, to
+a text file, whose name is the character string \verb|fname|, in
+printable format.
 
 Information reported by the routine \verb|glp_print_mip| is intended
 mainly for visual analysis.
 
-\subsubsection*{Returns}
+\returns
 
 If no errors occurred, the routine returns zero. Otherwise the routine
 prints an error message and returns non-zero.
 
-\newpage
+\subsection{glp\_read\_mip --- read MIP solution from text file}
 
-\subsection{glp\_read\_mip---read MIP solution from text file}
-
-\subsubsection*{Synopsis}
+\synopsis
 
 \begin{verbatim}
-int glp_read_mip(glp_prob *mip, const char *fname);
+   int glp_read_mip(glp_prob *P, const char *fname);
 \end{verbatim}
 
-\subsubsection*{Description}
+\description
 
 The routine \verb|glp_read_mip| reads MIP solution from a text file
 whose name is specified by the parameter \verb|fname| into the problem
 object.
 
-For the file format see description of the routine \verb|glp_write_mip|.
+For the file format see description of the routine
+\verb|glp_write_mip|.
 
-\subsubsection*{Returns}
+\returns
 
 On success the routine returns zero, otherwise non-zero.
 
-\subsection{glp\_write\_mip---write MIP solution to text file}
+\newpage
 
-\subsubsection*{Synopsis}
+\subsection{glp\_write\_mip --- write MIP solution to text file}
+
+\synopsis
 
 \begin{verbatim}
-int glp_write_mip(glp_prob *mip, const char *fname);
+   int glp_write_mip(glp_prob *P, const char *fname);
 \end{verbatim}
 
-\subsubsection*{Description}
+\description
 
-The routine \verb|glp_write_mip| writes the current MIP solution to a
-text file whose name is specified by the parameter \verb|fname|. This
+The routine \verb|glp_write_mip| writes the current MIP solution to
+a text file whose name is specified by the parameter \verb|fname|. This
 file can be read back with the routine \verb|glp_read_mip|.
 
-\subsubsection*{Returns}
+\returns
 
 On success the routine returns zero, otherwise non-zero.
 
-\subsubsection*{File format}
+\para{File format}
 
 The file created by the routine \verb|glp_write_sol| is a plain text
 file, which contains the following information:
@@ -1163,7 +1194,7 @@ $m$ is the number of rows (auxiliary variables);
 $n$ is the number of columns (structural variables);
 
 \noindent
-\verb|stat| is the solution status (\verb|GLP_UNDEF| = 1,
+\verb|stat| is the solution status\\(\verb|GLP_UNDEF| = 1,
 \verb|GLP_FEAS| = 2, \verb|GLP_NOFEAS| = 4, or \verb|GLP_OPT| = 5);
 
 \noindent
@@ -1181,16 +1212,15 @@ $n$ is the number of columns (structural variables);
 
 \section{Post-optimal analysis routines}
 
-\subsection{glp\_print\_ranges---print sensitivity analysis report}
+\subsection{glp\_print\_ranges --- print sensitivity analysis report}
 
-\subsubsection*{Synopsis}
+\synopsis
 
-\begin{verbatim}
-int glp_print_ranges(glp_prob *P, int len, const int list[],
-      int flags, const char *fname);
-\end{verbatim}
+{\tt int glp\_print\_ranges(glp\_prob *P, int len, const int list[],
+int flags,\\
+\hspace*{134pt}const char *fname);}
 
-\subsubsection*{Description}
+\description
 
 The routine \verb|glp_print_ranges| performs sensitivity analysis of
 current optimal basic solution and writes the analysis report in
@@ -1223,19 +1253,19 @@ not exist, compute it with the routine \verb|glp_factorize|. Note that
 if the LP preprocessor is not used, on normal exit from the simplex
 solver routine \verb|glp_simplex| the basis factorization always exists.
 
-\subsubsection*{Returns}
+\returns
 
 If the operation was successful, the routine \verb|glp_print_ranges|
 returns zero. Otherwise, it prints an error message and returns
 non-zero.
 
-\subsubsection*{Analysis report example}
+\para{Analysis report example}
 
 An example of the sensitivity analysis report is shown on the next two
 pages. This example corresponds to the example of LP problem described
 in Subsection ``Example of MPS file''.
 
-\subsubsection*{Structure of the analysis report}
+\para{Structure of the analysis report}
 
 For each row and column specified in the array {\it list} the routine
 prints two lines containing generic information and analysis
@@ -1247,68 +1277,10 @@ a column is analysis of corresponding structural variable. Therefore,
 formally, on performing the sensitivity analysis there is no difference
 between rows and columns.
 
-\bigskip
-
-\noindent
-{\it Generic information}
-
-\medskip
-
-\noindent
-{\tt No.} is the row or column ordinal number in the problem object.
-Rows are numbered from 1 to $m$, and columns are numbered from 1 to $n$,
-where $m$ and $n$ are, resp., the total number of rows and columns in
-the problem object.
-
-\medskip
-
-\noindent
-{\tt Row name} is the symbolic name assigned to the row. If the row has
-no name assigned, this field contains blanks.
-
-\medskip
-
-\noindent
-{\tt Column name} is the symbolic name assigned to the column. If the
-column has no name assigned, this field contains blanks.
-
-\medskip
-
-\noindent
-{\tt St} is the status of the row or column in the optimal solution:
-
-{\tt BS} --- non-active constraint (row), basic column;
-
-{\tt NL} --- inequality constraint having its lower right-hand side
-active (row), non-basic column having its lower bound active;
-
-{\tt NU} --- inequality constraint having its upper right-hand side
-active (row), non-basic column having its upper bound active;
-
-{\tt NS} --- active equality constraint (row), non-basic fixed column.
-
-{\tt NF} --- active free row, non-basic free (unbounded) column. (This
-case means that the optimal solution is dual degenerate.)
-
-\medskip
-
-\noindent
-{\tt Activity} is the (primal) value of the auxiliary variable (row) or
-structural variable (column) in the optimal solution.
-
-\medskip
-
-\noindent
-{\tt Slack} is the (primal) value of the row slack variable.
-
-\medskip
-
-\noindent
-{\tt Obj coef} is the objective coefficient of the column (structural
-variable).
+\newpage
 
 \begin{landscape}
-\begin{scriptsize}
+\begin{footnotesize}
 \begin{verbatim}
 GLPK 4.42 - SENSITIVITY ANALYSIS REPORT                                                                         Page   1
 
@@ -1342,11 +1314,13 @@ Objective:  VALUE = 296.2166065 (MINimum)
      8 SI           NL     250.00000      50.00000     250.00000      235.32871       -.48520     289.09812 CU
                                             .48520     300.00000      255.06073          +Inf     298.67206 BIN3
 \end{verbatim}
-\end{scriptsize}
+\end{footnotesize}
 \end{landscape}
 
+\newpage
+
 \begin{landscape}
-\begin{scriptsize}
+\begin{footnotesize}
 \begin{verbatim}
 GLPK 4.42 - SENSITIVITY ANALYSIS REPORT                                                                         Page   2
 
@@ -1379,35 +1353,62 @@ Objective:  VALUE = 296.2166065 (MINimum)
 
 End of report
 \end{verbatim}
-\end{scriptsize}
+\end{footnotesize}
 \end{landscape}
 
+\newpage
+
 \noindent
+{\it Generic information}
+
+{\tt No.} is the row or column ordinal number in the problem object.
+Rows are numbered from 1 to $m$, and columns are numbered from 1 to $n$,
+where $m$ and $n$ are, resp., the total number of rows and columns in
+the problem object.
+
+{\tt Row name} is the symbolic name assigned to the row. If the row has
+no name assigned, this field contains blanks.
+
+{\tt Column name} is the symbolic name assigned to the column. If the
+column has no name assigned, this field contains blanks.
+
+{\tt St} is the status of the row or column in the optimal solution:
+
+{\tt BS} --- non-active constraint (row), basic column;
+
+{\tt NL} --- inequality constraint having its lower right-hand side
+active (row), non-basic column having its lower bound active;
+
+{\tt NU} --- inequality constraint having its upper right-hand side
+active (row), non-basic column having its upper bound active;
+
+{\tt NS} --- active equality constraint (row), non-basic fixed column.
+
+{\tt NF} --- active free row, non-basic free (unbounded) column. (This
+case means that the optimal solution is dual degenerate.)
+
+{\tt Activity} is the (primal) value of the auxiliary variable (row) or
+structural variable (column) in the optimal solution.
+
+{\tt Slack} is the (primal) value of the row slack variable.
+
+{\tt Obj coef} is the objective coefficient of the column (structural
+variable).
+
 {\tt Marginal} is the reduced cost (dual activity) of the auxiliary
 variable (row) or structural variable (column).
 
-\medskip
-
-\noindent
 {\tt Lower bound} is the lower right-hand side (row) or lower bound
 (column). If the row or column has no lower bound, this field contains
 {\tt -Inf}.
 
-\medskip
-
-\noindent
 {\tt Upper bound} is the upper right-hand side (row) or upper bound
 (column). If the row or column has no upper bound, this field contains
 {\tt +Inf}.
 
-\bigskip
-
 \noindent
 {\it Sensitivity analysis of active bounds}
 
-\medskip
-
-\noindent
 The sensitivity analysis of active bounds is performed only for rows,
 which are active constraints, and only for non-basic columns, because
 inactive constraints and basic columns have no active bounds.
@@ -1454,15 +1455,10 @@ on the non-basic variable linearly, and the per-unit change of the
 objective function is the reduced cost (marginal value) of the
 non-basic variable.
 
-\bigskip
-
 \noindent
 {\it Sensitivity analysis of objective coefficients at non-basic
 variables}
 
-\medskip
-
-\noindent
 The sensitivity analysis of the objective coefficient at a non-basic
 variable is quite simple, because in this case change in the objective
 coefficient leads to equivalent change in the reduced cost (marginal
@@ -1495,14 +1491,14 @@ thus, minimal value of the objective coefficient, on which the current
 basis still remains optimal, is $0.15-0.01456=0.13644$, that is
 indicated in the field `\verb|Obj coef range|'.
 
-\bigskip
+\newpage
 
+{\parskip=0pt
 \noindent
 {\it Sensitivity analysis of objective coefficients at basic variables}
 
 \medskip
 
-\noindent
 To perform sensitivity analysis for every auxiliary (row) or structural
 (column) variable the routine starts changing its objective coefficient
 in both direction. (Note that auxiliary variables are not included in
@@ -1554,8 +1550,6 @@ resp. It also may happen that no dual feasible adjacent basis exists
 decrease unlimitedly), in which case the field `{\tt Activity range}'
 contains {\tt -Inf} and/or {\tt +Inf}.
 
-\newpage
-
 For example (see the example report above), structural variable
 (column) BIN3 is basic, its optimal value is 490.25271, and its
 objective coefficient is 0.17. The objective coefficient range for this
@@ -1573,5 +1567,6 @@ Note that if the basis does not change, the objective function depends
 on the objective coefficient at the basic variable linearly, and the
 per-unit change of the objective function is the value of the basic
 variable.
+}
 
 %* eof *%

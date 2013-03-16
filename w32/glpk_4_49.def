@@ -1,5 +1,5 @@
-LIBRARY glpk_4_48
-VERSION 4.48
+LIBRARY glpk_4_49
+VERSION 4.49
 DESCRIPTION "GNU Linear Programming Kit"
 EXPORTS
 glp_create_prob
@@ -87,6 +87,7 @@ glp_mip_status
 glp_mip_obj_val
 glp_mip_row_val
 glp_mip_col_val
+glp_check_kkt
 glp_print_sol
 glp_read_sol
 glp_write_sol
@@ -192,6 +193,7 @@ glp_read_graph
 glp_write_graph
 glp_mincost_lp
 glp_mincost_okalg
+glp_mincost_relax4
 glp_maxflow_lp
 glp_maxflow_ffalg
 glp_check_asnprob

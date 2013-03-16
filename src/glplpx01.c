@@ -643,7 +643,7 @@ void lpx_check_kkt(LPX *lp, int scaled, LPXKKT *kkt)
       int ae_ind, re_ind;
       double ae_max, re_max;
       xassert(scaled == scaled);
-      _glp_check_kkt(lp, GLP_SOL, GLP_KKT_PE, &ae_max, &ae_ind, &re_max,
+      glp_check_kkt(lp, GLP_SOL, GLP_KKT_PE, &ae_max, &ae_ind, &re_max,
          &re_ind);
       kkt->pe_ae_max = ae_max;
       kkt->pe_ae_row = ae_ind;
@@ -657,7 +657,7 @@ void lpx_check_kkt(LPX *lp, int scaled, LPXKKT *kkt)
          kkt->pe_quality = 'L';
       else
          kkt->pe_quality = '?';
-      _glp_check_kkt(lp, GLP_SOL, GLP_KKT_PB, &ae_max, &ae_ind, &re_max,
+      glp_check_kkt(lp, GLP_SOL, GLP_KKT_PB, &ae_max, &ae_ind, &re_max,
          &re_ind);
       kkt->pb_ae_max = ae_max;
       kkt->pb_ae_ind = ae_ind;
@@ -671,7 +671,7 @@ void lpx_check_kkt(LPX *lp, int scaled, LPXKKT *kkt)
          kkt->pb_quality = 'L';
       else
          kkt->pb_quality = '?';
-      _glp_check_kkt(lp, GLP_SOL, GLP_KKT_DE, &ae_max, &ae_ind, &re_max,
+      glp_check_kkt(lp, GLP_SOL, GLP_KKT_DE, &ae_max, &ae_ind, &re_max,
          &re_ind);
       kkt->de_ae_max = ae_max;
       if (ae_ind == 0)
@@ -691,7 +691,7 @@ void lpx_check_kkt(LPX *lp, int scaled, LPXKKT *kkt)
          kkt->de_quality = 'L';
       else
          kkt->de_quality = '?';
-      _glp_check_kkt(lp, GLP_SOL, GLP_KKT_DB, &ae_max, &ae_ind, &re_max,
+      glp_check_kkt(lp, GLP_SOL, GLP_KKT_DB, &ae_max, &ae_ind, &re_max,
          &re_ind);
       kkt->db_ae_max = ae_max;
       kkt->db_ae_ind = ae_ind;
@@ -962,7 +962,7 @@ void lpx_check_int(LPX *lp, LPXKKT *kkt)
 {     /* check integer feasibility conditions */
       int ae_ind, re_ind;
       double ae_max, re_max;
-      _glp_check_kkt(lp, GLP_MIP, GLP_KKT_PE, &ae_max, &ae_ind, &re_max,
+      glp_check_kkt(lp, GLP_MIP, GLP_KKT_PE, &ae_max, &ae_ind, &re_max,
          &re_ind);
       kkt->pe_ae_max = ae_max;
       kkt->pe_ae_row = ae_ind;
@@ -976,7 +976,7 @@ void lpx_check_int(LPX *lp, LPXKKT *kkt)
          kkt->pe_quality = 'L';
       else
          kkt->pe_quality = '?';
-      _glp_check_kkt(lp, GLP_MIP, GLP_KKT_PB, &ae_max, &ae_ind, &re_max,
+      glp_check_kkt(lp, GLP_MIP, GLP_KKT_PB, &ae_max, &ae_ind, &re_max,
          &re_ind);
       kkt->pb_ae_max = ae_max;
       kkt->pb_ae_ind = ae_ind;
