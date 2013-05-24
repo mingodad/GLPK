@@ -49,7 +49,6 @@ OBJSET = \
 ..\src\glpenv06.obj \
 ..\src\glpenv07.obj \
 ..\src\glpenv08.obj \
-..\src\glpfhv.obj \
 ..\src\glpgmp.obj \
 ..\src\glphbm.obj \
 ..\src\glpini01.obj \
@@ -126,6 +125,11 @@ OBJSET = \
 ..\src\amd\amd_postorder.obj \
 ..\src\amd\amd_preprocess.obj \
 ..\src\amd\amd_valid.obj \
+..\src\bflib\fhv.obj \
+..\src\bflib\fhvint.obj \
+..\src\bflib\luf.obj \
+..\src\bflib\sgf.obj \
+..\src\bflib\sva.obj \
 ..\src\colamd\colamd.obj \
 ..\src\minisat\minisat.obj \
 ..\src\zlib\adler32.obj \

@@ -544,7 +544,7 @@ static int z_fclose(void *fh)
 
 #else
 
-#include "zlib/zlib.h"
+#include "zlib.h"
 
 struct z_file
 {     /* .gz file handle */

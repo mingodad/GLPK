@@ -25,8 +25,8 @@
 #include "glpenv.h"
 #include "glpmat.h"
 #include "glpqmd.h"
-#include "amd/amd.h"
-#include "colamd/colamd.h"
+#include "amd.h"
+#include "colamd.h"
 
 /*----------------------------------------------------------------------
 -- check_fvs - check sparse vector in full-vector storage format.

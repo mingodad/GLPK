@@ -1068,6 +1068,47 @@ the number of (non-zero) elements in \verb|j|-th column.
 
 \section{Row and column searching routines}
 
+Sometimes it may be necessary to find rows and/or columns by their
+names (assigned with the routines \verb|glp_set_row_name| and
+\verb|glp_set_col_name|). Though a particular row/column can be found
+by its name using simple enumeration of all rows/columns, in case of
+large instances such a {\it linear} search may take too long time.
+
+To significantly reduce the search time the application program may
+create the row/column name index, which is an auxiliary data structure
+implementing a {\it binary} search. Even in worst cases the search
+takes logarithmic time, i.e. the time needed to find a particular row
+(or column) by its name is $O(\log_2m)$ (or $O(\log_2n)$), where $m$
+and $n$ are, resp., the number of rows and columns in the problem
+object.
+
+It is important to note that:
+
+1. On creating the problem object with the routine
+\verb|glp_create_prob| the name index is {\it not} created.
+
+2. The name index can be created (destroyed) at any time with the
+routine \verb|glp_create_index| (\verb|glp_delete_index|). Having been
+created the name index becomes part of the corresponding problem
+object.
+
+3. The time taken to create the name index is $O[(m+n)\log_2(m+n)]$,
+so it is recommended to create the index only once, for example, just
+after the problem object was created.
+
+4. If the name index exists, it is automatically updated every time
+the name of a row/column is assigned/changed. The update operation
+takes logarithmic time.
+
+5. If the name index does not exist, the application should not call
+the routines \verb|glp_find_row| and \verb|glp_find_col|. Otherwise,
+an error message will be issued and abnormal program termination will
+occur.
+
+6. On destroying the problem object with the routine
+\verb|glp_delete_prob|, the name index, if exists, is automatically
+destroyed.
+
 \subsection{glp\_create\_index --- create the name index}
 
 \synopsis
@@ -1085,6 +1126,8 @@ find rows and columns by their names.
 
 This routine can be called at any time. If the name index already
 exists, the routine does nothing.
+
+\newpage
 
 \subsection{glp\_find\_row --- find row by its name}
 

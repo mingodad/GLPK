@@ -22,11 +22,12 @@
 *  along with GLPK. If not, see <http://www.gnu.org/licenses/>.
 ***********************************************************************/
 
-typedef struct BFD BFD;
-
-#define GLPBFD_PRIVATE
 #include "glpapi.h"
+#if 0 /* 27/IV-2013 */
 #include "glpfhv.h"
+#else
+#include "fhvint.h"
+#endif
 #include "glplpf.h"
 
 /* CAUTION: DO NOT CHANGE THE LIMIT BELOW */
@@ -43,8 +44,13 @@ struct BFD
          GLP_BF_FT - LUF + Forrest-Tomlin
          GLP_BF_BG - LUF + Schur compl. + Bartels-Golub
          GLP_BF_GR - LUF + Schur compl. + Givens rotation */
+#if 0 /* 27/IV-2013 */
       FHV *fhv;
       /* LP basis factorization (GLP_BF_FT) */
+#else
+      FHVINT *fi;
+      /* interface to FHV-factorization (GLP_BF_FT) */
+#endif
       LPF *lpf;
       /* LP basis factorization (GLP_BF_BG, GLP_BF_GR) */
       int lu_size;      /* luf.sv_size */
@@ -88,7 +94,11 @@ BFD *bfd_create_it(void)
       bfd = xmalloc(sizeof(BFD));
       bfd->valid = 0;
       bfd->type = GLP_BF_FT;
+#if 0 /* 27/IV-2013 */
       bfd->fhv = NULL;
+#else
+      bfd->fi = NULL;
+#endif
       bfd->lpf = NULL;
       bfd->lu_size = 0;
       bfd->piv_tol = 0.10;
@@ -186,13 +196,23 @@ int bfd_factorize(BFD *bfd, int m, const int bh[], int (*col)
       {  case GLP_BF_FT:
             if (bfd->lpf != NULL)
                lpf_delete_it(bfd->lpf), bfd->lpf = NULL;
+#if 0 /* 27/IV-2013 */
             if (bfd->fhv == NULL)
                bfd->fhv = fhv_create_it(), nov = 1;
+#else
+            if (bfd->fi == NULL)
+               bfd->fi = fhvint_create(), nov = 1;
+#endif
             break;
          case GLP_BF_BG:
          case GLP_BF_GR:
+#if 0 /* 27/IV-2013 */
             if (bfd->fhv != NULL)
                fhv_delete_it(bfd->fhv), bfd->fhv = NULL;
+#else
+            if (bfd->fi != NULL)
+               fhvint_delete(bfd->fi), bfd->fi = NULL;
+#endif
             if (bfd->lpf == NULL)
                bfd->lpf = lpf_create_it(), nov = 1;
             break;
@@ -200,8 +220,13 @@ int bfd_factorize(BFD *bfd, int m, const int bh[], int (*col)
             xassert(bfd != bfd);
       }
       /* set control parameters specific to LUF */
+#if 0 /* 27/IV-2013 */
       if (bfd->fhv != NULL)
          luf = bfd->fhv->luf;
+#else
+      if (bfd->fi != NULL)
+         goto skip;
+#endif
       else if (bfd->lpf != NULL)
          luf = bfd->lpf->luf;
       else
@@ -212,16 +237,19 @@ int bfd_factorize(BFD *bfd, int m, const int bh[], int (*col)
       luf->suhl = bfd->suhl;
       luf->eps_tol = bfd->eps_tol;
       luf->max_gro = bfd->max_gro;
+#if 0 /* 27/IV-2013 */
       /* set control parameters specific to FHV */
       if (bfd->fhv != NULL)
       {  if (nov) bfd->fhv->hh_max = bfd->nfs_max;
          bfd->fhv->upd_tol = bfd->upd_tol;
       }
+#endif
       /* set control parameters specific to LPF */
       if (bfd->lpf != NULL)
       {  if (nov) bfd->lpf->n_max = bfd->nrs_max;
          if (nov) bfd->lpf->v_size = bfd->rs_size;
       }
+#if 0 /* 27/IV-2013 */
       /* try to factorize the basis matrix */
       if (bfd->fhv != NULL)
       {  switch (fhv_factorize(bfd->fhv, m, col, info))
@@ -237,6 +265,17 @@ int bfd_factorize(BFD *bfd, int m, const int bh[], int (*col)
                xassert(bfd != bfd);
          }
       }
+#else
+skip: /* try to factorize the basis matrix */
+      if (bfd->fi != NULL)
+      {  /* FIXME */
+         if (fhvint_factorize(bfd->fi, m, col, info) != 0)
+         {  ret = BFD_ECOND;
+            goto done;
+         }
+         /* printf("*** FACTORIZED; m = %d ***\n", m); */
+      }
+#endif
       else if (bfd->lpf != NULL)
       {  switch (lpf_factorize(bfd->lpf, m, bh, col, info))
          {  case 0:
@@ -297,8 +336,13 @@ done: /* return to the calling program */
 void bfd_ftran(BFD *bfd, double x[])
 {     xassert(bfd != NULL);
       xassert(bfd->valid);
+#if 0 /* 27/IV-2013 */
       if (bfd->fhv != NULL)
          fhv_ftran(bfd->fhv, x);
+#else
+      if (bfd->fi != NULL)
+         fhvint_ftran(bfd->fi, x);
+#endif
       else if (bfd->lpf != NULL)
          lpf_ftran(bfd->lpf, x);
       else
@@ -330,8 +374,13 @@ void bfd_ftran(BFD *bfd, double x[])
 void bfd_btran(BFD *bfd, double x[])
 {     xassert(bfd != NULL);
       xassert(bfd->valid);
+#if 0 /* 27/IV-2013 */
       if (bfd->fhv != NULL)
          fhv_btran(bfd->fhv, x);
+#else
+      if (bfd->fi != NULL)
+         fhvint_btran(bfd->fi, x);
+#endif
       else if (bfd->lpf != NULL)
          lpf_btran(bfd->lpf, x);
       else
@@ -393,6 +442,7 @@ int bfd_update_it(BFD *bfd, int j, int bh, int len, const int ind[],
       xassert(bfd != NULL);
       xassert(bfd->valid);
       /* try to update the factorization */
+#if 0 /* 27/IV-2013 */
       if (bfd->fhv != NULL)
       {  switch (fhv_update_it(bfd->fhv, j, len, ind, val))
          {  case 0:
@@ -417,6 +467,31 @@ int bfd_update_it(BFD *bfd, int j, int bh, int len, const int ind[],
                xassert(bfd != bfd);
          }
       }
+#else
+      if (bfd->fi != NULL)
+      {  /* see fhv_ft_update for return codes */
+         switch (fhvint_update(bfd->fi, j, len, ind, val))
+         {  case 0:
+               break;
+            case 1:
+               bfd->valid = 0;
+               ret = BFD_ESING;
+               goto done;
+            case 2:
+            case 3:
+            case 5:
+               bfd->valid = 0;
+               ret = BFD_ECHECK;
+               goto done;
+            case 4:
+               bfd->valid = 0;
+               ret = BFD_ELIMIT;
+               goto done;
+            default:
+               xassert(bfd != bfd);
+         }
+      }
+#endif
       else if (bfd->lpf != NULL)
       {  switch (lpf_update_it(bfd->lpf, j, bh, len, ind, val))
          {  case 0:
@@ -470,8 +545,13 @@ int bfd_get_count(BFD *bfd)
 
 void bfd_delete_it(BFD *bfd)
 {     xassert(bfd != NULL);
+#if 0 /* 27/IV-2013 */
       if (bfd->fhv != NULL)
          fhv_delete_it(bfd->fhv);
+#else
+      if (bfd->fi != NULL)
+         fhvint_delete(bfd->fi);
+#endif
       if (bfd->lpf != NULL)
          lpf_delete_it(bfd->lpf);
       xfree(bfd);

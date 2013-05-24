@@ -1,3 +1,62 @@
+Fri May 24 12:00:00 2013 Andrew Makhorin <mao@gnu.org>
+
+        * GLPK 4.50 (35:0:0) has been released
+
+        * src/Makefile.am
+        Though API was not changed since 4.49, symbols _glp_lpx_* were
+        removed from the export list, hence 35:0:0.
+
+        * src/glpfhv.h, src/glpfhv.c
+        Old routines for FHV-factorization were removed.
+
+        * src/bflib/*.h, src/bflib/*.c
+        New version of basis factorization routines, including routines
+        for FHV-factorization, were added.
+
+        * src/glpbfd.c
+        LP basis factorization driver was changed according to the new
+        routines for FHV-factorization.
+
+        * doc/glpk.tex
+        Some clarifications about using the name index routines were
+        added. Thanks to Xypron <xypron.glpk@gmx.de> for suggestion.
+
+        * doc/gmpl.tex
+        Some typos were corrected.
+        Thanks to Jeffrey Kantor <Kantor.1@nd.edu> for report.
+
+        * src/glprlx.c
+        A serious bug was *tentatively* fixed. This bug is inherited
+        from the original Fortran version of the RELAX-IV code.
+        Unfortunately, the code is very intricate, so this bug is still
+        under investigation. Thanks to Sylvain Fournier for bug report.
+
+        RELAX-IV bug details
+        --------------------
+        In the original RELAX-IV code there are four similar fragments
+        in subroutines ascnt1 and ascnt2 like this:
+
+        C
+        C     DECREASE THE PRICES OF THE SCANNED NODES BY DELPRC.
+        C     ADJUST FLOW TO MAINTAIN COMPLEMENTARY SLACKNESS WITH
+        C     THE PRICES.
+        C
+              NB = 0
+              DO 6 I=1,NSAVE
+              . . .
+                    IF (RC(ARC).EQ.0) THEN
+                      DELX=DELX+U(ARC)
+                      NB = NB + 1
+                      PRDCSR(NB) = ARC
+                    END IF
+              . . .
+
+        On some instances the variable NB becomes greater than N (the
+        number of nodes) that leads to indexing error, because the
+        array PRDCSR is declared as array of N elements (more
+        precisely, as array of MAXNN elements, however, NB becomes even
+        much greater than MAXNN).
+
 Tue Apr 16 12:00:00 2013 Andrew Makhorin <mao@gnu.org>
 
         * GLPK 4.49 (34:0:0) has been released

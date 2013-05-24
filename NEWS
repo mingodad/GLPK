@@ -1,3 +1,26 @@
+GLPK 4.50 (release date: May 24, 2013)
+
+        A new version of LU-factorization routines were added.
+        Currently this version provides the same functionality as the
+        old one, however, the new version allows further improving.
+
+        Old routines for FHV-factorization used to update the basis
+        factorization were replaced by a new version conforming to the
+        new version of LU-factorization.
+
+        Some clarifications about using the name index routines were
+        added. Thanks to Xypron <xypron.glpk@gmx.de> for suggestion.
+
+        Some typos were corrected in the MathProg language reference.
+        Thanks to Jeffrey Kantor <Kantor.1@nd.edu> for report.
+
+        A serious bug (out-of-range indexing error) was *tentatively*
+        fixed in the routine glp_relax4. Unfortunatly, this bug is
+        inherited from the original Fortran version of the RELAX-IV
+        code (for details please see ChangeLog), and since the code is
+        very intricate, the bug is still under investigation. Thanks to
+        Sylvain Fournier for bug report.
+
 GLPK 4.49 (release date: Apr 16, 2013)
 
         The new API routine glp_mincost_relax4, which is a driver to

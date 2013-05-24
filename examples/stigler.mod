@@ -217,7 +217,7 @@ chocolate      "Chocolate"                 "8 oz."
 sugar          "Sugar"                     "10 lb."
 cornsirup      "Corn Sirup"                "24 oz."
 molasses       "Molasses"                  "18 oz."
-stawberry      "Strawberry Preserve"       "1 lb."
+strawberry     "Strawberry Preserve"       "1 lb."
 ;
 
 set N :=
@@ -313,7 +313,7 @@ chocolate     16.2     1400     8.0       77     1.3       39
 sugar         51.7     8773    34.9        0      .0        0
 cornsirup     13.7     4996    14.7        0      .5       74
 molasses      13.6     3752     9.0        0    10.3      244
-stawberry     20.5     2213     6.4       11      .4        7
+strawberry    20.5     2213     6.4       11      .4        7
 
 :           vitaminA thiamine riboflavin  niacin  ascorbicAcid :=
 #          (1000 IU)  (mg.)      (mg.)     (mg.)     (mg.)
@@ -393,7 +393,7 @@ chocolate       .0      .9        3.4        14         0
 sugar           .0      .0         .0         0         0
 cornsirup       .0      .0         .0         5         0
 molasses        .0     1.9        7.5       146         0
-stawberry       .2      .2         .4         3         0
+strawberry      .2      .2         .4         3         0
 ;
 
 param allowance :=

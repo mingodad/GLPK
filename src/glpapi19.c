@@ -23,7 +23,7 @@
 ***********************************************************************/
 
 #include "glpapi.h"
-#include "minisat/minisat.h"
+#include "minisat.h"
 
 int glp_minisat1(glp_prob *P)
 {     /* solve CNF-SAT problem with MiniSat solver */

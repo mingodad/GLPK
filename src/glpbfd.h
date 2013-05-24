@@ -25,9 +25,7 @@
 #ifndef GLPBFD_H
 #define GLPBFD_H
 
-#ifndef GLPBFD_PRIVATE
-typedef struct { double _opaque_bfd[100]; } BFD;
-#endif
+typedef struct BFD BFD;
 
 /* return codes: */
 #define BFD_ESING    1  /* singular matrix */

@@ -4,8 +4,12 @@ include_HEADERS = glpk.h
 
 lib_LTLIBRARIES = libglpk.la
 
-libglpk_la_LDFLAGS = -version-info 34:0:0 \
--export-symbols-regex '^(glp_|_glp_lpx_).*'
+libglpk_la_CPPFLAGS = \
+-I$(srcdir) -I$(srcdir)/amd -I$(srcdir)/bflib -I$(srcdir)/colamd \
+-I$(srcdir)/minisat -I$(srcdir)/zlib
+
+libglpk_la_LDFLAGS = \
+-version-info 35:0:0 -export-symbols-regex '^glp_*'
 
 libglpk_la_SOURCES = \
 glpapi01.c \
@@ -43,7 +47,6 @@ glpenv05.c \
 glpenv06.c \
 glpenv07.c \
 glpenv08.c \
-glpfhv.c \
 glpgmp.c \
 glphbm.c \
 glpini01.c \
@@ -120,6 +123,11 @@ amd/amd_post_tree.c \
 amd/amd_postorder.c \
 amd/amd_preprocess.c \
 amd/amd_valid.c \
+bflib/fhv.c \
+bflib/fhvint.c \
+bflib/luf.c \
+bflib/sgf.c \
+bflib/sva.c \
 colamd/colamd.c \
 minisat/minisat.c \
 zlib/adler32.c \

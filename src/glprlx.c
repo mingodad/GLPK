@@ -1732,7 +1732,11 @@ L4:   /* Check that the problem is feasible. */
                   x[arc] = 0;
                }
                rc[arc] = t1 + delprc;
+#if 0 /* by mao; 26/IV-2013 */
                if (rc[arc] == 0)
+#else
+               if (rc[arc] == 0 && nb < n)
+#endif
                {  delx += x[arc];
                   nb++;
                   prdcsr[nb] = arc;
@@ -1761,7 +1765,11 @@ L4:   /* Check that the problem is feasible. */
                   u[arc] = 0;
                }
                rc[arc] = t1 - delprc;
+#if 0 /* by mao; 26/IV-2013 */
                if (rc[arc] == 0)
+#else
+               if (rc[arc] == 0 && nb < n)
+#endif
                {  delx += u[arc];
                   nb++;
                   prdcsr[nb] = arc;
@@ -2011,7 +2019,11 @@ L4:   if (delprc == large)
                   x[arc] = 0;
                }
                rc[arc] = t1 + delprc;
+#if 0 /* by mao; 26/IV-2013 */
                if (rc[arc] == 0)
+#else
+               if (rc[arc] == 0 && nb < n)
+#endif
                {  delx += x[arc];
                   nb++;
                   prdcsr[nb] = arc;
@@ -2040,7 +2052,11 @@ L4:   if (delprc == large)
                   u[arc] = 0;
                }
                rc[arc] = t1 - delprc;
+#if 0 /* by mao; 26/IV-2013 */
                if (rc[arc] == 0)
+#else
+               if (rc[arc] == 0 && nb < n)
+#endif
                {  delx += u[arc];
                   nb++;
                   prdcsr[nb] = arc;
