@@ -34,7 +34,7 @@ extern "C" {
 
 /* library version numbers: */
 #define GLP_MAJOR_VERSION  4
-#define GLP_MINOR_VERSION  50
+#define GLP_MINOR_VERSION  51
 
 typedef struct glp_prob glp_prob;
 /* LP/MIP problem object */
@@ -49,7 +49,7 @@ typedef struct glp_prob glp_prob;
 #define GLP_BV             3  /* binary variable */
 
 /* type of auxiliary/structural variable: */
-#define GLP_FR             1  /* free variable */
+#define GLP_FR             1  /* free (unbounded) variable */
 #define GLP_LO             2  /* variable with lower bound */
 #define GLP_UP             3  /* variable with upper bound */
 #define GLP_DB             4  /* double-bounded variable */
@@ -59,7 +59,7 @@ typedef struct glp_prob glp_prob;
 #define GLP_BS             1  /* basic variable */
 #define GLP_NL             2  /* non-basic variable on lower bound */
 #define GLP_NU             3  /* non-basic variable on upper bound */
-#define GLP_NF             4  /* non-basic free variable */
+#define GLP_NF             4  /* non-basic free (unbounded) variable */
 #define GLP_NS             5  /* non-basic fixed variable */
 
 /* scaling options: */
@@ -182,10 +182,13 @@ typedef struct
       int presolve;           /* enable/disable using MIP presolver */
       int binarize;           /* try to binarize integer variables */
       int fp_heur;            /* feasibility pump heuristic */
+#if 1 /* 25/V-2013 */
+      int ps_heur;            /* proximity search heuristic */
+#endif
 #if 1 /* 28/V-2010 */
       int alien;              /* use alien solver */
 #endif
-      double foo_bar[29];     /* (reserved) */
+      double foo_bar[28];     /* (reserved) */
 } glp_iocp;
 
 typedef struct
@@ -777,11 +780,14 @@ const char *glp_version(void);
 int glp_free_env(void);
 /* free GLPK environment */
 
+void glp_puts(const char *s);
+/* write string on terminal */
+
 void glp_printf(const char *fmt, ...);
-/* write formatted output to terminal */
+/* write formatted output on terminal */
 
 void glp_vprintf(const char *fmt, va_list arg);
-/* write formatted output to terminal */
+/* write formatted output on terminal */
 
 int glp_term_out(int flag);
 /* enable/disable terminal output */
@@ -789,20 +795,20 @@ int glp_term_out(int flag);
 void glp_term_hook(int (*func)(void *info, const char *s), void *info);
 /* install hook to intercept terminal output */
 
-int glp_open_tee(const char *fname);
+int glp_open_tee(const char *name);
 /* start copying terminal output to text file */
 
 int glp_close_tee(void);
 /* stop copying terminal output to text file */
 
-#ifndef GLP_ERROR_DEFINED
-#define GLP_ERROR_DEFINED
-typedef void (*_glp_error)(const char *fmt, ...);
+#ifndef GLP_ERRFUNC_DEFINED
+#define GLP_ERRFUNC_DEFINED
+typedef void (*glp_errfunc)(const char *fmt, ...);
 #endif
 
 #define glp_error glp_error_(__FILE__, __LINE__)
-_glp_error glp_error_(const char *file, int line);
-/* display error message and terminate execution */
+glp_errfunc glp_error_(const char *file, int line);
+/* display fatal error message and terminate execution */
 
 #define glp_assert(expr) \
       ((void)((expr) || (glp_assert_(#expr, __FILE__, __LINE__), 1)))
@@ -812,14 +818,20 @@ void glp_assert_(const char *expr, const char *file, int line);
 void glp_error_hook(void (*func)(void *info), void *info);
 /* install hook to intercept abnormal termination */
 
-void *glp_malloc(int size);
+#define glp_malloc(size) glp_alloc(1, size)
+/* allocate memory block (obsolete) */
+
+#define glp_calloc(n, size) glp_alloc(n, size)
+/* allocate memory block (obsolete) */
+
+void *glp_alloc(int n, int size);
 /* allocate memory block */
 
-void *glp_calloc(int n, int size);
-/* allocate memory block */
+void *glp_realloc(void *ptr, int n, int size);
+/* reallocate memory block */
 
 void glp_free(void *ptr);
-/* free memory block */
+/* free (deallocate) memory block */
 
 void glp_mem_limit(int limit);
 /* set memory usage limit */

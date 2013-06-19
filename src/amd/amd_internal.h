@@ -12,7 +12,7 @@
 
 #include "amd.h"
 #define _GLPSTD_STDIO
-#include "glpenv.h"
+#include "env.h"
 
 #define Int int
 #define ID "%d"

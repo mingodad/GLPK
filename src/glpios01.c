@@ -23,6 +23,7 @@
 ***********************************************************************/
 
 #include "glpios.h"
+#include "glplib.h"
 
 /***********************************************************************
 *  NAME
@@ -134,7 +135,11 @@ glp_tree *ios_create_tree(glp_prob *mip, const glp_iocp *parm)
       /* initialize control parameters */
       tree->parm = parm;
       tree->tm_beg = xtime();
+#if 0 /* 10/VI-2013 */
       tree->tm_lag = xlset(0);
+#else
+      tree->tm_lag = 0.0;
+#endif
       tree->sol_cnt = 0;
       /* initialize advanced solver interface */
       tree->reason = 0;

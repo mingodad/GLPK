@@ -23,7 +23,7 @@
 ***********************************************************************/
 
 #include "glpapi.h"
-#include "glpnet.h"
+#include "wclique.h"
 
 static void set_edge(int nv, unsigned char a[], int i, int j)
 {     int k;

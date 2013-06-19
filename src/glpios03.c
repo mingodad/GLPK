@@ -710,7 +710,11 @@ int ios_driver(glp_tree *T)
          branching, pred_p is the reference number of its parent
          subproblem, otherwise pred_p is zero */
 #endif
+#if 0 /* 10/VI-2013 */
       glp_long ttt = T->tm_beg;
+#else
+      double ttt = T->tm_beg;
+#endif
 #if 0
       ((glp_iocp *)T->parm)->msg_lev = GLP_MSG_DBG;
 #endif
@@ -724,7 +728,11 @@ loop: /* main loop starts here */
       if (T->head == NULL)
       {  if (T->parm->msg_lev >= GLP_MSG_DBG)
             xprintf("Active list is empty!\n");
+#if 0 /* 10/VI-2013 */
          xassert(dmp_in_use(T->pool).lo == 0);
+#else
+         xassert(dmp_in_use(T->pool) == 0);
+#endif
          ret = 0;
          goto done;
       }
@@ -1044,6 +1052,22 @@ more: /* minor loop starts here */
             goto fath;
          }
       }
+#if 1 /* 25/V-2013 */
+      /* try to find solution with the proximity search heuristic */
+      if (T->parm->ps_heur)
+      {  xassert(T->reason == 0);
+         T->reason = GLP_IHEUR;
+         ios_proxy_heur(T);
+         T->reason = 0;
+         /* check if the current branch became hopeless */
+         if (!is_branch_hopeful(T, p))
+         {  if (T->parm->msg_lev >= GLP_MSG_DBG)
+               xprintf("Current branch became hopeless and can be prune"
+                  "d\n");
+            goto fath;
+         }
+      }
+#endif
       /* it's time to generate cutting planes */
       xassert(T->local != NULL);
       xassert(T->local->size == 0);

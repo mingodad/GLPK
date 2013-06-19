@@ -1,3 +1,8 @@
+/* inftrees.h */
+
+/* Modified by Andrew Makhorin <mao@gnu.org>, June 2013. */
+/* For original code see <zlib-1.2.7/inftrees.h>. */
+
 /* inftrees.h -- header to use inftrees.c
  * Copyright (C) 1995-2005, 2010 Mark Adler
  * For conditions of distribution and use, see copyright notice in zlib.h
@@ -57,6 +62,8 @@ typedef enum {
     DISTS
 } codetype;
 
-int ZLIB_INTERNAL inflate_table OF((codetype type, unsigned short FAR *lens,
-                             unsigned codes, code FAR * FAR *table,
-                             unsigned FAR *bits, unsigned short FAR *work));
+int inflate_table(codetype type, unsigned short *lens,
+                  unsigned codes, code **table,
+                  unsigned *bits, unsigned short *work);
+
+/* eof */

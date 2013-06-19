@@ -27,7 +27,7 @@
 #include "luf.h"
 
 /***********************************************************************
-*  The structure FHV describes sparse updatable FHV-factorization
+*  The structure FHV describes sparse updatable FHV-factorization.
 *
 *  The FHV-factorization has the following format:
 *

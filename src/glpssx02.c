@@ -22,7 +22,7 @@
 *  along with GLPK. If not, see <http://www.gnu.org/licenses/>.
 ***********************************************************************/
 
-#include "glpenv.h"
+#include "env.h"
 #include "glpssx.h"
 
 static void show_progress(SSX *ssx, int phase)

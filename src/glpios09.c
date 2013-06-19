@@ -596,7 +596,11 @@ static void progress(glp_tree *T)
 
 int ios_pcost_branch(glp_tree *T, int *_next)
 {     /* choose branching variable with pseudocost branching */
+#if 0 /* 10/VI-2013 */
       glp_long t = xtime();
+#else
+      double t = xtime();
+#endif
       int j, jjj, sel;
       double beta, psi, d1, d2, d, dmax;
       /* initialize the working arrays */

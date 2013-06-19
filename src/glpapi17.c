@@ -23,8 +23,10 @@
 ***********************************************************************/
 
 #include "glpapi.h"
-#include "glpnet.h"
-#include "glprlx.h"
+#include "ffalg.h"
+#include "mc21a.h"
+#include "okalg.h"
+#include "relax4.h"
 
 /***********************************************************************
 *  NAME

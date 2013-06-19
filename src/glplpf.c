@@ -23,10 +23,10 @@
 ***********************************************************************/
 
 #include "glplpf.h"
-#include "glpenv.h"
+#include "env.h"
 #define xfault xerror
 
-#define _GLPLPF_DEBUG 0
+#define GLPLPF_DEBUG 0
 
 /* CAUTION: DO NOT CHANGE THE LIMIT BELOW */
 
@@ -54,13 +54,17 @@
 
 LPF *lpf_create_it(void)
 {     LPF *lpf;
-#if _GLPLPF_DEBUG
+#if GLPLPF_DEBUG
       xprintf("lpf_create_it: warning: debug mode enabled\n");
 #endif
       lpf = xmalloc(sizeof(LPF));
       lpf->valid = 0;
       lpf->m0_max = lpf->m0 = 0;
+#if 0 /* 06/VI-2013 */
       lpf->luf = luf_create_it();
+#else
+      lpf->lufint = lufint_create();
+#endif
       lpf->m = 0;
       lpf->B = NULL;
       lpf->n_max = 50;
@@ -128,7 +132,7 @@ LPF *lpf_create_it(void)
 int lpf_factorize(LPF *lpf, int m, const int bh[], int (*col)
       (void *info, int j, int ind[], double val[]), void *info)
 {     int k, ret;
-#if _GLPLPF_DEBUG
+#if GLPLPF_DEBUG
       int i, j, len, *ind;
       double *B, *val;
 #endif
@@ -171,6 +175,7 @@ int lpf_factorize(LPF *lpf, int m, const int bh[], int (*col)
          lpf->work2 = xcalloc(1+lpf->m0_max+lpf->n_max, sizeof(double));
       }
       /* try to factorize the basis matrix */
+#if 0 /* 06/VI-2013 */
       switch (luf_factorize(lpf->luf, m, col, info))
       {  case 0:
             break;
@@ -183,9 +188,15 @@ int lpf_factorize(LPF *lpf, int m, const int bh[], int (*col)
          default:
             xassert(lpf != lpf);
       }
+#else
+      if (lufint_factorize(lpf->lufint, m, col, info) != 0)
+      {  ret = LPF_ESING;
+         goto done;
+      }
+#endif
       /* the basis matrix has been successfully factorized */
       lpf->valid = 1;
-#if _GLPLPF_DEBUG
+#if GLPLPF_DEBUG
       /* store the basis matrix for debugging */
       if (lpf->B != NULL) xfree(lpf->B);
       xassert(m <= 32767);
@@ -352,7 +363,7 @@ static void st_prod(LPF *lpf, double y[], double a, const double x[])
       return;
 }
 
-#if _GLPLPF_DEBUG
+#if GLPLPF_DEBUG
 /***********************************************************************
 *  The routine check_error computes the maximal relative error between
 *  left- and right-hand sides for the system B * x = b (if tr is zero)
@@ -475,13 +486,13 @@ void lpf_ftran(LPF *lpf, double x[])
       double *f = fg;
       double *g = fg + m0;
       int i, ii;
-#if _GLPLPF_DEBUG
+#if GLPLPF_DEBUG
       double *b;
 #endif
       if (!lpf->valid)
          xfault("lpf_ftran: the factorization is not valid\n");
       xassert(0 <= m && m <= m0 + n);
-#if _GLPLPF_DEBUG
+#if GLPLPF_DEBUG
       /* save the right-hand side vector */
       b = xcalloc(1+m, sizeof(double));
       for (i = 1; i <= m; i++) b[i] = x[i];
@@ -490,18 +501,29 @@ void lpf_ftran(LPF *lpf, double x[])
       for (i = 1; i <= m0 + n; i++)
          fg[i] = ((ii = P_col[i]) <= m ? x[ii] : 0.0);
       /* f1 := inv(L0) * f */
+#if 0 /* 06/VI-2013 */
       luf_f_solve(lpf->luf, 0, f);
+#else
+      luf_f_solve(lpf->lufint->luf, f);
+#endif
       /* g1 := g - S * f1 */
       s_prod(lpf, g, -1.0, f);
       /* g2 := inv(C) * g1 */
       scf_solve_it(lpf->scf, 0, g);
       /* f2 := inv(U0) * (f1 - R * g2) */
       r_prod(lpf, f, -1.0, g);
+#if 0 /* 06/VI-2013 */
       luf_v_solve(lpf->luf, 0, f);
+#else
+      {  double *work = lpf->lufint->sgf->work;
+         luf_v_solve(lpf->lufint->luf, f, work);
+         memcpy(&f[1], &work[1], m0 * sizeof(double));
+      }
+#endif
       /* (x y) := inv(Q) * (f2 g2) */
       for (i = 1; i <= m; i++)
          x[i] = fg[Q_col[i]];
-#if _GLPLPF_DEBUG
+#if GLPLPF_DEBUG
       /* check relative error in solution */
       check_error(lpf, 0, x, b);
       xfree(b);
@@ -605,13 +627,13 @@ void lpf_btran(LPF *lpf, double x[])
       double *f = fg;
       double *g = fg + m0;
       int i, ii;
-#if _GLPLPF_DEBUG
+#if GLPLPF_DEBUG
       double *b;
 #endif
       if (!lpf->valid)
          xfault("lpf_btran: the factorization is not valid\n");
       xassert(0 <= m && m <= m0 + n);
-#if _GLPLPF_DEBUG
+#if GLPLPF_DEBUG
       /* save the right-hand side vector */
       b = xcalloc(1+m, sizeof(double));
       for (i = 1; i <= m; i++) b[i] = x[i];
@@ -620,7 +642,14 @@ void lpf_btran(LPF *lpf, double x[])
       for (i = 1; i <= m0 + n; i++)
          fg[i] = ((ii = Q_row[i]) <= m ? x[ii] : 0.0);
       /* f1 := inv(U'0) * f */
+#if 0 /* 06/VI-2013 */
       luf_v_solve(lpf->luf, 1, f);
+#else
+      {  double *work = lpf->lufint->sgf->work;
+         luf_vt_solve(lpf->lufint->luf, f, work);
+         memcpy(&f[1], &work[1], m0 * sizeof(double));
+      }
+#endif
       /* g1 := inv(C') * (g - R' * f1) */
       rt_prod(lpf, g, -1.0, f);
       scf_solve_it(lpf->scf, 1, g);
@@ -628,11 +657,15 @@ void lpf_btran(LPF *lpf, double x[])
       g = g;
       /* f2 := inv(L'0) * (f1 - S' * g2) */
       st_prod(lpf, f, -1.0, g);
+#if 0 /* 06/VI-2013 */
       luf_f_solve(lpf->luf, 1, f);
+#else
+      luf_ft_solve(lpf->lufint->luf, f);
+#endif
       /* (x y) := P * (f2 g2) */
       for (i = 1; i <= m; i++)
          x[i] = fg[P_row[i]];
-#if _GLPLPF_DEBUG
+#if GLPLPF_DEBUG
       /* check relative error in solution */
       check_error(lpf, 1, x, b);
       xfree(b);
@@ -811,7 +844,7 @@ int lpf_update_it(LPF *lpf, int j, int bh, int len, const int ind[],
       const double val[])
 {     int m0 = lpf->m0;
       int m = lpf->m;
-#if _GLPLPF_DEBUG
+#if GLPLPF_DEBUG
       double *B = lpf->B;
 #endif
       int n = lpf->n;
@@ -860,7 +893,7 @@ int lpf_update_it(LPF *lpf, int j, int bh, int len, const int ind[],
                "ed\n", k, val[k]);
          a[i] = val[k];
       }
-#if _GLPLPF_DEBUG
+#if GLPLPF_DEBUG
       /* change column in the basis matrix for debugging */
       for (i = 1; i <= m; i++)
          B[(i - 1) * m + j] = a[i];
@@ -872,9 +905,20 @@ int lpf_update_it(LPF *lpf, int j, int bh, int len, const int ind[],
       for (i = 1; i <= m0+n; i++) vw[i] = 0.0;
       vw[Q_col[j]] = 1.0;
       /* f1 := inv(L0) * f (new column of R) */
+#if 0 /* 06/VI-2013 */
       luf_f_solve(lpf->luf, 0, f);
+#else
+      luf_f_solve(lpf->lufint->luf, f);
+#endif
       /* v1 := inv(U'0) * v (new row of S) */
+#if 0 /* 06/VI-2013 */
       luf_v_solve(lpf->luf, 1, v);
+#else
+      {  double *work = lpf->lufint->sgf->work;
+         luf_vt_solve(lpf->lufint->luf, v, work);
+         memcpy(&v[1], &work[1], m0 * sizeof(double));
+      }
+#endif
       /* we need at most 2 * m0 available locations in the SVA to store
          new column of matrix R and new row of matrix S */
       if (lpf->v_size < v_ptr + m0 + m0)
@@ -952,8 +996,12 @@ done: /* return to the calling program */
 *  object. */
 
 void lpf_delete_it(LPF *lpf)
+#if 0 /* 06/VI-2013 */
 {     luf_delete_it(lpf->luf);
-#if _GLPLPF_DEBUG
+#else
+{     lufint_delete(lpf->lufint);
+#endif
+#if GLPLPF_DEBUG
       if (lpf->B != NULL) xfree(lpf->B);
 #else
       xassert(lpf->B == NULL);

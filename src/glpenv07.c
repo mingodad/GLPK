@@ -22,11 +22,32 @@
 *  along with GLPK. If not, see <http://www.gnu.org/licenses/>.
 ***********************************************************************/
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
+#include "env2.h"
+#include "zlib.h"
 
-#include "glpenv.h"
+#if 1 /* 11/VI-2013 */
+#define IOERR_MSG_SIZE 1024
+/* i/o error message buffer size, in bytes */
+
+static char env_ioerr_msg[IOERR_MSG_SIZE] = "No error";
+/* input/output error message buffer */
+
+struct XFILE
+{     /* input/output stream descriptor */
+      int type;
+      /* stream handle type: */
+#define FH_FILE   0x11  /* FILE   */
+#define FH_ZLIB   0x22  /* gzFile */
+      void *fh;
+      /* pointer to stream handle */
+#if 0 /* 11/VI-2013 */
+      XFILE *prev;
+      /* pointer to previous stream descriptor */
+      XFILE *next;
+      /* pointer to next stream descriptor */
+#endif
+};
+#endif
 
 /***********************************************************************
 *  NAME
@@ -45,13 +66,19 @@
 *  with a call to strerror(errno). */
 
 void lib_err_msg(const char *msg)
-{     ENV *env = get_env_ptr();
+{     /*ENV *env = get_env_ptr();*/
       int len = strlen(msg);
       if (len >= IOERR_MSG_SIZE)
          len = IOERR_MSG_SIZE - 1;
+#if 0 /* 11/VI-2013 */
       memcpy(env->ioerr_msg, msg, len);
       if (len > 0 && env->ioerr_msg[len-1] == '\n') len--;
       env->ioerr_msg[len] = '\0';
+#else
+      memcpy(env_ioerr_msg, msg, len);
+      if (len > 0 && env_ioerr_msg[len-1] == '\n') len--;
+      env_ioerr_msg[len] = '\0';
+#endif
       return;
 }
 
@@ -71,8 +98,12 @@ void lib_err_msg(const char *msg)
 *  previously set by some library routine to indicate an error. */
 
 const char *xerrmsg(void)
-{     ENV *env = get_env_ptr();
+{     /*ENV *env = get_env_ptr();*/
+#if 0 /* 11/VI-2013 */
       return env->ioerr_msg;
+#else
+      return env_ioerr_msg;
+#endif
 }
 
 /***********************************************************************
@@ -112,7 +143,7 @@ static int is_gz_file(const char *fname)
 }
 
 XFILE *xfopen(const char *fname, const char *mode)
-{     ENV *env = get_env_ptr();
+{     /*ENV *env = get_env_ptr();*/
       XFILE *fp;
       int type;
       void *fh;
@@ -131,10 +162,12 @@ XFILE *xfopen(const char *fname, const char *mode)
       fp = xmalloc(sizeof(XFILE));
       fp->type = type;
       fp->fh = fh;
+#if 0 /* 11/VI-2013 */
       fp->prev = NULL;
       fp->next = env->file_ptr;
       if (fp->next != NULL) fp->next->prev = fp;
       env->file_ptr = fp;
+#endif
 done: return fp;
 }
 
@@ -382,7 +415,7 @@ static int c_fclose(void *fh);
 static int z_fclose(void *fh);
 
 int xfclose(XFILE *fp)
-{     ENV *env = get_env_ptr();
+{     /*ENV *env = get_env_ptr();*/
       int ret;
       switch (fp->type)
       {  case FH_FILE:
@@ -395,6 +428,7 @@ int xfclose(XFILE *fp)
             xassert(fp != fp);
       }
       fp->type = 0xF00BAD;
+#if 0 /* 11/VI-2013 */
       if (fp->prev == NULL)
          env->file_ptr = fp->next;
       else
@@ -403,6 +437,7 @@ int xfclose(XFILE *fp)
          ;
       else
          fp->next->prev = fp->prev;
+#endif
       xfree(fp);
       return ret;
 }
@@ -500,51 +535,6 @@ static int c_fclose(void *_fh)
 /***********************************************************************
 *  The following routines implement stream input/output based on the
 *  zlib library, which provides processing .gz files "on the fly". */
-
-/*#ifndef HAVE_ZLIB*/
-#if 0 /* 27/IV-2011 */
-
-static void *z_fopen(const char *fname, const char *mode)
-{     xassert(fname == fname);
-      xassert(mode == mode);
-      lib_err_msg("Compressed files not supported");
-      return NULL;
-}
-
-static int z_fgetc(void *fh)
-{     xassert(fh != fh);
-      return 0;
-}
-
-static int z_fputc(int c, void *fh)
-{     xassert(c != c);
-      xassert(fh != fh);
-      return 0;
-}
-
-static int z_ferror(void *fh)
-{     xassert(fh != fh);
-      return 0;
-}
-
-static int z_feof(void *fh)
-{     xassert(fh != fh);
-      return 0;
-}
-
-static int z_fflush(void *fh)
-{     xassert(fh != fh);
-      return 0;
-}
-
-static int z_fclose(void *fh)
-{     xassert(fh != fh);
-      return 0;
-}
-
-#else
-
-#include "zlib.h"
 
 struct z_file
 {     /* .gz file handle */
@@ -666,7 +656,5 @@ static int z_fclose(void *_fh)
       xfree(fh);
       return 0;
 }
-
-#endif
 
 /* eof */

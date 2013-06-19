@@ -24,7 +24,24 @@
 #ifndef FHVINT_H
 #define FHVINT_H
 
+#include "fhv.h"
+#include "lufint.h"
+
 typedef struct FHVINT FHVINT;
+
+struct FHVINT
+{     /* interface to FHV-factorization */
+      int valid;
+      /* factorization is valid only if this flag is set */
+      FHV *fhv;
+      /* FHV-factorization */
+      LUFINT *lufint;
+      /* interface to underlying LU-factorization */
+      /*--------------------------------------------------------------*/
+      /* control parameters */
+      int nfs_max;
+      /* required maximal number of row-like factors */
+};
 
 #define fhvint_create _glp_fhvint_create
 FHVINT *fhvint_create(void);
@@ -35,6 +52,11 @@ int fhvint_factorize(FHVINT *fi, int n, int (*col)(void *info, int j,
       int ind[], double val[]), void *info);
 /* compute FHV-factorization of specified matrix A */
 
+#define fhvint_update _glp_fhvint_update
+int fhvint_update(FHVINT *fi, int j, int len, const int ind[],
+      const double val[]);
+/* update FHV-factorization after replacing j-th column of A */
+
 #define fhvint_ftran _glp_fhvint_ftran
 void fhvint_ftran(FHVINT *fi, double x[]);
 /* solve system A * x = b */
@@ -42,11 +64,6 @@ void fhvint_ftran(FHVINT *fi, double x[]);
 #define fhvint_btran _glp_fhvint_btran
 void fhvint_btran(FHVINT *fi, double x[]);
 /* solve system A'* x = b */
-
-#define fhvint_update _glp_fhvint_update
-int fhvint_update(FHVINT *fi, int j, int len, const int ind[],
-      const double val[]);
-/* update FHV-factorization after replacing j-th column of A */
 
 #define fhvint_delete _glp_fhvint_delete
 void fhvint_delete(FHVINT *fi);

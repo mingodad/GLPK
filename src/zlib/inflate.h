@@ -1,3 +1,8 @@
+/* inflate.h */
+
+/* Modified by Andrew Makhorin <mao@gnu.org>, June 2013. */
+/* For original code see <zlib-1.2.7/inflate.h>. */
+
 /* inflate.h -- internal inflate state definition
  * Copyright (C) 1995-2009 Mark Adler
  * For conditions of distribution and use, see copyright notice in zlib.h
@@ -93,7 +98,7 @@ struct inflate_state {
     unsigned wsize;             /* window size or zero if not using window */
     unsigned whave;             /* valid bytes in the window */
     unsigned wnext;             /* window write index */
-    unsigned char FAR *window;  /* allocated sliding window, if needed */
+    unsigned char *window;      /* allocated sliding window, if needed */
         /* bit accumulator */
     unsigned long hold;         /* input bit accumulator */
     unsigned bits;              /* number of bits in "in" */
@@ -103,8 +108,8 @@ struct inflate_state {
         /* for table and code decoding */
     unsigned extra;             /* extra bits needed */
         /* fixed and dynamic code tables */
-    code const FAR *lencode;    /* starting table for length/literal codes */
-    code const FAR *distcode;   /* starting table for distance codes */
+    code const *lencode;        /* starting table for length/literal codes */
+    code const *distcode;       /* starting table for distance codes */
     unsigned lenbits;           /* index bits for lencode */
     unsigned distbits;          /* index bits for distcode */
         /* dynamic table building */
@@ -112,7 +117,7 @@ struct inflate_state {
     unsigned nlen;              /* number of length code lengths */
     unsigned ndist;             /* number of distance code lengths */
     unsigned have;              /* number of code lengths in lens[] */
-    code FAR *next;             /* next available space in codes[] */
+    code *next;                 /* next available space in codes[] */
     unsigned short lens[320];   /* temporary storage for code lengths */
     unsigned short work[288];   /* work area for code table building */
     code codes[ENOUGH];         /* space for code tables */
@@ -120,3 +125,5 @@ struct inflate_state {
     int back;                   /* bits back of last unprocessed length/lit */
     unsigned was;               /* initial length of match */
 };
+
+/* eof */

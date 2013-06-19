@@ -22,6 +22,9 @@
 *  along with GLPK. If not, see <http://www.gnu.org/licenses/>.
 ***********************************************************************/
 
+#if 1 /* 11/VI-2013 */
+#include "env2.h"
+#endif
 #include "glpapi.h"
 #include "glpsdf.h"
 

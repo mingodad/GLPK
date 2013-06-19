@@ -68,7 +68,7 @@ typedef struct SVA SVA;
 struct SVA
 {     /* sparse vector area */
       int n_max;
-      /* maximal value of n (enlarged automatically, if necessary) */
+      /* maximal value of n (enlarged automatically) */
       int n;
       /* number of currently allocated vectors, 0 <= n <= n_max */
       int *ptr; /* int ptr[1+n_max]; */

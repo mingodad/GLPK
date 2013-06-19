@@ -110,10 +110,12 @@ struct SGF
       double eps_tol;
       /* epsilon tolerance; each element of the active submatrix, whose
        * magnitude is less than eps_tol, is replaced by exact zero */
+#if 0 /* FIXME */
       double den_lim;
       /* density limit; if the density of the active submatrix reaches
        * this limit, the factorization routine switches from sparse to
        * dense mode */
+#endif
 };
 
 #define sgf_activate_row(i) \
@@ -166,13 +168,35 @@ struct SGF
       } while (0)
 /* remove j-th column of matrix V from active set C[len] */
 
+#define sgf_reduce_nuc _glp_sgf_reduce_nuc
+void sgf_reduce_nuc(LUF *luf, int *k1, int *k2, int cnt[/*1+n*/],
+      int list[/*1+n*/]);
+/* initial reordering to minimize nucleus size */
+
+#define sgf_singl_phase _glp_sgf_singl_phase
+int sgf_singl_phase(LUF *luf, int k1, int k2, int updat,
+      int ind[/*1+n*/], double val[/*1+n*/]);
+/* compute LU-factorization (singleton phase) */
+
 #define sgf_choose_pivot _glp_sgf_choose_pivot
-int sgf_choose_pivot(SGF *sfa, int *p, int *q);
+int sgf_choose_pivot(SGF *sgf, int *p, int *q);
 /* choose pivot element v[p,q] */
 
 #define sgf_eliminate _glp_sgf_eliminate
-int sgf_eliminate(SGF *sfa, int p, int q);
+int sgf_eliminate(SGF *sgf, int p, int q);
 /* perform gaussian elimination */
+
+#define sgf_dense_lu _glp_sgf_dense_lu
+int sgf_dense_lu(int n, double a[], int r[], int c[], double eps);
+/* compute dense LU-factorization with full pivoting */
+
+#define sgf_dense_phase _glp_sgf_dense_phase
+int sgf_dense_phase(LUF *luf, int k, int updat);
+/* compute LU-factorization (dense phase) */
+
+#define sgf_factorize _glp_sgf_factorize
+int sgf_factorize(SGF *sgf, int singl);
+/* compute LU-factorization (main routine) */
 
 #endif
 

@@ -22,8 +22,12 @@
 *  along with GLPK. If not, see <http://www.gnu.org/licenses/>.
 ***********************************************************************/
 
+#if 1 /* 11/VI-2013 */
+#include "env2.h"
+#endif
 #define _GLPSTD_STDIO
 #include "glpapi.h"
+#include "glplib.h"
 
 struct csa
 {     /* common storage area */

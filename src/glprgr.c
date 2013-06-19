@@ -24,7 +24,7 @@
 
 #define _GLPSTD_ERRNO
 #define _GLPSTD_STDIO
-#include "glpenv.h"
+#include "env.h"
 #include "glprgr.h"
 #define xfault xerror
 

@@ -234,30 +234,30 @@ void clean_model(MPL *mpl)
       for (stmt = mpl->model; stmt != NULL; stmt = stmt->next)
          clean_statement(mpl, stmt);
       /* check that all atoms have been returned to their pools */
-      if (dmp_in_use(mpl->strings).lo != 0)
+      if (dmp_in_use(mpl->strings) != 0)
          error(mpl, "internal logic error: %d string segment(s) were lo"
-            "st", dmp_in_use(mpl->strings).lo);
-      if (dmp_in_use(mpl->symbols).lo != 0)
+            "st", dmp_in_use(mpl->strings));
+      if (dmp_in_use(mpl->symbols) != 0)
          error(mpl, "internal logic error: %d symbol(s) were lost",
-            dmp_in_use(mpl->symbols).lo);
-      if (dmp_in_use(mpl->tuples).lo != 0)
+            dmp_in_use(mpl->symbols));
+      if (dmp_in_use(mpl->tuples) != 0)
          error(mpl, "internal logic error: %d n-tuple component(s) were"
-            " lost", dmp_in_use(mpl->tuples).lo);
-      if (dmp_in_use(mpl->arrays).lo != 0)
+            " lost", dmp_in_use(mpl->tuples));
+      if (dmp_in_use(mpl->arrays) != 0)
          error(mpl, "internal logic error: %d array(s) were lost",
-            dmp_in_use(mpl->arrays).lo);
-      if (dmp_in_use(mpl->members).lo != 0)
+            dmp_in_use(mpl->arrays));
+      if (dmp_in_use(mpl->members) != 0)
          error(mpl, "internal logic error: %d array member(s) were lost"
-            , dmp_in_use(mpl->members).lo);
-      if (dmp_in_use(mpl->elemvars).lo != 0)
+            , dmp_in_use(mpl->members));
+      if (dmp_in_use(mpl->elemvars) != 0)
          error(mpl, "internal logic error: %d elemental variable(s) wer"
-            "e lost", dmp_in_use(mpl->elemvars).lo);
-      if (dmp_in_use(mpl->formulae).lo != 0)
+            "e lost", dmp_in_use(mpl->elemvars));
+      if (dmp_in_use(mpl->formulae) != 0)
          error(mpl, "internal logic error: %d linear term(s) were lost",
-            dmp_in_use(mpl->formulae).lo);
-      if (dmp_in_use(mpl->elemcons).lo != 0)
+            dmp_in_use(mpl->formulae));
+      if (dmp_in_use(mpl->elemcons) != 0)
          error(mpl, "internal logic error: %d elemental constraint(s) w"
-            "ere lost", dmp_in_use(mpl->elemcons).lo);
+            "ere lost", dmp_in_use(mpl->elemcons));
       return;
 }
 

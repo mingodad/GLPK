@@ -22,7 +22,7 @@
 *  along with GLPK. If not, see <http://www.gnu.org/licenses/>.
 ***********************************************************************/
 
-#include "glpenv.h"
+#include "env.h"
 #include "glplib.h"
 
 /***********************************************************************
@@ -571,122 +571,5 @@ int fp2rat(double x, double eps, double *p, double *q)
       *q = Bk;
       return k;
 }
-
-/***********************************************************************
-*  NAME
-*
-*  jday - convert calendar date to Julian day number
-*
-*  SYNOPSIS
-*
-*  #include "glplib.h"
-*  int jday(int d, int m, int y);
-*
-*  DESCRIPTION
-*
-*  The routine jday converts a calendar date, Gregorian calendar, to
-*  corresponding Julian day number j.
-*
-*  From the given day d, month m, and year y, the Julian day number j
-*  is computed without using tables.
-*
-*  The routine is valid for 1 <= y <= 4000.
-*
-*  RETURNS
-*
-*  The routine jday returns the Julian day number, or negative value if
-*  the specified date is incorrect.
-*
-*  REFERENCES
-*
-*  R. G. Tantzen, Algorithm 199: conversions between calendar date and
-*  Julian day number, Communications of the ACM, vol. 6, no. 8, p. 444,
-*  Aug. 1963. */
-
-int jday(int d, int m, int y)
-{     int c, ya, j, dd;
-      if (!(1 <= d && d <= 31 && 1 <= m && m <= 12 && 1 <= y &&
-            y <= 4000))
-      {  j = -1;
-         goto done;
-      }
-      if (m >= 3) m -= 3; else m += 9, y--;
-      c = y / 100;
-      ya = y - 100 * c;
-      j = (146097 * c) / 4 + (1461 * ya) / 4 + (153 * m + 2) / 5 + d +
-         1721119;
-      jdate(j, &dd, NULL, NULL);
-      if (d != dd) j = -1;
-done: return j;
-}
-
-/***********************************************************************
-*  NAME
-*
-*  jdate - convert Julian day number to calendar date
-*
-*  SYNOPSIS
-*
-*  #include "glplib.h"
-*  void jdate(int j, int *d, int *m, int *y);
-*
-*  DESCRIPTION
-*
-*  The routine jdate converts a Julian day number j to corresponding
-*  calendar date, Gregorian calendar.
-*
-*  The day d, month m, and year y are computed without using tables and
-*  stored in corresponding locations.
-*
-*  The routine is valid for 1721426 <= j <= 3182395.
-*
-*  RETURNS
-*
-*  If the conversion is successful, the routine returns zero, otherwise
-*  non-zero.
-*
-*  REFERENCES
-*
-*  R. G. Tantzen, Algorithm 199: conversions between calendar date and
-*  Julian day number, Communications of the ACM, vol. 6, no. 8, p. 444,
-*  Aug. 1963. */
-
-int jdate(int j, int *_d, int *_m, int *_y)
-{     int d, m, y, ret = 0;
-      if (!(1721426 <= j && j <= 3182395))
-      {  ret = 1;
-         goto done;
-      }
-      j -= 1721119;
-      y = (4 * j - 1) / 146097;
-      j = (4 * j - 1) % 146097;
-      d = j / 4;
-      j = (4 * d + 3) / 1461;
-      d = (4 * d + 3) % 1461;
-      d = (d + 4) / 4;
-      m = (5 * d - 3) / 153;
-      d = (5 * d - 3) % 153;
-      d = (d + 5) / 5;
-      y = 100 * y + j;
-      if (m <= 9) m += 3; else m -= 9, y++;
-      if (_d != NULL) *_d = d;
-      if (_m != NULL) *_m = m;
-      if (_y != NULL) *_y = y;
-done: return ret;
-}
-
-#if 0
-int main(void)
-{     int jbeg, jend, j, d, m, y;
-      jbeg = jday(1, 1, 1);
-      jend = jday(31, 12, 4000);
-      for (j = jbeg; j <= jend; j++)
-      {  xassert(jdate(j, &d, &m, &y) == 0);
-         xassert(jday(d, m, y) == j);
-      }
-      xprintf("Routines jday and jdate work correctly.\n");
-      return 0;
-}
-#endif
 
 /* eof */

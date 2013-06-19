@@ -1,11 +1,13 @@
+/* uncompr.c */
+
+/* Modified by Andrew Makhorin <mao@gnu.org>, June 2013. */
+/* For original code see <zlib-1.2.7/uncompr.c>. */
+
 /* uncompr.c -- decompress a memory buffer
  * Copyright (C) 1995-2003, 2010 Jean-loup Gailly.
  * For conditions of distribution and use, see copyright notice in zlib.h
  */
 
-/* @(#) $Id$ */
-
-#define ZLIB_INTERNAL
 #include "zlib.h"
 
 /* ===========================================================================
@@ -21,11 +23,8 @@
    enough memory, Z_BUF_ERROR if there was not enough room in the output
    buffer, or Z_DATA_ERROR if the input data was corrupted.
 */
-int ZEXPORT uncompress (dest, destLen, source, sourceLen)
-    Bytef *dest;
-    uLongf *destLen;
-    const Bytef *source;
-    uLong sourceLen;
+int uncompress(Bytef *dest, uLongf *destLen,
+               const Bytef *source, uLong sourceLen)
 {
     z_stream stream;
     int err;
@@ -57,3 +56,5 @@ int ZEXPORT uncompress (dest, destLen, source, sourceLen)
     err = inflateEnd(&stream);
     return err;
 }
+
+/* eof */

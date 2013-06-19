@@ -1,3 +1,29 @@
+GLPK 4.51 (release date: Jun 19, 2013)
+
+        Singleton and dense phases were implemented on computing
+        LU-factorization with Gaussian elimination. The singleton phase
+        is a feature that allows processing row and column singletons
+        on initial elimination steps more efficiently. The dense phase
+        is a feature used on final elimination steps when the active
+        submatrix becomes relatively dense. It significantly reduces
+        the time needed, especially if the active submatrix fits in CPU
+        cache, and improves numerical accuracy due to full pivoting.
+
+        The API routine glp_adv_basis that constructs advanced initial
+        LP basis was replaced by an improved version, which (unlike the
+        old version) takes into account numerical values of constraint
+        coefficients.
+
+        The proximity search heuristic for MIP was included in the GLPK
+        integer optimizer glp_intopt. On API level the heuristic can be
+        enabled by setting the parameter ps_heur in glp_iocp to GLP_ON.
+        This feature is also available in the solver glpsol through
+        command-line option '--proxy'. Many thanks to Giorgio Sartor
+        <0gioker0@gmail.com> for contribution.
+
+        A bug was fixed that caused numerical instability in the FPUMP
+        heuristic.
+
 GLPK 4.50 (release date: May 24, 2013)
 
         A new version of LU-factorization routines were added.

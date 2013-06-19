@@ -28,6 +28,9 @@
 #define _GLPSTD_STDIO
 #define _GLPSTD_TIME
 #include "glpmpl.h"
+#if 1 /* 11/VI-2013 */
+#include "jd.h"
+#endif
 
 double fn_gmtime(MPL *mpl)
 {     /* obtain the current calendar time (UTC) */

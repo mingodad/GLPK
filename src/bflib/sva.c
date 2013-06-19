@@ -168,7 +168,7 @@ void sva_resize_area(SVA *sva, int delta)
          memmove(&sva->val[sva->r_ptr], &sva->val[r_ptr],
             r_size * sizeof(double));
       }
-      /* update pointers of vectors stored in the right part */
+      /* update pointers to vectors stored in the right part */
       for (k = 1; k <= n; k++)
       {  if (ptr[k] >= r_ptr)
             ptr[k] += delta;

@@ -170,7 +170,7 @@ int fhv_ft_update(FHV *fhv, int q, int aq_len, const int aq_ind[],
 #if 1 /* FIXME */
       const double eps_tol = DBL_EPSILON;
       const double vpq_tol = 1e-5;
-      const double err_tol = 1e-12;
+      const double err_tol = 1e-10;
 #endif
       int end, i, i_end, i_ptr, j, j_end, j_ptr, k, len, nnz, p, p_end,
          p_ptr, ptr, q_end, q_ptr, s, t;

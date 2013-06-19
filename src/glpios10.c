@@ -23,7 +23,7 @@
 ***********************************************************************/
 
 #include "glpios.h"
-#include "glprng.h"
+#include "rng.h"
 
 /***********************************************************************
 *  NAME
@@ -288,10 +288,16 @@ skip: /* check if the time limit has been exhausted */
          lp->dir = P->dir;
          /* fix integer variables */
          for (k = 1; k <= nv; k++)
+#if 0 /* 18/VI-2013; fixed by mao
+       * this bug causes numerical instability, because column statuses
+       * are not changed appropriately */
          {  lp->col[var[k].j]->lb   = x[var[k].j];
             lp->col[var[k].j]->ub   = x[var[k].j];
             lp->col[var[k].j]->type = GLP_FX;
          }
+#else
+            glp_set_col_bnds(lp, var[k].j, GLP_FX, x[var[k].j], 0.);
+#endif
          /* copy original objective function */
          for (j = 1; j <= n; j++)
             lp->col[j]->coef = P->col[j]->coef;

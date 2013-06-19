@@ -71,7 +71,11 @@ DMP *dmp_create_pool(void)
       for (k = 0; k <= 31; k++) pool->avail[k] = NULL;
       pool->block = NULL;
       pool->used = DMP_BLK_SIZE;
+#if 0 /* 10/VI-2013 */
       pool->count.lo = pool->count.hi = 0;
+#else
+      pool->count = 0;
+#endif
       return pool;
 }
 
@@ -141,8 +145,12 @@ void *dmp_get_atom(DMP *pool, int size)
       }
       memset(atom, '?', size);
       /* increase the number of atoms which are currently in use */
+#if 0 /* 10/VI-2013 */
       pool->count.lo++;
       if (pool->count.lo == 0) pool->count.hi++;
+#else
+      pool->count++;
+#endif
 #ifdef GLP_DEBUG
       ((struct info *)atom)->pool = pool;
       ((struct info *)atom)->size = orig_size;
@@ -180,7 +188,11 @@ void dmp_free_atom(DMP *pool, void *atom, int size)
       if (!(pool->size == 0 || pool->size == size))
          xerror("dmp_free_atom: size = %d; wrong atom size\n", size);
 #endif
+#if 0 /* 10/VI-2013 */
       if (pool->count.lo == 0 && pool->count.hi == 0)
+#else
+      if (pool->count == 0)
+#endif
          xerror("dmp_free_atom: pool allocation error\n");
 #ifdef GLP_DEBUG
       atom = (char *)atom - align_datasize(sizeof(struct info));
@@ -201,8 +213,12 @@ void dmp_free_atom(DMP *pool, void *atom, int size)
       *(void **)atom = pool->avail[k];
       pool->avail[k] = atom;
       /* decrease the number of atoms which are currently in use */
+#if 0 /* 10/VI-2013 */
       pool->count.lo--;
       if (pool->count.lo == 0xFFFFFFFF) pool->count.hi--;
+#else
+      pool->count--;
+#endif
       return;
 }
 
@@ -226,7 +242,11 @@ void dmp_free_atom(DMP *pool, void *atom, int size)
 *
 *  The routine returns the number of atoms which are still in use. */
 
+#if 0 /* 10/VI-2013 */
 glp_long dmp_in_use(DMP *pool)
+#else
+size_t dmp_in_use(DMP *pool)
+#endif
 {     return
          pool->count;
 }

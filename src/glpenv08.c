@@ -26,7 +26,7 @@
 #include <config.h>
 #endif
 
-#include "glpenv.h"
+#include "env2.h"
 
 /* GNU version ********************************************************/
 
@@ -97,7 +97,7 @@ void xdlclose(void *h)
       return;
 }
 
-/* Windows version ****************************************************/
+/* MS Windows version *************************************************/
 
 #elif defined(__WOE__)
 

@@ -1,3 +1,75 @@
+Wed Jun 19 12:00:00 2013 Andrew Makhorin <mao@gnu.org>
+
+        * GLPK 4.51 (36:0:0) has been released.
+
+        * src/bflib/sgf.c, src/bflib/sgf.h
+        Singleton and dense phases of sparse Gaussian factorizer were
+        implemented.
+
+        * src/bflib/lufint.c, src/bflib/lufint.h
+        Interface routines to LU-factorization were added.
+
+        * src/bflib/fhvint.c, src/bflib/fhvint.h
+        Interface routines to FHV-factorization were changed to use
+        lufint.c routines.
+
+        * src/glplpf.c, src/glplpf.h
+        Routines implementing Schur-complement version of the LP basis
+        factorization were changed to use lufint.c routines.
+
+        * src/glpbfd.c, src/glpbfd.h
+        Interface routines to the LP basis factorization were changed
+        due to changes in glplpf.c routines.
+
+        * src/glpluf.c, src/glpluf.c
+        Old version of LU-factorization was removed from the package.
+        (This old version was used for 10 years since 3.0.6.)
+
+        * src/misc/triang.c, src/misc/triang.h
+        Routine to find maximal triangular part of rectangular matrix
+        was added.
+
+        * src/glpini01.c
+        The API routine glp_adv_basis that constructs advanced initial
+        LP basis was replaced by an improved version, which (unlike the
+        old version) takes into account numerical values of constraint
+        coefficients.
+
+        * src/proxy/*
+        Routines that implement the proximity search heuristic for MIP
+        were added. Thanks to Giorgio Sartor <0gioker0@gmail.com> for
+        contribution.
+
+        * src/glpk.h
+        iocp.ps_heur was added to enable/disable proxy heuristic.
+
+        * glpsol
+        --proxy command-line option was added.
+
+        * src/zlib/*.*
+        zlib general purpose compression library, version 1.2.7,
+        was ANSIfied and modified according to GLPK requirements and
+        included in the distribution as an external software module.
+        This version replaced the old one (1.2.5). For details please
+        see src/zlib/README.
+
+        * src/glpk.h, src/env/time.c
+        The API routine glp_time was changed to return double rather
+        than glp_long.
+
+        * src/glplib02.c
+        Routines that implement glp_long type (64-bit arithmetic) were
+        removed from the package.
+
+        * src/glpk.h, src/env/alloc.c
+        New API routine glp_alloc was added. It makes obsolete two
+        API routines glp_malloc and glp_calloc which were replaced by
+        macros to use glp_alloc (hence 36:0:0).
+
+        * src/glpios10.c
+        A bug was fixed that caused numerical instability in the FPUMP
+        heuristic (the bug was introduced in glpk 4.40).
+
 Fri May 24 12:00:00 2013 Andrew Makhorin <mao@gnu.org>
 
         * GLPK 4.50 (35:0:0) has been released

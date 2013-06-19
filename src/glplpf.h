@@ -26,7 +26,11 @@
 #define GLPLPF_H
 
 #include "glpscf.h"
+#if 0 /* 06/VI-2013 */
 #include "glpluf.h"
+#else
+#include "lufint.h"
+#endif
 
 /***********************************************************************
 *  The structure LPF defines the factorization of the basis mxm matrix
@@ -91,7 +95,11 @@ struct LPF
       /* maximal value of m0 (increased automatically, if necessary) */
       int m0;
       /* the order of B0 */
+#if 0 /* 06/VI-2013 */
       LUF *luf;
+#else
+      LUFINT *lufint;
+#endif
       /* LU-factorization of B0 */
       /*--------------------------------------------------------------*/
       /* current basis matrix B */

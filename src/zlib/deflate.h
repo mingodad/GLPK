@@ -1,5 +1,10 @@
+/* deflate.h */
+
+/* Modified by Andrew Makhorin <mao@gnu.org>, June 2013. */
+/* For original code see <zlib-1.2.7/deflate.h>. */
+
 /* deflate.h -- internal compression state
- * Copyright (C) 1995-2010 Jean-loup Gailly
+ * Copyright (C) 1995-2012 Jean-loup Gailly
  * For conditions of distribution and use, see copyright notice in zlib.h
  */
 
@@ -7,8 +12,6 @@
    part of the implementation of the compression library and is
    subject to change. Applications should only use zlib.h.
  */
-
-/* @(#) $Id$ */
 
 #ifndef DEFLATE_H
 #define DEFLATE_H
@@ -48,6 +51,9 @@
 #define MAX_BITS 15
 /* All codes must not exceed MAX_BITS bits */
 
+#define Buf_size 16
+/* size of bit buffer in bi_buf */
+
 #define INIT_STATE    42
 #define EXTRA_STATE   69
 #define NAME_STATE    73
@@ -56,7 +62,6 @@
 #define BUSY_STATE   113
 #define FINISH_STATE 666
 /* Stream status */
-
 
 /* Data structure describing a single value and its code string. */
 typedef struct ct_data_s {
@@ -68,7 +73,7 @@ typedef struct ct_data_s {
         ush  dad;        /* father node in Huffman tree */
         ush  len;        /* length of bit string */
     } dl;
-} FAR ct_data;
+} ct_data;
 
 #define Freq fc.freq
 #define Code fc.code
@@ -81,10 +86,10 @@ typedef struct tree_desc_s {
     ct_data *dyn_tree;           /* the dynamic tree */
     int     max_code;            /* largest code with non zero frequency */
     static_tree_desc *stat_desc; /* the corresponding static tree */
-} FAR tree_desc;
+} tree_desc;
 
 typedef ush Pos;
-typedef Pos FAR Posf;
+typedef Pos Posf;
 typedef unsigned IPos;
 
 /* A Pos is an index in the character window. We use short instead of int to
@@ -188,7 +193,7 @@ typedef struct internal_state {
     int nice_match; /* Stop searching when current match exceeds this */
 
                 /* used by trees.c: */
-    /* Didn't use ct_data typedef below to supress compiler warning */
+    /* Didn't use ct_data typedef below to suppress compiler warning */
     struct ct_data_s dyn_ltree[HEAP_SIZE];   /* literal and length tree */
     struct ct_data_s dyn_dtree[2*D_CODES+1]; /* distance tree */
     struct ct_data_s bl_tree[2*BL_CODES+1];  /* Huffman tree for bit lengths */
@@ -244,7 +249,7 @@ typedef struct internal_state {
     ulg opt_len;        /* bit length of current block with optimal trees */
     ulg static_len;     /* bit length of current block with static trees */
     uInt matches;       /* number of string matches in current block */
-    int last_eob_len;   /* bit length of EOB code for last block */
+    uInt insert;        /* bytes at end of window left to insert */
 
 #ifdef DEBUG
     ulg compressed_len; /* total bit length of compressed file mod 2^32 */
@@ -267,13 +272,12 @@ typedef struct internal_state {
      * updated to the new high water mark.
      */
 
-} FAR deflate_state;
+} deflate_state;
 
 /* Output a byte on the stream.
  * IN assertion: there is enough room in pending_buf.
  */
 #define put_byte(s, c) {s->pending_buf[s->pending++] = (c);}
-
 
 #define MIN_LOOKAHEAD (MAX_MATCH+MIN_MATCH+1)
 /* Minimum amount of lookahead, except at the end of the input file.
@@ -290,13 +294,14 @@ typedef struct internal_state {
    memory checker errors from longest match routines */
 
         /* in trees.c */
-void ZLIB_INTERNAL _tr_init OF((deflate_state *s));
-int ZLIB_INTERNAL _tr_tally OF((deflate_state *s, unsigned dist, unsigned lc));
-void ZLIB_INTERNAL _tr_flush_block OF((deflate_state *s, charf *buf,
-                        ulg stored_len, int last));
-void ZLIB_INTERNAL _tr_align OF((deflate_state *s));
-void ZLIB_INTERNAL _tr_stored_block OF((deflate_state *s, charf *buf,
-                        ulg stored_len, int last));
+void _tr_init(deflate_state *s);
+int _tr_tally(deflate_state *s, unsigned dist, unsigned lc);
+void _tr_flush_block(deflate_state *s, charf *buf,
+                     ulg stored_len, int last);
+void _tr_flush_bits(deflate_state *s);
+void _tr_align(deflate_state *s);
+void _tr_stored_block(deflate_state *s, charf *buf,
+                      ulg stored_len, int last);
 
 #define d_code(dist) \
    ((dist) < 256 ? _dist_code[dist] : _dist_code[256+((dist)>>7)])
@@ -308,12 +313,12 @@ void ZLIB_INTERNAL _tr_stored_block OF((deflate_state *s, charf *buf,
 #ifndef DEBUG
 /* Inline versions of _tr_tally for speed: */
 
-#if defined(GEN_TREES_H) || !defined(STDC)
-  extern uch ZLIB_INTERNAL _length_code[];
-  extern uch ZLIB_INTERNAL _dist_code[];
+#if defined(GEN_TREES_H)
+  extern uch _length_code[];
+  extern uch _dist_code[];
 #else
-  extern const uch ZLIB_INTERNAL _length_code[];
-  extern const uch ZLIB_INTERNAL _dist_code[];
+  extern const uch _length_code[];
+  extern const uch _dist_code[];
 #endif
 
 # define _tr_tally_lit(s, c, flush) \
@@ -340,3 +345,5 @@ void ZLIB_INTERNAL _tr_stored_block OF((deflate_state *s, charf *buf,
 #endif
 
 #endif /* DEFLATE_H */
+
+/* eof */

@@ -163,10 +163,18 @@ struct glp_tree
       /* control parameters and statistics */
       const glp_iocp *parm;
       /* copy of control parameters passed to the solver */
+#if 0 /* 10/VI-2013 */
       glp_long tm_beg;
+#else
+      double tm_beg;
+#endif
       /* starting time of the search, in seconds; the total time of the
          search is the difference between xtime() and tm_beg */
+#if 0 /* 10/VI-2013 */
       glp_long tm_lag;
+#else
+      double tm_lag;
+#endif
       /* the most recent time, in seconds, at which the progress of the
          the search was displayed */
       int sol_cnt;
@@ -572,6 +580,12 @@ void ios_pcost_free(glp_tree *tree);
 #define ios_feas_pump _glp_ios_feas_pump
 void ios_feas_pump(glp_tree *T);
 /* feasibility pump heuristic */
+
+#if 1 /* 25/V-2013 */
+#define ios_proxy_heur _glp_ios_proxy_heur
+void ios_proxy_heur(glp_tree *T);
+/* proximity search heuristic */
+#endif
 
 #define ios_process_cuts _glp_ios_process_cuts
 void ios_process_cuts(glp_tree *T);

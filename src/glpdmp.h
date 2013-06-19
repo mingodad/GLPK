@@ -25,7 +25,7 @@
 #ifndef GLPDMP_H
 #define GLPDMP_H
 
-#include "glpenv.h"
+#include "env.h"
 
 typedef struct DMP DMP;
 
@@ -51,7 +51,11 @@ struct DMP
       int used;
       /* number of bytes used in the most recently allocated memory
          block */
+#if 0 /* 10/VI-2013 */
       glp_long count;
+#else
+      size_t count;
+#endif
       /* number of atoms which are currently in use */
 };
 
@@ -68,7 +72,11 @@ void dmp_free_atom(DMP *pool, void *atom, int size);
 /* return atom to dynamic memory pool */
 
 #define dmp_in_use _glp_dmp_in_use
+#if 0 /* 10/VI-2013 */
 glp_long dmp_in_use(DMP *pool);
+#else
+size_t dmp_in_use(DMP *pool);
+#endif
 /* determine how many atoms are still in use */
 
 #define dmp_delete_pool _glp_dmp_delete_pool

@@ -184,7 +184,11 @@ void bfd_set_parm(BFD *bfd, const void *_parm)
 
 int bfd_factorize(BFD *bfd, int m, const int bh[], int (*col)
       (void *info, int j, int ind[], double val[]), void *info)
+#if 0 /* 06/VI-2013 */
 {     LUF *luf;
+#else
+{
+#endif
       int nov, ret;
       xassert(bfd != NULL);
       xassert(1 <= m && m <= M_MAX);
@@ -219,6 +223,7 @@ int bfd_factorize(BFD *bfd, int m, const int bh[], int (*col)
          default:
             xassert(bfd != bfd);
       }
+#if 0 /* 06/VI-2013 */
       /* set control parameters specific to LUF */
 #if 0 /* 27/IV-2013 */
       if (bfd->fhv != NULL)
@@ -237,6 +242,7 @@ int bfd_factorize(BFD *bfd, int m, const int bh[], int (*col)
       luf->suhl = bfd->suhl;
       luf->eps_tol = bfd->eps_tol;
       luf->max_gro = bfd->max_gro;
+#endif
 #if 0 /* 27/IV-2013 */
       /* set control parameters specific to FHV */
       if (bfd->fhv != NULL)
@@ -270,7 +276,7 @@ skip: /* try to factorize the basis matrix */
       if (bfd->fi != NULL)
       {  /* FIXME */
          if (fhvint_factorize(bfd->fi, m, col, info) != 0)
-         {  ret = BFD_ECOND;
+         {  ret = BFD_ESING;
             goto done;
          }
          /* printf("*** FACTORIZED; m = %d ***\n", m); */

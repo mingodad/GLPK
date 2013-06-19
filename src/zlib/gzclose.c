@@ -1,3 +1,8 @@
+/* gzclose.c */
+
+/* Modified by Andrew Makhorin <mao@gnu.org>, June 2013. */
+/* For original code see <zlib-1.2.7/gzclose.c>. */
+
 /* gzclose.c -- zlib gzclose() function
  * Copyright (C) 2004, 2010 Mark Adler
  * For conditions of distribution and use, see copyright notice in zlib.h
@@ -8,8 +13,7 @@
 /* gzclose() is in a separate file so that it is linked in only if it is used.
    That way the other gzclose functions can be used instead to avoid linking in
    unneeded compression or decompression routines. */
-int ZEXPORT gzclose(file)
-    gzFile file;
+int gzclose(gzFile file)
 {
 #ifndef NO_GZCOMPRESS
     gz_statep state;
@@ -23,3 +27,5 @@ int ZEXPORT gzclose(file)
     return gzclose_r(file);
 #endif
 }
+
+/* eof */

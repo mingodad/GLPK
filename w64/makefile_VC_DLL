@@ -4,8 +4,12 @@ CFLAGS = \
 /I. \
 /I..\src \
 /I..\src\amd \
+/I..\src\bflib \
 /I..\src\colamd \
+/I..\src\env \
 /I..\src\minisat \
+/I..\src\misc \
+/I..\src\proxy \
 /I..\src\zlib \
 /DHAVE_CONFIG_H=1 \
 /D_CRT_SECURE_NO_WARNINGS=1 \
@@ -41,12 +45,6 @@ OBJSET = \
 ..\src\glpcpx.obj \
 ..\src\glpdmp.obj \
 ..\src\glpdmx.obj \
-..\src\glpenv01.obj \
-..\src\glpenv02.obj \
-..\src\glpenv03.obj \
-..\src\glpenv04.obj \
-..\src\glpenv05.obj \
-..\src\glpenv06.obj \
 ..\src\glpenv07.obj \
 ..\src\glpenv08.obj \
 ..\src\glpgmp.obj \
@@ -66,14 +64,11 @@ OBJSET = \
 ..\src\glpios11.obj \
 ..\src\glpios12.obj \
 ..\src\glpipm.obj \
-..\src\glplib01.obj \
-..\src\glplib02.obj \
 ..\src\glplib03.obj \
 ..\src\glplpf.obj \
 ..\src\glplpx01.obj \
 ..\src\glplpx02.obj \
 ..\src\glplpx03.obj \
-..\src\glpluf.obj \
 ..\src\glplux.obj \
 ..\src\glpmat.obj \
 ..\src\glpmpl01.obj \
@@ -83,26 +78,16 @@ OBJSET = \
 ..\src\glpmpl05.obj \
 ..\src\glpmpl06.obj \
 ..\src\glpmps.obj \
-..\src\glpnet01.obj \
-..\src\glpnet02.obj \
 ..\src\glpnet03.obj \
 ..\src\glpnet04.obj \
 ..\src\glpnet05.obj \
-..\src\glpnet06.obj \
-..\src\glpnet07.obj \
-..\src\glpnet08.obj \
-..\src\glpnet09.obj \
 ..\src\glpnpp01.obj \
 ..\src\glpnpp02.obj \
 ..\src\glpnpp03.obj \
 ..\src\glpnpp04.obj \
 ..\src\glpnpp05.obj \
 ..\src\glpnpp06.obj \
-..\src\glpqmd.obj \
 ..\src\glprgr.obj \
-..\src\glprlx.obj \
-..\src\glprng01.obj \
-..\src\glprng02.obj \
 ..\src\glpscf.obj \
 ..\src\glpscl.obj \
 ..\src\glpsdf.obj \
@@ -128,10 +113,32 @@ OBJSET = \
 ..\src\bflib\fhv.obj \
 ..\src\bflib\fhvint.obj \
 ..\src\bflib\luf.obj \
+..\src\bflib\lufint.obj \
 ..\src\bflib\sgf.obj \
 ..\src\bflib\sva.obj \
 ..\src\colamd\colamd.obj \
+..\src\env\alloc.obj \
+..\src\env\env.obj \
+..\src\env\error.obj \
+..\src\env\stdout.obj \
+..\src\env\time.obj \
+..\src\env\tls.obj \
 ..\src\minisat\minisat.obj \
+..\src\misc\bignum.obj \
+..\src\misc\ffalg.obj \
+..\src\misc\jd.obj \
+..\src\misc\keller.obj \
+..\src\misc\mc13d.obj \
+..\src\misc\mc21a.obj \
+..\src\misc\okalg.obj \
+..\src\misc\qmd.obj \
+..\src\misc\relax4.obj \
+..\src\misc\rng.obj \
+..\src\misc\rng1.obj \
+..\src\misc\triang.obj \
+..\src\misc\wclique.obj \
+..\src\proxy\proxy.obj \
+..\src\proxy\proxy1.obj \
 ..\src\zlib\adler32.obj \
 ..\src\zlib\compress.obj \
 ..\src\zlib\crc32.obj \
@@ -140,7 +147,6 @@ OBJSET = \
 ..\src\zlib\gzlib.obj \
 ..\src\zlib\gzread.obj \
 ..\src\zlib\gzwrite.obj \
-..\src\zlib\infback.obj \
 ..\src\zlib\inffast.obj \
 ..\src\zlib\inflate.obj \
 ..\src\zlib\inftrees.obj \
@@ -152,20 +158,24 @@ OBJSET = \
 .c.obj:
         cl.exe $(CFLAGS) /Fo$*.obj /c $*.c
 
-all: glpk_4_50.dll glpsol.exe
+all: glpk_4_51.dll glpsol.exe
 
-glpk_4_50.dll: $(OBJSET)
-        cl.exe $(CFLAGS) /LD /Feglpk_4_50.dll \
+glpk_4_51.dll: $(OBJSET)
+        cl.exe $(CFLAGS) /LD /Feglpk_4_51.dll \
                 ..\src\*.obj \
                 ..\src\amd\*.obj \
+                ..\src\bflib\*.obj \
                 ..\src\colamd\*.obj \
+                ..\src\env\*.obj \
                 ..\src\minisat\*.obj \
+                ..\src\misc\*.obj \
+                ..\src\proxy\*.obj \
                 ..\src\zlib\*.obj \
-                glpk_4_50.def
+                glpk_4_51.def
 
-glpsol.exe: ..\examples\glpsol.obj glpk_4_50.dll
+glpsol.exe: ..\examples\glpsol.obj glpk_4_51.dll
         cl.exe $(CFLAGS) /Feglpsol.exe \
-                ..\examples\glpsol.obj glpk_4_50.lib
+                ..\examples\glpsol.obj glpk_4_51.lib
 
 check: glpsol.exe
         .\glpsol.exe --version

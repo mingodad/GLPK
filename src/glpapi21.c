@@ -24,6 +24,7 @@
 
 #include "glpapi.h"
 #include "glpgmp.h"
+#include "glplib.h"
 
 struct csa
 {     /* common storage area */
@@ -308,6 +309,10 @@ static void print_help(const char *my_name)
       xprintf("                     (assumes --intopt)\n");
       xprintf("   --fpump           apply feasibility pump heuristic\n")
          ;
+#if 1 /* 25/V-2013 */
+      xprintf("   --proxy           apply proximity search heuristic\n")
+         ;
+#endif
       xprintf("   --gomory          generate Gomory's mixed integer cut"
          "s\n");
       xprintf("   --mir             generate MIR (mixed integer roundin"
@@ -723,6 +728,10 @@ static int parse_cmdline(struct csa *csa, int argc, const char *argv[])
             csa->iocp.presolve = csa->iocp.binarize = GLP_ON;
          else if (p("--fpump"))
             csa->iocp.fp_heur = GLP_ON;
+#if 1 /* 25/V-2013 */
+         else if (p("--proxy"))
+            csa->iocp.ps_heur = GLP_ON;
+#endif
          else if (p("--gomory"))
             csa->iocp.gmi_cuts = GLP_ON;
          else if (p("--mir"))
@@ -792,7 +801,11 @@ int glp_main(int argc, const char *argv[])
 {     /* stand-alone LP/MIP solver */
       struct csa _csa, *csa = &_csa;
       int ret;
+#if 0 /* 10/VI-2013 */
       glp_long start;
+#else
+      double start;
+#endif
       /* perform initialization */
       csa->prob = glp_create_prob();
       glp_get_bfcp(csa->prob, &csa->bfcp);
@@ -932,7 +945,11 @@ err1:    {  xprintf("MPS file processing error\n");
          csa->tran = glp_mpl_alloc_wksp();
          /* set seed value */
          if (csa->seed == 0x80000000)
+#if 0 /* 10/VI-2013 */
          {  csa->seed = glp_time().lo;
+#else
+         {  csa->seed = (int)fmod(glp_time(), 1000000000.0);
+#endif
             xprintf("Seed value %d will be used\n", csa->seed);
          }
          _glp_mpl_init_rand(csa->tran, csa->seed);

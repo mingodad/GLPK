@@ -23,6 +23,9 @@
 ***********************************************************************/
 
 #define _GLPSTD_STDIO
+#if 1 /* 11/VI-2013 */
+#include "bignum.h"
+#endif
 #include "glpdmp.h"
 #include "glpgmp.h"
 #define xfault xerror
@@ -55,7 +58,11 @@ int gmp_pool_count(void)
 {     if (gmp_pool == NULL)
          return 0;
       else
+#if 0 /* 10/VI-2013 */
          return dmp_in_use(gmp_pool).lo;
+#else
+         return dmp_in_use(gmp_pool);
+#endif
 }
 
 unsigned short *gmp_get_work(int size)

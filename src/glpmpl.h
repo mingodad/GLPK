@@ -25,8 +25,12 @@
 #ifndef GLPMPL_H
 #define GLPMPL_H
 
+#if 1 /* 11/VI-2013 */
+#include "env2.h"
+#endif
 #include "glpavl.h"
-#include "glprng.h"
+#include "glplib.h"
+#include "rng.h"
 
 #if 0 /* 22/I-2013 */
 typedef struct MPL MPL;

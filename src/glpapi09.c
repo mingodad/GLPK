@@ -633,6 +633,9 @@ void glp_init_iocp(glp_iocp *parm)
       parm->presolve = GLP_OFF;
       parm->binarize = GLP_OFF;
       parm->fp_heur = GLP_OFF;
+#if 1 /* 25/V-2013 */
+      parm->ps_heur = GLP_OFF;
+#endif
 #if 1 /* 28/V-2010 */
       parm->alien = GLP_OFF;
 #endif

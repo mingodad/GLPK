@@ -22,9 +22,9 @@
 *  along with GLPK. If not, see <http://www.gnu.org/licenses/>.
 ***********************************************************************/
 
-#include "glpenv.h"
+#include "env.h"
 #include "glpmat.h"
-#include "glpqmd.h"
+#include "qmd.h"
 #include "amd.h"
 #include "colamd.h"
 

@@ -25,6 +25,122 @@
 #include "luf.h"
 
 /***********************************************************************
+*  luf_check_all - check LU-factorization before k-th elimination step
+*
+*  This routine checks that before performing k-th elimination step,
+*  1 <= k <= n+1, all components of the LU-factorization are correct.
+*
+*  In case of k = n+1, i.e. after last elimination step, it is assumed
+*  that rows of F and columns of V are *not* built yet.
+*
+*  NOTE: For testing/debugging only. */
+
+void luf_check_all(LUF *luf, int k)
+{     int n = luf->n;
+      SVA *sva = luf->sva;
+      int *sv_ind = sva->ind;
+      double *sv_val = sva->val;
+      int fr_ref = luf->fr_ref;
+      int *fr_len = &sva->len[fr_ref-1];
+      int fc_ref = luf->fc_ref;
+      int *fc_ptr = &sva->ptr[fc_ref-1];
+      int *fc_len = &sva->len[fc_ref-1];
+      int vr_ref = luf->vr_ref;
+      int *vr_ptr = &sva->ptr[vr_ref-1];
+      int *vr_len = &sva->len[vr_ref-1];
+      int vc_ref = luf->vc_ref;
+      int *vc_ptr = &sva->ptr[vc_ref-1];
+      int *vc_len = &sva->len[vc_ref-1];
+      int *pp_ind = luf->pp_ind;
+      int *pp_inv = luf->pp_inv;
+      int *qq_ind = luf->qq_ind;
+      int *qq_inv = luf->qq_inv;
+      int i, ii, i_ptr, i_end, j, jj, j_ptr, j_end;
+      xassert(n > 0);
+      xassert(1 <= k && k <= n+1);
+      /* check permutation matrix P */
+      for (i = 1; i <= n; i++)
+      {  ii = pp_ind[i];
+         xassert(1 <= ii && ii <= n);
+         xassert(pp_inv[ii] == i);
+      }
+      /* check permutation matrix Q */
+      for (j = 1; j <= n; j++)
+      {  jj = qq_inv[j];
+         xassert(1 <= jj && jj <= n);
+         xassert(qq_ind[jj] == j);
+      }
+      /* check row-wise representation of matrix F */
+      for (i = 1; i <= n; i++)
+         xassert(fr_len[i] == 0);
+      /* check column-wise representation of matrix F */
+      for (j = 1; j <= n; j++)
+      {  /* j-th column of F = jj-th column of L */
+         jj = pp_ind[j];
+         if (jj < k)
+         {  j_ptr = fc_ptr[j];
+            j_end = j_ptr + fc_len[j];
+            for (; j_ptr < j_end; j_ptr++)
+            {  i = sv_ind[j_ptr];
+               xassert(1 <= i && i <= n);
+               ii = pp_ind[i]; /* f[i,j] = l[ii,jj] */
+               xassert(ii > jj);
+               xassert(sv_val[j_ptr] != 0.0);
+            }
+         }
+         else /* jj >= k */
+            xassert(fc_len[j] == 0);
+      }
+      /* check row-wise representation of matrix V */
+      for (i = 1; i <= n; i++)
+      {  /* i-th row of V = ii-th row of U */
+         ii = pp_ind[i];
+         i_ptr = vr_ptr[i];
+         i_end = i_ptr + vr_len[i];
+         for (; i_ptr < i_end; i_ptr++)
+         {  j = sv_ind[i_ptr];
+            xassert(1 <= j && j <= n);
+            jj = qq_inv[j]; /* v[i,j] = u[ii,jj] */
+            if (ii < k)
+               xassert(jj > ii);
+            else /* ii >= k */
+            {  xassert(jj >= k);
+               /* find v[i,j] in j-th column */
+               j_ptr = vc_ptr[j];
+               j_end = j_ptr + vc_len[j];
+               for (; sv_ind[j_ptr] != i; j_ptr++)
+                  /* nop */;
+               xassert(j_ptr < j_end);
+            }
+            xassert(sv_val[i_ptr] != 0.0);
+         }
+      }
+      /* check column-wise representation of matrix V */
+      for (j = 1; j <= n; j++)
+      {  /* j-th column of V = jj-th column of U */
+         jj = qq_inv[j];
+         if (jj < k)
+            xassert(vc_len[j] == 0);
+         else /* jj >= k */
+         {  j_ptr = vc_ptr[j];
+            j_end = j_ptr + vc_len[j];
+            for (; j_ptr < j_end; j_ptr++)
+            {  i = sv_ind[j_ptr];
+               ii = pp_ind[i]; /* v[i,j] = u[ii,jj] */
+               xassert(ii >= k);
+               /* find v[i,j] in i-th row */
+               i_ptr = vr_ptr[i];
+               i_end = i_ptr + vr_len[i];
+               for (; sv_ind[i_ptr] != j; i_ptr++)
+                  /* nop */;
+               xassert(i_ptr < i_end);
+            }
+         }
+      }
+      return;
+}
+
+/***********************************************************************
 *  luf_build_v_rows - build matrix V in row-wise format
 *
 *  This routine builds the row-wise representation of matrix V in the

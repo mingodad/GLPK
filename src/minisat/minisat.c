@@ -28,7 +28,7 @@
 ***********************************************************************/
 /* Modified to compile with MS Visual Studio 6.0 by Alan Mishchenko */
 
-#include "glpenv.h"
+#include "env.h"
 #include "minisat.h"
 
 #if 1 /* by mao */

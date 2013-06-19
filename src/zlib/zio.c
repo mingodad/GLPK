@@ -1,92 +1,77 @@
-/* zio.c (simulation of non-standard low-level i/o functions) */
+/* zio.c (simulation of POSIX low-level I/O functions) */
 
-/* Written by Andrew Makhorin <mao@gnu.org>, April 2011
+/* Written by Andrew Makhorin <mao@gnu.org>, June 2013
  * For conditions of distribution and use, see copyright notice in
  * zlib.h */
-
-/* (reserved for copyright notice) */
 
 #include <assert.h>
 #include <stdio.h>
 #include "zio.h"
 
 static FILE *file[FOPEN_MAX];
-static int initialized = 0;
-
-static void initialize(void)
-{     int fd;
-      assert(!initialized);
-      file[0] = stdin;
-      file[1] = stdout;
-      file[2] = stderr;
-      for (fd = 3; fd < FOPEN_MAX; fd++)
-         file[fd] = NULL;
-      initialized = 1;
-      return;
-}
 
 int open(const char *path, int oflag, ...)
-{     FILE *fp;
+{     FILE *f;
       int fd;
-      if (!initialized) initialize();
       /* see file gzlib.c, function gz_open */
       if (oflag == O_RDONLY)
-         fp = fopen(path, "rb");
+         f = fopen(path, "rb");
       else if (oflag == (O_WRONLY | O_CREAT | O_TRUNC))
-         fp = fopen(path, "wb");
+         f = fopen(path, "wb");
       else if (oflag == (O_WRONLY | O_CREAT | O_APPEND))
-         fp = fopen(path, "ab");
+         f = fopen(path, "ab");
       else
          assert(oflag != oflag);
-      if (fp == NULL)
+      if (f == NULL)
          return -1;
-      for (fd = 0; fd < FOPEN_MAX; fd++)
+      for (fd = 3; fd < FOPEN_MAX; fd++)
          if (file[fd] == NULL) break;
       assert(fd < FOPEN_MAX);
-      file[fd] = fp;
+      file[fd] = f;
       return fd;
 }
 
-long read(int fd, void *buf, unsigned long nbyte)
-{     unsigned long count;
-      if (!initialized) initialize();
-      assert(0 <= fd && fd < FOPEN_MAX);
-      assert(file[fd] != NULL);
-      count = fread(buf, 1, nbyte, file[fd]);
-      if (ferror(file[fd]))
+long read(int fd, void *buf, unsigned long cnt)
+{     FILE *f;
+      assert(3 <= fd && fd < FOPEN_MAX);
+      f = file[fd];
+      assert(f != NULL);
+      cnt = fread(buf, 1, cnt, f);
+      if (ferror(f))
          return -1;
-      return count;
+      return cnt;
 }
 
-long write(int fd, const void *buf, unsigned long nbyte)
-{     unsigned long count;
-      if (!initialized) initialize();
-      assert(0 <= fd && fd < FOPEN_MAX);
-      assert(file[fd] != NULL);
-      count = fwrite(buf, 1, nbyte, file[fd]);
-      if (count != nbyte)
+long write(int fd, const void *buf, unsigned long cnt)
+{     FILE *f;
+      assert(3 <= fd && fd < FOPEN_MAX);
+      f = file[fd];
+      assert(f != NULL);
+      cnt = fwrite(buf, 1, cnt, f);
+      if (ferror(f))
          return -1;
-      if (fflush(file[fd]) != 0)
+      if (fflush(f) != 0)
          return -1;
-      return count;
+      return cnt;
 }
 
 long lseek(int fd, long offset, int whence)
-{     if (!initialized) initialize();
-      assert(0 <= fd && fd < FOPEN_MAX);
-      assert(file[fd] != NULL);
-      if (fseek(file[fd], offset, whence) != 0)
+{     FILE *f;
+      assert(3 <= fd && fd < FOPEN_MAX);
+      f = file[fd];
+      assert(f != NULL);
+      if (fseek(f, offset, whence) != 0)
          return -1;
-      return ftell(file[fd]);
+      return ftell(f);
 }
 
 int close(int fd)
-{     if (!initialized) initialize();
-      assert(0 <= fd && fd < FOPEN_MAX);
-      assert(file[fd] != NULL);
-      fclose(file[fd]);
+{     FILE *f;
+      assert(3 <= fd && fd < FOPEN_MAX);
+      f = file[fd];
+      assert(f != NULL);
       file[fd] = NULL;
-      return 0;
+      return fclose(f);
 }
 
 /* eof */

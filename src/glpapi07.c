@@ -23,6 +23,7 @@
 ***********************************************************************/
 
 #include "glpapi.h"
+#include "glplib.h"
 #include "glpssx.h"
 
 /***********************************************************************
@@ -331,7 +332,11 @@ int glp_exact(glp_prob *lp, const glp_smcp *parm)
 #endif
       ssx->out_frq = 5.0;
       ssx->tm_beg = xtime();
+#if 0 /* 10/VI-2013 */
       ssx->tm_lag = xlset(0);
+#else
+      ssx->tm_lag = 0.0;
+#endif
       /* solve LP */
       ret = ssx_driver(ssx);
       /* copy back some statistics to the LP object */

@@ -128,8 +128,12 @@ struct csa
          0 - not determined yet
          1 - search for primal feasible solution
          2 - search for optimal solution */
+#if 0 /* 10/VI-2013 */
       glp_long tm_beg;
       /* time value at the beginning of the search */
+#else
+      double tm_beg;
+#endif
       int it_beg;
       /* simplex iteration count at the beginning of the search */
       int it_cnt;

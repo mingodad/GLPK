@@ -25,56 +25,6 @@
 #ifndef GLPLIB_H
 #define GLPLIB_H
 
-#define bigmul _glp_lib_bigmul
-void bigmul(int n, int m, unsigned short x[], unsigned short y[]);
-/* multiply unsigned integer numbers of arbitrary precision */
-
-#define bigdiv _glp_lib_bigdiv
-void bigdiv(int n, int m, unsigned short x[], unsigned short y[]);
-/* divide unsigned integer numbers of arbitrary precision */
-
-typedef struct { int lo, hi; } glp_long;
-/* long integer data type */
-
-typedef struct { glp_long quot, rem; } glp_ldiv;
-/* result of long integer division */
-
-#define xlset _glp_lib_xlset
-glp_long xlset(int x);
-/* expand integer to long integer */
-
-#define xlneg _glp_lib_xlneg
-glp_long xlneg(glp_long x);
-/* negate long integer */
-
-#define xladd _glp_lib_xladd
-glp_long xladd(glp_long x, glp_long y);
-/* add long integers */
-
-#define xlsub _glp_lib_xlsub
-glp_long xlsub(glp_long x, glp_long y);
-/* subtract long integers */
-
-#define xlcmp _glp_lib_xlcmp
-int xlcmp(glp_long x, glp_long y);
-/* compare long integers */
-
-#define xlmul _glp_lib_xlmul
-glp_long xlmul(glp_long x, glp_long y);
-/* multiply long integers */
-
-#define xldiv _glp_lib_xldiv
-glp_ldiv xldiv(glp_long x, glp_long y);
-/* divide long integers */
-
-#define xltod _glp_lib_xltod
-double xltod(glp_long x);
-/* convert long integer to double */
-
-#define xltoa _glp_lib_xltoa
-char *xltoa(glp_long x, char *s);
-/* convert long integer to character string */
-
 #define str2int _glp_lib_str2int
 int str2int(const char *str, int *val);
 /* convert character string to value of int type */
@@ -118,14 +68,6 @@ double round2n(double x);
 #define fp2rat _glp_lib_fp2rat
 int fp2rat(double x, double eps, double *p, double *q);
 /* convert floating-point number to rational number */
-
-#define jday _glp_lib_jday
-int jday(int d, int m, int y);
-/* convert calendar date to Julian day number */
-
-#define jdate _glp_lib_jdate
-int jdate(int j, int *d, int *m, int *y);
-/* convert Julian day number to calendar date */
 
 #endif
 
