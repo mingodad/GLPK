@@ -28,9 +28,8 @@
 #include "glpk.h"
 #include "glpavl.h"
 #include "glpbfd.h"
-#if 1 /* 14/IV-2013 */
 #include "glplpx.h"
-#endif
+#include "env.h"
 
 typedef struct GLPROW GLPROW;
 typedef struct GLPCOL GLPCOL;

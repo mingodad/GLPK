@@ -2769,7 +2769,11 @@ loop: /* main loop starts here */
          switch (csa->phase)
          {  case 1:
                if (parm->msg_lev >= GLP_MSG_ALL)
+#if 0 /* 13/VII-2013; suggested by Prof. Fischetti */
                   xprintf("PROBLEM HAS NO FEASIBLE SOLUTION\n");
+#else
+                  xprintf("LP HAS NO PRIMAL FEASIBLE SOLUTION\n");
+#endif
                p_stat = GLP_NOFEAS;
                set_orig_obj(csa);
                eval_cbar(csa);
@@ -2778,7 +2782,11 @@ loop: /* main loop starts here */
                break;
             case 2:
                if (parm->msg_lev >= GLP_MSG_ALL)
+#if 0 /* 13/VII-2013; suggested by Prof. Fischetti */
                   xprintf("OPTIMAL SOLUTION FOUND\n");
+#else
+                  xprintf("OPTIMAL LP SOLUTION FOUND\n");
+#endif
                p_stat = d_stat = GLP_FEAS;
                break;
             default:
@@ -2846,7 +2854,11 @@ loop: /* main loop starts here */
                break;
             case 2:
                if (parm->msg_lev >= GLP_MSG_ALL)
+#if 0 /* 13/VII-2013; suggested by Prof. Fischetti */
                   xprintf("PROBLEM HAS UNBOUNDED SOLUTION\n");
+#else
+                  xprintf("LP HAS UNBOUNDED PRIMAL SOLUTION\n");
+#endif
                store_sol(csa, lp, GLP_FEAS, GLP_NOFEAS,
                   csa->head[csa->m+csa->q]);
                ret = 0;

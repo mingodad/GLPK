@@ -217,7 +217,13 @@ int glp_get_num_bin(glp_prob *mip)
 *  GLP_ESTOP
 *     The search was prematurely terminated by application. */
 
+#if 0 /* 11/VII-2013 */
 static int solve_mip(glp_prob *P, const glp_iocp *parm)
+#else
+static int solve_mip(glp_prob *P, const glp_iocp *parm,
+      glp_prob *P0 /* problem passed to glp_intopt */,
+      NPP *npp /* preprocessor workspace or NULL */)
+#endif
 {     /* solve MIP directly without using the preprocessor */
       glp_tree *T;
       int ret;
@@ -234,6 +240,10 @@ static int solve_mip(glp_prob *P, const glp_iocp *parm)
          xprintf("Integer optimization begins...\n");
       /* create the branch-and-bound tree */
       T = ios_create_tree(P, parm);
+#if 1 /* 11/VII-2013 */
+      T->P = P0;
+      T->npp = npp;
+#endif
       /* solve the problem instance */
       ret = ios_driver(T);
       /* delete the branch-and-bound tree */
@@ -389,7 +399,15 @@ static int preprocess_and_solve_mip(glp_prob *P, const glp_iocp *parm)
       if (ret != 0) goto done;
       /* solve the transformed MIP */
       mip->it_cnt = P->it_cnt;
+#if 0 /* 11/VII-2013 */
       ret = solve_mip(mip, parm);
+#else
+      if (parm->use_sol)
+      {  mip->mip_stat = P->mip_stat;
+         mip->mip_obj = P->mip_obj;
+      }
+      ret = solve_mip(mip, parm, P, npp);
+#endif
       P->it_cnt = mip->it_cnt;
       /* only integer feasible solution can be postprocessed */
       if (!(mip->mip_stat == GLP_OPT || mip->mip_stat == GLP_FEAS))
@@ -502,9 +520,20 @@ int glp_intopt(glp_prob *P, const glp_iocp *parm)
          xerror("glp_intopt: alien = %d; invalid parameter\n",
             parm->alien);
 #endif
+#if 0 /* 11/VII-2013 */
       /* integer solution is currently undefined */
       P->mip_stat = GLP_UNDEF;
       P->mip_obj = 0.0;
+#else
+      if (!parm->use_sol)
+         P->mip_stat = GLP_UNDEF;
+      if (P->mip_stat == GLP_NOFEAS)
+         P->mip_stat = GLP_UNDEF;
+      if (P->mip_stat == GLP_UNDEF)
+         P->mip_obj = 0.0;
+      else if (P->mip_stat == GLP_OPT)
+         P->mip_stat = GLP_FEAS;
+#endif
       /* check bounds of double-bounded variables */
       for (i = 1; i <= P->m; i++)
       {  GLPROW *row = P->row[i];
@@ -588,7 +617,11 @@ int glp_intopt(glp_prob *P, const glp_iocp *parm)
       }
 #endif
       if (!parm->presolve)
+#if 0 /* 11/VII-2013 */
          ret = solve_mip(P, parm);
+#else
+         ret = solve_mip(P, parm, P, NULL);
+#endif
       else
          ret = preprocess_and_solve_mip(P, parm);
 done: /* return to the application program */
@@ -635,6 +668,13 @@ void glp_init_iocp(glp_iocp *parm)
       parm->fp_heur = GLP_OFF;
 #if 1 /* 25/V-2013 */
       parm->ps_heur = GLP_OFF;
+#endif
+#if 1 /* 29/VI-2013 */
+      parm->ps_tm_lim = 60000; /* 1 minute */
+#endif
+#if 1 /* 11/VII-2013 */
+      parm->use_sol = GLP_OFF;
+      parm->save_sol = NULL;
 #endif
 #if 1 /* 28/V-2010 */
       parm->alien = GLP_OFF;

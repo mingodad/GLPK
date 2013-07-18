@@ -34,7 +34,7 @@ extern "C" {
 
 /* library version numbers: */
 #define GLP_MAJOR_VERSION  4
-#define GLP_MINOR_VERSION  51
+#define GLP_MINOR_VERSION  52
 
 typedef struct glp_prob glp_prob;
 /* LP/MIP problem object */
@@ -185,10 +185,17 @@ typedef struct
 #if 1 /* 25/V-2013 */
       int ps_heur;            /* proximity search heuristic */
 #endif
+#if 1 /* 29/VI-2013 */
+      int ps_tm_lim;          /* proxy time limit, milliseconds */
+#endif
+#if 1 /* 11/VII-2013 */
+      int use_sol;            /* use existing solution */
+      const char *save_sol;   /* filename to save every new solution */
+#endif
 #if 1 /* 28/V-2010 */
       int alien;              /* use alien solver */
 #endif
-      double foo_bar[28];     /* (reserved) */
+      double foo_bar[25];     /* (reserved) */
 } glp_iocp;
 
 typedef struct

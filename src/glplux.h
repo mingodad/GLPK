@@ -25,7 +25,7 @@
 #ifndef GLPLUX_H
 #define GLPLUX_H
 
-#include "glpdmp.h"
+#include "dmp.h"
 #include "glpgmp.h"
 
 /*----------------------------------------------------------------------

@@ -17,8 +17,17 @@ void ios_proxy_heur(glp_tree *T)
       xstar = xcalloc(1+prob->n, sizeof(double));
       for (j = 1; j <= prob->n; j++)
          xstar[j] = 0.0;
-      /* time limit = 1 min = 60 sec */
-      status = proxy(prob, &zstar, xstar, NULL, 0.0, 60000, 1);
+      if (T->mip->mip_stat != GLP_FEAS)
+         status = proxy(prob, &zstar, xstar, NULL, 0.0,
+            T->parm->ps_tm_lim, 1);
+      else
+      {  double *xinit = xcalloc(1+prob->n, sizeof(double));
+         for (j = 1; j <= prob->n; j++)
+            xinit[j] = T->mip->col[j]->mipx;
+         status = proxy(prob, &zstar, xstar, xinit, 0.0,
+            T->parm->ps_tm_lim, 1);
+         xfree(xinit);
+      }
       if (status == 0)
          glp_ios_heur_sol(T, xstar);
       xfree(xstar);

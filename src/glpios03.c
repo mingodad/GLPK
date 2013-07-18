@@ -560,6 +560,81 @@ static void cleanup_the_tree(glp_tree *T)
       return;
 }
 
+#if 1 /* 09/VII-2013 */
+/***********************************************************************
+*  round_heur - simple rounding heuristic
+*
+*  This routine attempts to guess an integer feasible solution by
+*  simple rounding values of all integer variables in basic solution to
+*  nearest integers. */
+
+static int round_heur(glp_tree *T)
+{     glp_prob *P = T->mip;
+      int m = P->m;
+      int n = P->n;
+      int i, j, ret;
+      double *x;
+      /* compute rounded values of variables */
+      x = talloc(1+n, double);
+      for (j = 1; j <= n; j++)
+      {  GLPCOL *col = P->col[j];
+         if (col->kind == GLP_IV)
+         {  /* integer variable */
+            x[j] = floor(col->prim + 0.5);
+         }
+         else if (col->type == GLP_FX)
+         {  /* fixed variable */
+            x[j] = col->prim;
+         }
+         else
+         {  /* non-integer non-fixed variable */
+            ret = 3;
+            goto done;
+         }
+      }
+      /* check that no constraints are violated */
+      for (i = 1; i <= m; i++)
+      {  GLPROW *row = P->row[i];
+         int type = row->type;
+         GLPAIJ *aij;
+         double sum;
+         if (type == GLP_FR)
+            continue;
+         /* compute value of linear form */
+         sum = 0.0;
+         for (aij = row->ptr; aij != NULL; aij = aij->r_next)
+            sum += aij->val * x[aij->col->j];
+         /* check lower bound */
+         if (type == GLP_LO || type == GLP_DB || type == GLP_FX)
+         {  if (sum < row->lb - 1e-9)
+            {  /* lower bound is violated */
+               ret = 2;
+               goto done;
+            }
+         }
+         /* check upper bound */
+         if (type == GLP_UP || type == GLP_DB || type == GLP_FX)
+         {  if (sum > row->ub + 1e-9)
+            {  /* upper bound is violated */
+               ret = 2;
+               goto done;
+            }
+         }
+      }
+      /* rounded solution is integer feasible */
+      if (glp_ios_heur_sol(T, x) == 0)
+      {  /* solution is accepted */
+         ret = 0;
+      }
+      else
+      {  /* solution is rejected */
+         ret = 1;
+      }
+done: tfree(x);
+      return ret;
+}
+#endif
+
 /**********************************************************************/
 
 static void generate_cuts(glp_tree *T)
@@ -583,7 +658,7 @@ static void generate_cuts(glp_tree *T)
 #endif
       /* generate and add to POOL all cuts violated by x* */
       if (T->parm->gmi_cuts == GLP_ON)
-      {  if (T->curr->changed < 5)
+      {  if (T->curr->changed < 7)
             ios_gmi_gen(T);
       }
       if (T->parm->mir_cuts == GLP_ON)
@@ -597,8 +672,13 @@ static void generate_cuts(glp_tree *T)
       }
       if (T->parm->clq_cuts == GLP_ON)
       {  if (T->clq_gen != NULL)
+#if 0 /* 29/VI-2013 */
          {  if (T->curr->level == 0 && T->curr->changed < 50 ||
                 T->curr->level >  0 && T->curr->changed < 5)
+#else /* FIXME */
+         {  if (T->curr->level == 0 && T->curr->changed < 500 ||
+                T->curr->level >  0 && T->curr->changed < 50)
+#endif
                ios_clq_gen(T, T->clq_gen);
          }
       }
@@ -710,6 +790,10 @@ int ios_driver(glp_tree *T)
          branching, pred_p is the reference number of its parent
          subproblem, otherwise pred_p is zero */
 #endif
+#if 1 /* 18/VII-2013 */
+      int bad_cut;
+      double old_obj;
+#endif
 #if 0 /* 10/VI-2013 */
       glp_long ttt = T->tm_beg;
 #else
@@ -804,6 +888,9 @@ loop: /* main loop starts here */
             T->clq_gen = ios_clq_init(T);
          }
       }
+#if 1 /* 18/VII-2013 */
+      bad_cut = 0;
+#endif
 more: /* minor loop starts here */
       /* at this point the current subproblem needs either to be solved
          for the first time or re-optimized due to reformulation */
@@ -998,6 +1085,9 @@ more: /* minor loop starts here */
          record_solution(T);
          if (T->parm->msg_lev >= GLP_MSG_ON)
             show_progress(T, 1);
+#if 1 /* 11/VII-2013 */
+         ios_process_sol(T);
+#endif
          /* make the application program happy */
          if (T->parm->cb_func != NULL)
          {  xassert(T->reason == 0);
@@ -1068,6 +1158,21 @@ more: /* minor loop starts here */
          }
       }
 #endif
+#if 1 /* 09/VII-2013 */
+      /* try to find solution with a simple rounding heuristic */
+      {  xassert(T->reason == 0);
+         T->reason = GLP_IHEUR;
+         round_heur(T);
+         T->reason = 0;
+         /* check if the current branch became hopeless */
+         if (!is_branch_hopeful(T, p))
+         {  if (T->parm->msg_lev >= GLP_MSG_DBG)
+               xprintf("Current branch became hopeless and can be prune"
+                  "d\n");
+            goto fath;
+         }
+      }
+#endif
       /* it's time to generate cutting planes */
       xassert(T->local != NULL);
       xassert(T->local->size == 0);
@@ -1084,10 +1189,21 @@ more: /* minor loop starts here */
             goto done;
          }
       }
+#if 1 /* 18/VII-2013 */
+      if (T->curr->changed > 0)
+      {  double degrad = fabs(T->curr->lp_obj - old_obj);
+         if (degrad < 1e-4 * (1.0 + fabs(old_obj)))
+            bad_cut++;
+         else
+            bad_cut = 0;
+      }
+      old_obj = T->curr->lp_obj;
+      if (bad_cut == 0 || (T->curr->level == 0 && bad_cut <= 3))
+#endif
       /* try to generate generic cuts with built-in generators
-         (as suggested by Matteo Fischetti et al. the built-in cuts
-         are not generated at each branching node; an intense attempt
-         of generating new cuts is only made at the root node, and then
+         (as suggested by Prof. Fischetti et al. the built-in cuts are
+         not generated at each branching node; an intense attempt of
+         generating new cuts is only made at the root node, and then
          a moderate effort is spent after each backtracking step) */
       if (T->curr->level == 0 || pred_p == 0)
       {  xassert(T->reason == 0);
@@ -1152,6 +1268,9 @@ more: /* minor loop starts here */
          /* the current subproblem should be considered as a new one,
             since one bound of the branching variable was changed */
          T->curr->solved = T->curr->changed = 0;
+#if 1 /* 18/VII-2013 */
+         /* bad_cut = 0; */
+#endif
          goto more;
       }
       else if (ret == 2)

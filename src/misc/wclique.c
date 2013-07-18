@@ -1,4 +1,4 @@
-/* wclique.c (max weight clique, Ostergard's algorithm) */
+/* wclique.c (maximum weight clique, Ostergard's algorithm) */
 
 /***********************************************************************
 *  This code is part of GLPK (GNU Linear Programming Kit).

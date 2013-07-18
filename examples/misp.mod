@@ -3,10 +3,10 @@
 /* Written in GNU MathProg by Andrew Makhorin <mao@gnu.org> */
 
 /* Let G = (V,E) be an undirected graph with vertex set V and edge set
-   E. Vertices u, v in V are non-adjacent if (u,v) not in E. A subset
-   of the vertices S within V is independent if all vertices in S are
-   pairwise non-adjacent. The Maximum Independent Set Problem (MISP) is
-   to find an independent set having the largest cardinality. */
+ * E. Vertices u, v in V are non-adjacent if (u,v) not in E. A subset
+ * of the vertices S within V is independent if all vertices in S are
+ * pairwise non-adjacent. The Maximum Independent Set Problem (MISP) is
+ * to find an independent set having the largest cardinality. */
 
 param n, integer, > 0;
 /* number of vertices */
@@ -30,13 +30,13 @@ maximize obj: sum{i in V} x[i];
 data;
 
 /* These data corresponds to the test instance from:
+ *
+ * M.G.C. Resende, T.A.Feo, S.H.Smith, "Algorithm 787 -- FORTRAN
+ * subroutines for approximate solution of the maximum independent set
+ * problem using GRASP," Trans. on Math. Softw., Vol. 24, No. 4,
+ * December 1998, pp. 386-394. */
 
-   M.G.C. Resende, T.A.Feo, S.H.Smith, "Algorithm 787 -- FORTRAN
-   subroutines for approximate solution of the maximum independent set
-   problem using GRASP," Trans. on Math. Softw., Vol. 24, No. 4,
-   December 1998, pp. 386-394. */
-
-/* The optimal solution is 7 */
+/* The optimal solution is 7. */
 
 param n := 50;
 

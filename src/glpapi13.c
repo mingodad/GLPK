@@ -674,6 +674,9 @@ int glp_ios_heur_sol(glp_tree *tree, const double x[])
          for (aij = row->ptr; aij != NULL; aij = aij->r_next)
             row->mipx += aij->val * aij->col->mipx;
       }
+#if 1 /* 11/VII-2013 */
+      ios_process_sol(tree);
+#endif
       return 0;
 }
 

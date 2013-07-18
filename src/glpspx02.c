@@ -2665,6 +2665,10 @@ int spx_dual(glp_prob *lp, const glp_smcp *parm)
          table */
       int check = 0;
       int p_stat, d_stat, ret;
+#if 1 /* 16/VII-2013 */
+      int degen = 0;
+      /* degenerated step count */
+#endif
       /* allocate and initialize the common storage area */
       csa = alloc_csa(lp);
       init_csa(csa, lp);
@@ -2695,6 +2699,16 @@ loop: /* main loop starts here */
          /* invalidate basic solution components */
          bbar_st = cbar_st = 0;
       }
+#if 1 /* 16/VII-2013 */
+      if (degen >= 5000 && parm->meth == GLP_DUALP)
+      {  if (parm->msg_lev >= GLP_MSG_ERR)
+            xprintf("Warning: dual degeneracy; switching to primal simp"
+               "lex\n");
+         store_sol(csa, lp, GLP_UNDEF, GLP_UNDEF, 0);
+         ret = GLP_EFAIL;
+         goto done;
+      }
+#endif
       /* compute reduced costs of non-basic variables */
       if (cbar_st == 0)
       {  eval_cbar(csa);
@@ -2896,14 +2910,22 @@ loop: /* main loop starts here */
          switch (csa->phase)
          {  case 1:
                if (parm->msg_lev >= GLP_MSG_ALL)
+#if 0 /* 13/VII-2013; suggested by Prof. Fischetti */
                   xprintf("PROBLEM HAS NO DUAL FEASIBLE SOLUTION\n");
+#else
+                  xprintf("LP HAS NO DUAL FEASIBLE SOLUTION\n");
+#endif
                set_orig_bnds(csa);
                eval_bbar(csa);
                p_stat = GLP_INFEAS, d_stat = GLP_NOFEAS;
                break;
             case 2:
                if (parm->msg_lev >= GLP_MSG_ALL)
+#if 0 /* 13/VII-2013; suggested by Prof. Fischetti */
                   xprintf("OPTIMAL SOLUTION FOUND\n");
+#else
+                  xprintf("OPTIMAL LP SOLUTION FOUND\n");
+#endif
                p_stat = d_stat = GLP_FEAS;
                break;
             default:
@@ -2956,8 +2978,8 @@ loop: /* main loop starts here */
          switch (csa->phase)
          {  case 1:
                if (parm->msg_lev >= GLP_MSG_ERR)
-                  xprintf("Error: unable to choose basic variable on ph"
-                     "ase I\n");
+                  xprintf("Error: unable to choose non-basic variable o"
+                     "n phase I\n");
                xassert(!lp->valid && lp->bfd == NULL);
                lp->bfd = csa->bfd, csa->bfd = NULL;
                lp->pbs_stat = lp->dbs_stat = GLP_UNDEF;
@@ -2968,7 +2990,11 @@ loop: /* main loop starts here */
                break;
             case 2:
                if (parm->msg_lev >= GLP_MSG_ALL)
+#if 0 /* 13/VII-2013; suggested by Prof. Fischetti */
                   xprintf("PROBLEM HAS NO FEASIBLE SOLUTION\n");
+#else
+                  xprintf("LP HAS UNBOUNDED DUAL SOLUTION\n");
+#endif
                store_sol(csa, lp, GLP_NOFEAS, GLP_FEAS,
                   csa->head[csa->p]);
                ret = 0;
@@ -3070,6 +3096,16 @@ loop: /* main loop starts here */
       change_basis(csa);
       /* iteration complete */
       csa->it_cnt++;
+#if 1 /* 16/VII-2013 */
+      if (-1e-9 <= csa->new_dq && csa->new_dq <= +1e-9)
+      {  /* degenerated step */
+         degen++;
+      }
+      else
+      {  /* non-degenerated step */
+         degen = 0;
+      }
+#endif
       if (rigorous > 0) rigorous--;
       goto loop;
 done: /* deallocate the common storage area */

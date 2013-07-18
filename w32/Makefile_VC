@@ -5,6 +5,7 @@ CFLAGS = \
 /I..\src \
 /I..\src\amd \
 /I..\src\bflib \
+/I..\src\cglib \
 /I..\src\colamd \
 /I..\src\env \
 /I..\src\minisat \
@@ -43,7 +44,6 @@ OBJSET = \
 ..\src\glpbfd.obj \
 ..\src\glpbfx.obj \
 ..\src\glpcpx.obj \
-..\src\glpdmp.obj \
 ..\src\glpdmx.obj \
 ..\src\glpenv07.obj \
 ..\src\glpenv08.obj \
@@ -116,6 +116,8 @@ OBJSET = \
 ..\src\bflib\lufint.obj \
 ..\src\bflib\sgf.obj \
 ..\src\bflib\sva.obj \
+..\src\cglib\cfg.obj \
+..\src\cglib\cfg1.obj \
 ..\src\colamd\colamd.obj \
 ..\src\env\alloc.obj \
 ..\src\env\env.obj \
@@ -125,6 +127,7 @@ OBJSET = \
 ..\src\env\tls.obj \
 ..\src\minisat\minisat.obj \
 ..\src\misc\bignum.obj \
+..\src\misc\dmp.obj \
 ..\src\misc\ffalg.obj \
 ..\src\misc\jd.obj \
 ..\src\misc\keller.obj \
@@ -137,6 +140,7 @@ OBJSET = \
 ..\src\misc\rng1.obj \
 ..\src\misc\triang.obj \
 ..\src\misc\wclique.obj \
+..\src\misc\wclique1.obj \
 ..\src\proxy\proxy.obj \
 ..\src\proxy\proxy1.obj \
 ..\src\zlib\adler32.obj \
@@ -165,6 +169,7 @@ glpk.lib: $(OBJSET)
                 ..\src\*.obj \
                 ..\src\amd\*.obj \
                 ..\src\bflib\*.obj \
+                ..\src\cglib\*.obj \
                 ..\src\colamd\*.obj \
                 ..\src\env\*.obj \
                 ..\src\minisat\*.obj \

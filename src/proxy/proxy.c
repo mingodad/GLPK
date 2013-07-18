@@ -193,6 +193,7 @@ static void array_copy(int begin, int end, double *source,
 static int do_refine(struct csa *csa, glp_prob *lp_ref, int ncols,
                      int *ckind, double *xref, int *tlim, int tref_lim,
                      int verbose);
+static void deallocate(struct csa *csa, int refine);
 
 /**********************************************************************/
 /* 5. FUNCTIONS                                                       */
@@ -204,6 +205,7 @@ int proxy(glp_prob *lp, double *zfinal, double *xfinal,
 
 {   struct csa csa_, *csa = &csa_;
     glp_iocp parm;
+    glp_smcp parm_lp;
     size_t tpeak;
     int refine, tref_lim, err, cutoff_row, niter, status, i;
     double *xref, *xstar, zstar, tela, cutoff, zz;
@@ -235,6 +237,10 @@ int proxy(glp_prob *lp, double *zfinal, double *xfinal,
             xprintf("The problem has not binary variables. Proximity se"
                     "arch cannot be used.\n");
         }
+        tfree(csa->ckind);
+        tfree(csa->clb);
+        tfree(csa->cub);
+        tfree(csa->true_obj);
         return -1;
     }
 
@@ -244,16 +250,25 @@ int proxy(glp_prob *lp, double *zfinal, double *xfinal,
        zero. */
     xref = talloc(csa->ncols+1, double);
 #if 0 /* by mao */
-    memset(xref, 0, sizeof(double));
+    memset(xref, 0, sizeof(double)*(csa->ncols+1));
 #endif
     refine = check_ref(csa, lp, xref);
+#ifdef PROXY_DEBUG
+    xprintf("REFINE = %d\n",refine);
+#endif
+
+    /* Initializing the solution */
+    xstar = talloc(csa->ncols+1, double);
+#if 0 /* by mao */
+    memset(xstar, 0, sizeof(double)*(csa->ncols+1));
+#endif
 
     /**********                         **********/
     /********** FINDING FIRST SOLUTION  **********/
     /**********                         **********/
 
     if (verbose) {
-        xprintf("PROXY:\n");
+        xprintf("Applying PROXY heuristic...\n");
     }
 
     /* get the initial time */
@@ -261,7 +276,12 @@ int proxy(glp_prob *lp, double *zfinal, double *xfinal,
 
     /* setting the optimization parameters */
     glp_init_iocp(&parm);
+    glp_init_smcp(&parm_lp);
+#if 0 /* by gioker */
+    /* Preprocessing should be disabled because the mip passed
+     to proxy is already preprocessed */
     parm.presolve = GLP_ON;
+#endif
 #if 1 /* by mao */
     /* best projection backtracking seems to be more efficient to find
        any integer feasible solution */
@@ -278,8 +298,14 @@ int proxy(glp_prob *lp, double *zfinal, double *xfinal,
     if (tlim <= 0) {
         tlim = INT_MAX;
     }
-    parm.tm_lim = tlim;
-    tref_lim = tlim / 20;
+    if (verbose) {
+        xprintf("Proxy's time limit set to %d seconds.\n",tlim/1000);
+        xprintf("Proxy's relative improvement "
+                "set to %2.2lf %c.\n",rel_impr*100,37);
+    }
+
+    parm_lp.tm_lim = tlim;
+
     parm.mip_gap = 9999999.9; /* to stop the optimization at the first
                                  feasible solution found */
 
@@ -299,28 +325,88 @@ int proxy(glp_prob *lp, double *zfinal, double *xfinal,
     }
 
     glp_term_out(GLP_OFF);
+    err = glp_simplex(lp,&parm_lp);
+    glp_term_out(GLP_ON);
+
+    status = glp_get_status(lp);
+
+    if (status != GLP_OPT) {
+        if (verbose) {
+            xprintf("Proxy heuristic terminated.\n");
+        }
+#ifdef  PROXY_DEBUG
+        /* For debug only */
+        xprintf("GLP_SIMPLEX status = %d\n",status);
+        xprintf("GLP_SIMPLEX error code = %d\n",err);
+#endif
+        tfree(xref);
+        tfree(xstar);
+        deallocate(csa, refine);
+        return -1;
+    }
+
+    tela = elapsed_time(csa);
+    if (tlim-tela*1000 <= 0) {
+        if (verbose) {
+            xprintf("Time limit exceeded. Proxy could not "
+                    "find optimal solution to LP relaxation.\n");
+            xprintf("Proxy heuristic aborted.\n");
+        }
+        tfree(xref);
+        tfree(xstar);
+        deallocate(csa, refine);
+        return -1;
+    }
+
+    parm.tm_lim = tlim - tela*1000;
+    tref_lim = (tlim - tela *1000) / 20;
+
+    glp_term_out(GLP_OFF);
     err = glp_intopt(lp, &parm);
     glp_term_out(GLP_ON);
 
-    if (err == GLP_ETMLIM) {
-        if (verbose) {
-            xprintf("Time limit exceeded, no solution found. Proximity "
-                    "search aborted.\n");
+    status = glp_mip_status(lp);
+
+    /***** If no solution was found *****/
+
+    if (status == GLP_NOFEAS || status == GLP_UNDEF) {
+        if (err == GLP_ETMLIM) {
+            if (verbose) {
+                xprintf("Time limit exceeded. Proxy could not "
+                        "find an initial integer feasible solution.\n");
+                xprintf("Proxy heuristic aborted.\n");
+            }
         }
+        else {
+            if (verbose) {
+                xprintf("Proxy could not "
+                        "find an initial integer feasible solution.\n");
+                xprintf("Proxy heuristic aborted.\n");
+            }
+        }
+        tfree(xref);
+        tfree(xstar);
+        deallocate(csa, refine);
         return -1;
     }
 
     /* getting the first solution and its value */
-    xstar = talloc(csa->ncols+1, double);
-#if 0 /* by mao */
-    memset(xstar, 0, sizeof(double));
-#endif
     get_sol(csa, lp,xstar);
     zstar = glp_mip_obj_val(lp);
 
     if (verbose) {
         xprintf(">>>>> first solution = %e;\n", zstar);
     }
+
+    /* If a feasible solution was found but the time limit is
+       exceeded */
+    if (err == GLP_ETMLIM) {
+        if (verbose) {
+          xprintf("Time limit exceeded. Proxy heuristic terminated.\n");
+        }
+        goto done;
+    }
+
     tela = elapsed_time(csa);
     tpeak = 0;
     glp_mem_usage(NULL, NULL, NULL, &tpeak);
@@ -362,17 +448,62 @@ int proxy(glp_prob *lp, double *zfinal, double *xfinal,
 
         cutoff = update_cutoff(csa, lp,zstar, cutoff_row, rel_impr);
 
+#ifdef PROXY_DEBUG
+        xprintf("TRUE_OBJ[0] = %f\n",csa->true_obj[0]);
+        xprintf("ZSTAR  = %f\n",zstar);
+        xprintf("CUTOFF = %f\n",cutoff);
+#endif
+
         /********** SEARCHING FOR A BETTER SOLUTION **********/
 
         tela = elapsed_time(csa);
         if (tlim-tela*1000 <= 0) {
             if (verbose) {
-                xprintf("Time limit exceeded\n");
+                xprintf("Time limit exceeded. Proxy heuristic "
+                        "terminated.\n");
+            }
+            goto done;
+        }
+
+        parm_lp.tm_lim = tlim -tela*1000;
+
+        glp_term_out(GLP_OFF);
+        err = glp_simplex(lp,&parm_lp);
+        glp_term_out(GLP_ON);
+
+        status = glp_get_status(lp);
+
+        if (status != GLP_OPT) {
+            if (status == GLP_NOFEAS) {
+                if (verbose) {
+                    xprintf("Bound exceeded = %f. ",cutoff);
+                }
+            }
+            if (verbose) {
+                xprintf("Proxy heuristic terminated.\n");
+            }
+#ifdef PROXY_DEBUG
+            xprintf("GLP_SIMPLEX status = %d\n",status);
+            xprintf("GLP_SIMPLEX error code = %d\n",err);
+#endif
+            goto done;
+        }
+
+        tela = elapsed_time(csa);
+        if (tlim-tela*1000 <= 0) {
+            if (verbose) {
+                xprintf("Time limit exceeded. Proxy heuristic "
+                        "terminated.\n");
             }
             goto done;
         }
         parm.tm_lim = tlim - tela*1000;
         parm.cb_func = NULL;
+#if 0 /* by gioker */
+        /* Preprocessing should be disabled because the mip passed
+         to proxy is already preprocessed */
+        parm.presolve = GLP_ON;
+#endif
         glp_term_out(GLP_OFF);
         err = glp_intopt(lp, &parm);
         glp_term_out(GLP_ON);
@@ -385,8 +516,8 @@ int proxy(glp_prob *lp, double *zfinal, double *xfinal,
 
         if (status == GLP_NOFEAS) {
             if (verbose) {
-                xprintf("Problem is integer infeasible.\n");
-                xprintf("Bound exceeded = %f\n",cutoff);
+                xprintf("Bound exceeded = %f. Proxy heuristic "
+                        "terminated.\n",cutoff);
             }
             goto done;
         }
@@ -396,13 +527,16 @@ int proxy(glp_prob *lp, double *zfinal, double *xfinal,
         if (status == GLP_UNDEF) {
             if (err == GLP_ETMLIM) {
                 if (verbose) {
-                    xprintf("Time limit exceeded\n");
+                    xprintf("Time limit exceeded. Proxy heuristic "
+                            "terminated.\n");
                 }
             }
             else {
                 if (verbose) {
-                    xprintf("Optimization was terminated without findin"
-                            "g a new solution, error code = %d\n",err);
+                    xprintf("Proxy terminated unexpectedly.\n");
+#ifdef PROXY_DEBUG
+                    xprintf("GLP_INTOPT error code = %d\n",err);
+#endif
                 }
             }
             goto done;
@@ -418,6 +552,11 @@ int proxy(glp_prob *lp, double *zfinal, double *xfinal,
 
             /* Comparing the incumbent solution with the current best
                one */
+#ifdef PROXY_DEBUG
+            xprintf("ZZ = %f\n",zz);
+            xprintf("ZSTAR = %f\n",zstar);
+            xprintf("REFINE = %d\n",refine);
+#endif
             if (((zz<zstar) && (csa->dir == GLP_MIN)) ||
                 ((zz>zstar) && (csa->dir == GLP_MAX))) {
 
@@ -459,22 +598,18 @@ done:
                 tela,(double)tpeak/1048576);
     }
 
-    if (refine) {
-        glp_delete_prob(csa->lp_ref);
-    }
 
+    /* Exporting solution and obj val */
     *zfinal = zstar;
 
     for (i=1; i < (csa->ncols + 1); i++) {
         xfinal[i]=xstar[i];
     }
 
+    /* Freeing allocated memory */
     tfree(xref);
     tfree(xstar);
-    tfree(csa->ckind);
-    tfree(csa->clb);
-    tfree(csa->cub);
-    tfree(csa->true_obj);
+    deallocate(csa, refine);
 
     return 0;
 }
@@ -501,19 +636,19 @@ static void get_info(struct csa *csa, glp_prob *lp)
 
     csa->ckind = talloc(csa->ncols+1, int);
 #if 0 /* by mao */
-    memset(csa->ckind, 0, sizeof(double));
+    memset(csa->ckind, 0, sizeof(int)*(csa->ncols+1));
 #endif
     csa->clb = talloc(csa->ncols+1, double);
 #if 0 /* by mao */
-    memset(csa->clb, 0, sizeof(double));
+    memset(csa->clb, 0, sizeof(double)*(csa->ncols+1));
 #endif
     csa->cub = talloc(csa->ncols+1, double);
 #if 0 /* by mao */
-    memset(csa->cub, 0, sizeof(double));
+    memset(csa->cub, 0, sizeof(double)*(csa->ncols+1));
 #endif
     csa->true_obj = talloc(csa->ncols+1, double);
 #if 0 /* by mao */
-    memset(csa->true_obj, 0, sizeof(double));
+    memset(csa->true_obj, 0, sizeof(double)*(csa->ncols+1));
 #endif
         for( i = 1 ; i < (csa->ncols + 1); i++ ) {
             csa->ckind[i] = glp_get_col_kind(lp, i);
@@ -631,11 +766,11 @@ static int add_cutoff(struct csa *csa, glp_prob *lp)
     /* store non-zero coefficients in the objective function */
     int *obj_index = talloc(csa->ncols+1, int);
 #if 0 /* by mao */
-    memset(obj_index, 0, sizeof(int));
+    memset(obj_index, 0, sizeof(int)*(csa->ncols+1));
 #endif
     double *obj_value = talloc(csa->ncols+1, double);
 #if 0 /* by mao */
-    memset(obj_value, 0, sizeof(double));
+    memset(obj_value, 0, sizeof(double)*(csa->ncols+1));
 #endif
     int obj_nzcnt = 0;
     int i, irow;
@@ -704,7 +839,7 @@ static void redefine_obj(glp_prob *lp, double *xtilde, int ncols,
     int j;
     double *delta = talloc(ncols+1, double);
 #if 0 /* by mao */
-    memset(delta, 0, sizeof(double));
+    memset(delta, 0, sizeof(double)*(ncols+1));
 #endif
 
     for ( j = 1; j < (ncols +1); j++ ) {
@@ -816,8 +951,8 @@ static int do_refine(struct csa *csa, glp_prob *lp_ref, int ncols,
 
     if ( glp_get_num_cols(lp_ref) != ncols ) {
         if (verbose) {
-            xprintf("Error in refinement: ");
-            xprintf("wrong number of columns (%d vs %d)\n",
+            xprintf("Error in Proxy refinement: ");
+            xprintf("wrong number of columns (%d vs %d).\n",
                     ncols, glp_get_num_cols(lp_ref));
         }
         return 1;
@@ -854,6 +989,9 @@ static int do_refine(struct csa *csa, glp_prob *lp_ref, int ncols,
             parm_ref.tm_lim = *tlim;
         }
         parm_ref_lp.tm_lim = parm_ref.tm_lim;
+#ifdef PROXY_DEBUG
+        xprintf("***** REFINING *****\n");
+#endif
         glp_term_out(GLP_OFF);
         if (csa->i_vars_exist == TRUE) {
             err = glp_intopt(lp_ref, &parm_ref);
@@ -863,23 +1001,31 @@ static int do_refine(struct csa *csa, glp_prob *lp_ref, int ncols,
         }
         glp_term_out(GLP_ON);
 
-        status = glp_get_status(lp_ref);
-
+        if (csa->i_vars_exist == TRUE) {
+            status = glp_mip_status(lp_ref);
+        }
+        else {
+            status = glp_get_status(lp_ref);
+        }
+#ifdef PROXY_DEBUG
+        xprintf("STATUS REFINING = %d\n",status);
+#endif
         if (status == GLP_UNDEF) {
             if (err == GLP_ETMLIM) {
-                if (verbose) {
-                    xprintf("Time limit exceeded on refining. No soluti"
-                            "on found.");
-                }
+#ifdef PROXY_DEBUG
+                    xprintf("Time limit exceeded on Proxy refining.\n");
+#endif
                 return 1;
             }
         }
         for( j = 1 ; j < (ncols + 1); j++ ){
-            if (csa->i_vars_exist == TRUE) {
-                xref[j] = glp_mip_col_val(lp_ref, j);
-            }
-            else{
-                xref[j] = glp_get_col_prim(lp_ref, j);
+            if (ckind[j] != GLP_BV) {
+                if (csa->i_vars_exist == TRUE) {
+                    xref[j] = glp_mip_col_val(lp_ref, j);
+                }
+                else{
+                    xref[j] = glp_get_col_prim(lp_ref, j);
+                }
             }
         }
     }
@@ -887,6 +1033,22 @@ static int do_refine(struct csa *csa, glp_prob *lp_ref, int ncols,
     tela = second() - refineStart;
     *tlim = *tlim - tela*1000;
     return 0;
+}
+/**********************************************************************/
+static void deallocate(struct csa *csa, int refine)
+/**********************************************************************/
+{
+    /* Deallocating routine */
+
+    if (refine) {
+        glp_delete_prob(csa->lp_ref);
+    }
+
+    tfree(csa->ckind);
+    tfree(csa->clb);
+    tfree(csa->cub);
+    tfree(csa->true_obj);
+
 }
 
 /* eof */

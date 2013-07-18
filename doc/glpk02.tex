@@ -2960,6 +2960,27 @@ Feasibility pump heuristic option:
 
 \newpage
 
+{\tt int ps\_heur} (default: {\tt GLP\_OFF})
+
+Proximity search heuristic\footnote{The Fischetti--Monaci Proximity
+Search (a.k.a. Proxy) heuristic. This algorithm is often capable of
+rapidly improving a feasible solution of a MIP problem with binary
+variables. It allows to quickly obtain suboptimal solutions in some
+problems which take too long time to be solved to optimality.} option:
+
+\verb|GLP_ON | --- enable applying the proximity search heuristic;
+
+\verb|GLP_OFF| --- disable applying the proximity search pump heuristic.
+
+\bigskip
+
+{\tt int ps\_tm\_lim} (default: {\tt 60000})
+
+Time limit, in milliseconds, for the proximity search heuristic (see
+above).
+
+\bigskip
+
 {\tt int gmi\_cuts} (default: {\tt GLP\_OFF})
 
 Gomory's mixed integer cut option:
@@ -3006,7 +3027,7 @@ Absolute tolerance used to check if optimal solution to the current LP
 relaxation is integer feasible. (Do not change this parameter without
 detailed understanding its purpose.)
 
-\bigskip
+\newpage
 
 {\tt double tol\_obj} (default: {\tt 1e-7})
 
@@ -3031,7 +3052,7 @@ time.
 
 Searching time limit, in milliseconds.
 
-\newpage
+\bigskip
 
 {\tt int out\_frq} (default: {\tt 5000})
 
@@ -3080,7 +3101,7 @@ MIP presolver option:
 
 \verb|GLP_OFF| --- disable using the MIP presolver.
 
-\bigskip
+\newpage
 
 {\tt int binarize} (default: {\tt GLP\_OFF})
 
@@ -3106,8 +3127,6 @@ are used by the branch-and-cut solver, with default values.
 
 Default values of the control parameters are stored in
 a \verb|glp_iocp| structure, which the parameter \verb|parm| points to.
-
-\newpage
 
 \subsection{glp\_mip\_status --- determine status of MIP solution}
 

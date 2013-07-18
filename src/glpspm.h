@@ -25,7 +25,7 @@
 #ifndef GLPSPM_H
 #define GLPSPM_H
 
-#include "glpdmp.h"
+#include "dmp.h"
 
 typedef struct SPM SPM;
 typedef struct SPME SPME;

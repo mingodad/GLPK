@@ -1,3 +1,20 @@
+GLPK 4.52 (release date: Jul 18, 2013)
+
+        The clique cut generator was essentially reimplemented, and now
+        it is able to process very large and/or dense conflict graphs.
+
+        A simple rounding heuristic was added to the MIP optimizer.
+
+        Some bugs were fixed in the proximity search heuristic routine.
+        Thanks to Giorgio Sartor <0gioker0@gmail.com>.
+
+        New command-line option '--proxy [nnn]' was added to glpsol to
+        enable using the proximity search heuristic.
+
+        A bug (incorrect processing of LI column indicator) was fixed
+        in the mps format reading routine. Thanks to Charles Brixko for
+        bug report.
+
 GLPK 4.51 (release date: Jun 19, 2013)
 
         Singleton and dense phases were implemented on computing

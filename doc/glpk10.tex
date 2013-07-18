@@ -129,6 +129,8 @@ the problem, and write its solution to an output text file.
    --binarize        replace general integer variables by binary ones
                      (assumes --intopt)
    --fpump           apply feasibility pump heuristic
+   --proxy [nnn]     apply proximity search heuristic (nnn is time limit
+                     in seconds; default is 60)
    --gomory          generate Gomory's mixed integer cuts
    --mir             generate MIR (mixed integer rounding) cuts
    --cover           generate mixed cover cuts
@@ -137,12 +139,15 @@ the problem, and write its solution to an output text file.
    --mipgap tol      set relative mip gap tolerance to tol
    --minisat         translate integer feasibility problem to CNF-SAT
                      and solve it with MiniSat solver
+\end{verbatim}
+
+\newpage
+
+\begin{verbatim}
    --objbnd bound    add inequality obj <= bound (minimization) or
                      obj >= bound (maximization) to integer feasibility
                      problem (assumes --minisat)
 \end{verbatim}
-
-\newpage
 
 For description of the MPS format see Appendix \ref{champs}, page
 \pageref{champs}.

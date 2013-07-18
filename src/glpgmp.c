@@ -26,8 +26,9 @@
 #if 1 /* 11/VI-2013 */
 #include "bignum.h"
 #endif
-#include "glpdmp.h"
+#include "dmp.h"
 #include "glpgmp.h"
+#include "env.h"
 #define xfault xerror
 
 #ifdef HAVE_GMP               /* use GNU MP bignum library */

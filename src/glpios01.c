@@ -141,6 +141,12 @@ glp_tree *ios_create_tree(glp_prob *mip, const glp_iocp *parm)
       tree->tm_lag = 0.0;
 #endif
       tree->sol_cnt = 0;
+#if 1 /* 11/VII-2013 */
+      tree->P = NULL;
+      tree->npp = NULL;
+      tree->save_sol = parm->save_sol;
+      tree->save_cnt = 0;
+#endif
       /* initialize advanced solver interface */
       tree->reason = 0;
       tree->reopt = 0;
@@ -1545,69 +1551,33 @@ void ios_delete_pool(glp_tree *tree, IOSPOOL *pool)
       return;
 }
 
-/**********************************************************************/
+#if 1 /* 11/VII-2013 */
+#include "glpnpp.h"
 
-#if 0
-static int refer_to_node(glp_tree *tree, int j)
-{     /* determine node number corresponding to binary variable x[j] or
-         its complement */
-      glp_prob *mip = tree->mip;
-      int n = mip->n;
-      int *ref;
-      if (j > 0)
-         ref = tree->n_ref;
-      else
-         ref = tree->c_ref, j = - j;
-      xassert(1 <= j && j <= n);
-      if (ref[j] == 0)
-      {  /* new node is needed */
-         SCG *g = tree->g;
-         int n_max = g->n_max;
-         ref[j] = scg_add_nodes(g, 1);
-         if (g->n_max > n_max)
-         {  int *save = tree->j_ref;
-            tree->j_ref = xcalloc(1+g->n_max, sizeof(int));
-            memcpy(&tree->j_ref[1], &save[1], g->n * sizeof(int));
-            xfree(save);
-         }
-         xassert(ref[j] == g->n);
-         tree->j_ref[ref[j]] = j;
-         xassert(tree->curr != NULL);
-         if (tree->curr->level > 0) tree->curr->own_nn++;
+void ios_process_sol(glp_tree *T)
+{     /* process integer feasible solution just found */
+      if (T->npp != NULL)
+      {  /* postprocess solution from transformed mip */
+         npp_postprocess(T->npp, T->mip);
+         /* store solution to problem passed to glp_intopt */
+         npp_unload_sol(T->npp, T->P);
       }
-      return ref[j];
-}
-#endif
-
-#if 0
-void ios_add_edge(glp_tree *tree, int j1, int j2)
-{     /* add new edge to the conflict graph */
-      glp_prob *mip = tree->mip;
-      int n = mip->n;
-      SCGRIB *e;
-      int first, i1, i2;
-      xassert(-n <= j1 && j1 <= +n && j1 != 0);
-      xassert(-n <= j2 && j2 <= +n && j2 != 0);
-      xassert(j1 != j2);
-      /* determine number of the first node, which was added for the
-         current subproblem */
-      xassert(tree->curr != NULL);
-      first = tree->g->n - tree->curr->own_nn + 1;
-      /* determine node numbers for both endpoints */
-      i1 = refer_to_node(tree, j1);
-      i2 = refer_to_node(tree, j2);
-      /* add edge (i1,i2) to the conflict graph */
-      e = scg_add_edge(tree->g, i1, i2);
-      /* if the current subproblem is not the root and both endpoints
-         were created on some previous levels, save the edge */
-      if (tree->curr->level > 0 && i1 < first && i2 < first)
-      {  IOSRIB *rib;
-         rib = dmp_get_atom(tree->pool, sizeof(IOSRIB));
-         rib->j1 = j1;
-         rib->j2 = j2;
-         rib->e = e;
-         rib->next = tree->curr->e_ptr;
-         tree->curr->e_ptr = rib;
+      xassert(T->P != NULL);
+      /* save solution to text file, if requested */
+      if (T->save_sol != NULL)
+      {  char *fn, *mark;
+         fn = talloc(strlen(T->save_sol) + 50, char);
+         mark = strrchr(T->save_sol, '*');
+         if (mark == NULL)
+            strcpy(fn, T->save_sol);
+         else
+         {  memcpy(fn, T->save_sol, mark - T->save_sol);
+            fn[mark - T->save_sol] = '\0';
+            sprintf(fn + strlen(fn), "%03d", ++(T->save_cnt));
+            strcat(fn, &mark[1]);
+         }
+         glp_write_mip(T->P, fn);
+         tfree(fn);
       }
       return;
 }

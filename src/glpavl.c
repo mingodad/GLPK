@@ -23,6 +23,7 @@
 ***********************************************************************/
 
 #include "glpavl.h"
+#include "env.h"
 
 AVL *avl_create_tree(int (*fcmp)(void *info, const void *key1,
       const void *key2), void *info)

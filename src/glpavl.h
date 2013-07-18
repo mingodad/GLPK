@@ -25,7 +25,7 @@
 #ifndef GLPAVL_H
 #define GLPAVL_H
 
-#include "glpdmp.h"
+#include "dmp.h"
 
 typedef struct AVL AVL;
 typedef struct AVLNODE AVLNODE;

@@ -23,6 +23,7 @@
 ***********************************************************************/
 
 #include "glplux.h"
+#include "env.h"
 #define xfault xerror
 #define dmp_create_poolx(size) dmp_create_pool()
 

@@ -25,14 +25,14 @@
 
 #define ALIGN 16
 /* some processors need data to be properly aligned, so this macro
-   defines the alignment boundary, in bytes, provided by glpk memory
-   allocation routines; looks like 16-byte alignment boundary is
-   sufficient for all 32- and 64-bit platforms (8-byte boundary is not
-   sufficient for some 64-bit platforms because of jmp_buf) */
+ * defines the alignment boundary, in bytes, provided by glpk memory
+ * allocation routines; looks like 16-byte alignment boundary is
+ * sufficient for all 32- and 64-bit platforms (8-byte boundary is not
+ * sufficient for some 64-bit platforms because of jmp_buf) */
 
 #define MBD_SIZE (((sizeof(MBD) + (ALIGN - 1)) / ALIGN) * ALIGN)
 /* size of memory block descriptor, in bytes, rounded up to multiple
-   of the alignment boundary */
+ * of the alignment boundary */
 
 /***********************************************************************
 *  dma - dynamic memory allocation (basic routine)

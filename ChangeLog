@@ -1,3 +1,44 @@
+Thu Jul 18 12:00:00 2013 Andrew Makhorin <mao@gnu.org>
+
+        * GLPK 4.52 (36:0:1) has been released.
+
+        * src/misc/wclique1.h, src/misc/wclique1.c
+        Greedy heuristic to find maximum weight clique was implemented.
+
+        * src/cglib/cfg.h, src/cglib/cfg.c, src/cglib/cfg1.c
+        Conflict graph routines (used to generate clique cuts) were
+        implemented.
+
+        * src/glpios08.c
+        New version of the clique cut generator was implemented. Now it
+        is able to efficiently process very large and/or dense conflict
+        graphs. Old rudimentary version was removed from the package.
+
+        * examples/misp1.dat, examples/misp2.dat
+        Two data files for the maximum independent set problem (MISP)
+        were added to illustrate efficiency of using the clique cuts.
+
+        * src/glpios03.c
+        Simple rounding heuristic applied for every node subproblem was
+        implemented.
+
+        * proxy/proxy.c
+        Some bugs were fixed in the proximity search heuristic routine.
+        Thanks to Giorgio Sartor <0gioker0@gmail.com>.
+
+        * src/glpapi21.c
+        New command-line option '--proxy [nnn]' was added to glpsol to
+        enable using the proximity search heuristic.
+
+        * src/glpspx02.c
+        A feature was added to switch to the primal simplex in case of
+        stalling due to dual degeneracy (for GLP_DUALP only).
+
+        * src/glpmps.c
+        A bug (incorrect processing of LI column indicator) was fixed
+        in the mps format reading routine. Thanks to Charles Brixko for
+        bug report.
+
 Wed Jun 19 12:00:00 2013 Andrew Makhorin <mao@gnu.org>
 
         * GLPK 4.51 (36:0:0) has been released.

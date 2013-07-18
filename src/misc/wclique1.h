@@ -1,4 +1,4 @@
-/* triang.h (find maximal triangular part of rectangular matrix) */
+/* wclique1.h (maximum weight clique, greedy heuristic) */
 
 /***********************************************************************
 *  This code is part of GLPK (GNU Linear Programming Kit).
@@ -21,13 +21,13 @@
 *  along with GLPK. If not, see <http://www.gnu.org/licenses/>.
 ***********************************************************************/
 
-#ifndef TRIANG_H
-#define TRIANG_H
+#ifndef WCLIQUE1_H
+#define WCLIQUE1_H
 
-#define triang _glp_triang
-int triang(int m, int n, int (*mat)(void *info, int k, int ind[],
-      double val[]), void *info, double tol, int rn[], int cn[]);
-/* find maximal triangular part of rectangular matrix */
+#define wclique1 _glp_wclique1
+int wclique1(int n, const double w[],
+      int (*func)(void *info, int i, int ind[]), void *info, int c[]);
+/* find maximum weight clique with greedy heuristic */
 
 #endif
 

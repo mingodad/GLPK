@@ -179,6 +179,16 @@ struct glp_tree
          the search was displayed */
       int sol_cnt;
       /* number of integer feasible solutions found */
+#if 1 /* 11/VII-2013 */
+      void *P; /* glp_prob *P; */
+      /* problem passed to glp_intopt */
+      void *npp; /* NPP *npp; */
+      /* preprocessor workspace or NULL */
+      const char *save_sol;
+      /* filename (template) to save every new solution */
+      int save_cnt;
+      /* count to generate filename */
+#endif
       /*--------------------------------------------------------------*/
       /* advanced solver interface */
       int reason;
@@ -462,6 +472,12 @@ void ios_clear_pool(glp_tree *tree, IOSPOOL *pool);
 #define ios_delete_pool _glp_ios_delete_pool
 void ios_delete_pool(glp_tree *tree, IOSPOOL *pool);
 /* delete cut pool */
+
+#if 1 /* 11/VII-2013 */
+#define ios_process_sol _glp_ios_process_sol
+void ios_process_sol(glp_tree *T);
+/* process integer feasible solution just found */
+#endif
 
 #define ios_preprocess_node _glp_ios_preprocess_node
 int ios_preprocess_node(glp_tree *tree, int max_pass);

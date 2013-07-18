@@ -8,6 +8,7 @@ libglpk_la_CPPFLAGS = \
 -I$(srcdir) \
 -I$(srcdir)/amd \
 -I$(srcdir)/bflib \
+-I$(srcdir)/cglib \
 -I$(srcdir)/colamd \
 -I$(srcdir)/env \
 -I$(srcdir)/minisat \
@@ -16,7 +17,7 @@ libglpk_la_CPPFLAGS = \
 -I$(srcdir)/zlib
 
 libglpk_la_LDFLAGS = \
--version-info 36:0:0 \
+-version-info 36:0:1 \
 -export-symbols-regex '^glp_*'
 
 libglpk_la_SOURCES = \
@@ -45,7 +46,6 @@ glpavl.c \
 glpbfd.c \
 glpbfx.c \
 glpcpx.c \
-glpdmp.c \
 glpdmx.c \
 glpenv07.c \
 glpenv08.c \
@@ -118,6 +118,8 @@ bflib/luf.c \
 bflib/lufint.c \
 bflib/sgf.c \
 bflib/sva.c \
+cglib/cfg.c \
+cglib/cfg1.c \
 colamd/colamd.c \
 env/alloc.c \
 env/env.c \
@@ -127,6 +129,7 @@ env/time.c \
 env/tls.c \
 minisat/minisat.c \
 misc/bignum.c \
+misc/dmp.c \
 misc/ffalg.c \
 misc/jd.c \
 misc/keller.c \
@@ -139,6 +142,7 @@ misc/rng.c \
 misc/rng1.c \
 misc/triang.c \
 misc/wclique.c \
+misc/wclique1.c \
 proxy/proxy.c \
 proxy/proxy1.c \
 zlib/adler32.c \

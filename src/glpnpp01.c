@@ -584,9 +584,19 @@ void npp_postprocess(NPP *npp, glp_prob *prob)
          dir = -1.0;
       else
          xassert(npp != npp);
+#if 0 /* 11/VII-2013; due to call from ios_main */
       xassert(npp->m == prob->m);
+#else
+      if (npp->sol != GLP_MIP)
+         xassert(npp->m == prob->m);
+#endif
       xassert(npp->n == prob->n);
+#if 0 /* 11/VII-2013; due to call from ios_main */
       xassert(npp->nnz == prob->nnz);
+#else
+      if (npp->sol != GLP_MIP)
+         xassert(npp->nnz == prob->nnz);
+#endif
       /* copy solution status */
       if (npp->sol == GLP_SOL)
       {  npp->p_stat = prob->pbs_stat;
