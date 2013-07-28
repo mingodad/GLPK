@@ -17,7 +17,7 @@ libglpk_la_CPPFLAGS = \
 -I$(srcdir)/zlib
 
 libglpk_la_LDFLAGS = \
--version-info 36:0:1 \
+-version-info 36:1:0 \
 -export-symbols-regex '^glp_*'
 
 libglpk_la_SOURCES = \

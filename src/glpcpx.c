@@ -137,6 +137,10 @@ struct csa
       double *lb; /* double lb[1+n_max]; */
       double *ub; /* double ub[1+n_max]; */
       /* lower and upper bounds of variables (columns) */
+#if 1 /* 27/VII-2013 */
+      int lb_warn, ub_warn;
+      /* warning 'lower/upper bound redefined' already issued */
+#endif
 };
 
 #define CHAR_SET "!\"#$%&()/,.;?@_`'{}|~"
@@ -194,7 +198,7 @@ static void read_char(struct csa *csa)
 static void add_char(struct csa *csa)
 {     /* append current character to current token */
       if (csa->imlen == sizeof(csa->image)-1)
-         error(csa, "token `%.15s...' too long\n", csa->image);
+         error(csa, "token '%.15s...' too long\n", csa->image);
       csa->image[csa->imlen++] = (char)csa->c;
       csa->image[csa->imlen] = '\0';
       read_char(csa);
@@ -266,10 +270,10 @@ name: {  /* symbolic name */
                      csa->image[csa->imlen] = '\0';
                      add_char(csa);
                      if (tolower(csa->c) != 'o')
-                        error(csa, "keyword `subject to' incomplete\n");
+                        error(csa, "keyword 'subject to' incomplete\n");
                      add_char(csa);
                      if (isalpha(csa->c))
-                        error(csa, "keyword `%s%c...' not recognized\n",
+                        error(csa, "keyword '%s%c...' not recognized\n",
                            csa->image, csa->c);
                   }
                }
@@ -283,14 +287,14 @@ name: {  /* symbolic name */
                      csa->image[csa->imlen] = '\0';
                      add_char(csa);
                      if (tolower(csa->c) != 'h')
-err:                    error(csa, "keyword `such that' incomplete\n");
+err:                    error(csa, "keyword 'such that' incomplete\n");
                      add_char(csa);
                      if (tolower(csa->c) != 'a') goto err;
                      add_char(csa);
                      if (tolower(csa->c) != 't') goto err;
                      add_char(csa);
                      if (isalpha(csa->c))
-                        error(csa, "keyword `%s%c...' not recognized\n",
+                        error(csa, "keyword '%s%c...' not recognized\n",
                            csa->image, csa->c);
                   }
                }
@@ -345,13 +349,13 @@ err:                    error(csa, "keyword `such that' incomplete\n");
          {  add_char(csa);
             if (csa->c == '+' || csa->c == '-') add_char(csa);
             if (!isdigit(csa->c))
-               error(csa, "numeric constant `%s' incomplete\n",
+               error(csa, "numeric constant '%s' incomplete\n",
                   csa->image);
             while (isdigit(csa->c)) add_char(csa);
          }
          /* convert the numeric constant to floating-point */
          if (str2num(csa->image, &csa->value))
-            error(csa, "numeric constant `%s' out of range\n",
+            error(csa, "numeric constant '%s' out of range\n",
                csa->image);
       }
       else if (csa->c == '+')
@@ -376,7 +380,7 @@ err:                    error(csa, "keyword `such that' incomplete\n");
             csa->token = T_GE, add_char(csa);
       }
       else
-         error(csa, "character `%c' not recognized\n", csa->c);
+         error(csa, "character '%c' not recognized\n", csa->c);
       /* skip non-significant characters */
       while (csa->c == ' ') read_char(csa);
       return;
@@ -456,7 +460,7 @@ loop: /* parse an optional sign */
       j = find_col(csa, csa->image);
       /* check if the variable is already used in the linear form */
       if (csa->flag[j])
-         error(csa, "multiple use of variable `%s' not allowed\n",
+         error(csa, "multiple use of variable '%s' not allowed\n",
             csa->image);
       /* add new term to the linear form */
       len++, csa->ind[len] = j, csa->val[len] = s * coef;
@@ -547,7 +551,7 @@ loop: /* create new row (constraint) */
       if (csa->token == T_NAME && csa->c == ':')
       {  /* row name is followed by a colon */
          if (glp_find_row(csa->P, csa->image) != 0)
-            error(csa, "constraint `%s' multiply defined\n",
+            error(csa, "constraint '%s' multiply defined\n",
                csa->image);
          glp_set_row_name(csa->P, i, csa->image);
          scan_token(csa);
@@ -595,9 +599,10 @@ loop: /* create new row (constraint) */
 
 static void set_lower_bound(struct csa *csa, int j, double lb)
 {     /* set lower bound of j-th variable */
-      if (csa->lb[j] != +DBL_MAX)
-      {  warning(csa, "lower bound of variable `%s' redefined\n",
+      if (csa->lb[j] != +DBL_MAX && !csa->lb_warn)
+      {  warning(csa, "lower bound of variable '%s' redefined\n",
             glp_get_col_name(csa->P, j));
+         csa->lb_warn = 1;
       }
       csa->lb[j] = lb;
       return;
@@ -605,9 +610,10 @@ static void set_lower_bound(struct csa *csa, int j, double lb)
 
 static void set_upper_bound(struct csa *csa, int j, double ub)
 {     /* set upper bound of j-th variable */
-      if (csa->ub[j] != -DBL_MAX)
-      {  warning(csa, "upper bound of variable `%s' redefined\n",
+      if (csa->ub[j] != -DBL_MAX && !csa->ub_warn)
+      {  warning(csa, "upper bound of variable '%s' redefined\n",
             glp_get_col_name(csa->P, j));
+         csa->ub_warn = 1;
       }
       csa->ub[j] = ub;
       return;
@@ -652,7 +658,7 @@ loop: /* bound definition can start with a sign, numeric constant, or
          else if (the_same(csa->image, "infinity") ||
                   the_same(csa->image, "inf"))
          {  if (s > 0.0)
-               error(csa, "invalid use of `+inf' as lower bound\n");
+               error(csa, "invalid use of '+inf' as lower bound\n");
             lb = -DBL_MAX, scan_token(csa);
          }
          else
@@ -670,7 +676,7 @@ loop: /* bound definition can start with a sign, numeric constant, or
       /* parse the token that should follow the lower bound */
       if (lb_flag)
       {  if (csa->token != T_LE)
-            error(csa, "missing `<', `<=', or `=<' after lower bound\n")
+            error(csa, "missing '<', '<=', or '=<' after lower bound\n")
                ;
          scan_token(csa);
       }
@@ -696,7 +702,7 @@ loop: /* bound definition can start with a sign, numeric constant, or
             else if (the_same(csa->image, "infinity") ||
                      the_same(csa->image, "inf"))
             {  if (s < 0.0)
-                  error(csa, "invalid use of `-inf' as upper bound\n");
+                  error(csa, "invalid use of '-inf' as upper bound\n");
                set_upper_bound(csa, j, +DBL_MAX);
                scan_token(csa);
             }
@@ -729,7 +735,7 @@ loop: /* bound definition can start with a sign, numeric constant, or
             else if (the_same(csa->image, "infinity") ||
                      the_same(csa->image, "inf") == 0)
             {  if (s > 0.0)
-                  error(csa, "invalid use of `+inf' as lower bound\n");
+                  error(csa, "invalid use of '+inf' as lower bound\n");
                set_lower_bound(csa, j, -DBL_MAX);
                scan_token(csa);
             }
@@ -833,7 +839,7 @@ int glp_read_lp(glp_prob *P, const glp_cpxcp *parm, const char *fname)
       glp_cpxcp _parm;
       struct csa _csa, *csa = &_csa;
       int ret;
-      xprintf("Reading problem data from `%s'...\n", fname);
+      xprintf("Reading problem data from '%s'...\n", fname);
       if (parm == NULL)
          glp_init_cpxcp(&_parm), parm = &_parm;
       /* check control parameters */
@@ -860,13 +866,16 @@ int glp_read_lp(glp_prob *P, const glp_cpxcp *parm, const char *fname)
       memset(&csa->flag[1], 0, csa->n_max * sizeof(char));
       csa->lb = xcalloc(1+csa->n_max, sizeof(double));
       csa->ub = xcalloc(1+csa->n_max, sizeof(double));
+#if 1 /* 27/VII-2013 */
+      csa->lb_warn = csa->ub_warn = 0;
+#endif
       /* erase problem object */
       glp_erase_prob(P);
       glp_create_index(P);
       /* open input CPLEX LP file */
       csa->fp = xfopen(fname, "r");
       if (csa->fp == NULL)
-      {  xprintf("Unable to open `%s' - %s\n", fname, xerrmsg());
+      {  xprintf("Unable to open '%s' - %s\n", fname, xerrmsg());
          ret = 1;
          goto done;
       }
@@ -874,7 +883,7 @@ int glp_read_lp(glp_prob *P, const glp_cpxcp *parm, const char *fname)
       scan_token(csa);
       /* parse definition of the objective function */
       if (!(csa->token == T_MINIMIZE || csa->token == T_MAXIMIZE))
-         error(csa, "`minimize' or `maximize' keyword missing\n");
+         error(csa, "'minimize' or 'maximize' keyword missing\n");
       parse_objective(csa);
       /* parse constraints section */
       if (csa->token != T_SUBJECT_TO)
@@ -890,12 +899,12 @@ int glp_read_lp(glp_prob *P, const glp_cpxcp *parm, const char *fname)
       if (csa->token == T_END)
          scan_token(csa);
       else if (csa->token == T_EOF)
-         warning(csa, "keyword `end' missing\n");
+         warning(csa, "keyword 'end' missing\n");
       else
-         error(csa, "symbol `%s' in wrong position\n", csa->image);
+         error(csa, "symbol '%s' in wrong position\n", csa->image);
       /* nothing must follow the keyword 'end' (except comments) */
       if (csa->token != T_EOF)
-         error(csa, "extra symbol(s) detected beyond `end'\n");
+         error(csa, "extra symbol(s) detected beyond 'end'\n");
       /* set bounds of variables */
       {  int j, type;
          double lb, ub;
@@ -1064,7 +1073,7 @@ int glp_write_lp(glp_prob *P, const glp_cpxcp *parm, const char *fname)
       GLPAIJ *aij;
       int i, j, len, flag, count, ret;
       char line[1000+1], term[500+1], name[255+1];
-      xprintf("Writing problem data to `%s'...\n", fname);
+      xprintf("Writing problem data to '%s'...\n", fname);
       if (parm == NULL)
          glp_init_cpxcp(&_parm), parm = &_parm;
       /* check control parameters */
@@ -1075,7 +1084,7 @@ int glp_write_lp(glp_prob *P, const glp_cpxcp *parm, const char *fname)
       /* create output CPLEX LP file */
       fp = xfopen(fname, "w"), count = 0;
       if (fp == NULL)
-      {  xprintf("Unable to create `%s' - %s\n", fname, xerrmsg());
+      {  xprintf("Unable to create '%s' - %s\n", fname, xerrmsg());
          ret = 1;
          goto done;
       }
@@ -1229,7 +1238,7 @@ skip: /* write the end keyword */
       xfprintf(fp, "End\n"), count++;
       xfflush(fp);
       if (xferror(fp))
-      {  xprintf("Write error on `%s' - %s\n", fname, xerrmsg());
+      {  xprintf("Write error on '%s' - %s\n", fname, xerrmsg());
          ret = 1;
          goto done;
       }

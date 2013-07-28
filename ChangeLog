@@ -1,3 +1,22 @@
+Sun Jul 28 12:00:00 2013 Andrew Makhorin <mao@gnu.org>
+
+        * GLPK 4.52.1 (36:1:0) has been released.
+
+        * src/Makefile.am
+        Version information bug was fixed. Thanks to Sebastien Villemot
+        <sebastien@debian.org> for bug report.
+
+        * src/proxy/proxy.c
+        A minor bug (incorrect use of glp_term_out) was fixed.
+
+        * src/glpios03.c
+        The simple rounding heuristic routine was changed to check only
+        global constraints.
+
+        * src/glpcpx.c
+        The code was changed to issue the warning message 'lower/upper
+        bound redefined' only once.
+
 Thu Jul 18 12:00:00 2013 Andrew Makhorin <mao@gnu.org>
 
         * GLPK 4.52 (36:0:1) has been released.

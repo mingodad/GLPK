@@ -560,7 +560,7 @@ static void cleanup_the_tree(glp_tree *T)
       return;
 }
 
-#if 1 /* 09/VII-2013 */
+#if 0 /* 09/VII-2013 */
 /***********************************************************************
 *  round_heur - simple rounding heuristic
 *
@@ -631,6 +631,132 @@ static int round_heur(glp_tree *T)
          ret = 1;
       }
 done: tfree(x);
+      return ret;
+}
+#else
+/***********************************************************************
+*  round_heur - simple rounding heuristic
+*
+*  This routine attempts to guess an integer feasible solution by
+*  simple rounding values of all integer variables in basic solution to
+*  nearest integers. */
+
+static int round_heur(glp_tree *T)
+{     glp_prob *P = T->mip;
+      /*int m = P->m;*/
+      int n = P->n;
+      int i, j, ret;
+      double *x;
+      /* compute rounded values of variables */
+      x = talloc(1+n, double);
+      for (j = 1; j <= n; j++)
+      {  GLPCOL *col = P->col[j];
+         if (col->kind == GLP_IV)
+         {  /* integer variable */
+            x[j] = floor(col->prim + 0.5);
+         }
+         else if (col->type == GLP_FX)
+         {  /* fixed variable */
+            x[j] = col->prim;
+         }
+         else
+         {  /* non-integer non-fixed variable */
+            ret = 3;
+            goto done;
+         }
+      }
+      /* check that no constraints are violated */
+      for (i = 1; i <= T->orig_m; i++)
+      {  int type = T->orig_type[i];
+         GLPAIJ *aij;
+         double sum;
+         if (type == GLP_FR)
+            continue;
+         /* compute value of linear form */
+         sum = 0.0;
+         for (aij = P->row[i]->ptr; aij != NULL; aij = aij->r_next)
+            sum += aij->val * x[aij->col->j];
+         /* check lower bound */
+         if (type == GLP_LO || type == GLP_DB || type == GLP_FX)
+         {  if (sum < T->orig_lb[i] - 1e-9)
+            {  /* lower bound is violated */
+               ret = 2;
+               goto done;
+            }
+         }
+         /* check upper bound */
+         if (type == GLP_UP || type == GLP_DB || type == GLP_FX)
+         {  if (sum > T->orig_ub[i] + 1e-9)
+            {  /* upper bound is violated */
+               ret = 2;
+               goto done;
+            }
+         }
+      }
+      /* rounded solution is integer feasible */
+      if (glp_ios_heur_sol(T, x) == 0)
+      {  /* solution is accepted */
+         ret = 0;
+      }
+      else
+      {  /* solution is rejected */
+         ret = 1;
+      }
+done: tfree(x);
+      return ret;
+}
+#endif
+
+#if 0
+#define round_heur round_heur2
+static int round_heur(glp_tree *T)
+{     glp_prob *lp;
+      int *ind, ret, i, j, len;
+      double *val;
+      lp = glp_create_prob();
+      ind = talloc(1+T->mip->n, int);
+      val = talloc(1+T->mip->n, double);
+      glp_add_rows(lp, T->orig_m);
+      glp_add_cols(lp, T->n);
+      for (i = 1; i <= T->orig_m; i++)
+      {  glp_set_row_bnds(lp, i,
+            T->orig_type[i], T->orig_lb[i], T->orig_ub[i]);
+         len = glp_get_mat_row(T->mip, i, ind, val);
+         glp_set_mat_row(lp, i, len, ind, val);
+      }
+      for (j = 1; j <= T->n; j++)
+      {  GLPCOL *col = T->mip->col[j];
+         glp_set_obj_coef(lp, j, col->coef);
+         if (col->kind == GLP_IV)
+         {  /* integer variable */
+            glp_set_col_bnds(lp, j, GLP_FX, floor(col->prim + .5), 0);
+         }
+         else
+         {  glp_set_col_bnds(lp, j, T->orig_type[T->orig_m+j],
+               T->orig_lb[T->orig_m+j], T->orig_ub[T->orig_m+j]);
+         }
+      }
+glp_term_out(GLP_OFF);
+      glp_adv_basis(lp, 0);
+      ret = glp_simplex(lp, NULL);
+glp_term_out(GLP_ON);
+      if (ret != 0)
+      {  ret = 1;
+         goto done;
+      }
+      if (glp_get_status(lp) != GLP_OPT)
+      {  ret = 2;
+         goto done;
+      }
+      for (j = 1; j <= lp->n; j++)
+         val[j] = lp->col[j]->prim;
+      if (glp_ios_heur_sol(T, val) == 0)
+         ret = 0;
+      else
+         ret = 3;
+done: glp_delete_prob(lp);
+      tfree(ind);
+      tfree(val);
       return ret;
 }
 #endif

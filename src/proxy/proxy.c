@@ -207,7 +207,7 @@ int proxy(glp_prob *lp, double *zfinal, double *xfinal,
     glp_iocp parm;
     glp_smcp parm_lp;
     size_t tpeak;
-    int refine, tref_lim, err, cutoff_row, niter, status, i;
+    int refine, tref_lim, err, cutoff_row, niter, status, i, tout;
     double *xref, *xstar, zstar, tela, cutoff, zz;
 
     memset(csa, 0, sizeof(struct csa));
@@ -311,7 +311,7 @@ int proxy(glp_prob *lp, double *zfinal, double *xfinal,
 
     /* finding the first solution */
     if (verbose) {
-        xprintf("Searching for a feasbile solution...\n");
+        xprintf("Searching for a feasible solution...\n");
     }
 
     /* verifying the existence of an input starting solution */
@@ -324,9 +324,9 @@ int proxy(glp_prob *lp, double *zfinal, double *xfinal,
         }
     }
 
-    glp_term_out(GLP_OFF);
+    tout = glp_term_out(GLP_OFF);
     err = glp_simplex(lp,&parm_lp);
-    glp_term_out(GLP_ON);
+    glp_term_out(tout);
 
     status = glp_get_status(lp);
 
@@ -361,9 +361,9 @@ int proxy(glp_prob *lp, double *zfinal, double *xfinal,
     parm.tm_lim = tlim - tela*1000;
     tref_lim = (tlim - tela *1000) / 20;
 
-    glp_term_out(GLP_OFF);
+    tout = glp_term_out(GLP_OFF);
     err = glp_intopt(lp, &parm);
-    glp_term_out(GLP_ON);
+    glp_term_out(tout);
 
     status = glp_mip_status(lp);
 
@@ -467,9 +467,9 @@ int proxy(glp_prob *lp, double *zfinal, double *xfinal,
 
         parm_lp.tm_lim = tlim -tela*1000;
 
-        glp_term_out(GLP_OFF);
+        tout = glp_term_out(GLP_OFF);
         err = glp_simplex(lp,&parm_lp);
-        glp_term_out(GLP_ON);
+        glp_term_out(tout);
 
         status = glp_get_status(lp);
 
@@ -504,9 +504,9 @@ int proxy(glp_prob *lp, double *zfinal, double *xfinal,
          to proxy is already preprocessed */
         parm.presolve = GLP_ON;
 #endif
-        glp_term_out(GLP_OFF);
+        tout = glp_term_out(GLP_OFF);
         err = glp_intopt(lp, &parm);
-        glp_term_out(GLP_ON);
+        glp_term_out(tout);
 
         /********** MANAGEMENT OF THE SOLUTION **********/
 
@@ -945,7 +945,7 @@ static int do_refine(struct csa *csa, glp_prob *lp_ref, int ncols,
      an LP. Otherwise, it remains a MIP but of smaller size.
      */
 
-    int j;
+    int j, tout;
     double refineStart = second();
     double val, tela;
 
@@ -992,14 +992,14 @@ static int do_refine(struct csa *csa, glp_prob *lp_ref, int ncols,
 #ifdef PROXY_DEBUG
         xprintf("***** REFINING *****\n");
 #endif
-        glp_term_out(GLP_OFF);
+        tout = glp_term_out(GLP_OFF);
         if (csa->i_vars_exist == TRUE) {
             err = glp_intopt(lp_ref, &parm_ref);
         }
         else {
             err = glp_simplex(lp_ref, &parm_ref_lp);
         }
-        glp_term_out(GLP_ON);
+        glp_term_out(tout);
 
         if (csa->i_vars_exist == TRUE) {
             status = glp_mip_status(lp_ref);

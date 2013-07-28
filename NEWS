@@ -1,3 +1,10 @@
+GLPK 4.52.1 (release date: Jul 28, 2013)
+
+        This is a bug-fix release.
+
+        A version information bug in Makefile.am was fixed. Thanks to
+        Sebastien Villemot <sebastien@debian.org> for bug report.
+
 GLPK 4.52 (release date: Jul 18, 2013)
 
         The clique cut generator was essentially reimplemented, and now
