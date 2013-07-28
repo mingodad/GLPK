@@ -1,6 +1,6 @@
 dnl Process this file with autoconf to produce a configure script
 
-AC_INIT([GLPK], [4.47], [bug-glpk@gnu.org])
+AC_INIT([GLPK], [4.48], [bug-glpk@gnu.org])
 
 AC_CONFIG_SRCDIR([src/glpk.h])
 
@@ -66,6 +66,12 @@ AC_CHECK_HEADER([sys/time.h],
 dnl Check for gettimeofday function
 AC_CHECK_FUNC([gettimeofday],
    AC_DEFINE([HAVE_GETTIMEOFDAY], [1], [N/A]))
+
+dnl Check for <gmp.h> header
+if test "$with_gmp" = "yes"; then
+   AC_CHECK_HEADER([gmp.h], [],
+      [AC_MSG_ERROR([gmp.h header not found])])
+fi
 
 AC_MSG_CHECKING([whether to use GNU MP bignum library])
 if test "$with_gmp" = "yes"; then

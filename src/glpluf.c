@@ -4,9 +4,9 @@
 *  This code is part of GLPK (GNU Linear Programming Kit).
 *
 *  Copyright (C) 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008,
-*  2009, 2010, 2011 Andrew Makhorin, Department for Applied Informatics,
-*  Moscow Aviation Institute, Moscow, Russia. All rights reserved.
-*  E-mail: <mao@gnu.org>.
+*  2009, 2010, 2011, 2013 Andrew Makhorin, Department for Applied
+*  Informatics, Moscow Aviation Institute, Moscow, Russia. All rights
+*  reserved. E-mail: <mao@gnu.org>.
 *
 *  GLPK is free software: you can redistribute it and/or modify it
 *  under the terms of the GNU General Public License as published by
@@ -629,7 +629,7 @@ done: /* return to the factorizing routine */
 *
 *  It is assumed that on entry the matrix U has the following partially
 *  triangularized form:
-* 
+*
 *        1       k         n
 *     1  x x x x x x x x x x
 *        . x x x x x x x x x
@@ -641,7 +641,7 @@ done: /* return to the factorizing routine */
 *        . . . . * * * * * *
 *        . . . . * * * * * *
 *     n  . . . . * * * * * *
-* 
+*
 *  where rows and columns k, k+1, ..., n belong to the active submatrix
 *  (elements of the active submatrix are marked by '*').
 *
@@ -656,26 +656,26 @@ done: /* return to the factorizing routine */
 *  where len is number of non-zeros in the column (in the latter case
 *  only elements of the active submatrix are counted; such elements are
 *  marked by '*' on the figure above).
-* 
+*
 *  For the reason of numerical stability the routine applies so called
 *  threshold pivoting proposed by J.Reid. It is assumed that an element
 *  v[i,j] can be selected as a pivot candidate if it is not very small
 *  (in absolute value) among other elements in the same row, i.e. if it
 *  satisfies to the stability condition |v[i,j]| >= tol * max|v[i,*]|,
 *  where 0 < tol < 1 is a given tolerance.
-* 
+*
 *  In order to keep sparsity of the matrix V the routine uses Markowitz
 *  strategy, trying to choose such element v[p,q], which satisfies to
 *  the stability condition (see above) and has smallest Markowitz cost
 *  (nr[p]-1) * (nc[q]-1), where nr[p] and nc[q] are numbers of non-zero
 *  elements, respectively, in the p-th row and in the q-th column of the
 *  active submatrix.
-* 
+*
 *  In order to reduce the search, i.e. not to walk through all elements
 *  of the active submatrix, the routine exploits a technique proposed by
 *  I.Duff. This technique is based on using the sets R[len] and C[len]
 *  of active rows and columns.
-* 
+*
 *  If the pivot element v[p,q] has been chosen, the routine stores its
 *  indices to the locations *p and *q and returns zero. Otherwise, if
 *  the active submatrix is empty and therefore the pivot element can't
@@ -879,22 +879,22 @@ done: /* bring the pivot to the factorizing routine */
 
 /***********************************************************************
 *  eliminate - perform gaussian elimination.
-* 
+*
 *  This routine performs elementary gaussian transformations in order
 *  to eliminate subdiagonal elements in the k-th column of the matrix
 *  U = P*V*Q using the pivot element u[k,k], where k is the number of
 *  the current elimination step.
-* 
+*
 *  The parameters p and q are, respectively, row and column indices of
 *  the element v[p,q], which corresponds to the element u[k,k].
-* 
+*
 *  Each time when the routine applies the elementary transformation to
 *  a non-pivot row of the matrix V, it stores the corresponding element
 *  to the matrix F in order to keep the main equality A = F*V.
-* 
+*
 *  The routine assumes that on entry the matrices L = P*F*inv(P) and
 *  U = P*V*Q are the following:
-* 
+*
 *        1       k                  1       k         n
 *     1  1 . . . . . . . . .     1  x x x x x x x x x x
 *        x 1 . . . . . . . .        . x x x x x x x x x
@@ -906,27 +906,27 @@ done: /* bring the pivot to the factorizing routine */
 *        x x x x _ . . 1 . .        . . . . # * * * * *
 *        x x x x _ . . . 1 .        . . . . # * * * * *
 *     n  x x x x _ . . . . 1     n  . . . . # * * * * *
-* 
+*
 *             matrix L                   matrix U
-* 
+*
 *  where rows and columns of the matrix U with numbers k, k+1, ..., n
 *  form the active submatrix (eliminated elements are marked by '#' and
 *  other elements of the active submatrix are marked by '*'). Note that
 *  each eliminated non-zero element u[i,k] of the matrix U gives the
 *  corresponding element l[i,k] of the matrix L (marked by '_').
-* 
+*
 *  Actually all operations are performed on the matrix V. Should note
 *  that the row-wise representation corresponds to the matrix V, but the
 *  column-wise representation corresponds to the active submatrix of the
 *  matrix V, i.e. elements of the matrix V, which doesn't belong to the
 *  active submatrix, are missing from the column linked lists.
-* 
+*
 *  Let u[k,k] = v[p,q] be the pivot. In order to eliminate subdiagonal
 *  elements u[i',k] = v[i,q], i' = k+1, k+2, ..., n, the routine applies
 *  the following elementary gaussian transformations:
-* 
+*
 *     (i-th row of V) := (i-th row of V) - f[i,p] * (p-th row of V),
-* 
+*
 *  where f[i,p] = v[i,q] / v[p,q] is a gaussian multiplier.
 *
 *  Additionally, in order to keep the main equality A = F*V, each time

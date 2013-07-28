@@ -4,9 +4,9 @@
 *  This code is part of GLPK (GNU Linear Programming Kit).
 *
 *  Copyright (C) 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008,
-*  2009, 2010, 2011 Andrew Makhorin, Department for Applied Informatics,
-*  Moscow Aviation Institute, Moscow, Russia. All rights reserved.
-*  E-mail: <mao@gnu.org>.
+*  2009, 2010, 2011, 2013 Andrew Makhorin, Department for Applied
+*  Informatics, Moscow Aviation Institute, Moscow, Russia. All rights
+*  reserved. E-mail: <mao@gnu.org>.
 *
 *  GLPK is free software: you can redistribute it and/or modify it
 *  under the terms of the GNU General Public License as published by
@@ -807,12 +807,21 @@ more: /* minor loop starts here */
          show_progress(T, 0);
       if (T->parm->msg_lev >= GLP_MSG_ALL &&
             xdifftime(xtime(), ttt) >= 60.0)
+#if 0 /* 16/II-2012 */
       {  glp_long total;
          glp_mem_usage(NULL, NULL, &total, NULL);
          xprintf("Time used: %.1f secs.  Memory used: %.1f Mb.\n",
             xdifftime(xtime(), T->tm_beg), xltod(total) / 1048576.0);
          ttt = xtime();
       }
+#else
+      {  size_t total;
+         glp_mem_usage(NULL, NULL, &total, NULL);
+         xprintf("Time used: %.1f secs.  Memory used: %.1f Mb.\n",
+            xdifftime(xtime(), T->tm_beg), (double)total / 1048576.0);
+         ttt = xtime();
+      }
+#endif
       /* check the mip gap */
       if (T->parm->mip_gap > 0.0 &&
           ios_relative_gap(T) <= T->parm->mip_gap)

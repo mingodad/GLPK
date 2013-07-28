@@ -111,6 +111,7 @@ src/glpnpp05.o \
 src/glpnpp06.o \
 src/glpqmd.o \
 src/glprgr.o \
+src/glprlx.o \
 src/glprng01.o \
 src/glprng02.o \
 src/glpscf.o \

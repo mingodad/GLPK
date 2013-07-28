@@ -4,9 +4,9 @@
 *  This code is part of GLPK (GNU Linear Programming Kit).
 *
 *  Copyright (C) 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008,
-*  2009, 2010, 2011 Andrew Makhorin, Department for Applied Informatics,
-*  Moscow Aviation Institute, Moscow, Russia. All rights reserved.
-*  E-mail: <mao@gnu.org>.
+*  2009, 2010, 2011, 2013 Andrew Makhorin, Department for Applied
+*  Informatics, Moscow Aviation Institute, Moscow, Russia. All rights
+*  reserved. E-mail: <mao@gnu.org>.
 *
 *  GLPK is free software: you can redistribute it and/or modify it
 *  under the terms of the GNU General Public License as published by
@@ -28,7 +28,11 @@
 #include "glpavl.h"
 #include "glprng.h"
 
+#if 0 /* 22/I-2013 */
 typedef struct MPL MPL;
+#else
+typedef struct glp_tran MPL;
+#endif
 typedef char STRING;
 typedef struct SYMBOL SYMBOL;
 typedef struct TUPLE TUPLE;
@@ -115,7 +119,11 @@ typedef struct TUPLE SLICE;
 #define OUTBUF_SIZE 1024
 /* size of the output buffer, in characters */
 
+#if 0 /* 22/I-2013 */
 struct MPL
+#else
+struct glp_tran
+#endif
 {     /* translator database */
       /*--------------------------------------------------------------*/
       /* scanning segment */

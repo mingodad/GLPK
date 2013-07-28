@@ -4,9 +4,9 @@
 *  This code is part of GLPK (GNU Linear Programming Kit).
 *
 *  Copyright (C) 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008,
-*  2009, 2010, 2011 Andrew Makhorin, Department for Applied Informatics,
-*  Moscow Aviation Institute, Moscow, Russia. All rights reserved.
-*  E-mail: <mao@gnu.org>.
+*  2009, 2010, 2011, 2013 Andrew Makhorin, Department for Applied
+*  Informatics, Moscow Aviation Institute, Moscow, Russia. All rights
+*  reserved. E-mail: <mao@gnu.org>.
 *
 *  GLPK is free software: you can redistribute it and/or modify it
 *  under the terms of the GNU General Public License as published by
@@ -33,11 +33,8 @@ void bigmul(int n, int m, unsigned short x[], unsigned short y[]);
 void bigdiv(int n, int m, unsigned short x[], unsigned short y[]);
 /* divide unsigned integer numbers of arbitrary precision */
 
-#ifndef GLP_LONG_DEFINED
-#define GLP_LONG_DEFINED
 typedef struct { int lo, hi; } glp_long;
 /* long integer data type */
-#endif
 
 typedef struct { glp_long quot, rem; } glp_ldiv;
 /* result of long integer division */

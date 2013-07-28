@@ -18,7 +18,11 @@
 #define ID "%d"
 #define Int_MAX INT_MAX
 
+#if 0 /* 15/II-2012 */
+/* now this macro is defined in glpenv.h; besides, the definiton below
+   depends on implementation, because size_t is an unsigned type */
 #define SIZE_T_MAX ((size_t)(-1))
+#endif
 
 #define EMPTY (-1)
 #define FLIP(i) (-(i)-2)

@@ -4,9 +4,9 @@
 *  This code is part of GLPK (GNU Linear Programming Kit).
 *
 *  Copyright (C) 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008,
-*  2009, 2010, 2011 Andrew Makhorin, Department for Applied Informatics,
-*  Moscow Aviation Institute, Moscow, Russia. All rights reserved.
-*  E-mail: <mao@gnu.org>.
+*  2009, 2010, 2011, 2013 Andrew Makhorin, Department for Applied
+*  Informatics, Moscow Aviation Institute, Moscow, Russia. All rights
+*  reserved. E-mail: <mao@gnu.org>.
 *
 *  GLPK is free software: you can redistribute it and/or modify it
 *  under the terms of the GNU General Public License as published by
@@ -28,17 +28,17 @@
 /***********************************************************************
 *  Two routines below are intended to multiply and divide unsigned
 *  integer numbers of arbitrary precision.
-* 
+*
 *  The routines assume that an unsigned integer number is represented in
 *  the positional numeral system with the base 2^16 = 65536, i.e. each
 *  "digit" of the number is in the range [0, 65535] and represented as
 *  a 16-bit value of the unsigned short type. In other words, a number x
 *  has the following representation:
-* 
+*
 *         n-1
 *     x = sum d[j] * 65536^j,
 *         j=0
-* 
+*
 *  where n is the number of places (positions), and d[j] is j-th "digit"
 *  of x, 0 <= d[j] <= 65535.
 ***********************************************************************/
@@ -47,28 +47,28 @@
 *  NAME
 *
 *  bigmul - multiply unsigned integer numbers of arbitrary precision
-* 
+*
 *  SYNOPSIS
-* 
+*
 *  #include "glplib.h"
 *  void bigmul(int n, int m, unsigned short x[], unsigned short y[]);
-* 
+*
 *  DESCRIPTION
-* 
+*
 *  The routine bigmul multiplies unsigned integer numbers of arbitrary
 *  precision.
-* 
+*
 *  n is the number of digits of multiplicand, n >= 1;
-* 
+*
 *  m is the number of digits of multiplier, m >= 1;
-* 
+*
 *  x is an array containing digits of the multiplicand in elements
 *  x[m], x[m+1], ..., x[n+m-1]. Contents of x[0], x[1], ..., x[m-1] are
 *  ignored on entry.
-* 
+*
 *  y is an array containing digits of the multiplier in elements y[0],
 *  y[1], ..., y[m-1].
-* 
+*
 *  On exit digits of the product are stored in elements x[0], x[1], ...,
 *  x[n+m-1]. The array y is not changed. */
 
@@ -97,28 +97,28 @@ void bigmul(int n, int m, unsigned short x[], unsigned short y[])
 *  NAME
 *
 *  bigdiv - divide unsigned integer numbers of arbitrary precision
-* 
+*
 *  SYNOPSIS
-* 
+*
 *  #include "glplib.h"
 *  void bigdiv(int n, int m, unsigned short x[], unsigned short y[]);
-* 
+*
 *  DESCRIPTION
-* 
+*
 *  The routine bigdiv divides one unsigned integer number of arbitrary
 *  precision by another with the algorithm described in [1].
-* 
+*
 *  n is the difference between the number of digits of dividend and the
 *  number of digits of divisor, n >= 0.
-* 
+*
 *  m is the number of digits of divisor, m >= 1.
-* 
+*
 *  x is an array containing digits of the dividend in elements x[0],
 *  x[1], ..., x[n+m-1].
-* 
+*
 *  y is an array containing digits of the divisor in elements y[0],
 *  y[1], ..., y[m-1]. The highest digit y[m-1] must be non-zero.
-* 
+*
 *  On exit n+1 digits of the quotient are stored in elements x[m],
 *  x[m+1], ..., x[n+m], and m digits of the remainder are stored in
 *  elements x[0], x[1], ..., x[m-1]. The array y is changed but then

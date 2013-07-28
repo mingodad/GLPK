@@ -4,9 +4,9 @@
 *  This code is part of GLPK (GNU Linear Programming Kit).
 *
 *  Copyright (C) 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008,
-*  2009, 2010, 2011 Andrew Makhorin, Department for Applied Informatics,
-*  Moscow Aviation Institute, Moscow, Russia. All rights reserved.
-*  E-mail: <mao@gnu.org>.
+*  2009, 2010, 2011, 2013 Andrew Makhorin, Department for Applied
+*  Informatics, Moscow Aviation Institute, Moscow, Russia. All rights
+*  reserved. E-mail: <mao@gnu.org>.
 *
 *  GLPK is free software: you can redistribute it and/or modify it
 *  under the terms of the GNU General Public License as published by
@@ -83,43 +83,54 @@ struct dsa
 *  and stores its image into the character string card. If the card was
 *  read successfully, the routine returns zero, otherwise non-zero. */
 
+#if 1 /* 11/III-2012 */
 static int read_card(struct dsa *dsa)
-{     int k, c;
+{     int c, len = 0;
+      char buf[255+1];
       dsa->seqn++;
-      memset(dsa->card, ' ', 80), dsa->card[80] = '\0';
-      k = 0;
       for (;;)
       {  c = fgetc(dsa->fp);
-         if (ferror(dsa->fp))
-         {  xprintf("%s:%d: read error - %s\n", dsa->fname, dsa->seqn,
-               strerror(errno));
-            return 1;
-         }
-         if (feof(dsa->fp))
-         {  if (k == 0)
-               xprintf("%s:%d: unexpected EOF\n", dsa->fname,
-                  dsa->seqn);
+         if (c == EOF)
+         {  if (ferror(dsa->fp))
+               xprintf("%s:%d: read error\n",
+                  dsa->fname, dsa->seqn);
             else
-               xprintf("%s:%d: missing final LF\n", dsa->fname,
-                  dsa->seqn);
+               xprintf("%s:%d: unexpected end-of-file\n",
+                  dsa->fname, dsa->seqn);
             return 1;
          }
-         if (c == '\r') continue;
-         if (c == '\n') break;
-         if (iscntrl(c))
-         {  xprintf("%s:%d: invalid control character 0x%02X\n",
+         else if (c == '\r')
+            /* nop */;
+         else if (c == '\n')
+            break;
+         else if (iscntrl(c))
+         {  xprintf("%s:%d: invalid control character\n",
                dsa->fname, dsa->seqn, c);
             return 1;
          }
-         if (k == 80)
-         {  xprintf("%s:%d: card image too long\n", dsa->fname,
-               dsa->seqn);
-            return 1;
+         else
+         {  if (len == sizeof(buf)-1)
+               goto err;
+            buf[len++] = (char)c;
          }
-         dsa->card[k++] = (char)c;
       }
+      /* remove trailing spaces */
+      while (len > 80 && buf[len-1] == ' ')
+         len--;
+      buf[len] = '\0';
+      /* line should not be longer than 80 chars */
+      if (len > 80)
+err:  {  xerror("%s:%d: card image too long\n",
+            dsa->fname, dsa->seqn);
+         return 1;
+      }
+      /* padd by spaces to 80-column card image */
+      strcpy(dsa->card, buf);
+      memset(&dsa->card[len], ' ', 80 - len);
+      dsa->card[80] = '\0';
       return 0;
 }
+#endif
 
 /***********************************************************************
 *  scan_int - scan integer value from the current card

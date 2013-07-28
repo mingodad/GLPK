@@ -4,9 +4,9 @@
 *  This code is part of GLPK (GNU Linear Programming Kit).
 *
 *  Copyright (C) 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008,
-*  2009, 2010, 2011 Andrew Makhorin, Department for Applied Informatics,
-*  Moscow Aviation Institute, Moscow, Russia. All rights reserved.
-*  E-mail: <mao@gnu.org>.
+*  2009, 2010, 2011, 2013 Andrew Makhorin, Department for Applied
+*  Informatics, Moscow Aviation Institute, Moscow, Russia. All rights
+*  reserved. E-mail: <mao@gnu.org>.
 *
 *  GLPK is free software: you can redistribute it and/or modify it
 *  under the terms of the GNU General Public License as published by
@@ -44,10 +44,25 @@ typedef struct XFILE XFILE;
 #define MEM_MAGIC 0x4D454D31
 /* memory block descriptor magic value */
 
+#define MEM_ALIGN 16
+/* some processors need data to be properly aligned, so this macro
+   defines the alignment boundary, in bytes, provided by glpk memory
+   allocation routines; looks like 16-byte alignment boundary is
+   sufficient for all 32- and 64-bit platforms (8-byte boundary is not
+   sufficient for some 64-bit platforms because of jmp_buf) */
+
+#define MEM_DESC_SIZE \
+   (((sizeof(MEM) + (MEM_ALIGN - 1)) / MEM_ALIGN) * MEM_ALIGN)
+/* size of memory block descriptor, in bytes, rounded up to multiple
+   of the alignment boundary */
+
+#define SIZE_T_MAX (~(size_t)0)
+/* largest value of size_t type */
+
 struct ENV
 {     /* environment block */
       int magic;
-      /* magic value used for debugging */
+      /* magic value (for sanity checks) */
       char version[7+1];
       /* version string returned by the routine glp_version */
       /*--------------------------------------------------------------*/
@@ -73,9 +88,10 @@ struct ENV
       void *err_info;
       /* transit pointer (cookie) passed to the routine err_hook */
       /*--------------------------------------------------------------*/
-      /* memory allocation */
-      glp_long mem_limit;
-      /* maximal amount of memory (in bytes) available for dynamic
+      /* dynamic memory allocation */
+#if 1 /* 16/II-2012 */
+      size_t mem_limit;
+      /* maximal amount of memory, in bytes, available for dynamic
          allocation */
       MEM *mem_ptr;
       /* pointer to the linked list of allocated memory blocks */
@@ -83,11 +99,12 @@ struct ENV
       /* total number of currently allocated memory blocks */
       int mem_cpeak;
       /* peak value of mem_count */
-      glp_long mem_total;
-      /* total amount of currently allocated memory (in bytes; is the
-         sum of the size field over all memory block descriptors) */
-      glp_long mem_tpeak;
+      size_t mem_total;
+      /* total amount of currently allocated memory, in bytes; it is
+         the sum of the size field over all memory block descriptors */
+      size_t mem_tpeak;
       /* peak value of mem_total */
+#endif
       /*--------------------------------------------------------------*/
       /* stream input/output */
       XFILE *file_ptr;
@@ -102,17 +119,19 @@ struct ENV
       /* handle to MySQL shared library */
 };
 
+#if 1 /* 16/II-2012 */
 struct MEM
 {     /* memory block descriptor */
-      int flag;
-      /* descriptor flag */
-      int size;
-      /* size of block (in bytes, including descriptor) */
+      int magic;
+      /* magic value (for sanity checks) */
+      size_t size;
+      /* size of block, in bytes, including descriptor */
       MEM *prev;
       /* pointer to previous memory block descriptor */
       MEM *next;
       /* pointer to next memory block descriptor */
 };
+#endif
 
 struct XFILE
 {     /* input/output stream descriptor */
@@ -171,6 +190,10 @@ void *glp_malloc(int size);
 #define xcalloc glp_calloc
 void *glp_calloc(int n, int size);
 /* allocate memory block */
+
+#define xrealloc glp_realloc
+void *glp_realloc(void *ptr, int n, int size);
+/* reallocate memory block */
 
 #define xfree glp_free
 void glp_free(void *ptr);

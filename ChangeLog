@@ -1,3 +1,36 @@
+Mon Jan 28 12:00:00 2013 Andrew Makhorin <mao@gnu.org>
+
+        * GLPK 4.48 (33:0:0) has been released
+
+        * src/glpmps.c
+        A bug in glp_write_mps was fixed. Thanks to Raniere Gaia Costa
+        da Silva for bug report.
+
+        * glpk.h
+        glp_prob declaration changed (now it is incomplete struct);
+        glp_tree declaration changed (now it is incomplete struct);
+        glp_tran declaration changed (now it is incomplete struct);
+        glp_long declaration removed;
+        glp_time declaration removed;
+        glp_difftime removed from API;
+        glp_data removed from API;
+        glp_sdf_* removed from API;
+        glp_mem_usage declaration changed (glp_long -> size_t);
+        glp_realloc declaration added (not documented yet).
+
+        * glpenv.h, glpenv05.c
+        Dynamic memory allocation routines were reimplemented.
+
+        * glpk.h, glpnet03.c
+        Routine glp_netgen_prob was added (not documented yet).
+
+        * configure.ac
+        Check for gmp.h was added. Thanks to Heinrich Schuchardt for
+        suggestion.
+
+        * w32/glpk.def, w64/glpk.def
+        Changes were made to export only API symbols.
+
 Fri Sep 09 12:00:00 2011 Andrew Makhorin <mao@gnu.org>
 
         * GLPK 4.47 (32:0:32) has been released

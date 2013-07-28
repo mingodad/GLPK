@@ -4,9 +4,9 @@
 *  This code is part of GLPK (GNU Linear Programming Kit).
 *
 *  Copyright (C) 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008,
-*  2009, 2010, 2011 Andrew Makhorin, Department for Applied Informatics,
-*  Moscow Aviation Institute, Moscow, Russia. All rights reserved.
-*  E-mail: <mao@gnu.org>.
+*  2009, 2010, 2011, 2013 Andrew Makhorin, Department for Applied
+*  Informatics, Moscow Aviation Institute, Moscow, Russia. All rights
+*  reserved. E-mail: <mao@gnu.org>.
 *
 *  GLPK is free software: you can redistribute it and/or modify it
 *  under the terms of the GNU General Public License as published by
@@ -350,10 +350,11 @@ static void print_version(int briefly)
       xprintf("\n");
       xprintf("Copyright (C) 2000, 2001, 2002, 2003, 2004, 2005, 2006, "
          "2007, 2008,\n");
-      xprintf("2009, 2010, 2011 Andrew Makhorin, Department for Applied"
-         " Informatics,\n");
-      xprintf("Moscow Aviation Institute, Moscow, Russia. All rights re"
-         "served.\n");
+      xprintf("2009, 2010, 2011, 2013 Andrew Makhorin, Department for A"
+         "pplied\n");
+      xprintf("Informatics, Moscow Aviation Institute, Moscow, Russia. "
+         "All rights\n");
+      xprintf("reserved. E-mail: <mao@gnu.org>.\n");
       xprintf("\n");
       xprintf("This program has ABSOLUTELY NO WARRANTY.\n");
       xprintf("\n");
@@ -1188,12 +1189,20 @@ err2:    {  xprintf("MathProg model processing error\n");
       /*--------------------------------------------------------------*/
       /* display statistics */
       xprintf("Time used:   %.1f secs\n", xdifftime(xtime(), start));
+#if 0 /* 16/II-2012 */
       {  glp_long tpeak;
          char buf[50];
          glp_mem_usage(NULL, NULL, NULL, &tpeak);
          xprintf("Memory used: %.1f Mb (%s bytes)\n",
             xltod(tpeak) / 1048576.0, xltoa(tpeak, buf));
       }
+#else
+      {  size_t tpeak;
+         glp_mem_usage(NULL, NULL, NULL, &tpeak);
+         xprintf("Memory used: %.1f Mb (%.0f bytes)\n",
+            (double)tpeak / 1048576.0, (double)tpeak);
+      }
+#endif
       /*--------------------------------------------------------------*/
 skip: /* postsolve the model, if necessary */
       if (csa->tran != NULL)
@@ -1307,6 +1316,7 @@ done: /* delete the LP/MIP problem object */
       /* close log file, if necessary */
       if (csa->log_file != NULL) glp_close_tee();
       /* check that no memory blocks are still allocated */
+#if 0 /* 16/II-2012 */
       {  int count;
          glp_long total;
          glp_mem_usage(&count, NULL, &total, NULL);
@@ -1315,6 +1325,15 @@ done: /* delete the LP/MIP problem object */
          xassert(count == 0);
          xassert(total.lo == 0 && total.hi == 0);
       }
+#else
+      {  int count;
+         size_t total;
+         glp_mem_usage(&count, NULL, &total, NULL);
+         if (count != 0)
+            xerror("Error: %d memory block(s) were lost\n", count);
+         xassert(total == 0);
+      }
+#endif
       /* free the GLPK environment */
       glp_free_env();
       /* return to the control program */

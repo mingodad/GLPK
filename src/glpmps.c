@@ -4,9 +4,9 @@
 *  This code is part of GLPK (GNU Linear Programming Kit).
 *
 *  Copyright (C) 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008,
-*  2009, 2010, 2011 Andrew Makhorin, Department for Applied Informatics,
-*  Moscow Aviation Institute, Moscow, Russia. All rights reserved.
-*  E-mail: <mao@gnu.org>.
+*  2009, 2010, 2011, 2013 Andrew Makhorin, Department for Applied
+*  Informatics, Moscow Aviation Institute, Moscow, Russia. All rights
+*  reserved. E-mail: <mao@gnu.org>.
 *
 *  GLPK is free software: you can redistribute it and/or modify it
 *  under the terms of the GNU General Public License as published by
@@ -1340,7 +1340,8 @@ int glp_write_mps(glp_prob *P, int fmt, const glp_mpscp *parm,
          xfprintf(fp, "\n"), recno++;
 bnds: /* write BOUNDS section */
       for (j = P->n; j >= 1; j--)
-         if (!(P->col[j]->type == GLP_LO && P->col[j]->lb == 0.0))
+         if (!(P->col[j]->kind == GLP_CV &&
+               P->col[j]->type == GLP_LO && P->col[j]->lb == 0.0))
             break;
       if (j == 0) goto endt;
       xfprintf(fp, "BOUNDS\n"), recno++;

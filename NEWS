@@ -1,3 +1,15 @@
+GLPK 4.48 (release date: Jan 28, 2013)
+
+        This is a maintainer release.
+
+        Some minor changes in API (glpk.h) were made. For details
+        please see ChangeLog.
+
+        Some bugs/typos were fixed. Thanks to
+        Raniere Gaia Costa da Silva,
+        Heinrich Schuchardt <xypron.glpk@gmx.de>, and
+        Robbie Morrison <robbie@actrix.co.nz> for reports.
+
 GLPK 4.47 (release date: Sep 09, 2011)
 
         The new API routine glp_intfeas1 was added to the package.

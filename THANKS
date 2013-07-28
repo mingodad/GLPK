@@ -1,4 +1,9 @@
-Marco Atzeri <marco.atzeri@gmail.com> for buf report.
+Heinrich Schuchardt <xypron.glpk@gmx.de> for testing the package on
+32- and 64-bit MS Windows platforms.
+
+Raniere Gaia Costa da Silva for bug report.
+
+Marco Atzeri <marco.atzeri@gmail.com> for bug report.
 
 Noli Sicad <nsicad@gmail.com> for testing glpk under Mac OS.
 
@@ -60,7 +65,7 @@ Nigel Galloway <nigel_galloway@operamail.com> for bug report.
 Peter Ingerfeld <peter.ingerfeld@mops-optimizer.com> for bug report.
 
 Heinrich Schuchardt <heinrich.schuchardt@gmx.de> for contribution of
-makefiles and testing the package under 64-bit Windows. 
+makefiles and testing the package under 64-bit Windows.
 
 Oscar Gustafsson <oscarg@isy.liu.se> for contribution of a new version
 of the routine to write data in OPB (pseudo boolean) format.

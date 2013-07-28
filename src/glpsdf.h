@@ -1,4 +1,4 @@
-/* glpstd.h (standard C headers) */
+/* glpsdf.h */
 
 /***********************************************************************
 *  This code is part of GLPK (GNU Linear Programming Kit).
@@ -22,21 +22,41 @@
 *  along with GLPK. If not, see <http://www.gnu.org/licenses/>.
 ***********************************************************************/
 
-#ifndef GLPSTD_H
-#define GLPSTD_H
+#ifndef GLPSDF_H
+#define GLPSDF_H
 
-#include <ctype.h>
-#include <errno.h>
-#include <float.h>
-#include <limits.h>
-#include <math.h>
-#include <setjmp.h>
-#include <stdarg.h>
-#include <stddef.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <time.h>
+typedef struct glp_data glp_data;
+/* plain data file */
+
+glp_data *glp_sdf_open_file(const char *fname);
+/* open plain data file */
+
+void glp_sdf_set_jump(glp_data *data, void *jump);
+/* set up error handling */
+
+void glp_sdf_error(glp_data *data, const char *fmt, ...);
+/* print error message */
+
+void glp_sdf_warning(glp_data *data, const char *fmt, ...);
+/* print warning message */
+
+int glp_sdf_read_int(glp_data *data);
+/* read integer number */
+
+double glp_sdf_read_num(glp_data *data);
+/* read floating-point number */
+
+const char *glp_sdf_read_item(glp_data *data);
+/* read data item */
+
+const char *glp_sdf_read_text(glp_data *data);
+/* read text until end of line */
+
+int glp_sdf_line(glp_data *data);
+/* determine current line number */
+
+void glp_sdf_close_file(glp_data *data);
+/* close plain data file */
 
 #endif
 

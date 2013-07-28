@@ -101,6 +101,7 @@ OBJSET = \
 ..\src\glpnpp06.obj \
 ..\src\glpqmd.obj \
 ..\src\glprgr.obj \
+..\src\glprlx.obj \
 ..\src\glprng01.obj \
 ..\src\glprng02.obj \
 ..\src\glpscf.obj \
@@ -147,20 +148,20 @@ OBJSET = \
 .c.obj:
         cl.exe $(CFLAGS) /Fo$*.obj /c $*.c
 
-all: glpk_4_47.dll glpsol.exe
+all: glpk_4_48.dll glpsol.exe
 
-glpk_4_47.dll: $(OBJSET)
-        cl.exe $(CFLAGS) /LD /Feglpk_4_47.dll \
+glpk_4_48.dll: $(OBJSET)
+        cl.exe $(CFLAGS) /LD /Feglpk_4_48.dll \
                 ..\src\*.obj \
                 ..\src\amd\*.obj \
                 ..\src\colamd\*.obj \
                 ..\src\minisat\*.obj \
                 ..\src\zlib\*.obj \
-                glpk_4_47.def
+                glpk_4_48.def
 
-glpsol.exe: ..\examples\glpsol.obj glpk_4_47.dll
+glpsol.exe: ..\examples\glpsol.obj glpk_4_48.dll
         cl.exe $(CFLAGS) /Feglpsol.exe \
-                ..\examples\glpsol.obj glpk_4_47.lib
+                ..\examples\glpsol.obj glpk_4_48.lib
 
 check: glpsol.exe
         .\glpsol.exe --version

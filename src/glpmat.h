@@ -4,9 +4,9 @@
 *  This code is part of GLPK (GNU Linear Programming Kit).
 *
 *  Copyright (C) 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008,
-*  2009, 2010, 2011 Andrew Makhorin, Department for Applied Informatics,
-*  Moscow Aviation Institute, Moscow, Russia. All rights reserved.
-*  E-mail: <mao@gnu.org>.
+*  2009, 2010, 2011, 2013 Andrew Makhorin, Department for Applied
+*  Informatics, Moscow Aviation Institute, Moscow, Russia. All rights
+*  reserved. E-mail: <mao@gnu.org>.
 *
 *  GLPK is free software: you can redistribute it and/or modify it
 *  under the terms of the GNU General Public License as published by
@@ -27,59 +27,59 @@
 
 /***********************************************************************
 *  FULL-VECTOR STORAGE
-* 
+*
 *  For a sparse vector x having n elements, ne of which are non-zero,
 *  the full-vector storage format uses two arrays x_ind and x_vec, which
 *  are set up as follows:
-* 
+*
 *  x_ind is an integer array of length [1+ne]. Location x_ind[0] is
 *  not used, and locations x_ind[1], ..., x_ind[ne] contain indices of
 *  non-zero elements in vector x.
-* 
+*
 *  x_vec is a floating-point array of length [1+n]. Location x_vec[0]
 *  is not used, and locations x_vec[1], ..., x_vec[n] contain numeric
 *  values of ALL elements in vector x, including its zero elements.
-* 
+*
 *  Let, for example, the following sparse vector x be given:
-* 
+*
 *     (0, 1, 0, 0, 2, 3, 0, 4)
-* 
-*  Then the arrays are:
-* 
-*     x_ind = { X; 2, 5, 6, 8 }
-* 
-*     x_vec = { X; 0, 1, 0, 0, 2, 3, 0, 4 }
-* 
-*  COMPRESSED-VECTOR STORAGE
-* 
-*  For a sparse vector x having n elements, ne of which are non-zero,
-*  the compressed-vector storage format uses two arrays x_ind and x_vec,
-*  which are set up as follows:
-* 
-*  x_ind is an integer array of length [1+ne]. Location x_ind[0] is
-*  not used, and locations x_ind[1], ..., x_ind[ne] contain indices of
-*  non-zero elements in vector x.
-* 
-*  x_vec is a floating-point array of length [1+ne]. Location x_vec[0]
-*  is not used, and locations x_vec[1], ..., x_vec[ne] contain numeric
-*  values of corresponding non-zero elements in vector x.
-* 
-*  Let, for example, the following sparse vector x be given:
-* 
-*     (0, 1, 0, 0, 2, 3, 0, 4)
-* 
+*
 *  Then the arrays are:
 *
 *     x_ind = { X; 2, 5, 6, 8 }
-* 
+*
+*     x_vec = { X; 0, 1, 0, 0, 2, 3, 0, 4 }
+*
+*  COMPRESSED-VECTOR STORAGE
+*
+*  For a sparse vector x having n elements, ne of which are non-zero,
+*  the compressed-vector storage format uses two arrays x_ind and x_vec,
+*  which are set up as follows:
+*
+*  x_ind is an integer array of length [1+ne]. Location x_ind[0] is
+*  not used, and locations x_ind[1], ..., x_ind[ne] contain indices of
+*  non-zero elements in vector x.
+*
+*  x_vec is a floating-point array of length [1+ne]. Location x_vec[0]
+*  is not used, and locations x_vec[1], ..., x_vec[ne] contain numeric
+*  values of corresponding non-zero elements in vector x.
+*
+*  Let, for example, the following sparse vector x be given:
+*
+*     (0, 1, 0, 0, 2, 3, 0, 4)
+*
+*  Then the arrays are:
+*
+*     x_ind = { X; 2, 5, 6, 8 }
+*
 *     x_vec = { X; 1, 2, 3, 4 }
-* 
+*
 *  STORAGE-BY-ROWS
-* 
+*
 *  For a sparse matrix A, which has m rows, n columns, and ne non-zero
 *  elements the storage-by-rows format uses three arrays A_ptr, A_ind,
 *  and A_val, which are set up as follows:
-* 
+*
 *  A_ptr is an integer array of length [1+m+1] also called "row pointer
 *  array". It contains the relative starting positions of each row of A
 *  in the arrays A_ind and A_val, i.e. element A_ptr[i], 1 <= i <= m,
@@ -88,7 +88,7 @@
 *  A_ptr[0] is not used, location A_ptr[1] must contain 1, and location
 *  A_ptr[m+1] must contain ne+1 that indicates the position after the
 *  last element in the arrays A_ind and A_val.
-* 
+*
 *  A_ind is an integer array of length [1+ne]. Location A_ind[0] is not
 *  used, and locations A_ind[1], ..., A_ind[ne] contain column indices
 *  of (non-zero) elements in matrix A.
@@ -96,44 +96,44 @@
 *  A_val is a floating-point array of length [1+ne]. Location A_val[0]
 *  is not used, and locations A_val[1], ..., A_val[ne] contain numeric
 *  values of non-zero elements in matrix A.
-* 
+*
 *  Non-zero elements of matrix A are stored contiguously, and the rows
 *  of matrix A are stored consecutively from 1 to m in the arrays A_ind
 *  and A_val. The elements in each row of A may be stored in any order
 *  in A_ind and A_val. Note that elements with duplicate column indices
 *  are not allowed.
-* 
+*
 *  Let, for example, the following sparse matrix A be given:
-* 
+*
 *     | 11  . 13  .  .  . |
 *     | 21 22  . 24  .  . |
 *     |  . 32 33  .  .  . |
 *     |  .  . 43 44  . 46 |
 *     |  .  .  .  .  .  . |
 *     | 61 62  .  .  . 66 |
-* 
+*
 *  Then the arrays are:
-* 
+*
 *     A_ptr = { X; 1, 3, 6, 8, 11, 11; 14 }
 *
 *     A_ind = { X;  1,  3;  4,  2,  1;  2,  3;  4,  3,  6;  1,  2,  6 }
-* 
+*
 *     A_val = { X; 11, 13; 24, 22, 21; 32, 33; 44, 43, 46; 61, 62, 66 }
-* 
+*
 *  PERMUTATION MATRICES
-* 
+*
 *  Let P be a permutation matrix of the order n. It is represented as
 *  an integer array P_per of length [1+n+n] as follows: if p[i,j] = 1,
 *  then P_per[i] = j and P_per[n+j] = i. Location P_per[0] is not used.
-* 
+*
 *  Let A' = P*A. If i-th row of A corresponds to i'-th row of A', then
 *  P_per[i'] = i and P_per[n+i] = i'.
-* 
+*
 *  References:
-* 
+*
 *  1. Gustavson F.G. Some basic techniques for solving sparse systems of
 *     linear equations. In Rose and Willoughby (1972), pp. 41-52.
-* 
+*
 *  2. Basic Linear Algebra Subprograms Technical (BLAST) Forum Standard.
 *     University of Tennessee (2001). */
 

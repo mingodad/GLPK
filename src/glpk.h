@@ -4,9 +4,9 @@
 *  This code is part of GLPK (GNU Linear Programming Kit).
 *
 *  Copyright (C) 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008,
-*  2009, 2010, 2011 Andrew Makhorin, Department for Applied Informatics,
-*  Moscow Aviation Institute, Moscow, Russia. All rights reserved.
-*  E-mail: <mao@gnu.org>.
+*  2009, 2010, 2011, 2013 Andrew Makhorin, Department for Applied
+*  Informatics, Moscow Aviation Institute, Moscow, Russia. All rights
+*  reserved. E-mail: <mao@gnu.org>.
 *
 *  GLPK is free software: you can redistribute it and/or modify it
 *  under the terms of the GNU General Public License as published by
@@ -34,13 +34,10 @@ extern "C" {
 
 /* library version numbers: */
 #define GLP_MAJOR_VERSION  4
-#define GLP_MINOR_VERSION  47
+#define GLP_MINOR_VERSION  48
 
-#ifndef GLP_PROB_DEFINED
-#define GLP_PROB_DEFINED
-typedef struct { double _opaque_prob[100]; } glp_prob;
+typedef struct glp_prob glp_prob;
 /* LP/MIP problem object */
-#endif
 
 /* optimization direction flag: */
 #define GLP_MIN            1  /* minimization */
@@ -147,11 +144,8 @@ typedef struct
       double foo_bar[48];     /* (reserved) */
 } glp_iptcp;
 
-#ifndef GLP_TREE_DEFINED
-#define GLP_TREE_DEFINED
-typedef struct { double _opaque_tree[100]; } glp_tree;
+typedef struct glp_tree glp_tree;
 /* branch-and-bound tree */
-#endif
 
 typedef struct
 {     /* integer optimizer control parameters */
@@ -281,11 +275,8 @@ typedef struct
       /* (reserved for use in the future) */
 } glp_cpxcp;
 
-#ifndef GLP_TRAN_DEFINED
-#define GLP_TRAN_DEFINED
-typedef struct { double _opaque_tran[100]; } glp_tran;
+typedef struct glp_tran glp_tran;
 /* MathProg translator workspace */
-#endif
 
 glp_prob *glp_create_prob(void);
 /* create problem object */
@@ -758,8 +749,6 @@ void glp_mpl_free_wksp(glp_tran *tran);
 int glp_main(int argc, const char *argv[]);
 /* stand-alone LP/MIP solver */
 
-/**********************************************************************/
-
 int glp_read_cnfsat(glp_prob *P, const char *fname);
 /* read CNF-SAT problem data in DIMACS format */
 
@@ -774,14 +763,6 @@ int glp_minisat1(glp_prob *P);
 
 int glp_intfeas1(glp_prob *P, int use_bound, int obj_bound);
 /* solve integer feasibility problem */
-
-/**********************************************************************/
-
-#ifndef GLP_LONG_DEFINED
-#define GLP_LONG_DEFINED
-typedef struct { int lo, hi; } glp_long;
-/* long integer data type */
-#endif
 
 int glp_init_env(void);
 /* initialize GLPK environment */
@@ -839,61 +820,15 @@ void glp_free(void *ptr);
 void glp_mem_limit(int limit);
 /* set memory usage limit */
 
-void glp_mem_usage(int *count, int *cpeak, glp_long *total,
-      glp_long *tpeak);
+void glp_mem_usage(int *count, int *cpeak, size_t *total,
+      size_t *tpeak);
 /* get memory usage information */
 
-glp_long glp_time(void);
-/* determine current universal time */
+typedef struct glp_graph glp_graph;
+typedef struct glp_vertex glp_vertex;
+typedef struct glp_arc glp_arc;
 
-double glp_difftime(glp_long t1, glp_long t0);
-/* compute difference between two time values */
-
-/**********************************************************************/
-
-#ifndef GLP_DATA_DEFINED
-#define GLP_DATA_DEFINED
-typedef struct { double _opaque_data[100]; } glp_data;
-/* plain data file */
-#endif
-
-glp_data *glp_sdf_open_file(const char *fname);
-/* open plain data file */
-
-void glp_sdf_set_jump(glp_data *data, void *jump);
-/* set up error handling */
-
-void glp_sdf_error(glp_data *data, const char *fmt, ...);
-/* print error message */
-
-void glp_sdf_warning(glp_data *data, const char *fmt, ...);
-/* print warning message */
-
-int glp_sdf_read_int(glp_data *data);
-/* read integer number */
-
-double glp_sdf_read_num(glp_data *data);
-/* read floating-point number */
-
-const char *glp_sdf_read_item(glp_data *data);
-/* read data item */
-
-const char *glp_sdf_read_text(glp_data *data);
-/* read text until end of line */
-
-int glp_sdf_line(glp_data *data);
-/* determine current line number */
-
-void glp_sdf_close_file(glp_data *data);
-/* close plain data file */
-
-/**********************************************************************/
-
-typedef struct _glp_graph glp_graph;
-typedef struct _glp_vertex glp_vertex;
-typedef struct _glp_arc glp_arc;
-
-struct _glp_graph
+struct glp_graph
 {     /* graph descriptor */
       void *pool; /* DMP *pool; */
       /* memory pool to store graph components */
@@ -917,7 +852,7 @@ struct _glp_graph
       /* size of data associated with each arc (0 to 256 bytes) */
 };
 
-struct _glp_vertex
+struct glp_vertex
 {     /* vertex descriptor */
       int i;
       /* vertex ordinal number, 1 <= i <= nv */
@@ -938,7 +873,7 @@ struct _glp_vertex
       /* pointer to the (unordered) list of outgoing arcs */
 };
 
-struct _glp_arc
+struct glp_arc
 {     /* arc descriptor */
       glp_vertex *tail;
       /* pointer to the tail endpoint */
@@ -1071,6 +1006,9 @@ int glp_write_ccdata(glp_graph *G, int v_wgt, const char *fname);
 int glp_netgen(glp_graph *G, int v_rhs, int a_cap, int a_cost,
       const int parm[1+15]);
 /* Klingman's network problem generator */
+
+void glp_netgen_prob(int nprob, int parm[1+15]);
+/* Klingman's standard network problem instance */
 
 int glp_gridgen(glp_graph *G, int v_rhs, int a_cap, int a_cost,
       const int parm[1+14]);
