@@ -25,7 +25,11 @@
 #ifndef GLPLPF_H
 #define GLPLPF_H
 
+#if 0 /* 11/VIII-2013 */
 #include "glpscf.h"
+#else
+#include "ifu.h"
+#endif
 #if 0 /* 06/VI-2013 */
 #include "glpluf.h"
 #else
@@ -128,8 +132,18 @@ struct LPF
       /* S_len[i], 1 <= i <= n, is the length of i-th row */
       /*--------------------------------------------------------------*/
       /* Schur complement C of the order n */
+#if 0 /* 11/VIII-2013 */
       SCF *scf; /* SCF scf[1:n_max]; */
       /* factorization of the Schur complement */
+#else
+      IFU ifu;
+      /* IFU-factorization of the Schur complement */
+      int t_opt;
+      /* type of transformation used to restore triangular structure of
+         matrix U: */
+#define SCF_TBG      1  /* Bartels-Golub elimination */
+#define SCF_TGR      2  /* Givens plane rotations */
+#endif
       /*--------------------------------------------------------------*/
       /* matrix P of the order m0+n */
       int *P_row; /* int P_row[1+m0_max+n_max]; */

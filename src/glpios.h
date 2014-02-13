@@ -25,7 +25,7 @@
 #ifndef GLPIOS_H
 #define GLPIOS_H
 
-#include "glpapi.h"
+#include "prob.h"
 
 typedef struct IOSLOT IOSLOT;
 typedef struct IOSNPD IOSNPD;

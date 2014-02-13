@@ -22,6 +22,7 @@
 *  along with GLPK. If not, see <http://www.gnu.org/licenses/>.
 ***********************************************************************/
 
+#include "env.h"
 #include "glpnpp.h"
 
 int glp_intfeas1(glp_prob *P, int use_bound, int obj_bound)

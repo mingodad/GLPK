@@ -135,6 +135,9 @@
 #define RINF             1e38
 #define MAXVAL           1e20
 #define MINVAL          -1e20
+#if 0 /* by gioker */
+    #define PROXY_DEBUG
+#endif
 
 /**********************************************************************/
 /* 3. GLOBAL VARIABLES                                                */
@@ -464,7 +467,10 @@ int proxy(glp_prob *lp, double *zfinal, double *xfinal,
             }
             goto done;
         }
-
+#ifdef PROXY_DEBUG
+        xprintf("TELA = %3.1lf\n",tela*1000);
+        xprintf("TLIM = %3.1lf\n",tlim - tela*1000);
+#endif
         parm_lp.tm_lim = tlim -tela*1000;
 
         tout = glp_term_out(GLP_OFF);
@@ -947,7 +953,7 @@ static int do_refine(struct csa *csa, glp_prob *lp_ref, int ncols,
 
     int j, tout;
     double refineStart = second();
-    double val, tela;
+    double val, tela, tlimit;
 
     if ( glp_get_num_cols(lp_ref) != ncols ) {
         if (verbose) {
@@ -1029,9 +1035,10 @@ static int do_refine(struct csa *csa, glp_prob *lp_ref, int ncols,
             }
         }
     }
-
     tela = second() - refineStart;
-    *tlim = *tlim - tela*1000;
+#ifdef PROXY_DEBUG
+    xprintf("REFINE TELA = %3.1lf\n",tela*1000);
+#endif
     return 0;
 }
 /**********************************************************************/

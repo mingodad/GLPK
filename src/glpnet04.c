@@ -27,7 +27,8 @@
 *  along with GLPK. If not, see <http://www.gnu.org/licenses/>.
 ***********************************************************************/
 
-#include "glpapi.h"
+#include "env.h"
+#include "glpk.h"
 
 /***********************************************************************
 *  NAME

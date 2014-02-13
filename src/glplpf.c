@@ -22,8 +22,9 @@
 *  along with GLPK. If not, see <http://www.gnu.org/licenses/>.
 ***********************************************************************/
 
-#include "glplpf.h"
 #include "env.h"
+#include "glplpf.h"
+
 #define xfault xerror
 
 #define GLPLPF_DEBUG 0
@@ -71,7 +72,15 @@ LPF *lpf_create_it(void)
       lpf->n = 0;
       lpf->R_ptr = lpf->R_len = NULL;
       lpf->S_ptr = lpf->S_len = NULL;
+#if 0 /* 11/VIII-2013 */
       lpf->scf = NULL;
+#else
+      lpf->ifu.n_max = 0;
+      lpf->ifu.n = 0;
+      lpf->ifu.f = NULL;
+      lpf->ifu.u = NULL;
+      lpf->t_opt = 0;
+#endif
       lpf->P_row = lpf->P_col = NULL;
       lpf->Q_row = lpf->Q_col = NULL;
       lpf->v_size = 1000;
@@ -153,8 +162,22 @@ int lpf_factorize(LPF *lpf, int m, const int bh[], int (*col)
          lpf->S_ptr = xcalloc(1+lpf->n_max, sizeof(int));
       if (lpf->S_len == NULL)
          lpf->S_len = xcalloc(1+lpf->n_max, sizeof(int));
+#if 0 /* 11/VIII-2013 */
       if (lpf->scf == NULL)
          lpf->scf = scf_create_it(lpf->n_max);
+#else
+      if (lpf->ifu.n_max == 0)
+      {  int n_max = lpf->n_max;
+         lpf->ifu.n_max = n_max;
+         lpf->ifu.n = 0;
+         xassert(n_max > 0);
+         xassert(lpf->ifu.f == NULL);
+         lpf->ifu.f = talloc(n_max * n_max, double);
+         xassert(lpf->ifu.u == NULL);
+         lpf->ifu.u = talloc(n_max * n_max, double);
+         lpf->t_opt = 0;
+      }
+#endif
       if (lpf->v_ind == NULL)
          lpf->v_ind = xcalloc(1+lpf->v_size, sizeof(int));
       if (lpf->v_val == NULL)
@@ -222,7 +245,11 @@ int lpf_factorize(LPF *lpf, int m, const int bh[], int (*col)
       /* B = B0, so there are no additional rows/columns */
       lpf->n = 0;
       /* reset the Schur complement factorization */
+#if 0 /* 11/VIII-2013 */
       scf_reset_it(lpf->scf);
+#else
+      lpf->ifu.n = 0;
+#endif
       /* P := Q := I */
       for (k = 1; k <= m; k++)
       {  lpf->P_row[k] = lpf->P_col[k] = k;
@@ -509,7 +536,11 @@ void lpf_ftran(LPF *lpf, double x[])
       /* g1 := g - S * f1 */
       s_prod(lpf, g, -1.0, f);
       /* g2 := inv(C) * g1 */
+#if 0 /* 11/VIII-2013 */
       scf_solve_it(lpf->scf, 0, g);
+#else
+      ifu_a_solve(&lpf->ifu, g, lpf->work2);
+#endif
       /* f2 := inv(U0) * (f1 - R * g2) */
       r_prod(lpf, f, -1.0, g);
 #if 0 /* 06/VI-2013 */
@@ -652,7 +683,11 @@ void lpf_btran(LPF *lpf, double x[])
 #endif
       /* g1 := inv(C') * (g - R' * f1) */
       rt_prod(lpf, g, -1.0, f);
+#if 0 /* 11/VIII-2013 */
       scf_solve_it(lpf->scf, 1, g);
+#else
+      ifu_at_solve(&lpf->ifu, g, lpf->work2);
+#endif
       /* g2 := g1 */
       g = g;
       /* f2 := inv(L'0) * (f1 - S' * g2) */
@@ -950,6 +985,7 @@ int lpf_update_it(LPF *lpf, int j, int bh, int len, const int ind[],
       z = 0.0;
       for (i = 1; i <= m0; i++) z -= v[i] * f[i];
       /* update factorization of new matrix C */
+#if 0 /* 11/VIII-2013 */
       switch (scf_update_exp(lpf->scf, x, y, z))
       {  case 0:
             break;
@@ -962,6 +998,36 @@ int lpf_update_it(LPF *lpf, int j, int bh, int len, const int ind[],
          default:
             xassert(lpf != lpf);
       }
+#else
+      if (lpf->t_opt == SCF_TBG)
+      {  if (ifu_bg_update(&lpf->ifu, x, y, z) != 0)
+#if 0
+         {  xprintf("Warning: insufficient accuracy (Bartels-Golub upda"
+               "te)\n");
+#else
+         {
+#endif
+            lpf->valid = 0;
+            ret = LPF_ESING;
+            goto done;
+         }
+      }
+      else if (lpf->t_opt == SCF_TGR)
+      {  if (ifu_gr_update(&lpf->ifu, x, y, z) != 0)
+#if 0
+         {  xprintf("Warning: insufficient accuracy (Givens rotations u"
+               "pdate)\n");
+#else
+         {
+#endif
+            lpf->valid = 0;
+            ret = LPF_ESING;
+            goto done;
+         }
+      }
+      else
+         xassert(lpf != lpf);
+#endif
       /* expand matrix P */
       P_row[m0+n+1] = P_col[m0+n+1] = m0+n+1;
       /* expand matrix Q */
@@ -1010,7 +1076,12 @@ void lpf_delete_it(LPF *lpf)
       if (lpf->R_len != NULL) xfree(lpf->R_len);
       if (lpf->S_ptr != NULL) xfree(lpf->S_ptr);
       if (lpf->S_len != NULL) xfree(lpf->S_len);
+#if 0 /* 11/VIII-2013 */
       if (lpf->scf != NULL) scf_delete_it(lpf->scf);
+#else
+      if (lpf->ifu.f != NULL) tfree(lpf->ifu.f);
+      if (lpf->ifu.u != NULL) tfree(lpf->ifu.u);
+#endif
       if (lpf->P_row != NULL) xfree(lpf->P_row);
       if (lpf->P_col != NULL) xfree(lpf->P_col);
       if (lpf->Q_row != NULL) xfree(lpf->Q_row);

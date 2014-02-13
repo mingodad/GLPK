@@ -37,7 +37,7 @@ s.t. enter{j in V}: sum{(i,j) in E} x[i,j] = 1;
    need to add constraints to eliminate subtours, i.e. tours which have
    disconnected components. Although there are many known ways to do
    that, I invented yet another way. The general idea is the following.
-   Let the salesman sells, say, cars, starting the travel from node 1,
+   Let the salesman sell, say, cars, starting the travel from node 1,
    where he has n cars. If we require the salesman to sell exactly one
    car in each node, he will need to go through all nodes to satisfy
    this requirement, thus, all subtours will be eliminated. */

@@ -22,10 +22,10 @@
 *  along with GLPK. If not, see <http://www.gnu.org/licenses/>.
 ***********************************************************************/
 
-#define _GLPSTD_ERRNO
-#define _GLPSTD_STDIO
 #include "glpmpl.h"
+
 #define xfault xerror
+#define xfprintf glp_format
 #define dmp_create_poolx(size) dmp_create_pool()
 
 /**********************************************************************/
@@ -290,9 +290,9 @@ void open_input(MPL *mpl, char *file)
       memset(mpl->context, ' ', CONTEXT_SIZE);
       mpl->c_ptr = 0;
       xassert(mpl->in_fp == NULL);
-      mpl->in_fp = xfopen(file, "r");
+      mpl->in_fp = glp_open(file, "r");
       if (mpl->in_fp == NULL)
-         error(mpl, "unable to open %s - %s", file, xerrmsg());
+         error(mpl, "unable to open %s - %s", file, get_err_msg());
       mpl->in_file = file;
       /* scan the very first character */
       get_char(mpl);
@@ -310,11 +310,11 @@ void open_input(MPL *mpl, char *file)
 int read_char(MPL *mpl)
 {     int c;
       xassert(mpl->in_fp != NULL);
-      c = xfgetc(mpl->in_fp);
+      c = glp_getc(mpl->in_fp);
       if (c < 0)
-      {  if (xferror(mpl->in_fp))
+      {  if (glp_ioerr(mpl->in_fp))
             error(mpl, "read error on %s - %s", mpl->in_file,
-               xerrmsg());
+               get_err_msg());
          c = EOF;
       }
       return c;
@@ -327,7 +327,7 @@ int read_char(MPL *mpl)
 
 void close_input(MPL *mpl)
 {     xassert(mpl->in_fp != NULL);
-      xfclose(mpl->in_fp);
+      glp_close(mpl->in_fp);
       mpl->in_fp = NULL;
       mpl->in_file = NULL;
       return;
@@ -346,9 +346,9 @@ void open_output(MPL *mpl, char *file)
          mpl->out_fp = (void *)stdout;
       }
       else
-      {  mpl->out_fp = xfopen(file, "w");
+      {  mpl->out_fp = glp_open(file, "w");
          if (mpl->out_fp == NULL)
-            error(mpl, "unable to create %s - %s", file, xerrmsg());
+            error(mpl, "unable to create %s - %s", file, get_err_msg());
       }
       mpl->out_file = xmalloc(strlen(file)+1);
       strcpy(mpl->out_file, file);
@@ -394,10 +394,13 @@ void write_text(MPL *mpl, char *fmt, ...)
 void flush_output(MPL *mpl)
 {     xassert(mpl->out_fp != NULL);
       if (mpl->out_fp != (void *)stdout)
-      {  xfflush(mpl->out_fp);
-         if (xferror(mpl->out_fp))
+      {
+#if 0 /* FIXME */
+         xfflush(mpl->out_fp);
+#endif
+         if (glp_ioerr(mpl->out_fp))
             error(mpl, "write error on %s - %s", mpl->out_file,
-               xerrmsg());
+               get_err_msg());
       }
       return;
 }
@@ -1409,11 +1412,11 @@ void mpl_terminate(MPL *mpl)
       rng_delete_rand(mpl->rand);
       if (mpl->row != NULL) xfree(mpl->row);
       if (mpl->col != NULL) xfree(mpl->col);
-      if (mpl->in_fp != NULL) xfclose(mpl->in_fp);
+      if (mpl->in_fp != NULL) glp_close(mpl->in_fp);
       if (mpl->out_fp != NULL && mpl->out_fp != (void *)stdout)
-         xfclose(mpl->out_fp);
+         glp_close(mpl->out_fp);
       if (mpl->out_file != NULL) xfree(mpl->out_file);
-      if (mpl->prt_fp != NULL) xfclose(mpl->prt_fp);
+      if (mpl->prt_fp != NULL) glp_close(mpl->prt_fp);
       if (mpl->prt_file != NULL) xfree(mpl->prt_file);
       if (mpl->mod_file != NULL) xfree(mpl->mod_file);
       xfree(mpl->mpl_buf);

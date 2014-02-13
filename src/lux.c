@@ -1,4 +1,4 @@
-/* glplux.c */
+/* lux.c (LU-factorization, rational arithmetic) */
 
 /***********************************************************************
 *  This code is part of GLPK (GNU Linear Programming Kit).
@@ -22,29 +22,30 @@
 *  along with GLPK. If not, see <http://www.gnu.org/licenses/>.
 ***********************************************************************/
 
-#include "glplux.h"
 #include "env.h"
+#include "lux.h"
+
 #define xfault xerror
 #define dmp_create_poolx(size) dmp_create_pool()
 
-/*----------------------------------------------------------------------
-// lux_create - create LU-factorization.
-//
-// SYNOPSIS
-//
-// #include "glplux.h"
-// LUX *lux_create(int n);
-//
-// DESCRIPTION
-//
-// The routine lux_create creates LU-factorization data structure for
-// a matrix of the order n. Initially the factorization corresponds to
-// the unity matrix (F = V = P = Q = I, so A = I).
-//
-// RETURNS
-//
-// The routine returns a pointer to the created LU-factorization data
-// structure, which represents the unity matrix of the order n. */
+/***********************************************************************
+*  lux_create - create LU-factorization
+*
+*  SYNOPSIS
+*
+*  #include "lux.h"
+*  LUX *lux_create(int n);
+*
+*  DESCRIPTION
+*
+*  The routine lux_create creates LU-factorization data structure for
+*  a matrix of the order n. Initially the factorization corresponds to
+*  the unity matrix (F = V = P = Q = I, so A = I).
+*
+*  RETURNS
+*
+*  The routine returns a pointer to the created LU-factorization data
+*  structure, which represents the unity matrix of the order n. */
 
 LUX *lux_create(int n)
 {     LUX *lux;
@@ -75,13 +76,13 @@ LUX *lux_create(int n)
       return lux;
 }
 
-/*----------------------------------------------------------------------
-// initialize - initialize LU-factorization data structures.
-//
-// This routine initializes data structures for subsequent computing
-// the LU-factorization of a given matrix A, which is specified by the
-// formal routine col. On exit V = A and F = P = Q = I, where I is the
-// unity matrix. */
+/***********************************************************************
+*  initialize - initialize LU-factorization data structures
+*
+*  This routine initializes data structures for subsequent computing
+*  the LU-factorization of a given matrix A, which is specified by the
+*  formal routine col. On exit V = A and F = P = Q = I, where I is the
+*  unity matrix. */
 
 static void initialize(LUX *lux, int (*col)(void *info, int j,
       int ind[], mpq_t val[]), void *info, LUXWKA *wka)
@@ -207,56 +208,56 @@ static void initialize(LUX *lux, int (*col)(void *info, int j,
       return;
 }
 
-/*----------------------------------------------------------------------
-// find_pivot - choose a pivot element.
-//
-// This routine chooses a pivot element v[p,q] in the active submatrix
-// of matrix U = P*V*Q.
-//
-// It is assumed that on entry the matrix U has the following partially
-// triangularized form:
-//
-//       1       k         n
-//    1  x x x x x x x x x x
-//       . x x x x x x x x x
-//       . . x x x x x x x x
-//       . . . x x x x x x x
-//    k  . . . . * * * * * *
-//       . . . . * * * * * *
-//       . . . . * * * * * *
-//       . . . . * * * * * *
-//       . . . . * * * * * *
-//    n  . . . . * * * * * *
-//
-// where rows and columns k, k+1, ..., n belong to the active submatrix
-// (elements of the active submatrix are marked by '*').
-//
-// Since the matrix U = P*V*Q is not stored, the routine works with the
-// matrix V. It is assumed that the row-wise representation corresponds
-// to the matrix V, but the column-wise representation corresponds to
-// the active submatrix of the matrix V, i.e. elements of the matrix V,
-// which does not belong to the active submatrix, are missing from the
-// column linked lists. It is also assumed that each active row of the
-// matrix V is in the set R[len], where len is number of non-zeros in
-// the row, and each active column of the matrix V is in the set C[len],
-// where len is number of non-zeros in the column (in the latter case
-// only elements of the active submatrix are counted; such elements are
-// marked by '*' on the figure above).
-//
-// Due to exact arithmetic any non-zero element of the active submatrix
-// can be chosen as a pivot. However, to keep sparsity of the matrix V
-// the routine uses Markowitz strategy, trying to choose such element
-// v[p,q], which has smallest Markowitz cost (nr[p]-1) * (nc[q]-1),
-// where nr[p] and nc[q] are the number of non-zero elements, resp., in
-// p-th row and in q-th column of the active submatrix.
-//
-// In order to reduce the search, i.e. not to walk through all elements
-// of the active submatrix, the routine exploits a technique proposed by
-// I.Duff. This technique is based on using the sets R[len] and C[len]
-// of active rows and columns.
-//
-// On exit the routine returns a pointer to a pivot v[p,q] chosen, or
-// NULL, if the active submatrix is empty. */
+/***********************************************************************
+*  find_pivot - choose a pivot element
+*
+*  This routine chooses a pivot element v[p,q] in the active submatrix
+*  of matrix U = P*V*Q.
+*
+*  It is assumed that on entry the matrix U has the following partially
+*  triangularized form:
+*
+*        1       k         n
+*     1  x x x x x x x x x x
+*        . x x x x x x x x x
+*        . . x x x x x x x x
+*        . . . x x x x x x x
+*     k  . . . . * * * * * *
+*        . . . . * * * * * *
+*        . . . . * * * * * *
+*        . . . . * * * * * *
+*        . . . . * * * * * *
+*     n  . . . . * * * * * *
+*
+*  where rows and columns k, k+1, ..., n belong to the active submatrix
+*  (elements of the active submatrix are marked by '*').
+*
+*  Since the matrix U = P*V*Q is not stored, the routine works with the
+*  matrix V. It is assumed that the row-wise representation corresponds
+*  to the matrix V, but the column-wise representation corresponds to
+*  the active submatrix of the matrix V, i.e. elements of the matrix V,
+*  which does not belong to the active submatrix, are missing from the
+*  column linked lists. It is also assumed that each active row of the
+*  matrix V is in the set R[len], where len is number of non-zeros in
+*  the row, and each active column of the matrix V is in the set C[len],
+*  where len is number of non-zeros in the column (in the latter case
+*  only elements of the active submatrix are counted; such elements are
+*  marked by '*' on the figure above).
+*
+*  Due to exact arithmetic any non-zero element of the active submatrix
+*  can be chosen as a pivot. However, to keep sparsity of the matrix V
+*  the routine uses Markowitz strategy, trying to choose such element
+*  v[p,q], which has smallest Markowitz cost (nr[p]-1) * (nc[q]-1),
+*  where nr[p] and nc[q] are the number of non-zero elements, resp., in
+*  p-th row and in q-th column of the active submatrix.
+*
+*  In order to reduce the search, i.e. not to walk through all elements
+*  of the active submatrix, the routine exploits a technique proposed by
+*  I.Duff. This technique is based on using the sets R[len] and C[len]
+*  of active rows and columns.
+*
+*  On exit the routine returns a pointer to a pivot v[p,q] chosen, or
+*  NULL, if the active submatrix is empty. */
 
 static LUXELM *find_pivot(LUX *lux, LUXWKA *wka)
 {     int n = lux->n;
@@ -357,63 +358,63 @@ done: /* bring the pivot v[p,q] to the factorizing routine */
       return piv;
 }
 
-/*----------------------------------------------------------------------
-// eliminate - perform gaussian elimination.
-//
-// This routine performs elementary gaussian transformations in order
-// to eliminate subdiagonal elements in the k-th column of the matrix
-// U = P*V*Q using the pivot element u[k,k], where k is the number of
-// the current elimination step.
-//
-// The parameter piv specifies the pivot element v[p,q] = u[k,k].
-//
-// Each time when the routine applies the elementary transformation to
-// a non-pivot row of the matrix V, it stores the corresponding element
-// to the matrix F in order to keep the main equality A = F*V.
-//
-// The routine assumes that on entry the matrices L = P*F*inv(P) and
-// U = P*V*Q are the following:
-//
-//       1       k                  1       k         n
-//    1  1 . . . . . . . . .     1  x x x x x x x x x x
-//       x 1 . . . . . . . .        . x x x x x x x x x
-//       x x 1 . . . . . . .        . . x x x x x x x x
-//       x x x 1 . . . . . .        . . . x x x x x x x
-//    k  x x x x 1 . . . . .     k  . . . . * * * * * *
-//       x x x x _ 1 . . . .        . . . . # * * * * *
-//       x x x x _ . 1 . . .        . . . . # * * * * *
-//       x x x x _ . . 1 . .        . . . . # * * * * *
-//       x x x x _ . . . 1 .        . . . . # * * * * *
-//    n  x x x x _ . . . . 1     n  . . . . # * * * * *
-//
-//            matrix L                   matrix U
-//
-// where rows and columns of the matrix U with numbers k, k+1, ..., n
-// form the active submatrix (eliminated elements are marked by '#' and
-// other elements of the active submatrix are marked by '*'). Note that
-// each eliminated non-zero element u[i,k] of the matrix U gives the
-// corresponding element l[i,k] of the matrix L (marked by '_').
-//
-// Actually all operations are performed on the matrix V. Should note
-// that the row-wise representation corresponds to the matrix V, but the
-// column-wise representation corresponds to the active submatrix of the
-// matrix V, i.e. elements of the matrix V, which doesn't belong to the
-// active submatrix, are missing from the column linked lists.
-//
-// Let u[k,k] = v[p,q] be the pivot. In order to eliminate subdiagonal
-// elements u[i',k] = v[i,q], i' = k+1, k+2, ..., n, the routine applies
-// the following elementary gaussian transformations:
-//
-//    (i-th row of V) := (i-th row of V) - f[i,p] * (p-th row of V),
-//
-// where f[i,p] = v[i,q] / v[p,q] is a gaussian multiplier.
-//
-// Additionally, in order to keep the main equality A = F*V, each time
-// when the routine applies the transformation to i-th row of the matrix
-// V, it also adds f[i,p] as a new element to the matrix F.
-//
-// IMPORTANT: On entry the working arrays flag and work should contain
-// zeros. This status is provided by the routine on exit. */
+/***********************************************************************
+*  eliminate - perform gaussian elimination
+*
+*  This routine performs elementary gaussian transformations in order
+*  to eliminate subdiagonal elements in the k-th column of the matrix
+*  U = P*V*Q using the pivot element u[k,k], where k is the number of
+*  the current elimination step.
+*
+*  The parameter piv specifies the pivot element v[p,q] = u[k,k].
+*
+*  Each time when the routine applies the elementary transformation to
+*  a non-pivot row of the matrix V, it stores the corresponding element
+*  to the matrix F in order to keep the main equality A = F*V.
+*
+*  The routine assumes that on entry the matrices L = P*F*inv(P) and
+*  U = P*V*Q are the following:
+*
+*        1       k                  1       k         n
+*     1  1 . . . . . . . . .     1  x x x x x x x x x x
+*        x 1 . . . . . . . .        . x x x x x x x x x
+*        x x 1 . . . . . . .        . . x x x x x x x x
+*        x x x 1 . . . . . .        . . . x x x x x x x
+*     k  x x x x 1 . . . . .     k  . . . . * * * * * *
+*        x x x x _ 1 . . . .        . . . . # * * * * *
+*        x x x x _ . 1 . . .        . . . . # * * * * *
+*        x x x x _ . . 1 . .        . . . . # * * * * *
+*        x x x x _ . . . 1 .        . . . . # * * * * *
+*     n  x x x x _ . . . . 1     n  . . . . # * * * * *
+*
+*             matrix L                   matrix U
+*
+*  where rows and columns of the matrix U with numbers k, k+1, ..., n
+*  form the active submatrix (eliminated elements are marked by '#' and
+*  other elements of the active submatrix are marked by '*'). Note that
+*  each eliminated non-zero element u[i,k] of the matrix U gives the
+*  corresponding element l[i,k] of the matrix L (marked by '_').
+*
+*  Actually all operations are performed on the matrix V. Should note
+*  that the row-wise representation corresponds to the matrix V, but the
+*  column-wise representation corresponds to the active submatrix of the
+*  matrix V, i.e. elements of the matrix V, which doesn't belong to the
+*  active submatrix, are missing from the column linked lists.
+*
+*  Let u[k,k] = v[p,q] be the pivot. In order to eliminate subdiagonal
+*  elements u[i',k] = v[i,q], i' = k+1, k+2, ..., n, the routine applies
+*  the following elementary gaussian transformations:
+*
+*     (i-th row of V) := (i-th row of V) - f[i,p] * (p-th row of V),
+*
+*  where f[i,p] = v[i,q] / v[p,q] is a gaussian multiplier.
+*
+*  Additionally, in order to keep the main equality A = F*V, each time
+*  when the routine applies the transformation to i-th row of the matrix
+*  V, it also adds f[i,p] as a new element to the matrix F.
+*
+*  IMPORTANT: On entry the working arrays flag and work should contain
+*  zeros. This status is provided by the routine on exit. */
 
 static void eliminate(LUX *lux, LUXWKA *wka, LUXELM *piv, int flag[],
       mpq_t work[])
@@ -661,78 +662,78 @@ static void eliminate(LUX *lux, LUXWKA *wka, LUXELM *piv, int flag[],
       return;
 }
 
-/*----------------------------------------------------------------------
-// lux_decomp - compute LU-factorization.
-//
-// SYNOPSIS
-//
-// #include "glplux.h"
-// int lux_decomp(LUX *lux, int (*col)(void *info, int j, int ind[],
-//    mpq_t val[]), void *info);
-//
-// DESCRIPTION
-//
-// The routine lux_decomp computes LU-factorization of a given square
-// matrix A.
-//
-// The parameter lux specifies LU-factorization data structure built by
-// means of the routine lux_create.
-//
-// The formal routine col specifies the original matrix A. In order to
-// obtain j-th column of the matrix A the routine lux_decomp calls the
-// routine col with the parameter j (1 <= j <= n, where n is the order
-// of A). In response the routine col should store row indices and
-// numerical values of non-zero elements of j-th column of A to the
-// locations ind[1], ..., ind[len] and val[1], ..., val[len], resp.,
-// where len is the number of non-zeros in j-th column, which should be
-// returned on exit. Neiter zero nor duplicate elements are allowed.
-//
-// The parameter info is a transit pointer passed to the formal routine
-// col; it can be used for various purposes.
-//
-// RETURNS
-//
-// The routine lux_decomp returns the singularity flag. Zero flag means
-// that the original matrix A is non-singular while non-zero flag means
-// that A is (exactly!) singular.
-//
-// Note that LU-factorization is valid in both cases, however, in case
-// of singularity some rows of the matrix V (including pivot elements)
-// will be empty.
-//
-// REPAIRING SINGULAR MATRIX
-//
-// If the routine lux_decomp returns non-zero flag, it provides all
-// necessary information that can be used for "repairing" the matrix A,
-// where "repairing" means replacing linearly dependent columns of the
-// matrix A by appropriate columns of the unity matrix. This feature is
-// needed when the routine lux_decomp is used for reinverting the basis
-// matrix within the simplex method procedure.
-//
-// On exit linearly dependent columns of the matrix U have the numbers
-// rank+1, rank+2, ..., n, where rank is the exact rank of the matrix A
-// stored by the routine to the member lux->rank. The correspondence
-// between columns of A and U is the same as between columns of V and U.
-// Thus, linearly dependent columns of the matrix A have the numbers
-// Q_col[rank+1], Q_col[rank+2], ..., Q_col[n], where Q_col is an array
-// representing the permutation matrix Q in column-like format. It is
-// understood that each j-th linearly dependent column of the matrix U
-// should be replaced by the unity vector, where all elements are zero
-// except the unity diagonal element u[j,j]. On the other hand j-th row
-// of the matrix U corresponds to the row of the matrix V (and therefore
-// of the matrix A) with the number P_row[j], where P_row is an array
-// representing the permutation matrix P in row-like format. Thus, each
-// j-th linearly dependent column of the matrix U should be replaced by
-// a column of the unity matrix with the number P_row[j].
-//
-// The code that repairs the matrix A may look like follows:
-//
-//    for (j = rank+1; j <= n; j++)
-//    {  replace column Q_col[j] of the matrix A by column P_row[j] of
-//       the unity matrix;
-//    }
-//
-// where rank, P_row, and Q_col are members of the structure LUX. */
+/***********************************************************************
+*  lux_decomp - compute LU-factorization
+*
+*  SYNOPSIS
+*
+*  #include "lux.h"
+*  int lux_decomp(LUX *lux, int (*col)(void *info, int j, int ind[],
+*     mpq_t val[]), void *info);
+*
+*  DESCRIPTION
+*
+*  The routine lux_decomp computes LU-factorization of a given square
+*  matrix A.
+*
+*  The parameter lux specifies LU-factorization data structure built by
+*  means of the routine lux_create.
+*
+*  The formal routine col specifies the original matrix A. In order to
+*  obtain j-th column of the matrix A the routine lux_decomp calls the
+*  routine col with the parameter j (1 <= j <= n, where n is the order
+*  of A). In response the routine col should store row indices and
+*  numerical values of non-zero elements of j-th column of A to the
+*  locations ind[1], ..., ind[len] and val[1], ..., val[len], resp.,
+*  where len is the number of non-zeros in j-th column, which should be
+*  returned on exit. Neiter zero nor duplicate elements are allowed.
+*
+*  The parameter info is a transit pointer passed to the formal routine
+*  col; it can be used for various purposes.
+*
+*  RETURNS
+*
+*  The routine lux_decomp returns the singularity flag. Zero flag means
+*  that the original matrix A is non-singular while non-zero flag means
+*  that A is (exactly!) singular.
+*
+*  Note that LU-factorization is valid in both cases, however, in case
+*  of singularity some rows of the matrix V (including pivot elements)
+*  will be empty.
+*
+*  REPAIRING SINGULAR MATRIX
+*
+*  If the routine lux_decomp returns non-zero flag, it provides all
+*  necessary information that can be used for "repairing" the matrix A,
+*  where "repairing" means replacing linearly dependent columns of the
+*  matrix A by appropriate columns of the unity matrix. This feature is
+*  needed when the routine lux_decomp is used for reinverting the basis
+*  matrix within the simplex method procedure.
+*
+*  On exit linearly dependent columns of the matrix U have the numbers
+*  rank+1, rank+2, ..., n, where rank is the exact rank of the matrix A
+*  stored by the routine to the member lux->rank. The correspondence
+*  between columns of A and U is the same as between columns of V and U.
+*  Thus, linearly dependent columns of the matrix A have the numbers
+*  Q_col[rank+1], Q_col[rank+2], ..., Q_col[n], where Q_col is an array
+*  representing the permutation matrix Q in column-like format. It is
+*  understood that each j-th linearly dependent column of the matrix U
+*  should be replaced by the unity vector, where all elements are zero
+*  except the unity diagonal element u[j,j]. On the other hand j-th row
+*  of the matrix U corresponds to the row of the matrix V (and therefore
+*  of the matrix A) with the number P_row[j], where P_row is an array
+*  representing the permutation matrix P in row-like format. Thus, each
+*  j-th linearly dependent column of the matrix U should be replaced by
+*  a column of the unity matrix with the number P_row[j].
+*
+*  The code that repairs the matrix A may look like follows:
+*
+*     for (j = rank+1; j <= n; j++)
+*     {  replace column Q_col[j] of the matrix A by column P_row[j] of
+*        the unity matrix;
+*     }
+*
+*  where rank, P_row, and Q_col are members of the structure LUX. */
 
 int lux_decomp(LUX *lux, int (*col)(void *info, int j, int ind[],
       mpq_t val[]), void *info)
@@ -826,25 +827,25 @@ int lux_decomp(LUX *lux, int (*col)(void *info, int j, int ind[],
       return (lux->rank < n);
 }
 
-/*----------------------------------------------------------------------
-// lux_f_solve - solve system F*x = b or F'*x = b.
-//
-// SYNOPSIS
-//
-// #include "glplux.h"
-// void lux_f_solve(LUX *lux, int tr, mpq_t x[]);
-//
-// DESCRIPTION
-//
-// The routine lux_f_solve solves either the system F*x = b (if the
-// flag tr is zero) or the system F'*x = b (if the flag tr is non-zero),
-// where the matrix F is a component of LU-factorization specified by
-// the parameter lux, F' is a matrix transposed to F.
-//
-// On entry the array x should contain elements of the right-hand side
-// vector b in locations x[1], ..., x[n], where n is the order of the
-// matrix F. On exit this array will contain elements of the solution
-// vector x in the same locations. */
+/***********************************************************************
+*  lux_f_solve - solve system F*x = b or F'*x = b
+*
+*  SYNOPSIS
+*
+*  #include "lux.h"
+*  void lux_f_solve(LUX *lux, int tr, mpq_t x[]);
+*
+*  DESCRIPTION
+*
+*  The routine lux_f_solve solves either the system F*x = b (if the
+*  flag tr is zero) or the system F'*x = b (if the flag tr is non-zero),
+*  where the matrix F is a component of LU-factorization specified by
+*  the parameter lux, F' is a matrix transposed to F.
+*
+*  On entry the array x should contain elements of the right-hand side
+*  vector b in locations x[1], ..., x[n], where n is the order of the
+*  matrix F. On exit this array will contain elements of the solution
+*  vector x in the same locations. */
 
 void lux_f_solve(LUX *lux, int tr, mpq_t x[])
 {     int n = lux->n;
@@ -883,25 +884,25 @@ void lux_f_solve(LUX *lux, int tr, mpq_t x[])
       return;
 }
 
-/*----------------------------------------------------------------------
-// lux_v_solve - solve system V*x = b or V'*x = b.
-//
-// SYNOPSIS
-//
-// #include "glplux.h"
-// void lux_v_solve(LUX *lux, int tr, double x[]);
-//
-// DESCRIPTION
-//
-// The routine lux_v_solve solves either the system V*x = b (if the
-// flag tr is zero) or the system V'*x = b (if the flag tr is non-zero),
-// where the matrix V is a component of LU-factorization specified by
-// the parameter lux, V' is a matrix transposed to V.
-//
-// On entry the array x should contain elements of the right-hand side
-// vector b in locations x[1], ..., x[n], where n is the order of the
-// matrix V. On exit this array will contain elements of the solution
-// vector x in the same locations. */
+/***********************************************************************
+*  lux_v_solve - solve system V*x = b or V'*x = b
+*
+*  SYNOPSIS
+*
+*  #include "lux.h"
+*  void lux_v_solve(LUX *lux, int tr, double x[]);
+*
+*  DESCRIPTION
+*
+*  The routine lux_v_solve solves either the system V*x = b (if the
+*  flag tr is zero) or the system V'*x = b (if the flag tr is non-zero),
+*  where the matrix V is a component of LU-factorization specified by
+*  the parameter lux, V' is a matrix transposed to V.
+*
+*  On entry the array x should contain elements of the right-hand side
+*  vector b in locations x[1], ..., x[n], where n is the order of the
+*  matrix V. On exit this array will contain elements of the solution
+*  vector x in the same locations. */
 
 void lux_v_solve(LUX *lux, int tr, mpq_t x[])
 {     int n = lux->n;
@@ -951,25 +952,25 @@ void lux_v_solve(LUX *lux, int tr, mpq_t x[])
       return;
 }
 
-/*----------------------------------------------------------------------
-// lux_solve - solve system A*x = b or A'*x = b.
-//
-// SYNOPSIS
-//
-// #include "glplux.h"
-// void lux_solve(LUX *lux, int tr, mpq_t x[]);
-//
-// DESCRIPTION
-//
-// The routine lux_solve solves either the system A*x = b (if the flag
-// tr is zero) or the system A'*x = b (if the flag tr is non-zero),
-// where the parameter lux specifies LU-factorization of the matrix A,
-// A' is a matrix transposed to A.
-//
-// On entry the array x should contain elements of the right-hand side
-// vector b in locations x[1], ..., x[n], where n is the order of the
-// matrix A. On exit this array will contain elements of the solution
-// vector x in the same locations. */
+/***********************************************************************
+*  lux_solve - solve system A*x = b or A'*x = b
+*
+*  SYNOPSIS
+*
+*  #include "lux.h"
+*  void lux_solve(LUX *lux, int tr, mpq_t x[]);
+*
+*  DESCRIPTION
+*
+*  The routine lux_solve solves either the system A*x = b (if the flag
+*  tr is zero) or the system A'*x = b (if the flag tr is non-zero),
+*  where the parameter lux specifies LU-factorization of the matrix A,
+*  A' is a matrix transposed to A.
+*
+*  On entry the array x should contain elements of the right-hand side
+*  vector b in locations x[1], ..., x[n], where n is the order of the
+*  matrix A. On exit this array will contain elements of the solution
+*  vector x in the same locations. */
 
 void lux_solve(LUX *lux, int tr, mpq_t x[])
 {     if (lux->rank < lux->n)
@@ -987,19 +988,19 @@ void lux_solve(LUX *lux, int tr, mpq_t x[])
       return;
 }
 
-/*----------------------------------------------------------------------
-// lux_delete - delete LU-factorization.
-//
-// SYNOPSIS
-//
-// #include "glplux.h"
-// void lux_delete(LUX *lux);
-//
-// DESCRIPTION
-//
-// The routine lux_delete deletes LU-factorization data structure,
-// which the parameter lux points to, freeing all the memory allocated
-// to this object. */
+/***********************************************************************
+*  lux_delete - delete LU-factorization
+*
+*  SYNOPSIS
+*
+*  #include "lux.h"
+*  void lux_delete(LUX *lux);
+*
+*  DESCRIPTION
+*
+*  The routine lux_delete deletes LU-factorization data structure,
+*  which the parameter lux points to, freeing all the memory allocated
+*  to this object. */
 
 void lux_delete(LUX *lux)
 {     int n = lux->n;

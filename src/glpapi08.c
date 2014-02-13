@@ -22,7 +22,7 @@
 *  along with GLPK. If not, see <http://www.gnu.org/licenses/>.
 ***********************************************************************/
 
-#include "glpapi.h"
+#include "env.h"
 #include "glpipm.h"
 #include "glpnpp.h"
 
@@ -367,7 +367,6 @@ double glp_ipt_col_prim(glp_prob *lp, int j)
 *
 *  SYNOPSIS
 *
-*  #include "glplpx.h"
 *  double glp_ipt_col_dual(glp_prob *lp, int j);
 *
 *  RETURNS

@@ -22,8 +22,9 @@
 *  along with GLPK. If not, see <http://www.gnu.org/licenses/>.
 ***********************************************************************/
 
-#include "glpapi.h"
+#include "draft.h"
 #include "glpmpl.h"
+#include "prob.h"
 
 glp_tran *glp_mpl_alloc_wksp(void)
 {     /* allocate the MathProg translator workspace */

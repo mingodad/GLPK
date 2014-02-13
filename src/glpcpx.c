@@ -22,11 +22,11 @@
 *  along with GLPK. If not, see <http://www.gnu.org/licenses/>.
 ***********************************************************************/
 
-#if 1 /* 11/VI-2013 */
-#include "env2.h"
-#endif
-#include "glpapi.h"
-#include "glplib.h"
+#include "env.h"
+#include "misc.h"
+#include "prob.h"
+
+#define xfprintf glp_format
 
 /***********************************************************************
 *  NAME
@@ -94,14 +94,14 @@ struct csa
       /* pointer to control parameters */
       const char *fname;
       /* name of input CPLEX LP file */
-      XFILE *fp;
+      glp_file *fp;
       /* stream assigned to input CPLEX LP file */
       jmp_buf jump;
       /* label for go to in case of error */
       int count;
       /* line count */
       int c;
-      /* current character or XEOF */
+      /* current character or EOF */
       int token;
       /* current token: */
 #define T_EOF        0x00  /* end of file */
@@ -170,15 +170,15 @@ static void warning(struct csa *csa, const char *fmt, ...)
 static void read_char(struct csa *csa)
 {     /* read next character from input file */
       int c;
-      xassert(csa->c != XEOF);
+      xassert(csa->c != EOF);
       if (csa->c == '\n') csa->count++;
-      c = xfgetc(csa->fp);
+      c = glp_getc(csa->fp);
       if (c < 0)
-      {  if (xferror(csa->fp))
-            error(csa, "read error - %s\n", xerrmsg());
+      {  if (glp_ioerr(csa->fp))
+            error(csa, "read error - %s\n", get_err_msg());
          else if (csa->c == '\n')
          {  csa->count--;
-            c = XEOF;
+            c = EOF;
          }
          else
          {  warning(csa, "missing final end of line\n");
@@ -225,7 +225,7 @@ loop: flag = 0;
       /* skip non-significant characters */
       while (csa->c == ' ') read_char(csa);
       /* recognize and scan current token */
-      if (csa->c == XEOF)
+      if (csa->c == EOF)
          csa->token = T_EOF;
       else if (csa->c == '\n')
       {  read_char(csa);
@@ -587,7 +587,7 @@ loop: /* create new row (constraint) */
          error(csa, "missing right-hand side\n");
       glp_set_row_bnds(csa->P, i, type, s * csa->value, s * csa->value);
       /* the rest of the current line must be empty */
-      if (!(csa->c == '\n' || csa->c == XEOF))
+      if (!(csa->c == '\n' || csa->c == EOF))
          error(csa, "invalid symbol(s) beyond right-hand side\n");
       scan_token(csa);
       /* if the next token is a sign, numeric constant, or a symbolic
@@ -824,11 +824,19 @@ static void parse_integer(struct csa *csa)
          j = find_col(csa, csa->image);
          /* change kind of the variable */
          glp_set_col_kind(csa->P, j, GLP_IV);
-         /* set 0-1 bounds for the binary variable */
+         /* set bounds for the binary variable */
          if (binary)
+#if 0 /* 07/VIII-2013 */
          {  set_lower_bound(csa, j, 0.0);
             set_upper_bound(csa, j, 1.0);
          }
+#else
+         {  set_lower_bound(csa, j,
+               csa->lb[j] == +DBL_MAX ? 0.0 : csa->lb[j]);
+            set_upper_bound(csa, j,
+               csa->ub[j] == -DBL_MAX ? 1.0 : csa->ub[j]);
+         }
+#endif
          scan_token(csa);
       }
       return;
@@ -873,9 +881,9 @@ int glp_read_lp(glp_prob *P, const glp_cpxcp *parm, const char *fname)
       glp_erase_prob(P);
       glp_create_index(P);
       /* open input CPLEX LP file */
-      csa->fp = xfopen(fname, "r");
+      csa->fp = glp_open(fname, "r");
       if (csa->fp == NULL)
-      {  xprintf("Unable to open '%s' - %s\n", fname, xerrmsg());
+      {  xprintf("Unable to open '%s' - %s\n", fname, get_err_msg());
          ret = 1;
          goto done;
       }
@@ -957,7 +965,7 @@ int glp_read_lp(glp_prob *P, const glp_cpxcp *parm, const char *fname)
       glp_delete_index(P);
       glp_sort_matrix(P);
       ret = 0;
-done: if (csa->fp != NULL) xfclose(csa->fp);
+done: if (csa->fp != NULL) glp_close(csa->fp);
       xfree(csa->ind);
       xfree(csa->val);
       xfree(csa->flag);
@@ -1067,7 +1075,7 @@ int glp_write_lp(glp_prob *P, const glp_cpxcp *parm, const char *fname)
 {     /* write problem data in CPLEX LP format */
       glp_cpxcp _parm;
       struct csa _csa, *csa = &_csa;
-      XFILE *fp;
+      glp_file *fp;
       GLPROW *row;
       GLPCOL *col;
       GLPAIJ *aij;
@@ -1082,9 +1090,9 @@ int glp_write_lp(glp_prob *P, const glp_cpxcp *parm, const char *fname)
       csa->P = P;
       csa->parm = parm;
       /* create output CPLEX LP file */
-      fp = xfopen(fname, "w"), count = 0;
+      fp = glp_open(fname, "w"), count = 0;
       if (fp == NULL)
-      {  xprintf("Unable to create '%s' - %s\n", fname, xerrmsg());
+      {  xprintf("Unable to create '%s' - %s\n", fname, get_err_msg());
          ret = 1;
          goto done;
       }
@@ -1236,16 +1244,18 @@ int glp_write_lp(glp_prob *P, const glp_cpxcp *parm, const char *fname)
       if (flag) xfprintf(fp, "\n"), count++;
 skip: /* write the end keyword */
       xfprintf(fp, "End\n"), count++;
+#if 0 /* FIXME */
       xfflush(fp);
-      if (xferror(fp))
-      {  xprintf("Write error on '%s' - %s\n", fname, xerrmsg());
+#endif
+      if (glp_ioerr(fp))
+      {  xprintf("Write error on '%s' - %s\n", fname, get_err_msg());
          ret = 1;
          goto done;
       }
       /* problem data has been successfully written */
       xprintf("%d lines were written\n", count);
       ret = 0;
-done: if (fp != NULL) xfclose(fp);
+done: if (fp != NULL) glp_close(fp);
       return ret;
 }
 

@@ -22,23 +22,23 @@
 *  along with GLPK. If not, see <http://www.gnu.org/licenses/>.
 ***********************************************************************/
 
-#if 1 /* 11/VI-2013 */
-#include "env2.h"
-#endif
-#include "glpapi.h"
+#include "env.h"
 #include "glpsdf.h"
+#include "prob.h"
+
+#define xfprintf glp_format
 
 int glp_print_sol(glp_prob *P, const char *fname)
 {     /* write basic solution in printable format */
-      XFILE *fp;
+      glp_file *fp;
       GLPROW *row;
       GLPCOL *col;
       int i, j, t, ae_ind, re_ind, ret;
       double ae_max, re_max;
       xprintf("Writing basic solution to `%s'...\n", fname);
-      fp = xfopen(fname, "w");
+      fp = glp_open(fname, "w");
       if (fp == NULL)
-      {  xprintf("Unable to create `%s' - %s\n", fname, xerrmsg());
+      {  xprintf("Unable to create `%s' - %s\n", fname, get_err_msg());
          ret = 1;
          goto done;
       }
@@ -188,14 +188,16 @@ int glp_print_sol(glp_prob *P, const char *fname)
             ;
       xfprintf(fp, "\n");
       xfprintf(fp, "End of output\n");
+#if 0 /* FIXME */
       xfflush(fp);
-      if (xferror(fp))
-      {  xprintf("Write error on `%s' - %s\n", fname, xerrmsg());
+#endif
+      if (glp_ioerr(fp))
+      {  xprintf("Write error on `%s' - %s\n", fname, get_err_msg());
          ret = 1;
          goto done;
       }
       ret = 0;
-done: if (fp != NULL) xfclose(fp);
+done: if (fp != NULL) glp_close(fp);
       return ret;
 }
 
@@ -334,12 +336,12 @@ done: if (ret) lp->pbs_stat = lp->dbs_stat = GLP_UNDEF;
 *  c_dual[j], j = 1,...,n, is the dual value of j-th column. */
 
 int glp_write_sol(glp_prob *lp, const char *fname)
-{     XFILE *fp;
+{     glp_file *fp;
       int i, j, ret = 0;
       xprintf("Writing basic solution to `%s'...\n", fname);
-      fp = xfopen(fname, "w");
+      fp = glp_open(fname, "w");
       if (fp == NULL)
-      {  xprintf("Unable to create `%s' - %s\n", fname, xerrmsg());
+      {  xprintf("Unable to create `%s' - %s\n", fname, get_err_msg());
          ret = 1;
          goto done;
       }
@@ -362,14 +364,16 @@ int glp_write_sol(glp_prob *lp, const char *fname)
          xfprintf(fp, "%d %.*g %.*g\n", col->stat, DBL_DIG, col->prim,
             DBL_DIG, col->dual);
       }
+#if 0 /* FIXME */
       xfflush(fp);
-      if (xferror(fp))
-      {  xprintf("Write error on `%s' - %s\n", fname, xerrmsg());
+#endif
+      if (glp_ioerr(fp))
+      {  xprintf("Write error on `%s' - %s\n", fname, get_err_msg());
          ret = 1;
          goto done;
       }
       xprintf("%d lines were written\n", 2 + lp->m + lp->n);
-done: if (fp != NULL) xfclose(fp);
+done: if (fp != NULL) glp_close(fp);
       return ret;
 }
 
@@ -401,7 +405,7 @@ static char *format(char buf[13+1], double x)
 int glp_print_ranges(glp_prob *P, int len, const int list[],
       int flags, const char *fname)
 {     /* print sensitivity analysis report */
-      XFILE *fp = NULL;
+      glp_file *fp = NULL;
       GLPROW *row;
       GLPCOL *col;
       int m, n, pass, k, t, numb, type, stat, var1, var2, count, page,
@@ -447,9 +451,9 @@ int glp_print_ranges(glp_prob *P, int len, const int list[],
       }
       /* start reporting */
       xprintf("Write sensitivity analysis report to `%s'...\n", fname);
-      fp = xfopen(fname, "w");
+      fp = glp_open(fname, "w");
       if (fp == NULL)
-      {  xprintf("Unable to create `%s' - %s\n", fname, xerrmsg());
+      {  xprintf("Unable to create `%s' - %s\n", fname, get_err_msg());
          ret = 3;
          goto done;
       }
@@ -633,14 +637,16 @@ int glp_print_ranges(glp_prob *P, int len, const int list[],
          count = (count + 1) % 10;
       }
       xfprintf(fp, "End of report\n");
+#if 0 /* FIXME */
       xfflush(fp);
-      if (xferror(fp))
-      {  xprintf("Write error on `%s' - %s\n", fname, xerrmsg());
+#endif
+      if (glp_ioerr(fp))
+      {  xprintf("Write error on `%s' - %s\n", fname, get_err_msg());
          ret = 4;
          goto done;
       }
       ret = 0;
-done: if (fp != NULL) xfclose(fp);
+done: if (fp != NULL) glp_close(fp);
       return ret;
 }
 
@@ -648,15 +654,15 @@ done: if (fp != NULL) xfclose(fp);
 
 int glp_print_ipt(glp_prob *P, const char *fname)
 {     /* write interior-point solution in printable format */
-      XFILE *fp;
+      glp_file *fp;
       GLPROW *row;
       GLPCOL *col;
       int i, j, t, ae_ind, re_ind, ret;
       double ae_max, re_max;
       xprintf("Writing interior-point solution to `%s'...\n", fname);
-      fp = xfopen(fname, "w");
+      fp = glp_open(fname, "w");
       if (fp == NULL)
-      {  xprintf("Unable to create `%s' - %s\n", fname, xerrmsg());
+      {  xprintf("Unable to create `%s' - %s\n", fname, get_err_msg());
          ret = 1;
          goto done;
       }
@@ -790,14 +796,16 @@ int glp_print_ipt(glp_prob *P, const char *fname)
             ;
       xfprintf(fp, "\n");
       xfprintf(fp, "End of output\n");
+#if 0 /* FIXME */
       xfflush(fp);
-      if (xferror(fp))
-      {  xprintf("Write error on `%s' - %s\n", fname, xerrmsg());
+#endif
+      if (glp_ioerr(fp))
+      {  xprintf("Write error on `%s' - %s\n", fname, get_err_msg());
          ret = 1;
          goto done;
       }
       ret = 0;
-done: if (fp != NULL) xfclose(fp);
+done: if (fp != NULL) glp_close(fp);
       return ret;
 }
 
@@ -914,12 +922,12 @@ done: if (ret) lp->ipt_stat = GLP_UNDEF;
 *  c_dual[j], j = 1,...,n, is the dual value of j-th column. */
 
 int glp_write_ipt(glp_prob *lp, const char *fname)
-{     XFILE *fp;
+{     glp_file *fp;
       int i, j, ret = 0;
       xprintf("Writing interior-point solution to `%s'...\n", fname);
-      fp = xfopen(fname, "w");
+      fp = glp_open(fname, "w");
       if (fp == NULL)
-      {  xprintf("Unable to create `%s' - %s\n", fname, xerrmsg());
+      {  xprintf("Unable to create `%s' - %s\n", fname, get_err_msg());
          ret = 1;
          goto done;
       }
@@ -941,14 +949,16 @@ int glp_write_ipt(glp_prob *lp, const char *fname)
          xfprintf(fp, "%.*g %.*g\n", DBL_DIG, col->pval, DBL_DIG,
             col->dval);
       }
+#if 0 /* FIXME */
       xfflush(fp);
-      if (xferror(fp))
-      {  xprintf("Write error on `%s' - %s\n", fname, xerrmsg());
+#endif
+      if (glp_ioerr(fp))
+      {  xprintf("Write error on `%s' - %s\n", fname, get_err_msg());
          ret = 1;
          goto done;
       }
       xprintf("%d lines were written\n", 2 + lp->m + lp->n);
-done: if (fp != NULL) xfclose(fp);
+done: if (fp != NULL) glp_close(fp);
       return ret;
 }
 
@@ -956,15 +966,15 @@ done: if (fp != NULL) xfclose(fp);
 
 int glp_print_mip(glp_prob *P, const char *fname)
 {     /* write MIP solution in printable format */
-      XFILE *fp;
+      glp_file *fp;
       GLPROW *row;
       GLPCOL *col;
       int i, j, t, ae_ind, re_ind, ret;
       double ae_max, re_max;
       xprintf("Writing MIP solution to `%s'...\n", fname);
-      fp = xfopen(fname, "w");
+      fp = glp_open(fname, "w");
       if (fp == NULL)
-      {  xprintf("Unable to create `%s' - %s\n", fname, xerrmsg());
+      {  xprintf("Unable to create `%s' - %s\n", fname, get_err_msg());
          ret = 1;
          goto done;
       }
@@ -1067,14 +1077,16 @@ int glp_print_mip(glp_prob *P, const char *fname)
          re_max <= 1e-3 ? "Low quality" : "SOLUTION IS INFEASIBLE");
       xfprintf(fp, "\n");
       xfprintf(fp, "End of output\n");
+#if 0 /* FIXME */
       xfflush(fp);
-      if (xferror(fp))
-      {  xprintf("Write error on `%s' - %s\n", fname, xerrmsg());
+#endif
+      if (glp_ioerr(fp))
+      {  xprintf("Write error on `%s' - %s\n", fname, get_err_msg());
          ret = 1;
          goto done;
       }
       ret = 0;
-done: if (fp != NULL) xfclose(fp);
+done: if (fp != NULL) glp_close(fp);
       return ret;
 }
 
@@ -1188,12 +1200,12 @@ done: if (ret) mip->mip_stat = GLP_UNDEF;
 *  c_val[j], j = 1,...,n, is the value of j-th column. */
 
 int glp_write_mip(glp_prob *mip, const char *fname)
-{     XFILE *fp;
+{     glp_file *fp;
       int i, j, ret = 0;
       xprintf("Writing MIP solution to `%s'...\n", fname);
-      fp = xfopen(fname, "w");
+      fp = glp_open(fname, "w");
       if (fp == NULL)
-      {  xprintf("Unable to create `%s' - %s\n", fname, xerrmsg());
+      {  xprintf("Unable to create `%s' - %s\n", fname, get_err_msg());
          ret = 1;
          goto done;
       }
@@ -1207,14 +1219,16 @@ int glp_write_mip(glp_prob *mip, const char *fname)
       /* columns (structural variables) */
       for (j = 1; j <= mip->n; j++)
          xfprintf(fp, "%.*g\n", DBL_DIG, mip->col[j]->mipx);
+#if 0 /* FIXME */
       xfflush(fp);
-      if (xferror(fp))
-      {  xprintf("Write error on `%s' - %s\n", fname, xerrmsg());
+#endif
+      if (glp_ioerr(fp))
+      {  xprintf("Write error on `%s' - %s\n", fname, get_err_msg());
          ret = 1;
          goto done;
       }
       xprintf("%d lines were written\n", 2 + mip->m + mip->n);
-done: if (fp != NULL) xfclose(fp);
+done: if (fp != NULL) glp_close(fp);
       return ret;
 }
 

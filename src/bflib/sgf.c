@@ -1178,7 +1178,7 @@ int sgf_dense_phase(LUF *luf, int k, int updat)
          /* store diagonal element u~[ia,ia] */
          vr_piv[i] = a(ia, ia);
          /* determine number of non-zero non-diagonal elements in ia-th
-            row of U~ */
+          * row of U~ */
          len = 0;
          for (ja = ia+1; ja <= na; ja++)
          {  if (a(ia, ja) != 0.0)

@@ -351,6 +351,9 @@ struct db_odbc
    SQLLEN           outlen[SQL_FIELD_MAX+1];
    SQLSMALLINT      coltype[SQL_FIELD_MAX+1];
    SQLCHAR          data[SQL_FIELD_MAX+1][SQL_FDLEN_MAX+1];
+#if 1 /* 12/I-2014 */
+   SQLDOUBLE        datanum[SQL_FIELD_MAX+1];
+#endif
    SQLCHAR          colname[SQL_FIELD_MAX+1][SQL_FDLEN_MAX+1];
    int              isnumeric[SQL_FIELD_MAX+1];
    int              nf;
@@ -709,7 +712,7 @@ static void *db_iodbc_open_int(TABDCA *dca, int mode, const char
       h_odbc = xdlopen(libodbc);
       if (h_odbc == NULL)
       {  xprintf("unable to open library %s\n", libodbc);
-         xprintf("%s\n", xerrmsg());
+         xprintf("%s\n", get_err_msg());
          return NULL;
       }
    }
@@ -845,7 +848,11 @@ static void *db_iodbc_open_int(TABDCA *dca, int mode, const char
          sql->isnumeric[i] = is_numeric(sql->coltype[i]);
          /* bind columns to program vars, converting all types to CHAR*/
          if (sql->isnumeric[i])
+#if 0 /* 12/I-2014 */
          {  dl_SQLBindCol(sql->hstmt, i, SQL_DOUBLE, sql->data[i],
+#else
+         {  dl_SQLBindCol(sql->hstmt, i, SQL_DOUBLE, &sql->datanum[i],
+#endif
                SQL_FDLEN_MAX, &(sql->outlen[i]));
          } else
          {  dl_SQLBindCol(sql->hstmt, i, SQL_CHAR, sql->data[i],
@@ -904,7 +911,11 @@ int db_iodbc_read(TABDCA *dca, void *link)
          {
             if (sql->isnumeric[i])
             {  mpl_tab_set_num(dca, sql->ref[i],
+#if 0 /* 12/I-2014 */
                                *((const double *) sql->data[i]));
+#else
+                               (const double) sql->datanum[i]);
+#endif
             }
             else
             {  if (len > SQL_FDLEN_MAX)
@@ -1106,8 +1117,10 @@ int db_mysql_close(TABDCA *dca, void *link)
 #define byte_defined 1
 #endif
 
+#if 0 /* 12/II-2014; to fix namespace bug */
 #include <my_global.h>
 #include <my_sys.h>
+#endif
 #include <mysql.h>
 
 struct db_mysql
@@ -1321,7 +1334,7 @@ static void *db_mysql_open_int(TABDCA *dca, int mode, const char
       h_mysql = xdlopen(libmysql);
       if (h_mysql == NULL)
       {  xprintf("unable to open library %s\n", libmysql);
-         xprintf("%s\n", xerrmsg());
+         xprintf("%s\n", get_err_msg());
          return NULL;
       }
    }

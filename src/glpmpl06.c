@@ -22,8 +22,6 @@
 *  along with GLPK. If not, see <http://www.gnu.org/licenses/>.
 ***********************************************************************/
 
-#define _GLPSTD_ERRNO
-#define _GLPSTD_STDIO
 #include "glpmpl.h"
 #include "glpsql.h"
 

@@ -22,9 +22,11 @@
 *  along with GLPK. If not, see <http://www.gnu.org/licenses/>.
 ***********************************************************************/
 
-#include "glpapi.h"
+#include "draft.h"
+#include "env.h"
 #include "glpgmp.h"
-#include "glplib.h"
+#include "misc.h"
+#include "prob.h"
 
 struct csa
 {     /* common storage area */
@@ -100,10 +102,12 @@ struct csa
       /* name of output problem file in CPLEX LP format */
       const char *out_glp;
       /* name of output problem file in GLPK format */
+#if 0
       const char *out_pb;
       /* name of output problem file in OPB format */
       const char *out_npb;
       /* name of output problem file in normalized OPB format */
+#endif
 #if 1 /* 06/VIII-2011 */
       const char *out_cnf;
       /* name of output problem file in DIMACS CNF-SAT format */
@@ -360,8 +364,8 @@ static void print_version(int briefly)
       xprintf("\n");
       xprintf("Copyright (C) 2000, 2001, 2002, 2003, 2004, 2005, 2006, "
          "2007, 2008,\n");
-      xprintf("2009, 2010, 2011, 2013 Andrew Makhorin, Department for A"
-         "pplied\n");
+      xprintf("2009, 2010, 2011, 2013, 2014 Andrew Makhorin, Department"
+         " for Applied\n");
       xprintf("Informatics, Moscow Aviation Institute, Moscow, Russia. "
          "All rights\n");
       xprintf("reserved. E-mail: <mao@gnu.org>.\n");
@@ -593,6 +597,7 @@ static int parse_cmdline(struct csa *csa, int argc, const char *argv[])
             }
             csa->out_glp = argv[k];
          }
+#if 0
          else if (p("--wpb"))
          {  k++;
             if (k == argc || argv[k][0] == '\0' || argv[k][0] == '-')
@@ -617,6 +622,7 @@ static int parse_cmdline(struct csa *csa, int argc, const char *argv[])
             }
             csa->out_npb = argv[k];
          }
+#endif
 #if 1 /* 06/VIII-2011 */
          else if (p("--wcnf"))
          {  k++;
@@ -875,8 +881,10 @@ int glp_main(int argc, const char *argv[])
       csa->out_freemps = NULL;
       csa->out_cpxlp = NULL;
       csa->out_glp = NULL;
+#if 0
       csa->out_pb = NULL;
       csa->out_npb = NULL;
+#endif
 #if 1 /* 06/VIII-2011 */
       csa->out_cnf = NULL;
 #endif
@@ -914,8 +922,10 @@ int glp_main(int argc, const char *argv[])
       if (csa->out_freemps != NULL) remove(csa->out_freemps);
       if (csa->out_cpxlp != NULL) remove(csa->out_cpxlp);
       if (csa->out_glp != NULL) remove(csa->out_glp);
+#if 0
       if (csa->out_pb != NULL) remove(csa->out_pb);
       if (csa->out_npb != NULL) remove(csa->out_npb);
+#endif
 #if 1 /* 06/VIII-2011 */
       if (csa->out_cnf != NULL) remove(csa->out_cnf);
 #endif
@@ -1103,6 +1113,7 @@ err2:    {  xprintf("MathProg model processing error\n");
             goto done;
          }
       }
+#if 0
       /* write problem data in OPB format, if required */
       if (csa->out_pb != NULL)
       {  ret = lpx_write_pb(csa->prob, csa->out_pb, 0, 0);
@@ -1122,6 +1133,7 @@ err2:    {  xprintf("MathProg model processing error\n");
             goto done;
          }
       }
+#endif
 #if 1 /* 06/VIII-2011 */
       /* write problem data in DIMACS CNF-SAT format, if required */
       if (csa->out_cnf != NULL)
@@ -1248,10 +1260,9 @@ err2:    {  xprintf("MathProg model processing error\n");
       }
 #endif
       else if (csa->solution == SOL_INTEGER)
-      {  if (!csa->iocp.presolve)
-         {  glp_set_bfcp(csa->prob, &csa->bfcp);
+      {  glp_set_bfcp(csa->prob, &csa->bfcp);
+         if (!csa->iocp.presolve)
             glp_simplex(csa->prob, &csa->smcp);
-         }
 #if 0
          csa->iocp.msg_lev = GLP_MSG_DBG;
          csa->iocp.pp_tech = GLP_PP_NONE;
@@ -1313,11 +1324,11 @@ skip: /* postsolve the model, if necessary */
       /* write problem solution in printable format, if required */
       if (csa->out_sol != NULL)
       {  if (csa->solution == SOL_BASIC)
-            ret = lpx_print_sol(csa->prob, csa->out_sol);
+            ret = glp_print_sol(csa->prob, csa->out_sol);
          else if (csa->solution == SOL_INTERIOR)
-            ret = lpx_print_ips(csa->prob, csa->out_sol);
+            ret = glp_print_ipt(csa->prob, csa->out_sol);
          else if (csa->solution == SOL_INTEGER)
-            ret = lpx_print_mip(csa->prob, csa->out_sol);
+            ret = glp_print_mip(csa->prob, csa->out_sol);
          else
             xassert(csa != csa);
          if (ret != 0)

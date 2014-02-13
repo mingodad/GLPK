@@ -19,6 +19,9 @@ CFLAGS = \
 /O2
 
 OBJSET = \
+..\src\avl.obj \
+..\src\bfd.obj \
+..\src\bfx.obj \
 ..\src\glpapi01.obj \
 ..\src\glpapi02.obj \
 ..\src\glpapi03.obj \
@@ -40,13 +43,8 @@ OBJSET = \
 ..\src\glpapi19.obj \
 ..\src\glpapi20.obj \
 ..\src\glpapi21.obj \
-..\src\glpavl.obj \
-..\src\glpbfd.obj \
-..\src\glpbfx.obj \
 ..\src\glpcpx.obj \
 ..\src\glpdmx.obj \
-..\src\glpenv07.obj \
-..\src\glpenv08.obj \
 ..\src\glpgmp.obj \
 ..\src\glphbm.obj \
 ..\src\glpini01.obj \
@@ -64,12 +62,7 @@ OBJSET = \
 ..\src\glpios11.obj \
 ..\src\glpios12.obj \
 ..\src\glpipm.obj \
-..\src\glplib03.obj \
 ..\src\glplpf.obj \
-..\src\glplpx01.obj \
-..\src\glplpx02.obj \
-..\src\glplpx03.obj \
-..\src\glplux.obj \
 ..\src\glpmat.obj \
 ..\src\glpmpl01.obj \
 ..\src\glpmpl02.obj \
@@ -88,7 +81,6 @@ OBJSET = \
 ..\src\glpnpp05.obj \
 ..\src\glpnpp06.obj \
 ..\src\glprgr.obj \
-..\src\glpscf.obj \
 ..\src\glpscl.obj \
 ..\src\glpsdf.obj \
 ..\src\glpspm.obj \
@@ -98,6 +90,7 @@ OBJSET = \
 ..\src\glpssx01.obj \
 ..\src\glpssx02.obj \
 ..\src\glptsp.obj \
+..\src\lux.obj \
 ..\src\amd\amd_1.obj \
 ..\src\amd\amd_2.obj \
 ..\src\amd\amd_aat.obj \
@@ -112,6 +105,7 @@ OBJSET = \
 ..\src\amd\amd_valid.obj \
 ..\src\bflib\fhv.obj \
 ..\src\bflib\fhvint.obj \
+..\src\bflib\ifu.obj \
 ..\src\bflib\luf.obj \
 ..\src\bflib\lufint.obj \
 ..\src\bflib\sgf.obj \
@@ -120,15 +114,19 @@ OBJSET = \
 ..\src\cglib\cfg1.obj \
 ..\src\colamd\colamd.obj \
 ..\src\env\alloc.obj \
+..\src\env\dlsup.obj \
 ..\src\env\env.obj \
 ..\src\env\error.obj \
 ..\src\env\stdout.obj \
+..\src\env\stream.obj \
 ..\src\env\time.obj \
 ..\src\env\tls.obj \
 ..\src\minisat\minisat.obj \
 ..\src\misc\bignum.obj \
 ..\src\misc\dmp.obj \
 ..\src\misc\ffalg.obj \
+..\src\misc\fp2rat.obj \
+..\src\misc\gcd.obj \
 ..\src\misc\jd.obj \
 ..\src\misc\keller.obj \
 ..\src\misc\mc13d.obj \
@@ -138,6 +136,11 @@ OBJSET = \
 ..\src\misc\relax4.obj \
 ..\src\misc\rng.obj \
 ..\src\misc\rng1.obj \
+..\src\misc\round2n.obj \
+..\src\misc\str2int.obj \
+..\src\misc\str2num.obj \
+..\src\misc\strspx.obj \
+..\src\misc\strtrim.obj \
 ..\src\misc\triang.obj \
 ..\src\misc\wclique.obj \
 ..\src\misc\wclique1.obj \
@@ -162,10 +165,10 @@ OBJSET = \
 .c.obj:
         cl.exe $(CFLAGS) /Fo$*.obj /c $*.c
 
-all: glpk_4_52.1.dll glpsol.exe
+all: glpk_4_53.dll glpsol.exe
 
-glpk_4_52.1.dll: $(OBJSET)
-        cl.exe $(CFLAGS) /LD /Feglpk_4_52.1.dll \
+glpk_4_53.dll: $(OBJSET)
+        cl.exe $(CFLAGS) /LD /Feglpk_4_53.dll \
                 ..\src\*.obj \
                 ..\src\amd\*.obj \
                 ..\src\bflib\*.obj \
@@ -176,11 +179,11 @@ glpk_4_52.1.dll: $(OBJSET)
                 ..\src\misc\*.obj \
                 ..\src\proxy\*.obj \
                 ..\src\zlib\*.obj \
-                glpk_4_52.1.def
+                glpk_4_53.def
 
-glpsol.exe: ..\examples\glpsol.obj glpk_4_52.1.dll
+glpsol.exe: ..\examples\glpsol.obj glpk_4_53.dll
         cl.exe $(CFLAGS) /Feglpsol.exe \
-                ..\examples\glpsol.obj glpk_4_52.1.lib
+                ..\examples\glpsol.obj glpk_4_53.lib
 
 check: glpsol.exe
         .\glpsol.exe --version

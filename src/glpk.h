@@ -1,10 +1,10 @@
-/* glpk.h */
+/* glpk.h (GLPK API) */
 
 /***********************************************************************
 *  This code is part of GLPK (GNU Linear Programming Kit).
 *
 *  Copyright (C) 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008,
-*  2009, 2010, 2011, 2013 Andrew Makhorin, Department for Applied
+*  2009, 2010, 2011, 2013, 2014 Andrew Makhorin, Department for Applied
 *  Informatics, Moscow Aviation Institute, Moscow, Russia. All rights
 *  reserved. E-mail: <mao@gnu.org>.
 *
@@ -34,7 +34,7 @@ extern "C" {
 
 /* library version numbers: */
 #define GLP_MAJOR_VERSION  4
-#define GLP_MINOR_VERSION  52
+#define GLP_MINOR_VERSION  53
 
 typedef struct glp_prob glp_prob;
 /* LP/MIP problem object */
@@ -493,6 +493,16 @@ double glp_get_col_dual(glp_prob *P, int j);
 
 int glp_get_unbnd_ray(glp_prob *P);
 /* determine variable causing unboundedness */
+
+#if 1 /* 08/VIII-2013; not documented yet */
+int glp_get_it_cnt(glp_prob *P);
+/* get simplex solver iteration count */
+#endif
+
+#if 1 /* 08/VIII-2013; not documented yet */
+int glp_set_it_cnt(glp_prob *P, int it_cnt);
+/* set simplex solver iteration count */
+#endif
 
 int glp_interior(glp_prob *P, const glp_iptcp *parm);
 /* solve LP problem with the interior-point method */

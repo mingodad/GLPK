@@ -1,4 +1,4 @@
-/* glpssx02.c */
+/* glpssx02.c (simplex method, rational arithmetic) */
 
 /***********************************************************************
 *  This code is part of GLPK (GNU Linear Programming Kit).

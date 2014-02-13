@@ -22,6 +22,7 @@
 *  along with GLPK. If not, see <http://www.gnu.org/licenses/>.
 ***********************************************************************/
 
+#include "env.h"
 #include "glpios.h"
 
 /***********************************************************************
@@ -373,12 +374,12 @@ skip:       /* new Z is never better than old Z, therefore the change
             xprintf("branch_drtom: down-branch is infeasible\n");
          else
             xprintf("branch_drtom: down-branch bound is %.9e\n",
-               lpx_get_obj_val(mip) + dd_dn);
+               glp_get_obj_val(mip) + dd_dn);
          if (fabs(dd_up) == DBL_MAX)
             xprintf("branch_drtom: up-branch   is infeasible\n");
          else
             xprintf("branch_drtom: up-branch   bound is %.9e\n",
-               lpx_get_obj_val(mip) + dd_up);
+               glp_get_obj_val(mip) + dd_up);
       }
 done: *_next = next;
       return jj;

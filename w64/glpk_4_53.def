@@ -1,5 +1,5 @@
-LIBRARY glpk_4_52.1
-VERSION 4.52.1
+LIBRARY glpk_4_53
+VERSION 4.53
 DESCRIPTION "GNU Linear Programming Kit"
 EXPORTS
 glp_create_prob
@@ -69,6 +69,8 @@ glp_get_col_stat
 glp_get_col_prim
 glp_get_col_dual
 glp_get_unbnd_ray
+glp_get_it_cnt
+glp_set_it_cnt
 glp_interior
 glp_init_iptcp
 glp_ipt_status

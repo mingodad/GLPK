@@ -81,6 +81,13 @@ int glp_init_env(void)
       env->err_line = 0;
       env->err_hook = NULL;
       env->err_info = NULL;
+      env->err_buf = malloc(EBUF_SIZE);
+      if (env->err_buf == NULL)
+      {  free(env->term_buf);
+         free(env);
+         return 2;
+      }
+      env->err_buf[0] = '\0';
       env->mem_limit = SIZE_T_MAX;
       env->mem_ptr = NULL;
       env->mem_count = env->mem_cpeak = 0;
@@ -219,6 +226,7 @@ int glp_free_env(void)
       env->self = NULL;
       /* free memory allocated to the environment block */
       free(env->term_buf);
+      free(env->err_buf);
       free(env);
       /* reset a pointer to the environment block */
       tls_set_ptr(NULL);

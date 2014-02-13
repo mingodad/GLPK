@@ -25,7 +25,7 @@
 #ifndef GLPSPX_H
 #define GLPSPX_H
 
-#include "glpapi.h"
+#include "prob.h"
 
 #define spx_primal _glp_spx_primal
 int spx_primal(glp_prob *lp, const glp_smcp *parm);

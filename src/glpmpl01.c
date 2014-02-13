@@ -22,8 +22,8 @@
 *  along with GLPK. If not, see <http://www.gnu.org/licenses/>.
 ***********************************************************************/
 
-#define _GLPSTD_STDIO
 #include "glpmpl.h"
+
 #define dmp_get_atomv dmp_get_atom
 
 /**********************************************************************/

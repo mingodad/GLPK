@@ -1,4 +1,4 @@
-/* glpapi.h (application program interface) */
+/* prob.h (LP/MIP problem object) */
 
 /***********************************************************************
 *  This code is part of GLPK (GNU Linear Programming Kit).
@@ -22,14 +22,13 @@
 *  along with GLPK. If not, see <http://www.gnu.org/licenses/>.
 ***********************************************************************/
 
-#ifndef GLPAPI_H
-#define GLPAPI_H
+#ifndef PROB_H
+#define PROB_H
 
+#include "avl.h"
+#include "bfd.h"
+#include "dmp.h"
 #include "glpk.h"
-#include "glpavl.h"
-#include "glpbfd.h"
-#include "glplpx.h"
-#include "env.h"
 
 typedef struct GLPROW GLPROW;
 typedef struct GLPCOL GLPCOL;
@@ -271,38 +270,6 @@ struct GLPAIJ
       GLPAIJ *c_next;
       /* pointer to next coefficient in the same column */
 };
-
-#define lpx_put_solution _glp_put_solution
-void lpx_put_solution(glp_prob *lp, int inval, const int *p_stat,
-      const int *d_stat, const double *obj_val, const int r_stat[],
-      const double r_prim[], const double r_dual[], const int c_stat[],
-      const double c_prim[], const double c_dual[]);
-/* store basic solution components */
-
-#define lpx_put_mip_soln _glp_put_mip_soln
-void lpx_put_mip_soln(LPX *lp, int i_stat, double row_mipx[],
-      double col_mipx[]);
-/* store mixed integer solution components */
-
-#if 1 /* 28/XI-2009 */
-int _glp_analyze_row(glp_prob *P, int len, const int ind[],
-      const double val[], int type, double rhs, double eps, int *_piv,
-      double *_x, double *_dx, double *_y, double *_dy, double *_dz);
-/* simulate one iteration of dual simplex method */
-#endif
-
-#if 1 /* 08/XII-2009 */
-void _glp_mpl_init_rand(glp_tran *tran, int seed);
-#endif
-
-#define glp_skpgen _glp_skpgen
-void glp_skpgen(int n, int r, int type, int v, int s, int a[],
-   int *b, int c[]);
-/* Pisinger's 0-1 single knapsack problem generator */
-
-#if 1 /* 28/V-2010 */
-int _glp_intopt1(glp_prob *P, const glp_iocp *parm);
-#endif
 
 #endif
 

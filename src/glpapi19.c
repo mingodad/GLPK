@@ -22,8 +22,9 @@
 *  along with GLPK. If not, see <http://www.gnu.org/licenses/>.
 ***********************************************************************/
 
-#include "glpapi.h"
+#include "env.h"
 #include "minisat.h"
+#include "prob.h"
 
 int glp_minisat1(glp_prob *P)
 {     /* solve CNF-SAT problem with MiniSat solver */

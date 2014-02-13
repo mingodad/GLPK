@@ -1,31 +1,27 @@
-/* glplpx01.c (obsolete API routines) */
+/* lpx.c (old GLPK API) */
 
-/***********************************************************************
-*  This code is part of GLPK (GNU Linear Programming Kit).
-*
-*  Copyright (C) 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008,
-*  2009, 2010, 2011, 2013 Andrew Makhorin, Department for Applied
-*  Informatics, Moscow Aviation Institute, Moscow, Russia. All rights
-*  reserved. E-mail: <mao@gnu.org>.
-*
-*  GLPK is free software: you can redistribute it and/or modify it
-*  under the terms of the GNU General Public License as published by
-*  the Free Software Foundation, either version 3 of the License, or
-*  (at your option) any later version.
-*
-*  GLPK is distributed in the hope that it will be useful, but WITHOUT
-*  ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
-*  or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public
-*  License for more details.
-*
-*  You should have received a copy of the GNU General Public License
-*  along with GLPK. If not, see <http://www.gnu.org/licenses/>.
-***********************************************************************/
+/* Written by Andrew Makhorin <mao@gnu.org>, August 2013. */
 
-#include "glpapi.h"
+/* This file contains routines that implement the old GLPK API as it
+*  was defined in GLPK 4.48.
+*
+*  To compile an existing project using these routines you need to add
+*  to the project this file and the header lpx.h.
+*
+*  Please note that you may mix calls to old and new GLPK API routines
+*  (except calls to glp_create_prob and glp_delete_prob). */
 
-struct LPXCPS
-{     /* control parameters and statistics */
+#include <float.h>
+#include <limits.h>
+#include "lpx.h"
+
+#define xassert glp_assert
+#define xerror  glp_error
+
+struct CPS
+{     /* control parameters */
+      LPX *lp;
+      /* pointer to corresponding problem object */
       int msg_lev;
       /* level of messages output by the solver:
          0 - no output
@@ -162,11 +158,70 @@ struct LPXCPS
          LPX_C_ALL    - all cuts */
       double mip_gap; /* MIP */
       /* relative MIP gap tolerance */
+      struct CPS *link;
+      /* pointer to CPS for another problem object */
 };
+
+static struct CPS *cps_ptr = NULL;
+/* initial pointer to CPS linked list */
+
+static struct CPS *find_cps(LPX *lp)
+{     /* find CPS for specified problem object */
+      struct CPS *cps;
+      for (cps = cps_ptr; cps != NULL; cps = cps->link)
+         if (cps->lp == lp) break;
+      /* if cps is NULL (not found), the problem object was created
+         with glp_create_prob rather than with lpx_create_prob */
+      xassert(cps != NULL);
+      return cps;
+}
+
+static void reset_cps(struct CPS *cps)
+{     /* reset control parameters to default values */
+      cps->msg_lev  = 3;
+      cps->scale    = 1;
+      cps->dual     = 0;
+      cps->price    = 1;
+      cps->relax    = 0.07;
+      cps->tol_bnd  = 1e-7;
+      cps->tol_dj   = 1e-7;
+      cps->tol_piv  = 1e-9;
+      cps->round    = 0;
+      cps->obj_ll   = -DBL_MAX;
+      cps->obj_ul   = +DBL_MAX;
+      cps->it_lim   = -1;
+      cps->tm_lim   = -1.0;
+      cps->out_frq  = 200;
+      cps->out_dly  = 0.0;
+      cps->branch   = 2;
+      cps->btrack   = 3;
+      cps->tol_int  = 1e-5;
+      cps->tol_obj  = 1e-7;
+      cps->mps_info = 1;
+      cps->mps_obj  = 2;
+      cps->mps_orig = 0;
+      cps->mps_wide = 1;
+      cps->mps_free = 0;
+      cps->mps_skip = 0;
+      cps->lpt_orig = 0;
+      cps->presol   = 0;
+      cps->binarize = 0;
+      cps->use_cuts = 0;
+      cps->mip_gap  = 0.0;
+      return;
+}
 
 LPX *lpx_create_prob(void)
 {     /* create problem object */
-      return glp_create_prob();
+      LPX *lp;
+      struct CPS *cps;
+      lp = glp_create_prob();
+      cps = glp_alloc(1, sizeof(struct CPS));
+      cps->lp = lp;
+      reset_cps(cps);
+      cps->link = cps_ptr;
+      cps_ptr = cps;
+      return lp;
 }
 
 void lpx_set_prob_name(LPX *lp, const char *name)
@@ -262,6 +317,17 @@ void lpx_del_cols(LPX *lp, int ncs, const int num[])
 
 void lpx_delete_prob(LPX *lp)
 {     /* delete problem object */
+      struct CPS *cps = find_cps(lp);
+      if (cps_ptr == cps)
+         cps_ptr = cps->link;
+      else
+      {  struct CPS *prev;
+         for (prev = cps_ptr; prev != NULL; prev = prev->link)
+            if (prev->link == cps) break;
+         xassert(prev != NULL);
+         prev->link = cps->link;
+      }
+      glp_free(cps);
       glp_delete_prob(lp);
       return;
 }
@@ -640,6 +706,7 @@ int lpx_get_ray_info(LPX *lp)
 
 void lpx_check_kkt(LPX *lp, int scaled, LPXKKT *kkt)
 {     /* check Karush-Kuhn-Tucker conditions */
+      int m = glp_get_num_rows(lp);
       int ae_ind, re_ind;
       double ae_max, re_max;
       xassert(scaled == scaled);
@@ -677,12 +744,12 @@ void lpx_check_kkt(LPX *lp, int scaled, LPXKKT *kkt)
       if (ae_ind == 0)
          kkt->de_ae_col = 0;
       else
-         kkt->de_ae_col = ae_ind - lp->m;
+         kkt->de_ae_col = ae_ind - m;
       kkt->de_re_max = re_max;
       if (re_ind == 0)
          kkt->de_re_col = 0;
       else
-         kkt->de_re_col = ae_ind - lp->m;
+         kkt->de_re_col = ae_ind - m;
       if (re_max <= 1e-9)
          kkt->de_quality = 'H';
       else if (re_max <= 1e-6)
@@ -993,75 +1060,16 @@ void lpx_check_int(LPX *lp, LPXKKT *kkt)
       return;
 }
 
-#if 1 /* 17/XI-2009 */
-static void reset_parms(LPX *lp)
-{     /* reset control parameters to default values */
-      struct LPXCPS *cps = lp->parms;
-      xassert(cps != NULL);
-      cps->msg_lev  = 3;
-      cps->scale    = 1;
-      cps->dual     = 0;
-      cps->price    = 1;
-      cps->relax    = 0.07;
-      cps->tol_bnd  = 1e-7;
-      cps->tol_dj   = 1e-7;
-      cps->tol_piv  = 1e-9;
-      cps->round    = 0;
-      cps->obj_ll   = -DBL_MAX;
-      cps->obj_ul   = +DBL_MAX;
-      cps->it_lim   = -1;
-#if 0 /* 02/XII-2010 */
-      lp->it_cnt   = 0;
-#endif
-      cps->tm_lim   = -1.0;
-      cps->out_frq  = 200;
-      cps->out_dly  = 0.0;
-      cps->branch   = 2;
-      cps->btrack   = 3;
-      cps->tol_int  = 1e-5;
-      cps->tol_obj  = 1e-7;
-      cps->mps_info = 1;
-      cps->mps_obj  = 2;
-      cps->mps_orig = 0;
-      cps->mps_wide = 1;
-      cps->mps_free = 0;
-      cps->mps_skip = 0;
-      cps->lpt_orig = 0;
-      cps->presol = 0;
-      cps->binarize = 0;
-      cps->use_cuts = 0;
-      cps->mip_gap = 0.0;
-      return;
-}
-#endif
-
-#if 1 /* 17/XI-2009 */
-static struct LPXCPS *access_parms(LPX *lp)
-{     /* allocate and initialize control parameters, if necessary */
-      if (lp->parms == NULL)
-      {  lp->parms = xmalloc(sizeof(struct LPXCPS));
-         reset_parms(lp);
-      }
-      return lp->parms;
-}
-#endif
-
-#if 1 /* 17/XI-2009 */
 void lpx_reset_parms(LPX *lp)
 {     /* reset control parameters to default values */
-      access_parms(lp);
-      reset_parms(lp);
+      struct CPS *cps = find_cps(lp);
+      reset_cps(cps);
       return;
 }
-#endif
 
 void lpx_set_int_parm(LPX *lp, int parm, int val)
 {     /* set (change) integer control parameter */
-#if 0 /* 17/XI-2009 */
-      struct LPXCPS *cps = lp->cps;
-#else
-      struct LPXCPS *cps = access_parms(lp);
-#endif
+      struct CPS *cps = find_cps(lp);
       switch (parm)
       {  case LPX_K_MSGLEV:
             if (!(0 <= val && val <= 3))
@@ -1097,7 +1105,7 @@ void lpx_set_int_parm(LPX *lp, int parm, int val)
             cps->it_lim = val;
             break;
          case LPX_K_ITCNT:
-            lp->it_cnt = val;
+            glp_set_it_cnt(lp, val);
             break;
          case LPX_K_OUTFRQ:
             if (!(val > 0))
@@ -1178,12 +1186,6 @@ void lpx_set_int_parm(LPX *lp, int parm, int val)
             cps->use_cuts = val;
             break;
          case LPX_K_BFTYPE:
-#if 0
-            if (!(1 <= val && val <= 3))
-               xerror("lpx_set_int_parm: BFTYPE = %d; invalid value\n",
-                  val);
-            cps->bf_type = val;
-#else
             {  glp_bfcp parm;
                glp_get_bfcp(lp, &parm);
                switch (val)
@@ -1199,7 +1201,6 @@ void lpx_set_int_parm(LPX *lp, int parm, int val)
                }
                glp_set_bfcp(lp, &parm);
             }
-#endif
             break;
          default:
             xerror("lpx_set_int_parm: parm = %d; invalid parameter\n",
@@ -1210,11 +1211,7 @@ void lpx_set_int_parm(LPX *lp, int parm, int val)
 
 int lpx_get_int_parm(LPX *lp, int parm)
 {     /* query integer control parameter */
-#if 0 /* 17/XI-2009 */
-      struct LPXCPS *cps = lp->cps;
-#else
-      struct LPXCPS *cps = access_parms(lp);
-#endif
+      struct CPS *cps = find_cps(lp);
       int val = 0;
       switch (parm)
       {  case LPX_K_MSGLEV:
@@ -1230,7 +1227,7 @@ int lpx_get_int_parm(LPX *lp, int parm)
          case LPX_K_ITLIM:
             val = cps->it_lim; break;
          case LPX_K_ITCNT:
-            val = lp->it_cnt; break;
+            val = glp_get_it_cnt(lp); break;
          case LPX_K_OUTFRQ:
             val = cps->out_frq; break;
          case LPX_K_BRANCH:
@@ -1258,9 +1255,6 @@ int lpx_get_int_parm(LPX *lp, int parm)
          case LPX_K_USECUTS:
             val = cps->use_cuts; break;
          case LPX_K_BFTYPE:
-#if 0
-            val = cps->bf_type; break;
-#else
             {  glp_bfcp parm;
                glp_get_bfcp(lp, &parm);
                switch (parm.type)
@@ -1275,7 +1269,6 @@ int lpx_get_int_parm(LPX *lp, int parm)
                }
             }
             break;
-#endif
          default:
             xerror("lpx_get_int_parm: parm = %d; invalid parameter\n",
                parm);
@@ -1285,11 +1278,7 @@ int lpx_get_int_parm(LPX *lp, int parm)
 
 void lpx_set_real_parm(LPX *lp, int parm, double val)
 {     /* set (change) real control parameter */
-#if 0 /* 17/XI-2009 */
-      struct LPXCPS *cps = lp->cps;
-#else
-      struct LPXCPS *cps = access_parms(lp);
-#endif
+      struct CPS *cps = find_cps(lp);
       switch (parm)
       {  case LPX_K_RELAX:
             if (!(0.0 <= val && val <= 1.0))
@@ -1301,26 +1290,12 @@ void lpx_set_real_parm(LPX *lp, int parm, double val)
             if (!(DBL_EPSILON <= val && val <= 0.001))
                xerror("lpx_set_real_parm: TOLBND = %g; invalid value\n",
                   val);
-#if 0
-            if (cps->tol_bnd > val)
-            {  /* invalidate the basic solution */
-               lp->p_stat = LPX_P_UNDEF;
-               lp->d_stat = LPX_D_UNDEF;
-            }
-#endif
             cps->tol_bnd = val;
             break;
          case LPX_K_TOLDJ:
             if (!(DBL_EPSILON <= val && val <= 0.001))
                xerror("lpx_set_real_parm: TOLDJ = %g; invalid value\n",
                   val);
-#if 0
-            if (cps->tol_dj > val)
-            {  /* invalidate the basic solution */
-               lp->p_stat = LPX_P_UNDEF;
-               lp->d_stat = LPX_D_UNDEF;
-            }
-#endif
             cps->tol_dj = val;
             break;
          case LPX_K_TOLPIV:
@@ -1368,11 +1343,7 @@ void lpx_set_real_parm(LPX *lp, int parm, double val)
 
 double lpx_get_real_parm(LPX *lp, int parm)
 {     /* query real control parameter */
-#if 0 /* 17/XI-2009 */
-      struct LPXCPS *cps = lp->cps;
-#else
-      struct LPXCPS *cps = access_parms(lp);
-#endif
+      struct CPS *cps = find_cps(lp);
       double val = 0.0;
       switch (parm)
       {  case LPX_K_RELAX:
@@ -1430,26 +1401,18 @@ int lpx_write_mps(LPX *lp, const char *fname)
 
 int lpx_read_bas(LPX *lp, const char *fname)
 {     /* read LP basis in fixed MPS format */
-#if 0 /* 13/IV-2009 */
-      return read_bas(lp, fname);
-#else
       xassert(lp == lp);
       xassert(fname == fname);
       xerror("lpx_read_bas: operation not supported\n");
       return 0;
-#endif
 }
 
 int lpx_write_bas(LPX *lp, const char *fname)
 {     /* write LP basis in fixed MPS format */
-#if 0 /* 13/IV-2009 */
-      return write_bas(lp, fname);
-#else
       xassert(lp == lp);
       xassert(fname == fname);
       xerror("lpx_write_bas: operation not supported\n");
       return 0;
-#endif
 }
 
 LPX *lpx_read_freemps(const char *fname)
@@ -1494,7 +1457,7 @@ LPX *lpx_read_model(const char *model, const char *data, const char
       /* generate the model */
       if (glp_mpl_generate(tran, output)) goto done;
       /* build the problem instance from the model */
-      lp = glp_create_prob();
+      lp = lpx_create_prob();
       glp_mpl_build_prob(tran, lp);
 done: /* free the translator workspace */
       glp_mpl_free_wksp(tran);

@@ -1,3 +1,62 @@
+Thu Feb 13 12:00:00 2014 Andrew Makhorin <mao@gnu.org>
+
+        * GLPK 4.53 (37:0:1) has been released.
+
+        * src/glpmps.c (glp_read_mps)
+        The code was changed to remove free rows at the end.
+
+        * src/glpcpx.c (glp_read_lp)
+        A bug was fixed (explicit bounds for binaries not set). Thanks
+        to Gabriel Hackebeil <gabehack@gmail.com> for bug report.
+
+        * src/glpenv07.c (z_fgetc)
+        A bug was fixed (Z_STREAM_END -> Z_OK). Thanks to Achim Gaedke
+        <achim.gaedke@gmail.com> for bug report.
+
+        * src/glpenv07.c
+        Replaced by src/env/stream.c.
+
+        * src/glpenv08.c
+        Replaced by src/env/dlsup.c.
+
+        * src/bflib/ifu.h, src/bflib/ifu.c
+        Re-implemented.
+
+        * src/glpscf.h, src/glpscf.c
+        Replaced by IFU.
+
+        * src/glplpf.h, src/glplpf.c
+        Changed due to IFU.
+
+        * src/glpbfd.c
+        Changed due to LPF.
+
+        * src/glpapi06.c
+        Two API routines glp_get_it_cnt and glp_set_it_cnt were added.
+        Thanks to Joey Rios <joeylrios@hotmail.com> for suggestion.
+
+        * src/glplpx.h, src/glplpx01.c, src/glplpx02.c, src/glplpx03.c
+        All obsolete API routines were completely removed.
+
+        * examples/oldapi/lpx.h, examples/oldapi/lpx.c
+        A set of routines that simulate the old GLPK API (as defined
+        in 4.48) were added. Thanks to Jan Engelhardt <jengelh@inai.de>
+        for suggestion.
+
+        * src/zlib/*
+        zlib 1.2.7 was downgraded to zlib 1.2.5 (from glpk 4.50) due to
+        bugs detected in zlib 1.2.7 on some 64-bit platforms. Thanks to
+        Carlo Baldassi <carlobaldassi@gmail.com> for bug report.
+
+        * src/glpsql.c
+        Alignment bug was fixed. Thanks to Xypron <xypron.glpk@gmx.de>
+        for suggestion.
+
+        * src/glpsql.c
+        #include <my_global.h> and #include <my_sys.h> were commented
+        out to fix a namespace bug on compiling with MariaDB. Thanks to
+        Xypron <xypron.glpk@gmx.de> for suggestion.
+
 Sun Jul 28 12:00:00 2013 Andrew Makhorin <mao@gnu.org>
 
         * GLPK 4.52.1 (36:1:0) has been released.

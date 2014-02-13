@@ -22,11 +22,10 @@
 *  along with GLPK. If not, see <http://www.gnu.org/licenses/>.
 ***********************************************************************/
 
-#define _GLPSTD_ERRNO
-#define _GLPSTD_STDIO
 #include "env.h"
-#include "glplib.h"
 #include "glptsp.h"
+#include "misc.h"
+
 #define xfault xerror
 
 /*----------------------------------------------------------------------

@@ -22,25 +22,22 @@
 *  along with GLPK. If not, see <http://www.gnu.org/licenses/>.
 ***********************************************************************/
 
-#if 1 /* 11/VI-2013 */
-#include "env2.h"
-#endif
-#include "glpapi.h"
+#include "env.h"
 #include "glpsdf.h"
-#include "glplib.h"
+#include "misc.h"
 
 struct glp_data
 {     /* plain data file */
       char *fname;
       /* name of data file */
-      XFILE *fp;
+      glp_file *fp;
       /* stream assigned to data file */
       void *jump; /* jmp_buf jump; */
       /* label for go to in case of error */
       int count;
       /* line count */
       int c;
-      /* current character of XEOF */
+      /* current character of EOF */
       char item[255+1];
       /* current data item */
 };
@@ -50,11 +47,11 @@ static void next_char(glp_data *data);
 glp_data *glp_sdf_open_file(const char *fname)
 {     /* open plain data file */
       glp_data *data = NULL;
-      XFILE *fp;
+      glp_file *fp;
       jmp_buf jump;
-      fp = xfopen(fname, "r");
+      fp = glp_open(fname, "r");
       if (fp == NULL)
-      {  xprintf("Unable to open `%s' - %s\n", fname, xerrmsg());
+      {  xprintf("Unable to open `%s' - %s\n", fname, get_err_msg());
          goto done;
       }
       data = xmalloc(sizeof(glp_data));
@@ -110,16 +107,16 @@ void glp_sdf_warning(glp_data *data, const char *fmt, ...)
 static void next_char(glp_data *data)
 {     /* read next character */
       int c;
-      if (data->c == XEOF)
+      if (data->c == EOF)
          glp_sdf_error(data, "unexpected end of file\n");
       else if (data->c == '\n')
          data->count++;
-      c = xfgetc(data->fp);
+      c = glp_getc(data->fp);
       if (c < 0)
-      {  if (xferror(data->fp))
-            glp_sdf_error(data, "read error - %s\n", xerrmsg());
+      {  if (glp_ioerr(data->fp))
+            glp_sdf_error(data, "read error - %s\n", get_err_msg());
          else if (data->c == '\n')
-            c = XEOF;
+            c = EOF;
          else
          {  glp_sdf_warning(data, "missing final end of line\n");
             c = '\n';
@@ -253,7 +250,7 @@ int glp_sdf_line(glp_data *data)
 
 void glp_sdf_close_file(glp_data *data)
 {     /* close plain data file */
-      xfclose(data->fp);
+      glp_close(data->fp);
       xfree(data->fname);
       xfree(data);
       return;

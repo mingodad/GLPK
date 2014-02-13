@@ -528,7 +528,7 @@ int fhv_ft_update(FHV *fhv, int q, int aq_len, const int aq_ind[],
 *
 *  On entry the array x should contain elements of the right-hand side
 *  vector b in locations x[1], ..., x[n], where n is the order of the
-*  matrix F. On exit this array will contain elements of the solution
+*  matrix H. On exit this array will contain elements of the solution
 *  vector x in the same locations. */
 
 void fhv_h_solve(FHV *fhv, double x[/*1+n*/])
@@ -560,7 +560,7 @@ void fhv_h_solve(FHV *fhv, double x[/*1+n*/])
 *
 *  On entry the array x should contain elements of the right-hand side
 *  vector b in locations x[1], ..., x[n], where n is the order of the
-*  matrix F. On exit this array will contain elements of the solution
+*  matrix H. On exit this array will contain elements of the solution
 *  vector x in the same locations. */
 
 void fhv_ht_solve(FHV *fhv, double x[/*1+n*/])

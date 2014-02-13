@@ -1,4 +1,4 @@
-/* glpbfx.c */
+/* bfx.c (LP basis factorization driver, rational arithmetic) */
 
 /***********************************************************************
 *  This code is part of GLPK (GNU Linear Programming Kit).
@@ -22,11 +22,9 @@
 *  along with GLPK. If not, see <http://www.gnu.org/licenses/>.
 ***********************************************************************/
 
-typedef struct BFX BFX;
-#define GLPBFX_DEFINED
-#include "glpbfx.h"
+#include "bfx.h"
 #include "env.h"
-#include "glplux.h"
+#include "lux.h"
 
 struct BFX
 {     int valid;

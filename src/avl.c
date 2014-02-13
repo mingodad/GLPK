@@ -1,4 +1,4 @@
-/* glpavl.c (binary search tree) */
+/* avl.c (binary search tree) */
 
 /***********************************************************************
 *  This code is part of GLPK (GNU Linear Programming Kit).
@@ -22,8 +22,56 @@
 *  along with GLPK. If not, see <http://www.gnu.org/licenses/>.
 ***********************************************************************/
 
-#include "glpavl.h"
+#include "avl.h"
+#include "dmp.h"
 #include "env.h"
+
+struct AVL
+{     /* AVL tree (Adelson-Velsky & Landis binary search tree) */
+      DMP *pool;
+      /* memory pool for allocating nodes */
+      AVLNODE *root;
+      /* pointer to the root node */
+      int (*fcmp)(void *info, const void *key1, const void *key2);
+      /* application-defined key comparison routine */
+      void *info;
+      /* transit pointer passed to the routine fcmp */
+      int size;
+      /* the tree size (the total number of nodes) */
+      int height;
+      /* the tree height */
+};
+
+struct AVLNODE
+{     /* node of AVL tree */
+      const void *key;
+      /* pointer to the node key (data structure for representing keys
+         is supplied by the application) */
+      int rank;
+      /* node rank = relative position of the node in its own subtree =
+         the number of nodes in the left subtree plus one */
+      int type;
+      /* reserved for the application specific information */
+      void *link;
+      /* reserved for the application specific information */
+      AVLNODE *up;
+      /* pointer to the parent node */
+      short int flag;
+      /* node flag:
+         0 - this node is the left child of its parent (or this node is
+             the root of the tree and has no parent)
+         1 - this node is the right child of its parent */
+      short int bal;
+      /* node balance = the difference between heights of the right and
+         left subtrees:
+         -1 - the left subtree is higher than the right one;
+          0 - the left and right subtrees have the same height;
+         +1 - the left subtree is lower than the right one */
+      AVLNODE *left;
+      /* pointer to the root of the left subtree */
+      AVLNODE *right;
+      /* pointer to the root of the right subtree */
+};
 
 AVL *avl_create_tree(int (*fcmp)(void *info, const void *key1,
       const void *key2), void *info)

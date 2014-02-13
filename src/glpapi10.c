@@ -22,7 +22,8 @@
 *  along with GLPK. If not, see <http://www.gnu.org/licenses/>.
 ***********************************************************************/
 
-#include "glpapi.h"
+#include "env.h"
+#include "prob.h"
 
 void glp_check_kkt(glp_prob *P, int sol, int cond, double *_ae_max,
       int *_ae_ind, double *_re_max, int *_re_ind)

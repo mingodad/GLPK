@@ -22,6 +22,8 @@
 *  along with GLPK. If not, see <http://www.gnu.org/licenses/>.
 ***********************************************************************/
 
+#include "draft.h"
+#include "env.h"
 #include "glpios.h"
 
 /***********************************************************************

@@ -2,6 +2,7 @@
 
 /* (reserved for copyright notice) */
 
+#include "env.h"
 #include "glpios.h"
 #include "proxy.h"
 

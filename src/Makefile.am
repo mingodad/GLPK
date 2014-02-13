@@ -17,10 +17,13 @@ libglpk_la_CPPFLAGS = \
 -I$(srcdir)/zlib
 
 libglpk_la_LDFLAGS = \
--version-info 36:1:0 \
+-version-info 37:0:1 \
 -export-symbols-regex '^glp_*'
 
 libglpk_la_SOURCES = \
+avl.c \
+bfd.c \
+bfx.c \
 glpapi01.c \
 glpapi02.c \
 glpapi03.c \
@@ -42,13 +45,8 @@ glpapi18.c \
 glpapi19.c \
 glpapi20.c \
 glpapi21.c \
-glpavl.c \
-glpbfd.c \
-glpbfx.c \
 glpcpx.c \
 glpdmx.c \
-glpenv07.c \
-glpenv08.c \
 glpgmp.c \
 glphbm.c \
 glpini01.c \
@@ -66,12 +64,7 @@ glpios10.c \
 glpios11.c \
 glpios12.c \
 glpipm.c \
-glplib03.c \
 glplpf.c \
-glplpx01.c \
-glplpx02.c \
-glplpx03.c \
-glplux.c \
 glpmat.c \
 glpmpl01.c \
 glpmpl02.c \
@@ -90,7 +83,6 @@ glpnpp04.c \
 glpnpp05.c \
 glpnpp06.c \
 glprgr.c \
-glpscf.c \
 glpscl.c \
 glpsdf.c \
 glpspm.c \
@@ -100,6 +92,7 @@ glpsql.c \
 glpssx01.c \
 glpssx02.c \
 glptsp.c \
+lux.c \
 amd/amd_1.c \
 amd/amd_2.c \
 amd/amd_aat.c \
@@ -114,6 +107,7 @@ amd/amd_preprocess.c \
 amd/amd_valid.c \
 bflib/fhv.c \
 bflib/fhvint.c \
+bflib/ifu.c \
 bflib/luf.c \
 bflib/lufint.c \
 bflib/sgf.c \
@@ -122,15 +116,19 @@ cglib/cfg.c \
 cglib/cfg1.c \
 colamd/colamd.c \
 env/alloc.c \
+env/dlsup.c \
 env/env.c \
 env/error.c \
 env/stdout.c \
+env/stream.c \
 env/time.c \
 env/tls.c \
 minisat/minisat.c \
 misc/bignum.c \
 misc/dmp.c \
 misc/ffalg.c \
+misc/fp2rat.c \
+misc/gcd.c \
 misc/jd.c \
 misc/keller.c \
 misc/mc13d.c \
@@ -140,6 +138,11 @@ misc/qmd.c \
 misc/relax4.c \
 misc/rng.c \
 misc/rng1.c \
+misc/round2n.c \
+misc/str2int.c \
+misc/str2num.c \
+misc/strspx.c \
+misc/strtrim.c \
 misc/triang.c \
 misc/wclique.c \
 misc/wclique1.c \

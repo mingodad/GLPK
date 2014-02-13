@@ -22,8 +22,6 @@
 *  along with GLPK. If not, see <http://www.gnu.org/licenses/>.
 ***********************************************************************/
 
-#define _GLPSTD_STDIO
-#include "env.h"
 #include "glpmpl.h"
 
 /**********************************************************************/

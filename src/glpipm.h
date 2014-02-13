@@ -25,7 +25,7 @@
 #ifndef GLPIPM_H
 #define GLPIPM_H
 
-#include "glpapi.h"
+#include "prob.h"
 
 #define ipm_solve _glp_ipm_solve
 int ipm_solve(glp_prob *P, const glp_iptcp *parm);

@@ -1,10 +1,9 @@
-/* glplib.h (miscellaneous library routines) */
+/* misc.h (miscellaneous routines) */
 
 /***********************************************************************
 *  This code is part of GLPK (GNU Linear Programming Kit).
 *
-*  Copyright (C) 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008,
-*  2009, 2010, 2011, 2013 Andrew Makhorin, Department for Applied
+*  Copyright (C) 2000, 2013 Andrew Makhorin, Department for Applied
 *  Informatics, Moscow Aviation Institute, Moscow, Russia. All rights
 *  reserved. E-mail: <mao@gnu.org>.
 *
@@ -22,50 +21,38 @@
 *  along with GLPK. If not, see <http://www.gnu.org/licenses/>.
 ***********************************************************************/
 
-#ifndef GLPLIB_H
-#define GLPLIB_H
+#ifndef MISC_H
+#define MISC_H
 
-#define str2int _glp_lib_str2int
+#define str2int _glp_str2int
 int str2int(const char *str, int *val);
 /* convert character string to value of int type */
 
-#define str2num _glp_lib_str2num
+#define str2num _glp_str2num
 int str2num(const char *str, double *val);
 /* convert character string to value of double type */
 
-#define strspx _glp_lib_strspx
+#define strspx _glp_strspx
 char *strspx(char *str);
 /* remove all spaces from character string */
 
-#define strtrim _glp_lib_strtrim
+#define strtrim _glp_strtrim
 char *strtrim(char *str);
 /* remove trailing spaces from character string */
 
-#define strrev _glp_lib_strrev
-char *strrev(char *s);
-/* reverse character string */
-
-#define gcd _glp_lib_gcd
+#define gcd _glp_gcd
 int gcd(int x, int y);
 /* find greatest common divisor of two integers */
 
-#define gcdn _glp_lib_gcdn
+#define gcdn _glp_gcdn
 int gcdn(int n, int x[]);
 /* find greatest common divisor of n integers */
 
-#define lcm _glp_lib_lcm
-int lcm(int x, int y);
-/* find least common multiple of two integers */
-
-#define lcmn _glp_lib_lcmn
-int lcmn(int n, int x[]);
-/* find least common multiple of n integers */
-
-#define round2n _glp_lib_round2n
+#define round2n _glp_round2n
 double round2n(double x);
 /* round floating-point number to nearest power of two */
 
-#define fp2rat _glp_lib_fp2rat
+#define fp2rat _glp_fp2rat
 int fp2rat(double x, double eps, double *p, double *q);
 /* convert floating-point number to rational number */
 

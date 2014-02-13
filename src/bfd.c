@@ -1,4 +1,4 @@
-/* glpbfd.c (LP basis factorization driver) */
+/* bfd.c (LP basis factorization driver) */
 
 /***********************************************************************
 *  This code is part of GLPK (GNU Linear Programming Kit).
@@ -22,13 +22,14 @@
 *  along with GLPK. If not, see <http://www.gnu.org/licenses/>.
 ***********************************************************************/
 
-#include "glpapi.h"
+#include "env.h"
 #if 0 /* 27/IV-2013 */
 #include "glpfhv.h"
 #else
 #include "fhvint.h"
 #endif
 #include "glplpf.h"
+#include "prob.h"
 
 /* CAUTION: DO NOT CHANGE THE LIMIT BELOW */
 
@@ -289,11 +290,19 @@ skip: /* try to factorize the basis matrix */
                switch (bfd->type)
                {  case GLP_BF_BG:
                      /* Bartels-Golub update */
+#if 0 /* 11/VIII-2013 */
                      bfd->lpf->scf->t_opt = SCF_TBG;
+#else
+                     bfd->lpf->t_opt = SCF_TBG;
+#endif
                      break;
                   case GLP_BF_GR:
-                     /* Givens rotation update */
+                     /* Givens rotations update */
+#if 0 /* 11/VIII-2013 */
                      bfd->lpf->scf->t_opt = SCF_TGR;
+#else
+                     bfd->lpf->t_opt = SCF_TGR;
+#endif
                      break;
                   default:
                      xassert(bfd != bfd);

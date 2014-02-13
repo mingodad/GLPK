@@ -22,6 +22,7 @@
 *  along with GLPK. If not, see <http://www.gnu.org/licenses/>.
 ***********************************************************************/
 
+#include "env.h"
 #include "glpios.h"
 #include "glpnpp.h"
 #include "glpspx.h"
@@ -802,5 +803,20 @@ int glp_get_unbnd_ray(glp_prob *lp)
       if (k > lp->m + lp->n) k = 0;
       return k;
 }
+
+#if 1 /* 08/VIII-2013 */
+int glp_get_it_cnt(glp_prob *P)
+{     /* get simplex solver iteration count */
+      return P->it_cnt;
+}
+#endif
+
+#if 1 /* 08/VIII-2013 */
+int glp_set_it_cnt(glp_prob *P, int it_cnt)
+{     /* set simplex solver iteration count */
+      P->it_cnt = it_cnt;
+      return;
+}
+#endif
 
 /* eof */

@@ -1,10 +1,9 @@
-/* glpenv08.c (shared library support) */
+/* dlsup.c (dynamic linking support) */
 
 /***********************************************************************
 *  This code is part of GLPK (GNU Linear Programming Kit).
 *
-*  Copyright (C) 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008,
-*  2009, 2010, 2011, 2013 Andrew Makhorin, Department for Applied
+*  Copyright (C) 2008, 2013 Andrew Makhorin, Department for Applied
 *  Informatics, Moscow Aviation Institute, Moscow, Russia. All rights
 *  reserved. E-mail: <mao@gnu.org>.
 *
@@ -26,7 +25,7 @@
 #include <config.h>
 #endif
 
-#include "env2.h"
+#include "env.h"
 
 /* GNU version ********************************************************/
 
@@ -35,14 +34,15 @@
 #include <ltdl.h>
 
 void *xdlopen(const char *module)
-{     void *h = NULL;
+{     /* open dynamically linked library */
+      void *h = NULL;
       if (lt_dlinit() != 0)
-      {  lib_err_msg(lt_dlerror());
+      {  put_err_msg(lt_dlerror());
          goto done;
       }
       h = lt_dlopen(module);
       if (h == NULL)
-      {  lib_err_msg(lt_dlerror());
+      {  put_err_msg(lt_dlerror());
          if (lt_dlexit() != 0)
             xerror("xdlopen: %s\n", lt_dlerror());
       }
@@ -50,7 +50,8 @@ done: return h;
 }
 
 void *xdlsym(void *h, const char *symbol)
-{     void *ptr;
+{     /* obtain address of symbol from dynamically linked library */
+      void *ptr;
       xassert(h != NULL);
       ptr = lt_dlsym(h, symbol);
       if (ptr == NULL)
@@ -59,7 +60,8 @@ void *xdlsym(void *h, const char *symbol)
 }
 
 void xdlclose(void *h)
-{     xassert(h != NULL);
+{     /* close dynamically linked library */
+      xassert(h != NULL);
       if (lt_dlclose(h) != 0)
          xerror("xdlclose: %s\n", lt_dlerror());
       if (lt_dlexit() != 0)
@@ -74,15 +76,17 @@ void xdlclose(void *h)
 #include <dlfcn.h>
 
 void *xdlopen(const char *module)
-{     void *h;
+{     /* open dynamically linked library */
+      void *h;
       h = dlopen(module, RTLD_NOW);
       if (h == NULL)
-         lib_err_msg(dlerror());
+         put_err_msg(dlerror());
       return h;
 }
 
 void *xdlsym(void *h, const char *symbol)
-{     void *ptr;
+{     /* obtain address of symbol from dynamically linked library */
+      void *ptr;
       xassert(h != NULL);
       ptr = dlsym(h, symbol);
       if (ptr == NULL)
@@ -91,7 +95,8 @@ void *xdlsym(void *h, const char *symbol)
 }
 
 void xdlclose(void *h)
-{     xassert(h != NULL);
+{     /* close dynamically linked library */
+      xassert(h != NULL);
       if (dlclose(h) != 0)
          xerror("xdlclose: %s\n", dlerror());
       return;
@@ -104,18 +109,20 @@ void xdlclose(void *h)
 #include <windows.h>
 
 void *xdlopen(const char *module)
-{     void *h;
+{     /* open dynamically linked library */
+      void *h;
       h = LoadLibrary(module);
       if (h == NULL)
       {  char msg[20];
          sprintf(msg, "Error %d", GetLastError());
-         lib_err_msg(msg);
+         put_err_msg(msg);
       }
       return h;
 }
 
 void *xdlsym(void *h, const char *symbol)
-{     void *ptr;
+{     /* obtain address of symbol from dynamically linked library */
+      void *ptr;
       xassert(h != NULL);
       ptr = GetProcAddress(h, symbol);
       if (ptr == NULL)
@@ -124,7 +131,8 @@ void *xdlsym(void *h, const char *symbol)
 }
 
 void xdlclose(void *h)
-{     xassert(h != NULL);
+{     /* close dynamically linked library */
+      xassert(h != NULL);
       if (!FreeLibrary(h))
          xerror("xdlclose: Error %d\n", GetLastError());
       return;
@@ -135,19 +143,22 @@ void xdlclose(void *h)
 #else
 
 void *xdlopen(const char *module)
-{     xassert(module == module);
-      lib_err_msg("Shared libraries not supported");
+{     /* open dynamically linked library */
+      xassert(module == module);
+      put_err_msg("Shared libraries not supported");
       return NULL;
 }
 
 void *xdlsym(void *h, const char *symbol)
-{     xassert(h != h);
+{     /* obtain address of symbol from dynamically linked library */
+      xassert(h != h);
       xassert(symbol != symbol);
       return NULL;
 }
 
 void xdlclose(void *h)
-{     xassert(h != h);
+{     /* close dynamically linked library */
+      xassert(h != h);
       return;
 }
 

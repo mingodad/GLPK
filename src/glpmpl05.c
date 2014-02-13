@@ -25,8 +25,6 @@
 *  along with GLPK. If not, see <http://www.gnu.org/licenses/>.
 ***********************************************************************/
 
-#define _GLPSTD_STDIO
-#define _GLPSTD_TIME
 #include "glpmpl.h"
 #if 1 /* 11/VI-2013 */
 #include "jd.h"

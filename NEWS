@@ -1,3 +1,32 @@
+GLPK 4.53 (release date: Feb 13, 2014)
+
+        The API routine glp_read_mps was changed to remove free rows.
+
+        A bug was fixed in the API routine glp_read_lp. Thanks to
+        Gabriel Hackebeil <gabehack@gmail.com> for bug report.
+
+        The zlib compression library used by some GLPK routines and
+        included in the package was downgraded from 1.2.7 to 1.2.5 (as
+        in GLPK 4.50) because of addressability bugs on some 64-bit
+        platforms. Thanks to Carlo Baldassi <carlobaldassi@gmail.com>
+        for bug report.
+
+        A bug was fixed in a routine that reads gzipped files. Thanks
+        to Achim Gaedke <achim.gaedke@gmail.com> for bug report.
+
+        Two API routines glp_get_it_cnt and glp_set_it_cnt were added.
+        Thanks to Joey Rios <joeylrios@hotmail.com> for suggestion.
+
+        All obsolete GLPK API routines (prefixed with lpx) were removed
+        from the package.
+
+        A set of routines that simulate the old GLPK API (as defined
+        in 4.48) were added; see examples/oldapi/api/lpx.c. Thanks to
+        Jan Engelhardt <jengelh@inai.de> for suggestion.
+
+        A namespace bug was fixed in the SQL table drive module. Thanks
+        to Dennis Schridde <devurandom@gmx.net> for bug report.
+
 GLPK 4.52.1 (release date: Jul 28, 2013)
 
         This is a bug-fix release.

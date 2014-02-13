@@ -22,6 +22,7 @@
 *  along with GLPK. If not, see <http://www.gnu.org/licenses/>.
 ***********************************************************************/
 
+#include "env.h"
 #include "glpios.h"
 
 /*----------------------------------------------------------------------
@@ -282,7 +283,6 @@ static int cover(int n, double a[], double b, double u, double x[],
 --
 -- SYNOPSIS
 --
--- #include "glplpx.h"
 -- int lpx_cover_cut(LPX *lp, int len, int ind[], double val[],
 --    double work[]);
 --
@@ -315,16 +315,16 @@ static int cover(int n, double a[], double b, double u, double x[],
 -- returns 1 <= len' <= n, which is the number of non-zero coefficients
 -- in the inequality constraint. Otherwise, the routine returns zero. */
 
-static int lpx_cover_cut(LPX *lp, int len, int ind[], double val[],
-      double work[])
+static int lpx_cover_cut(glp_prob *lp, int len, int ind[],
+      double val[], double work[])
 {     int cov[1+4], j, k, nb, newlen, r;
       double f_min, f_max, alfa, beta, u, *x = work, y;
       /* substitute and remove fixed variables */
       newlen = 0;
       for (k = 1; k <= len; k++)
       {  j = ind[k];
-         if (lpx_get_col_type(lp, j) == LPX_FX)
-            val[0] -= val[k] * lpx_get_col_lb(lp, j);
+         if (glp_get_col_type(lp, j) == GLP_FX)
+            val[0] -= val[k] * glp_get_col_lb(lp, j);
          else
          {  newlen++;
             ind[newlen] = ind[k];
@@ -338,10 +338,7 @@ static int lpx_cover_cut(LPX *lp, int len, int ind[], double val[],
       nb = 0;
       for (k = 1; k <= len; k++)
       {  j = ind[k];
-         if (lpx_get_col_kind(lp, j) == LPX_IV &&
-             lpx_get_col_type(lp, j) == LPX_DB &&
-             lpx_get_col_lb(lp, j) == 0.0 &&
-             lpx_get_col_ub(lp, j) == 1.0)
+         if (glp_get_col_kind(lp, j) == GLP_BV)
          {  /* binary variable */
             int ind_k;
             double val_k;
@@ -361,14 +358,14 @@ static int lpx_cover_cut(LPX *lp, int len, int ind[], double val[],
       for (k = nb+1; k <= len; k++)
       {  j = ind[k];
          /* both bounds must be finite */
-         if (lpx_get_col_type(lp, j) != LPX_DB) return 0;
+         if (glp_get_col_type(lp, j) != GLP_DB) return 0;
          if (val[k] > 0.0)
-         {  f_min += val[k] * lpx_get_col_lb(lp, j);
-            f_max += val[k] * lpx_get_col_ub(lp, j);
+         {  f_min += val[k] * glp_get_col_lb(lp, j);
+            f_max += val[k] * glp_get_col_ub(lp, j);
          }
          else
-         {  f_min += val[k] * lpx_get_col_ub(lp, j);
-            f_max += val[k] * lpx_get_col_lb(lp, j);
+         {  f_min += val[k] * glp_get_col_ub(lp, j);
+            f_max += val[k] * glp_get_col_lb(lp, j);
          }
       }
       /* sum a[j]*x[j] + sum a[j]*y[j] <= b ===>
@@ -382,7 +379,7 @@ static int lpx_cover_cut(LPX *lp, int len, int ind[], double val[],
       y = 0.0;
       for (k = nb+1; k <= len; k++)
       {  j = ind[k];
-         y += val[k] * lpx_get_col_prim(lp, j);
+         y += val[k] * glp_get_col_prim(lp, j);
       }
       y -= f_min;
       if (y < 0.0) y = 0.0;
@@ -394,7 +391,7 @@ static int lpx_cover_cut(LPX *lp, int len, int ind[], double val[],
       /* determine values of x[j] at the current point */
       for (k = 1; k <= nb; k++)
       {  j = ind[k];
-         x[k] = lpx_get_col_prim(lp, j);
+         x[k] = glp_get_col_prim(lp, j);
          if (x[k] < 0.0) x[k] = 0.0;
          if (x[k] > 1.0) x[k] = 1.0;
       }
@@ -448,7 +445,6 @@ static int lpx_cover_cut(LPX *lp, int len, int ind[], double val[],
 --
 -- SYNOPSIS
 --
--- #include "glplpx.h"
 -- double lpx_eval_row(LPX *lp, int len, int ind[], double val[]);
 --
 -- DESCRIPTION
@@ -473,8 +469,9 @@ static int lpx_cover_cut(LPX *lp, int len, int ind[], double val[],
 -- The routine returns a computed value of y, the auxiliary variable of
 -- the specified row. */
 
-static double lpx_eval_row(LPX *lp, int len, int ind[], double val[])
-{     int n = lpx_get_num_cols(lp);
+static double lpx_eval_row(glp_prob *lp, int len, int ind[],
+      double val[])
+{     int n = glp_get_num_cols(lp);
       int j, k;
       double sum = 0.0;
       if (len < 0)
@@ -484,7 +481,7 @@ static double lpx_eval_row(LPX *lp, int len, int ind[], double val[])
          if (!(1 <= j && j <= n))
             xerror("lpx_eval_row: j = %d; column number out of range\n",
                j);
-         sum += val[k] * lpx_get_col_prim(lp, j);
+         sum += val[k] * glp_get_col_prim(lp, j);
       }
       return sum;
 }
@@ -506,11 +503,11 @@ static double lpx_eval_row(LPX *lp, int len, int ind[], double val[])
 
 void ios_cov_gen(glp_tree *tree)
 {     glp_prob *prob = tree->mip;
-      int m = lpx_get_num_rows(prob);
-      int n = lpx_get_num_cols(prob);
+      int m = glp_get_num_rows(prob);
+      int n = glp_get_num_cols(prob);
       int i, k, type, kase, len, *ind;
       double r, *val, *work;
-      xassert(lpx_get_status(prob) == LPX_OPT);
+      xassert(glp_get_status(prob) == GLP_OPT);
       /* allocate working arrays */
       ind = xcalloc(1+n, sizeof(int));
       val = xcalloc(1+n, sizeof(double));
@@ -518,19 +515,19 @@ void ios_cov_gen(glp_tree *tree)
       /* look through all rows */
       for (i = 1; i <= m; i++)
       for (kase = 1; kase <= 2; kase++)
-      {  type = lpx_get_row_type(prob, i);
+      {  type = glp_get_row_type(prob, i);
          if (kase == 1)
          {  /* consider rows of '<=' type */
-            if (!(type == LPX_UP || type == LPX_DB)) continue;
-            len = lpx_get_mat_row(prob, i, ind, val);
-            val[0] = lpx_get_row_ub(prob, i);
+            if (!(type == GLP_UP || type == GLP_DB)) continue;
+            len = glp_get_mat_row(prob, i, ind, val);
+            val[0] = glp_get_row_ub(prob, i);
          }
          else
          {  /* consider rows of '>=' type */
-            if (!(type == LPX_LO || type == LPX_DB)) continue;
-            len = lpx_get_mat_row(prob, i, ind, val);
+            if (!(type == GLP_LO || type == GLP_DB)) continue;
+            len = glp_get_mat_row(prob, i, ind, val);
             for (k = 1; k <= len; k++) val[k] = - val[k];
-            val[0] = - lpx_get_row_lb(prob, i);
+            val[0] = - glp_get_row_lb(prob, i);
          }
          /* generate mixed cover cut:
             sum{j in J} a[j] * x[j] <= b */

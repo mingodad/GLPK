@@ -25,7 +25,7 @@
 #ifndef GLPNPP_H
 #define GLPNPP_H
 
-#include "glpapi.h"
+#include "prob.h"
 
 typedef struct NPP NPP;
 typedef struct NPPROW NPPROW;

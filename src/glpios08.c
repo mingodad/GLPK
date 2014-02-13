@@ -22,6 +22,7 @@
 ***********************************************************************/
 
 #include "cfg.h"
+#include "env.h"
 #include "glpios.h"
 
 void *ios_clq_init(glp_tree *T)

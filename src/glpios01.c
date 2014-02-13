@@ -22,8 +22,24 @@
 *  along with GLPK. If not, see <http://www.gnu.org/licenses/>.
 ***********************************************************************/
 
+#include "env.h"
 #include "glpios.h"
-#include "glplib.h"
+#include "misc.h"
+
+static int lpx_eval_tab_row(glp_prob *lp, int k, int ind[],
+      double val[])
+{     /* compute row of the simplex tableau */
+      return glp_eval_tab_row(lp, k, ind, val);
+}
+
+static int lpx_dual_ratio_test(glp_prob *lp, int len, const int ind[],
+      const double val[], int how, double tol)
+{     /* perform dual ratio test */
+      int piv;
+      piv = glp_dual_rtest(lp, len, ind, val, how, tol);
+      xassert(0 <= piv && piv <= len);
+      return piv == 0 ? 0 : ind[piv];
+}
 
 /***********************************************************************
 *  NAME

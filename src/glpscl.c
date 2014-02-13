@@ -22,8 +22,9 @@
 *  along with GLPK. If not, see <http://www.gnu.org/licenses/>.
 ***********************************************************************/
 
-#include "glpapi.h"
-#include "glplib.h"
+#include "env.h"
+#include "misc.h"
+#include "prob.h"
 
 /***********************************************************************
 *  min_row_aij - determine minimal |a[i,j]| in i-th row

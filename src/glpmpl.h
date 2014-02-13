@@ -25,11 +25,10 @@
 #ifndef GLPMPL_H
 #define GLPMPL_H
 
-#if 1 /* 11/VI-2013 */
-#include "env2.h"
-#endif
-#include "glpavl.h"
-#include "glplib.h"
+#include "avl.h"
+#include "dmp.h"
+#include "env.h"
+#include "misc.h"
 #include "rng.h"
 
 #if 0 /* 22/I-2013 */
@@ -298,11 +297,11 @@ struct glp_tran
          of the problem, 1 <= j <= n */
       /*--------------------------------------------------------------*/
       /* input/output segment */
-      XFILE *in_fp;
+      glp_file *in_fp;
       /* stream assigned to the input text file */
       char *in_file;
       /* name of the input text file */
-      XFILE *out_fp;
+      glp_file *out_fp;
       /* stream assigned to the output text file used to write all data
          produced by display and printf statements; NULL means the data
          should be sent to stdout via the routine xprintf */
@@ -314,7 +313,7 @@ struct glp_tran
       int out_cnt;
       /* count of data bytes stored in the output buffer */
 #endif
-      XFILE *prt_fp;
+      glp_file *prt_fp;
       /* stream assigned to the print text file; may be NULL */
       char *prt_file;
       /* name of the output print file */

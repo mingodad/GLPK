@@ -22,9 +22,6 @@
 *  along with GLPK. If not, see <http://www.gnu.org/licenses/>.
 ***********************************************************************/
 
-#define _GLPSTD_ERRNO
-#define _GLPSTD_STDIO
-#include "env.h"
 #include "glpmpl.h"
 
 /**********************************************************************/
@@ -5730,7 +5727,14 @@ static void print_char(MPL *mpl, int c)
 {     if (mpl->prt_fp == NULL)
          write_char(mpl, c);
       else
+#if 0 /* 04/VIII-2013 */
          xfputc(c, mpl->prt_fp);
+#else
+      {  unsigned char buf[1];
+         buf[0] = (unsigned char)c;
+         glp_write(mpl->prt_fp, buf, 1);
+      }
+#endif
       return;
 }
 
@@ -5885,7 +5889,7 @@ void execute_printf(MPL *mpl, PRINTF *prt)
 {     if (prt->fname == NULL)
       {  /* switch to the standard output */
          if (mpl->prt_fp != NULL)
-         {  xfclose(mpl->prt_fp), mpl->prt_fp = NULL;
+         {  glp_close(mpl->prt_fp), mpl->prt_fp = NULL;
             xfree(mpl->prt_file), mpl->prt_file = NULL;
          }
       }
@@ -5902,25 +5906,28 @@ void execute_printf(MPL *mpl, PRINTF *prt)
          /* close the current print file, if necessary */
          if (mpl->prt_fp != NULL &&
             (!prt->app || strcmp(mpl->prt_file, fname) != 0))
-         {  xfclose(mpl->prt_fp), mpl->prt_fp = NULL;
+         {  glp_close(mpl->prt_fp), mpl->prt_fp = NULL;
             xfree(mpl->prt_file), mpl->prt_file = NULL;
          }
          /* open the specified print file, if necessary */
          if (mpl->prt_fp == NULL)
-         {  mpl->prt_fp = xfopen(fname, prt->app ? "a" : "w");
+         {  mpl->prt_fp = glp_open(fname, prt->app ? "a" : "w");
             if (mpl->prt_fp == NULL)
                error(mpl, "unable to open `%s' for writing - %s",
-                  fname, xerrmsg());
+                  fname, get_err_msg());
             mpl->prt_file = xmalloc(strlen(fname)+1);
             strcpy(mpl->prt_file, fname);
          }
       }
       loop_within_domain(mpl, prt->domain, prt, printf_func);
       if (mpl->prt_fp != NULL)
-      {  xfflush(mpl->prt_fp);
-         if (xferror(mpl->prt_fp))
+      {
+#if 0 /* FIXME */
+         xfflush(mpl->prt_fp);
+#endif
+         if (glp_ioerr(mpl->prt_fp))
             error(mpl, "writing error to `%s' - %s", mpl->prt_file,
-               xerrmsg());
+               get_err_msg());
       }
       return;
 }

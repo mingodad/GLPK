@@ -22,10 +22,11 @@
 *  along with GLPK. If not, see <http://www.gnu.org/licenses/>.
 ***********************************************************************/
 
-#include "glpapi.h"
+#include "env.h"
 #include "ffalg.h"
 #include "mc21a.h"
 #include "okalg.h"
+#include "prob.h"
 #include "relax4.h"
 
 /***********************************************************************

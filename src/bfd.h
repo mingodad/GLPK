@@ -1,4 +1,4 @@
-/* glpbfd.h (LP basis factorization driver) */
+/* bfd.h (LP basis factorization driver) */
 
 /***********************************************************************
 *  This code is part of GLPK (GNU Linear Programming Kit).
@@ -22,8 +22,8 @@
 *  along with GLPK. If not, see <http://www.gnu.org/licenses/>.
 ***********************************************************************/
 
-#ifndef GLPBFD_H
-#define GLPBFD_H
+#ifndef BFD_H
+#define BFD_H
 
 typedef struct BFD BFD;
 

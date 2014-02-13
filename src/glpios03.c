@@ -22,6 +22,7 @@
 *  along with GLPK. If not, see <http://www.gnu.org/licenses/>.
 ***********************************************************************/
 
+#include "env.h"
 #include "glpios.h"
 
 /***********************************************************************
@@ -991,6 +992,10 @@ loop: /* main loop starts here */
             "-------------------\n");
          xprintf("Processing node %d at level %d\n", p, T->curr->level);
       }
+#if 0
+      if (p == 1)
+         glp_write_lp(T->mip, NULL, "root.lp");
+#endif
       /* if it is the root subproblem, initialize cut generators */
       if (p == 1)
       {  if (T->parm->gmi_cuts == GLP_ON)

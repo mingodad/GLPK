@@ -22,11 +22,11 @@
 *  along with GLPK. If not, see <http://www.gnu.org/licenses/>.
 ***********************************************************************/
 
-#if 1 /* 11/VI-2013 */
-#include "env2.h"
-#endif
-#include "glpapi.h"
+#include "env.h"
 #include "glpsdf.h"
+#include "prob.h"
+
+#define xfprintf glp_format
 
 /* CAUTION: DO NOT CHANGE THE LIMITS BELOW */
 
@@ -581,14 +581,14 @@ done: if (data != NULL) glp_sdf_close_file(data);
 *  it prints an error message and returns non-zero. */
 
 int glp_write_graph(glp_graph *G, const char *fname)
-{     XFILE *fp;
+{     glp_file *fp;
       glp_vertex *v;
       glp_arc *a;
       int i, count, ret;
       xprintf("Writing graph to `%s'...\n", fname);
-      fp = xfopen(fname, "w"), count = 0;
+      fp = glp_open(fname, "w"), count = 0;
       if (fp == NULL)
-      {  xprintf("Unable to create `%s' - %s\n", fname, xerrmsg());
+      {  xprintf("Unable to create `%s' - %s\n", fname, get_err_msg());
          ret = 1;
          goto done;
       }
@@ -598,15 +598,17 @@ int glp_write_graph(glp_graph *G, const char *fname)
          for (a = v->out; a != NULL; a = a->t_next)
             xfprintf(fp, "%d %d\n", a->tail->i, a->head->i), count++;
       }
+#if 0 /* FIXME */
       xfflush(fp);
-      if (xferror(fp))
-      {  xprintf("Write error on `%s' - %s\n", fname, xerrmsg());
+#endif
+      if (glp_ioerr(fp))
+      {  xprintf("Write error on `%s' - %s\n", fname, get_err_msg());
          ret = 1;
          goto done;
       }
       xprintf("%d lines were written\n", count);
       ret = 0;
-done: if (fp != NULL) xfclose(fp);
+done: if (fp != NULL) glp_close(fp);
       return ret;
 }
 

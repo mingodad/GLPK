@@ -22,9 +22,10 @@
 *  along with GLPK. If not, see <http://www.gnu.org/licenses/>.
 ***********************************************************************/
 
-#include "glpapi.h"
-#include "glplib.h"
+#include "draft.h"
 #include "glpssx.h"
+#include "misc.h"
+#include "prob.h"
 
 /***********************************************************************
 *  NAME
@@ -127,34 +128,34 @@ static void set_d_eps(mpq_t x, double val)
 done: return;
 }
 
-static void load_data(SSX *ssx, LPX *lp)
+static void load_data(SSX *ssx, glp_prob *lp)
 {     /* load LP problem data into simplex solver workspace */
       int m = ssx->m;
       int n = ssx->n;
       int nnz = ssx->A_ptr[n+1]-1;
       int j, k, type, loc, len, *ind;
       double lb, ub, coef, *val;
-      xassert(lpx_get_num_rows(lp) == m);
-      xassert(lpx_get_num_cols(lp) == n);
-      xassert(lpx_get_num_nz(lp) == nnz);
+      xassert(lp->m == m);
+      xassert(lp->n == n);
+      xassert(lp->nnz == nnz);
       /* types and bounds of rows and columns */
       for (k = 1; k <= m+n; k++)
       {  if (k <= m)
-         {  type = lpx_get_row_type(lp, k);
-            lb = lpx_get_row_lb(lp, k);
-            ub = lpx_get_row_ub(lp, k);
+         {  type = lp->row[k]->type;
+            lb = lp->row[k]->lb;
+            ub = lp->row[k]->ub;
          }
          else
-         {  type = lpx_get_col_type(lp, k-m);
-            lb = lpx_get_col_lb(lp, k-m);
-            ub = lpx_get_col_ub(lp, k-m);
+         {  type = lp->col[k-m]->type;
+            lb = lp->col[k-m]->lb;
+            ub = lp->col[k-m]->ub;
          }
          switch (type)
-         {  case LPX_FR: type = SSX_FR; break;
-            case LPX_LO: type = SSX_LO; break;
-            case LPX_UP: type = SSX_UP; break;
-            case LPX_DB: type = SSX_DB; break;
-            case LPX_FX: type = SSX_FX; break;
+         {  case GLP_FR: type = SSX_FR; break;
+            case GLP_LO: type = SSX_LO; break;
+            case GLP_UP: type = SSX_UP; break;
+            case GLP_DB: type = SSX_DB; break;
+            case GLP_FX: type = SSX_FX; break;
             default: xassert(type != type);
          }
          ssx->type[k] = type;
@@ -162,19 +163,19 @@ static void load_data(SSX *ssx, LPX *lp)
          set_d_eps(ssx->ub[k], ub);
       }
       /* optimization direction */
-      switch (lpx_get_obj_dir(lp))
-      {  case LPX_MIN: ssx->dir = SSX_MIN; break;
-         case LPX_MAX: ssx->dir = SSX_MAX; break;
+      switch (lp->dir)
+      {  case GLP_MIN: ssx->dir = SSX_MIN; break;
+         case GLP_MAX: ssx->dir = SSX_MAX; break;
          default: xassert(lp != lp);
       }
       /* objective coefficients */
       for (k = 0; k <= m+n; k++)
       {  if (k == 0)
-            coef = lpx_get_obj_coef(lp, 0);
+            coef = lp->c0;
          else if (k <= m)
             coef = 0.0;
          else
-            coef = lpx_get_obj_coef(lp, k-m);
+            coef = lp->col[k-m]->coef;
          set_d_eps(ssx->coef[k], coef);
       }
       /* constraint coefficients */
@@ -183,7 +184,7 @@ static void load_data(SSX *ssx, LPX *lp)
       loc = 0;
       for (j = 1; j <= n; j++)
       {  ssx->A_ptr[j] = loc+1;
-         len = lpx_get_mat_col(lp, j, ind, val);
+         len = glp_get_mat_col(lp, j, ind, val);
          for (k = 1; k <= len; k++)
          {  loc++;
             ssx->A_ind[loc] = ind[k];
@@ -196,7 +197,7 @@ static void load_data(SSX *ssx, LPX *lp)
       return;
 }
 
-static int load_basis(SSX *ssx, LPX *lp)
+static int load_basis(SSX *ssx, glp_prob *lp)
 {     /* load current LP basis into simplex solver workspace */
       int m = ssx->m;
       int n = ssx->n;
@@ -205,31 +206,31 @@ static int load_basis(SSX *ssx, LPX *lp)
       int *Q_row = ssx->Q_row;
       int *Q_col = ssx->Q_col;
       int i, j, k;
-      xassert(lpx_get_num_rows(lp) == m);
-      xassert(lpx_get_num_cols(lp) == n);
+      xassert(lp->m == m);
+      xassert(lp->n == n);
       /* statuses of rows and columns */
       for (k = 1; k <= m+n; k++)
       {  if (k <= m)
-            stat[k] = lpx_get_row_stat(lp, k);
+            stat[k] = lp->row[k]->stat;
          else
-            stat[k] = lpx_get_col_stat(lp, k-m);
+            stat[k] = lp->col[k-m]->stat;
          switch (stat[k])
-         {  case LPX_BS:
+         {  case GLP_BS:
                stat[k] = SSX_BS;
                break;
-            case LPX_NL:
+            case GLP_NL:
                stat[k] = SSX_NL;
                xassert(type[k] == SSX_LO || type[k] == SSX_DB);
                break;
-            case LPX_NU:
+            case GLP_NU:
                stat[k] = SSX_NU;
                xassert(type[k] == SSX_UP || type[k] == SSX_DB);
                break;
-            case LPX_NF:
+            case GLP_NF:
                stat[k] = SSX_NF;
                xassert(type[k] == SSX_FR);
                break;
-            case LPX_NS:
+            case GLP_NS:
                stat[k] = SSX_NS;
                xassert(type[k] == SSX_FX);
                break;
@@ -258,11 +259,11 @@ static int load_basis(SSX *ssx, LPX *lp)
 int glp_exact(glp_prob *lp, const glp_smcp *parm)
 {     glp_smcp _parm;
       SSX *ssx;
-      int m = lpx_get_num_rows(lp);
-      int n = lpx_get_num_cols(lp);
-      int nnz = lpx_get_num_nz(lp);
-      int i, j, k, type, pst, dst, ret, *stat;
-      double lb, ub, *prim, *dual, sum;
+      int m = lp->m;
+      int n = lp->n;
+      int nnz = lp->nnz;
+      int i, j, k, type, pst, dst, ret, stat;
+      double lb, ub, prim, dual, sum;
       if (parm == NULL)
          parm = &_parm, glp_init_smcp((glp_smcp *)parm);
       /* check control parameters */
@@ -286,16 +287,16 @@ int glp_exact(glp_prob *lp, const glp_smcp *parm)
       /* check that all double-bounded variables have correct bounds */
       for (k = 1; k <= m+n; k++)
       {  if (k <= m)
-         {  type = lpx_get_row_type(lp, k);
-            lb = lpx_get_row_lb(lp, k);
-            ub = lpx_get_row_ub(lp, k);
+         {  type = lp->row[k]->type;
+            lb = lp->row[k]->lb;
+            ub = lp->row[k]->ub;
          }
          else
-         {  type = lpx_get_col_type(lp, k-m);
-            lb = lpx_get_col_lb(lp, k-m);
-            ub = lpx_get_col_ub(lp, k-m);
+         {  type = lp->col[k-m]->type;
+            lb = lp->col[k-m]->lb;
+            ub = lp->col[k-m]->ub;
          }
-         if (type == LPX_DB && lb >= ub)
+         if (type == GLP_DB && lb >= ub)
          {  xprintf("glp_exact: %s %d has invalid bounds\n",
                k <= m ? "row" : "column", k <= m ? k : k-m);
             return GLP_EBOUND;
@@ -352,17 +353,17 @@ int glp_exact(glp_prob *lp, const glp_smcp *parm)
       {  case 0:
             /* optimal solution found */
             ret = 0;
-            pst = LPX_P_FEAS, dst = LPX_D_FEAS;
+            pst = dst = GLP_FEAS;
             break;
          case 1:
             /* problem has no feasible solution */
             ret = 0;
-            pst = LPX_P_NOFEAS, dst = LPX_D_INFEAS;
+            pst = GLP_NOFEAS, dst = GLP_INFEAS;
             break;
          case 2:
             /* problem has unbounded solution */
             ret = 0;
-            pst = LPX_P_FEAS, dst = LPX_D_NOFEAS;
+            pst = GLP_FEAS, dst = GLP_NOFEAS;
 #if 1
             xassert(1 <= ssx->q && ssx->q <= n);
             lp->some = ssx->Q_col[m + ssx->q];
@@ -372,22 +373,22 @@ int glp_exact(glp_prob *lp, const glp_smcp *parm)
          case 3:
             /* iteration limit exceeded (phase I) */
             ret = GLP_EITLIM;
-            pst = LPX_P_INFEAS, dst = LPX_D_INFEAS;
+            pst = dst = GLP_INFEAS;
             break;
          case 4:
             /* iteration limit exceeded (phase II) */
             ret = GLP_EITLIM;
-            pst = LPX_P_FEAS, dst = LPX_D_INFEAS;
+            pst = GLP_FEAS, dst = GLP_INFEAS;
             break;
          case 5:
             /* time limit exceeded (phase I) */
             ret = GLP_ETMLIM;
-            pst = LPX_P_INFEAS, dst = LPX_D_INFEAS;
+            pst = dst = GLP_INFEAS;
             break;
          case 6:
             /* time limit exceeded (phase II) */
             ret = GLP_ETMLIM;
-            pst = LPX_P_FEAS, dst = LPX_D_INFEAS;
+            pst = GLP_FEAS, dst = GLP_INFEAS;
             break;
          case 7:
             /* initial basis matrix is singular */
@@ -396,57 +397,56 @@ int glp_exact(glp_prob *lp, const glp_smcp *parm)
          default:
             xassert(ret != ret);
       }
-      /* obtain final basic solution components */
-      stat = xcalloc(1+m+n, sizeof(int));
-      prim = xcalloc(1+m+n, sizeof(double));
-      dual = xcalloc(1+m+n, sizeof(double));
+      /* store final basic solution components into LP object */
+      lp->pbs_stat = pst;
+      lp->dbs_stat = dst;
+      sum = lp->c0;
       for (k = 1; k <= m+n; k++)
       {  if (ssx->stat[k] == SSX_BS)
          {  i = ssx->Q_row[k]; /* x[k] = xB[i] */
             xassert(1 <= i && i <= m);
-            stat[k] = LPX_BS;
-            prim[k] = mpq_get_d(ssx->bbar[i]);
-            dual[k] = 0.0;
+            stat = GLP_BS;
+            prim = mpq_get_d(ssx->bbar[i]);
+            dual = 0.0;
          }
          else
          {  j = ssx->Q_row[k] - m; /* x[k] = xN[j] */
             xassert(1 <= j && j <= n);
             switch (ssx->stat[k])
             {  case SSX_NF:
-                  stat[k] = LPX_NF;
-                  prim[k] = 0.0;
+                  stat = GLP_NF;
+                  prim = 0.0;
                   break;
                case SSX_NL:
-                  stat[k] = LPX_NL;
-                  prim[k] = mpq_get_d(ssx->lb[k]);
+                  stat = GLP_NL;
+                  prim = mpq_get_d(ssx->lb[k]);
                   break;
                case SSX_NU:
-                  stat[k] = LPX_NU;
-                  prim[k] = mpq_get_d(ssx->ub[k]);
+                  stat = GLP_NU;
+                  prim = mpq_get_d(ssx->ub[k]);
                   break;
                case SSX_NS:
-                  stat[k] = LPX_NS;
-                  prim[k] = mpq_get_d(ssx->lb[k]);
+                  stat = GLP_NS;
+                  prim = mpq_get_d(ssx->lb[k]);
                   break;
                default:
                   xassert(ssx != ssx);
             }
-            dual[k] = mpq_get_d(ssx->cbar[j]);
+            dual = mpq_get_d(ssx->cbar[j]);
+         }
+         if (k <= m)
+         {  glp_set_row_stat(lp, k, stat);
+            lp->row[k]->prim = prim;
+            lp->row[k]->dual = dual;
+         }
+         else
+         {  glp_set_col_stat(lp, k-m, stat);
+            lp->col[k-m]->prim = prim;
+            lp->col[k-m]->dual = dual;
+            sum += lp->col[k-m]->coef * prim;
          }
       }
-      /* and store them into the LP object */
-      pst = pst - LPX_P_UNDEF + GLP_UNDEF;
-      dst = dst - LPX_D_UNDEF + GLP_UNDEF;
-      for (k = 1; k <= m+n; k++)
-         stat[k] = stat[k] - LPX_BS + GLP_BS;
-      sum = lpx_get_obj_coef(lp, 0);
-      for (j = 1; j <= n; j++)
-         sum += lpx_get_obj_coef(lp, j) * prim[m+j];
-      lpx_put_solution(lp, 1, &pst, &dst, &sum,
-         &stat[0], &prim[0], &dual[0], &stat[m], &prim[m], &dual[m]);
-      xfree(stat);
-      xfree(prim);
-      xfree(dual);
+      lp->obj_val = sum;
 done: /* delete the simplex solver workspace */
       ssx_delete(ssx);
       /* return to the application program */

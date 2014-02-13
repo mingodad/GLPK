@@ -22,12 +22,11 @@
 *  along with GLPK. If not, see <http://www.gnu.org/licenses/>.
 ***********************************************************************/
 
-#if 1 /* 11/VI-2013 */
-#include "env2.h"
-#endif
-#define _GLPSTD_STDIO
-#include "glpapi.h"
-#include "glplib.h"
+#include "env.h"
+#include "misc.h"
+#include "prob.h"
+
+#define xfprintf glp_format
 
 struct csa
 {     /* common storage area */
@@ -35,7 +34,7 @@ struct csa
       /* label for go to in case of error */
       const char *fname;
       /* name of input text file */
-      XFILE *fp;
+      glp_file *fp;
       /* stream assigned to input text file */
       int count;
       /* line count */
@@ -76,10 +75,10 @@ static void read_char(struct csa *csa)
 {     /* read character from input text file */
       int c;
       if (csa->c == '\n') csa->count++;
-      c = xfgetc(csa->fp);
+      c = glp_getc(csa->fp);
       if (c < 0)
-      {  if (xferror(csa->fp))
-            error(csa, "read error - %s", xerrmsg());
+      {  if (glp_ioerr(csa->fp))
+            error(csa, "read error - %s", get_err_msg());
          else if (csa->c == '\n')
             error(csa, "unexpected end of file");
          else
@@ -222,9 +221,9 @@ int glp_read_mincost(glp_graph *G, int v_rhs, int a_low, int a_cap,
       csa->empty = csa->nonint = 0;
       xprintf("Reading min-cost flow problem data from `%s'...\n",
          fname);
-      csa->fp = xfopen(fname, "r");
+      csa->fp = glp_open(fname, "r");
       if (csa->fp == NULL)
-      {  xprintf("Unable to open `%s' - %s\n", fname, xerrmsg());
+      {  xprintf("Unable to open `%s' - %s\n", fname, get_err_msg());
          longjmp(csa->jump, 1);
       }
       /* read problem line */
@@ -314,7 +313,7 @@ int glp_read_mincost(glp_graph *G, int v_rhs, int a_low, int a_cap,
       }
       xprintf("%d lines were read\n", csa->count);
 done: if (ret) glp_erase_graph(G, G->v_size, G->a_size);
-      if (csa->fp != NULL) xfclose(csa->fp);
+      if (csa->fp != NULL) glp_close(csa->fp);
       if (flag != NULL) xfree(flag);
       return ret;
 }
@@ -341,7 +340,7 @@ done: if (ret) glp_erase_graph(G, G->v_size, G->a_size);
 
 int glp_write_mincost(glp_graph *G, int v_rhs, int a_low, int a_cap,
       int a_cost, const char *fname)
-{     XFILE *fp;
+{     glp_file *fp;
       glp_vertex *v;
       glp_arc *a;
       int i, count = 0, ret;
@@ -360,9 +359,9 @@ int glp_write_mincost(glp_graph *G, int v_rhs, int a_low, int a_cap,
             a_cost);
       xprintf("Writing min-cost flow problem data to `%s'...\n",
          fname);
-      fp = xfopen(fname, "w");
+      fp = glp_open(fname, "w");
       if (fp == NULL)
-      {  xprintf("Unable to create `%s' - %s\n", fname, xerrmsg());
+      {  xprintf("Unable to create `%s' - %s\n", fname, get_err_msg());
          ret = 1;
          goto done;
       }
@@ -398,15 +397,17 @@ int glp_write_mincost(glp_graph *G, int v_rhs, int a_low, int a_cap,
          }
       }
       xfprintf(fp, "c eof\n"), count++;
+#if 0 /* FIXME */
       xfflush(fp);
-      if (xferror(fp))
-      {  xprintf("Write error on `%s' - %s\n", fname, xerrmsg());
+#endif
+      if (glp_ioerr(fp))
+      {  xprintf("Write error on `%s' - %s\n", fname, get_err_msg());
          ret = 1;
          goto done;
       }
       xprintf("%d lines were written\n", count);
       ret = 0;
-done: if (fp != NULL) xfclose(fp);
+done: if (fp != NULL) glp_close(fp);
       return ret;
 }
 
@@ -452,9 +453,9 @@ int glp_read_maxflow(glp_graph *G, int *_s, int *_t, int a_cap,
       csa->empty = csa->nonint = 0;
       xprintf("Reading maximum flow problem data from `%s'...\n",
          fname);
-      csa->fp = xfopen(fname, "r");
+      csa->fp = glp_open(fname, "r");
       if (csa->fp == NULL)
-      {  xprintf("Unable to open `%s' - %s\n", fname, xerrmsg());
+      {  xprintf("Unable to open `%s' - %s\n", fname, get_err_msg());
          longjmp(csa->jump, 1);
       }
       /* read problem line */
@@ -533,7 +534,7 @@ int glp_read_maxflow(glp_graph *G, int *_s, int *_t, int a_cap,
       }
       xprintf("%d lines were read\n", csa->count);
 done: if (ret) glp_erase_graph(G, G->v_size, G->a_size);
-      if (csa->fp != NULL) xfclose(csa->fp);
+      if (csa->fp != NULL) glp_close(csa->fp);
       return ret;
 }
 
@@ -559,7 +560,7 @@ done: if (ret) glp_erase_graph(G, G->v_size, G->a_size);
 
 int glp_write_maxflow(glp_graph *G, int s, int t, int a_cap,
       const char *fname)
-{     XFILE *fp;
+{     glp_file *fp;
       glp_vertex *v;
       glp_arc *a;
       int i, count = 0, ret;
@@ -575,9 +576,9 @@ int glp_write_maxflow(glp_graph *G, int s, int t, int a_cap,
             a_cap);
       xprintf("Writing maximum flow problem data to `%s'...\n",
          fname);
-      fp = xfopen(fname, "w");
+      fp = glp_open(fname, "w");
       if (fp == NULL)
-      {  xprintf("Unable to create `%s' - %s\n", fname, xerrmsg());
+      {  xprintf("Unable to create `%s' - %s\n", fname, get_err_msg());
          ret = 1;
          goto done;
       }
@@ -598,15 +599,17 @@ int glp_write_maxflow(glp_graph *G, int s, int t, int a_cap,
          }
       }
       xfprintf(fp, "c eof\n"), count++;
+#if 0 /* FIXME */
       xfflush(fp);
-      if (xferror(fp))
-      {  xprintf("Write error on `%s' - %s\n", fname, xerrmsg());
+#endif
+      if (glp_ioerr(fp))
+      {  xprintf("Write error on `%s' - %s\n", fname, get_err_msg());
          ret = 1;
          goto done;
       }
       xprintf("%d lines were written\n", count);
       ret = 0;
-done: if (fp != NULL) xfclose(fp);
+done: if (fp != NULL) glp_close(fp);
       return ret;
 }
 
@@ -656,9 +659,9 @@ int glp_read_asnprob(glp_graph *G, int v_set, int a_cost, const char
       csa->field[0] = '\0';
       csa->empty = csa->nonint = 0;
       xprintf("Reading assignment problem data from `%s'...\n", fname);
-      csa->fp = xfopen(fname, "r");
+      csa->fp = glp_open(fname, "r");
       if (csa->fp == NULL)
-      {  xprintf("Unable to open `%s' - %s\n", fname, xerrmsg());
+      {  xprintf("Unable to open `%s' - %s\n", fname, get_err_msg());
          longjmp(csa->jump, 1);
       }
       /* read problem line */
@@ -733,7 +736,7 @@ int glp_read_asnprob(glp_graph *G, int v_set, int a_cost, const char
       }
       xprintf("%d lines were read\n", csa->count);
 done: if (ret) glp_erase_graph(G, G->v_size, G->a_size);
-      if (csa->fp != NULL) xfclose(csa->fp);
+      if (csa->fp != NULL) glp_close(csa->fp);
       if (flag != NULL) xfree(flag);
       return ret;
 }
@@ -760,7 +763,7 @@ done: if (ret) glp_erase_graph(G, G->v_size, G->a_size);
 
 int glp_write_asnprob(glp_graph *G, int v_set, int a_cost, const char
       *fname)
-{     XFILE *fp;
+{     glp_file *fp;
       glp_vertex *v;
       glp_arc *a;
       int i, k, count = 0, ret;
@@ -772,9 +775,9 @@ int glp_write_asnprob(glp_graph *G, int v_set, int a_cost, const char
          xerror("glp_write_asnprob: a_cost = %d; invalid offset\n",
             a_cost);
       xprintf("Writing assignment problem data to `%s'...\n", fname);
-      fp = xfopen(fname, "w");
+      fp = glp_open(fname, "w");
       if (fp == NULL)
-      {  xprintf("Unable to create `%s' - %s\n", fname, xerrmsg());
+      {  xprintf("Unable to create `%s' - %s\n", fname, get_err_msg());
          ret = 1;
          goto done;
       }
@@ -802,15 +805,17 @@ int glp_write_asnprob(glp_graph *G, int v_set, int a_cost, const char
          }
       }
       xfprintf(fp, "c eof\n"), count++;
+#if 0 /* FIXME */
       xfflush(fp);
-      if (xferror(fp))
-      {  xprintf("Write error on `%s' - %s\n", fname, xerrmsg());
+#endif
+      if (glp_ioerr(fp))
+      {  xprintf("Write error on `%s' - %s\n", fname, get_err_msg());
          ret = 1;
          goto done;
       }
       xprintf("%d lines were written\n", count);
       ret = 0;
-done: if (fp != NULL) xfclose(fp);
+done: if (fp != NULL) glp_close(fp);
       return ret;
 }
 
@@ -854,9 +859,9 @@ int glp_read_ccdata(glp_graph *G, int v_wgt, const char *fname)
       csa->field[0] = '\0';
       csa->empty = csa->nonint = 0;
       xprintf("Reading graph from `%s'...\n", fname);
-      csa->fp = xfopen(fname, "r");
+      csa->fp = glp_open(fname, "r");
       if (csa->fp == NULL)
-      {  xprintf("Unable to open `%s' - %s\n", fname, xerrmsg());
+      {  xprintf("Unable to open `%s' - %s\n", fname, get_err_msg());
          longjmp(csa->jump, 1);
       }
       /* read problem line */
@@ -928,7 +933,7 @@ int glp_read_ccdata(glp_graph *G, int v_wgt, const char *fname)
       }
       xprintf("%d lines were read\n", csa->count);
 done: if (ret) glp_erase_graph(G, G->v_size, G->a_size);
-      if (csa->fp != NULL) xfclose(csa->fp);
+      if (csa->fp != NULL) glp_close(csa->fp);
       if (flag != NULL) xfree(flag);
       return ret;
 }
@@ -953,7 +958,7 @@ done: if (ret) glp_erase_graph(G, G->v_size, G->a_size);
 *  it prints an error message and returns non-zero. */
 
 int glp_write_ccdata(glp_graph *G, int v_wgt, const char *fname)
-{     XFILE *fp;
+{     glp_file *fp;
       glp_vertex *v;
       glp_arc *e;
       int i, count = 0, ret;
@@ -962,9 +967,9 @@ int glp_write_ccdata(glp_graph *G, int v_wgt, const char *fname)
          xerror("glp_write_ccdata: v_wgt = %d; invalid offset\n",
             v_wgt);
       xprintf("Writing graph to `%s'\n", fname);
-      fp = xfopen(fname, "w");
+      fp = glp_open(fname, "w");
       if (fp == NULL)
-      {  xprintf("Unable to create `%s' - %s\n", fname, xerrmsg());
+      {  xprintf("Unable to create `%s' - %s\n", fname, get_err_msg());
          ret = 1;
          goto done;
       }
@@ -985,15 +990,17 @@ int glp_write_ccdata(glp_graph *G, int v_wgt, const char *fname)
             xfprintf(fp, "e %d %d\n", e->tail->i, e->head->i), count++;
       }
       xfprintf(fp, "c eof\n"), count++;
+#if 0 /* FIXME */
       xfflush(fp);
-      if (xferror(fp))
-      {  xprintf("Write error on `%s' - %s\n", fname, xerrmsg());
+#endif
+      if (glp_ioerr(fp))
+      {  xprintf("Write error on `%s' - %s\n", fname, get_err_msg());
          ret = 1;
          goto done;
       }
       xprintf("%d lines were written\n", count);
       ret = 0;
-done: if (fp != NULL) xfclose(fp);
+done: if (fp != NULL) glp_close(fp);
       return ret;
 }
 
@@ -1041,9 +1048,9 @@ int glp_read_prob(glp_prob *P, int flags, const char *fname)
       csa->field[0] = '\0';
       csa->empty = csa->nonint = 0;
       xprintf("Reading problem data from `%s'...\n", fname);
-      csa->fp = xfopen(fname, "r");
+      csa->fp = glp_open(fname, "r");
       if (csa->fp == NULL)
-      {  xprintf("Unable to open `%s' - %s\n", fname, xerrmsg());
+      {  xprintf("Unable to open `%s' - %s\n", fname, get_err_msg());
          longjmp(csa->jump, 1);
       }
       /* read problem line */
@@ -1325,7 +1332,7 @@ skip:       if (cf[j] & 0x01)
       /* problem data has been successfully read */
       glp_sort_matrix(P);
       ret = 0;
-done: if (csa->fp != NULL) xfclose(csa->fp);
+done: if (csa->fp != NULL) glp_close(csa->fp);
       if (rf != NULL) xfree(rf);
       if (cf != NULL) xfree(cf);
       if (ln != NULL) xfree(ln);
@@ -1354,7 +1361,7 @@ done: if (csa->fp != NULL) xfclose(csa->fp);
 *  it prints an error message and returns non-zero. */
 
 int glp_write_prob(glp_prob *P, int flags, const char *fname)
-{     XFILE *fp;
+{     glp_file *fp;
       GLPROW *row;
       GLPCOL *col;
       GLPAIJ *aij;
@@ -1369,9 +1376,9 @@ int glp_write_prob(glp_prob *P, int flags, const char *fname)
          xerror("glp_write_prob: fname = %d; invalid parameter\n",
             fname);
       xprintf("Writing problem data to `%s'...\n", fname);
-      fp = xfopen(fname, "w"), count = 0;
+      fp = glp_open(fname, "w"), count = 0;
       if (fp == NULL)
-      {  xprintf("Unable to create `%s' - %s\n", fname, xerrmsg());
+      {  xprintf("Unable to create `%s' - %s\n", fname, get_err_msg());
          ret = 1;
          goto done;
       }
@@ -1457,15 +1464,17 @@ skip2:   if (col->name != NULL)
       }
       /* write end line */
       xfprintf(fp, "e o f\n"), count++;
+#if 0 /* FIXME */
       xfflush(fp);
-      if (xferror(fp))
-      {  xprintf("Write error on `%s' - %s\n", fname, xerrmsg());
+#endif
+      if (glp_ioerr(fp))
+      {  xprintf("Write error on `%s' - %s\n", fname, get_err_msg());
          ret = 1;
          goto done;
       }
       xprintf("%d lines were written\n", count);
       ret = 0;
-done: if (fp != NULL) xfclose(fp);
+done: if (fp != NULL) glp_close(fp);
       return ret;
 }
 
@@ -1495,9 +1504,9 @@ int glp_read_cnfsat(glp_prob *P, const char *fname)
       csa->field[0] = '\0';
       csa->empty = csa->nonint = 0;
       xprintf("Reading CNF-SAT problem data from `%s'...\n", fname);
-      csa->fp = xfopen(fname, "r");
+      csa->fp = glp_open(fname, "r");
       if (csa->fp == NULL)
-      {  xprintf("Unable to open `%s' - %s\n", fname, xerrmsg());
+      {  xprintf("Unable to open `%s' - %s\n", fname, get_err_msg());
          longjmp(csa->jump, 1);
       }
       /* read problem line */
@@ -1560,7 +1569,7 @@ int glp_read_cnfsat(glp_prob *P, const char *fname)
       xprintf("%d lines were read\n", csa->count);
       /* problem data has been successfully read */
       glp_sort_matrix(P);
-done: if (csa->fp != NULL) xfclose(csa->fp);
+done: if (csa->fp != NULL) glp_close(csa->fp);
       if (ind != NULL) xfree(ind);
       if (val != NULL) xfree(val);
       if (map != NULL) xfree(map);
@@ -1627,7 +1636,7 @@ int glp_check_cnfsat(glp_prob *P)
 
 int glp_write_cnfsat(glp_prob *P, const char *fname)
 {     /* write CNF-SAT problem data in DIMACS format */
-      XFILE *fp = NULL;
+      glp_file *fp = NULL;
       GLPAIJ *aij;
       int i, j, len, count = 0, ret;
       char s[50];
@@ -1641,9 +1650,9 @@ int glp_write_cnfsat(glp_prob *P, const char *fname)
          goto done;
       }
       xprintf("Writing CNF-SAT problem data to `%s'...\n", fname);
-      fp = xfopen(fname, "w");
+      fp = glp_open(fname, "w");
       if (fp == NULL)
-      {  xprintf("Unable to create `%s' - %s\n", fname, xerrmsg());
+      {  xprintf("Unable to create `%s' - %s\n", fname, get_err_msg());
          ret = 1;
          goto done;
       }
@@ -1667,15 +1676,17 @@ int glp_write_cnfsat(glp_prob *P, const char *fname)
          xfprintf(fp, "%s0\n", len == 0 ? "" : " "), count++;
       }
       xfprintf(fp, "c eof\n"), count++;
+#if 0 /* FIXME */
       xfflush(fp);
-      if (xferror(fp))
-      {  xprintf("Write error on `%s' - %s\n", fname, xerrmsg());
+#endif
+      if (glp_ioerr(fp))
+      {  xprintf("Write error on `%s' - %s\n", fname, get_err_msg());
          ret = 1;
          goto done;
       }
       xprintf("%d lines were written\n", count);
       ret = 0;
-done: if (fp != NULL) xfclose(fp);
+done: if (fp != NULL) glp_close(fp);
       return ret;
 }
 

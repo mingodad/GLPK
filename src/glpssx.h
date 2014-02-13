@@ -1,4 +1,4 @@
-/* glpssx.h (simplex method, bignum arithmetic) */
+/* glpssx.h (simplex method, rational arithmetic) */
 
 /***********************************************************************
 *  This code is part of GLPK (GNU Linear Programming Kit).
@@ -25,7 +25,7 @@
 #ifndef GLPSSX_H
 #define GLPSSX_H
 
-#include "glpbfx.h"
+#include "bfx.h"
 #include "env.h"
 
 typedef struct SSX SSX;

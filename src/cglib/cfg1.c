@@ -22,7 +22,8 @@
 ***********************************************************************/
 
 #include "cfg.h"
-#include "glpapi.h"
+#include "env.h"
+#include "prob.h"
 #include "wclique.h"
 #include "wclique1.h"
 

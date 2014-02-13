@@ -1,4 +1,4 @@
-/* glplux.h (LU-factorization, bignum arithmetic) */
+/* lux.h (LU-factorization, rational arithmetic) */
 
 /***********************************************************************
 *  This code is part of GLPK (GNU Linear Programming Kit).
@@ -22,57 +22,57 @@
 *  along with GLPK. If not, see <http://www.gnu.org/licenses/>.
 ***********************************************************************/
 
-#ifndef GLPLUX_H
-#define GLPLUX_H
+#ifndef LUX_H
+#define LUX_H
 
 #include "dmp.h"
 #include "glpgmp.h"
 
-/*----------------------------------------------------------------------
-// The structure LUX defines LU-factorization of a square matrix A,
-// which is the following quartet:
-//
-//    [A] = (F, V, P, Q),                                            (1)
-//
-// where F and V are such matrices that
-//
-//    A = F * V,                                                     (2)
-//
-// and P and Q are such permutation matrices that the matrix
-//
-//    L = P * F * inv(P)                                             (3)
-//
-// is lower triangular with unity diagonal, and the matrix
-//
-//    U = P * V * Q                                                  (4)
-//
-// is upper triangular. All the matrices have the order n.
-//
-// The matrices F and V are stored in row/column-wise sparse format as
-// row and column linked lists of non-zero elements. Unity elements on
-// the main diagonal of the matrix F are not stored. Pivot elements of
-// the matrix V (that correspond to diagonal elements of the matrix U)
-// are also missing from the row and column lists and stored separately
-// in an ordinary array.
-//
-// The permutation matrices P and Q are stored as ordinary arrays using
-// both row- and column-like formats.
-//
-// The matrices L and U being completely defined by the matrices F, V,
-// P, and Q are not stored explicitly.
-//
-// It is easy to show that the factorization (1)-(3) is some version of
-// LU-factorization. Indeed, from (3) and (4) it follows that:
-//
-//    F = inv(P) * L * P,
-//
-//    V = inv(P) * U * inv(Q),
-//
-// and substitution into (2) gives:
-//
-//    A = F * V = inv(P) * L * U * inv(Q).
-//
-// For more details see the program documentation. */
+/***********************************************************************
+*  The structure LUX defines LU-factorization of a square matrix A,
+*  which is the following quartet:
+*
+*     [A] = (F, V, P, Q),                                            (1)
+*
+*  where F and V are such matrices that
+*
+*     A = F * V,                                                     (2)
+*
+*  and P and Q are such permutation matrices that the matrix
+*
+*     L = P * F * inv(P)                                             (3)
+*
+*  is lower triangular with unity diagonal, and the matrix
+*
+*     U = P * V * Q                                                  (4)
+*
+*  is upper triangular. All the matrices have the order n.
+*
+*  The matrices F and V are stored in row/column-wise sparse format as
+*  row and column linked lists of non-zero elements. Unity elements on
+*  the main diagonal of the matrix F are not stored. Pivot elements of
+*  the matrix V (that correspond to diagonal elements of the matrix U)
+*  are also missing from the row and column lists and stored separately
+*  in an ordinary array.
+*
+*  The permutation matrices P and Q are stored as ordinary arrays using
+*  both row- and column-like formats.
+*
+*  The matrices L and U being completely defined by the matrices F, V,
+*  P, and Q are not stored explicitly.
+*
+*  It is easy to show that the factorization (1)-(3) is some version of
+*  LU-factorization. Indeed, from (3) and (4) it follows that:
+*
+*     F = inv(P) * L * P,
+*
+*     V = inv(P) * U * inv(Q),
+*
+*  and substitution into (2) gives:
+*
+*     A = F * V = inv(P) * L * U * inv(Q).
+*
+*  For more details see the program documentation. */
 
 typedef struct LUX LUX;
 typedef struct LUXELM LUXELM;
@@ -190,29 +190,28 @@ struct LUXWKA
          is active and has the same length as j-th column */
 };
 
-#define lux_create            _glp_lux_create
-#define lux_decomp            _glp_lux_decomp
-#define lux_f_solve           _glp_lux_f_solve
-#define lux_v_solve           _glp_lux_v_solve
-#define lux_solve             _glp_lux_solve
-#define lux_delete            _glp_lux_delete
-
+#define lux_create _glp_lux_create
 LUX *lux_create(int n);
 /* create LU-factorization */
 
+#define lux_decomp _glp_lux_decomp
 int lux_decomp(LUX *lux, int (*col)(void *info, int j, int ind[],
       mpq_t val[]), void *info);
 /* compute LU-factorization */
 
+#define lux_f_solve _glp_lux_f_solve
 void lux_f_solve(LUX *lux, int tr, mpq_t x[]);
 /* solve system F*x = b or F'*x = b */
 
+#define lux_v_solve _glp_lux_v_solve
 void lux_v_solve(LUX *lux, int tr, mpq_t x[]);
 /* solve system V*x = b or V'*x = b */
 
+#define lux_solve _glp_lux_solve
 void lux_solve(LUX *lux, int tr, mpq_t x[]);
 /* solve system A*x = b or A'*x = b */
 
+#define lux_delete _glp_lux_delete
 void lux_delete(LUX *lux);
 /* delete LU-factorization */
 

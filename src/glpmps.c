@@ -22,11 +22,11 @@
 *  along with GLPK. If not, see <http://www.gnu.org/licenses/>.
 ***********************************************************************/
 
-#if 1 /* 11/VI-2013 */
-#include "env2.h"
-#endif
-#include "glpapi.h"
-#include "glplib.h"
+#include "env.h"
+#include "misc.h"
+#include "prob.h"
+
+#define xfprintf glp_format
 
 /***********************************************************************
 *  NAME
@@ -113,7 +113,7 @@ struct csa
       /* pointer to control parameters */
       const char *fname;
       /* name of input MPS file */
-      XFILE *fp;
+      glp_file *fp;
       /* stream assigned to input MPS file */
       jmp_buf jump;
       /* label for go to in case of error */
@@ -164,10 +164,10 @@ static void read_char(struct csa *csa)
       if (csa->c == '\n')
          csa->recno++, csa->recpos = 0;
       csa->recpos++;
-read: c = xfgetc(csa->fp);
+read: c = glp_getc(csa->fp);
       if (c < 0)
-      {  if (xferror(csa->fp))
-            error(csa, "read error - %s\n", xerrmsg());
+      {  if (glp_ioerr(csa->fp))
+            error(csa, "read error - %s\n", get_err_msg());
          else if (csa->c == '\n')
             error(csa, "unexpected end of file\n");
          else
@@ -915,9 +915,9 @@ int glp_read_mps(glp_prob *P, int fmt, const glp_mpscp *parm,
       glp_erase_prob(P);
       glp_create_index(P);
       /* open input MPS file */
-      csa->fp = xfopen(fname, "r");
+      csa->fp = glp_open(fname, "r");
       if (csa->fp == NULL)
-      {  xprintf("Unable to open `%s' - %s\n", fname, xerrmsg());
+      {  xprintf("Unable to open `%s' - %s\n", fname, get_err_msg());
          ret = 1;
          goto done;
       }
@@ -983,6 +983,25 @@ int glp_read_mps(glp_prob *P, int fmt, const glp_mpscp *parm,
       if (strcmp(csa->field, "ENDATA") != 0)
          error(csa, "invalid use of %s indicator record\n",
             csa->field);
+#if 1 /* 08/VIII-2013 */
+      /* remove free rows */
+      {  int i, nrs, *num;
+         num = talloc(1+P->m, int);
+         nrs = 0;
+         for (i = 1; i <= P->m; i++)
+         {  if (P->row[i]->type == GLP_FR)
+               num[++nrs] = i;
+         }
+         if (nrs > 0)
+         {  glp_del_rows(P, nrs, num);
+            if (nrs == 1)
+               xprintf("One free row was removed\n");
+            else
+               xprintf("%d free rows were removed\n", nrs);
+         }
+         tfree(num);
+      }
+#endif
       /* print some statistics */
       xprintf("%d row%s, %d column%s, %d non-zero%s\n",
          P->m, P->m == 1 ? "" : "s", P->n, P->n == 1 ? "" : "s",
@@ -1014,7 +1033,7 @@ int glp_read_mps(glp_prob *P, int fmt, const glp_mpscp *parm,
       glp_delete_index(P);
       glp_sort_matrix(P);
       ret = 0;
-done: if (csa->fp != NULL) xfclose(csa->fp);
+done: if (csa->fp != NULL) glp_close(csa->fp);
       if (csa->work1 != NULL) xfree(csa->work1);
       if (csa->work2 != NULL) xfree(csa->work2);
       if (csa->work3 != NULL) xfree(csa->work3);
@@ -1137,7 +1156,7 @@ int glp_write_mps(glp_prob *P, int fmt, const glp_mpscp *parm,
 {     /* write problem data in MPS format */
       glp_mpscp _parm;
       struct csa _csa, *csa = &_csa;
-      XFILE *fp;
+      glp_file *fp;
       int out_obj, one_col = 0, empty = 0;
       int i, j, recno, marker, count, gap, ret;
       xprintf("Writing problem data to `%s'...\n", fname);
@@ -1152,9 +1171,9 @@ int glp_write_mps(glp_prob *P, int fmt, const glp_mpscp *parm,
       csa->deck = (fmt == GLP_MPS_DECK);
       csa->parm = parm;
       /* create output MPS file */
-      fp = xfopen(fname, "w"), recno = 0;
+      fp = glp_open(fname, "w"), recno = 0;
       if (fp == NULL)
-      {  xprintf("Unable to create `%s' - %s\n", fname, xerrmsg());
+      {  xprintf("Unable to create `%s' - %s\n", fname, get_err_msg());
          ret = 1;
          goto done;
       }
@@ -1396,16 +1415,18 @@ bnds: /* write BOUNDS section */
       }
 endt: /* write ENDATA indicator record */
       xfprintf(fp, "ENDATA\n"), recno++;
+#if 0 /* FIXME */
       xfflush(fp);
-      if (xferror(fp))
-      {  xprintf("Write error on `%s' - %s\n", fname, xerrmsg());
+#endif
+      if (glp_ioerr(fp))
+      {  xprintf("Write error on `%s' - %s\n", fname, get_err_msg());
          ret = 1;
          goto done;
       }
       /* problem data has been successfully written */
       xprintf("%d records were written\n", recno);
       ret = 0;
-done: if (fp != NULL) xfclose(fp);
+done: if (fp != NULL) glp_close(fp);
       return ret;
 }
 
