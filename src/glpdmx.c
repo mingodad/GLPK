@@ -142,7 +142,7 @@ static void read_field(struct csa *csa)
          error(csa, "unexpected end of line");
       while (!(csa->c == ' ' || csa->c == '\n'))
       {  if (len == sizeof(csa->field)-1)
-            error(csa, "data field `%.15s...' too long", csa->field);
+            error(csa, "data field '%.15s...' too long", csa->field);
          csa->field[len++] = (char)csa->c;
          read_char(csa);
       }
@@ -219,11 +219,11 @@ int glp_read_mincost(glp_graph *G, int v_rhs, int a_low, int a_cap,
       csa->c = '\n';
       csa->field[0] = '\0';
       csa->empty = csa->nonint = 0;
-      xprintf("Reading min-cost flow problem data from `%s'...\n",
+      xprintf("Reading min-cost flow problem data from '%s'...\n",
          fname);
       csa->fp = glp_open(fname, "r");
       if (csa->fp == NULL)
-      {  xprintf("Unable to open `%s' - %s\n", fname, get_err_msg());
+      {  xprintf("Unable to open '%s' - %s\n", fname, get_err_msg());
          longjmp(csa->jump, 1);
       }
       /* read problem line */
@@ -232,7 +232,7 @@ int glp_read_mincost(glp_graph *G, int v_rhs, int a_low, int a_cap,
          error(csa, "problem line missing or invalid");
       read_field(csa);
       if (strcmp(csa->field, "min") != 0)
-         error(csa, "wrong problem designator; `min' expected");
+         error(csa, "wrong problem designator; 'min' expected");
       read_field(csa);
       if (!(str2int(csa->field, &nv) == 0 && nv >= 0))
          error(csa, "number of nodes missing or invalid");
@@ -279,7 +279,7 @@ int glp_read_mincost(glp_graph *G, int v_rhs, int a_low, int a_cap,
       for (k = 1; k <= na; k++)
       {  if (k > 1) read_designator(csa);
          if (strcmp(csa->field, "a") != 0)
-            error(csa, "wrong line designator; `a' expected");
+            error(csa, "wrong line designator; 'a' expected");
          read_field(csa);
          if (str2int(csa->field, &i) != 0)
             error(csa, "starting node number missing or invalid");
@@ -357,11 +357,11 @@ int glp_write_mincost(glp_graph *G, int v_rhs, int a_low, int a_cap,
       if (a_cost >= 0 && a_cost > G->a_size - (int)sizeof(double))
          xerror("glp_write_mincost: a_cost = %d; invalid offset\n",
             a_cost);
-      xprintf("Writing min-cost flow problem data to `%s'...\n",
+      xprintf("Writing min-cost flow problem data to '%s'...\n",
          fname);
       fp = glp_open(fname, "w");
       if (fp == NULL)
-      {  xprintf("Unable to create `%s' - %s\n", fname, get_err_msg());
+      {  xprintf("Unable to create '%s' - %s\n", fname, get_err_msg());
          ret = 1;
          goto done;
       }
@@ -401,7 +401,7 @@ int glp_write_mincost(glp_graph *G, int v_rhs, int a_low, int a_cap,
       xfflush(fp);
 #endif
       if (glp_ioerr(fp))
-      {  xprintf("Write error on `%s' - %s\n", fname, get_err_msg());
+      {  xprintf("Write error on '%s' - %s\n", fname, get_err_msg());
          ret = 1;
          goto done;
       }
@@ -451,11 +451,11 @@ int glp_read_maxflow(glp_graph *G, int *_s, int *_t, int a_cap,
       csa->c = '\n';
       csa->field[0] = '\0';
       csa->empty = csa->nonint = 0;
-      xprintf("Reading maximum flow problem data from `%s'...\n",
+      xprintf("Reading maximum flow problem data from '%s'...\n",
          fname);
       csa->fp = glp_open(fname, "r");
       if (csa->fp == NULL)
-      {  xprintf("Unable to open `%s' - %s\n", fname, get_err_msg());
+      {  xprintf("Unable to open '%s' - %s\n", fname, get_err_msg());
          longjmp(csa->jump, 1);
       }
       /* read problem line */
@@ -464,7 +464,7 @@ int glp_read_maxflow(glp_graph *G, int *_s, int *_t, int a_cap,
          error(csa, "problem line missing or invalid");
       read_field(csa);
       if (strcmp(csa->field, "max") != 0)
-         error(csa, "wrong problem designator; `max' expected");
+         error(csa, "wrong problem designator; 'max' expected");
       read_field(csa);
       if (!(str2int(csa->field, &nv) == 0 && nv >= 2))
          error(csa, "number of nodes missing or invalid");
@@ -497,7 +497,7 @@ int glp_read_maxflow(glp_graph *G, int *_s, int *_t, int a_cap,
             t = i;
          }
          else
-            error(csa, "wrong node designator; `s' or `t' expected");
+            error(csa, "wrong node designator; 's' or 't' expected");
          if (s > 0 && s == t)
             error(csa, "source and sink nodes must be distinct");
          end_of_line(csa);
@@ -512,7 +512,7 @@ int glp_read_maxflow(glp_graph *G, int *_s, int *_t, int a_cap,
       for (k = 1; k <= na; k++)
       {  if (k > 1) read_designator(csa);
          if (strcmp(csa->field, "a") != 0)
-            error(csa, "wrong line designator; `a' expected");
+            error(csa, "wrong line designator; 'a' expected");
          read_field(csa);
          if (str2int(csa->field, &i) != 0)
             error(csa, "starting node number missing or invalid");
@@ -574,11 +574,11 @@ int glp_write_maxflow(glp_graph *G, int s, int t, int a_cap,
       if (a_cap >= 0 && a_cap > G->a_size - (int)sizeof(double))
          xerror("glp_write_mincost: a_cap = %d; invalid offset\n",
             a_cap);
-      xprintf("Writing maximum flow problem data to `%s'...\n",
+      xprintf("Writing maximum flow problem data to '%s'...\n",
          fname);
       fp = glp_open(fname, "w");
       if (fp == NULL)
-      {  xprintf("Unable to create `%s' - %s\n", fname, get_err_msg());
+      {  xprintf("Unable to create '%s' - %s\n", fname, get_err_msg());
          ret = 1;
          goto done;
       }
@@ -603,7 +603,7 @@ int glp_write_maxflow(glp_graph *G, int s, int t, int a_cap,
       xfflush(fp);
 #endif
       if (glp_ioerr(fp))
-      {  xprintf("Write error on `%s' - %s\n", fname, get_err_msg());
+      {  xprintf("Write error on '%s' - %s\n", fname, get_err_msg());
          ret = 1;
          goto done;
       }
@@ -658,10 +658,10 @@ int glp_read_asnprob(glp_graph *G, int v_set, int a_cost, const char
       csa->c = '\n';
       csa->field[0] = '\0';
       csa->empty = csa->nonint = 0;
-      xprintf("Reading assignment problem data from `%s'...\n", fname);
+      xprintf("Reading assignment problem data from '%s'...\n", fname);
       csa->fp = glp_open(fname, "r");
       if (csa->fp == NULL)
-      {  xprintf("Unable to open `%s' - %s\n", fname, get_err_msg());
+      {  xprintf("Unable to open '%s' - %s\n", fname, get_err_msg());
          longjmp(csa->jump, 1);
       }
       /* read problem line */
@@ -670,7 +670,7 @@ int glp_read_asnprob(glp_graph *G, int v_set, int a_cost, const char
          error(csa, "problem line missing or invalid");
       read_field(csa);
       if (strcmp(csa->field, "asn") != 0)
-         error(csa, "wrong problem designator; `asn' expected");
+         error(csa, "wrong problem designator; 'asn' expected");
       read_field(csa);
       if (!(str2int(csa->field, &nv) == 0 && nv >= 0))
          error(csa, "number of nodes missing or invalid");
@@ -710,7 +710,7 @@ int glp_read_asnprob(glp_graph *G, int v_set, int a_cost, const char
       for (k = 1; k <= na; k++)
       {  if (k > 1) read_designator(csa);
          if (strcmp(csa->field, "a") != 0)
-            error(csa, "wrong line designator; `a' expected");
+            error(csa, "wrong line designator; 'a' expected");
          read_field(csa);
          if (str2int(csa->field, &i) != 0)
             error(csa, "starting node number missing or invalid");
@@ -774,10 +774,10 @@ int glp_write_asnprob(glp_graph *G, int v_set, int a_cost, const char
       if (a_cost >= 0 && a_cost > G->a_size - (int)sizeof(double))
          xerror("glp_write_asnprob: a_cost = %d; invalid offset\n",
             a_cost);
-      xprintf("Writing assignment problem data to `%s'...\n", fname);
+      xprintf("Writing assignment problem data to '%s'...\n", fname);
       fp = glp_open(fname, "w");
       if (fp == NULL)
-      {  xprintf("Unable to create `%s' - %s\n", fname, get_err_msg());
+      {  xprintf("Unable to create '%s' - %s\n", fname, get_err_msg());
          ret = 1;
          goto done;
       }
@@ -809,7 +809,7 @@ int glp_write_asnprob(glp_graph *G, int v_set, int a_cost, const char
       xfflush(fp);
 #endif
       if (glp_ioerr(fp))
-      {  xprintf("Write error on `%s' - %s\n", fname, get_err_msg());
+      {  xprintf("Write error on '%s' - %s\n", fname, get_err_msg());
          ret = 1;
          goto done;
       }
@@ -858,10 +858,10 @@ int glp_read_ccdata(glp_graph *G, int v_wgt, const char *fname)
       csa->c = '\n';
       csa->field[0] = '\0';
       csa->empty = csa->nonint = 0;
-      xprintf("Reading graph from `%s'...\n", fname);
+      xprintf("Reading graph from '%s'...\n", fname);
       csa->fp = glp_open(fname, "r");
       if (csa->fp == NULL)
-      {  xprintf("Unable to open `%s' - %s\n", fname, get_err_msg());
+      {  xprintf("Unable to open '%s' - %s\n", fname, get_err_msg());
          longjmp(csa->jump, 1);
       }
       /* read problem line */
@@ -870,7 +870,7 @@ int glp_read_ccdata(glp_graph *G, int v_wgt, const char *fname)
          error(csa, "problem line missing or invalid");
       read_field(csa);
       if (strcmp(csa->field, "edge") != 0)
-         error(csa, "wrong problem designator; `edge' expected");
+         error(csa, "wrong problem designator; 'edge' expected");
       read_field(csa);
       if (!(str2int(csa->field, &nv) == 0 && nv >= 0))
          error(csa, "number of vertices missing or invalid");
@@ -917,7 +917,7 @@ int glp_read_ccdata(glp_graph *G, int v_wgt, const char *fname)
       for (k = 1; k <= ne; k++)
       {  if (k > 1) read_designator(csa);
          if (strcmp(csa->field, "e") != 0)
-            error(csa, "wrong line designator; `e' expected");
+            error(csa, "wrong line designator; 'e' expected");
          read_field(csa);
          if (str2int(csa->field, &i) != 0)
             error(csa, "first vertex number missing or invalid");
@@ -966,10 +966,10 @@ int glp_write_ccdata(glp_graph *G, int v_wgt, const char *fname)
       if (v_wgt >= 0 && v_wgt > G->v_size - (int)sizeof(double))
          xerror("glp_write_ccdata: v_wgt = %d; invalid offset\n",
             v_wgt);
-      xprintf("Writing graph to `%s'\n", fname);
+      xprintf("Writing graph to '%s'\n", fname);
       fp = glp_open(fname, "w");
       if (fp == NULL)
-      {  xprintf("Unable to create `%s' - %s\n", fname, get_err_msg());
+      {  xprintf("Unable to create '%s' - %s\n", fname, get_err_msg());
          ret = 1;
          goto done;
       }
@@ -994,7 +994,7 @@ int glp_write_ccdata(glp_graph *G, int v_wgt, const char *fname)
       xfflush(fp);
 #endif
       if (glp_ioerr(fp))
-      {  xprintf("Write error on `%s' - %s\n", fname, get_err_msg());
+      {  xprintf("Write error on '%s' - %s\n", fname, get_err_msg());
          ret = 1;
          goto done;
       }
@@ -1047,10 +1047,10 @@ int glp_read_prob(glp_prob *P, int flags, const char *fname)
       csa->c = '\n';
       csa->field[0] = '\0';
       csa->empty = csa->nonint = 0;
-      xprintf("Reading problem data from `%s'...\n", fname);
+      xprintf("Reading problem data from '%s'...\n", fname);
       csa->fp = glp_open(fname, "r");
       if (csa->fp == NULL)
-      {  xprintf("Unable to open `%s' - %s\n", fname, get_err_msg());
+      {  xprintf("Unable to open '%s' - %s\n", fname, get_err_msg());
          longjmp(csa->jump, 1);
       }
       /* read problem line */
@@ -1063,7 +1063,7 @@ int glp_read_prob(glp_prob *P, int flags, const char *fname)
       else if (strcmp(csa->field, "mip") == 0)
          mip = 1;
       else
-         error(csa, "wrong problem designator; `lp' or `mip' expected\n"
+         error(csa, "wrong problem designator; 'lp' or 'mip' expected\n"
             );
       read_field(csa);
       if (strcmp(csa->field, "min") == 0)
@@ -1375,10 +1375,10 @@ int glp_write_prob(glp_prob *P, int flags, const char *fname)
       if (fname == NULL)
          xerror("glp_write_prob: fname = %d; invalid parameter\n",
             fname);
-      xprintf("Writing problem data to `%s'...\n", fname);
+      xprintf("Writing problem data to '%s'...\n", fname);
       fp = glp_open(fname, "w"), count = 0;
       if (fp == NULL)
-      {  xprintf("Unable to create `%s' - %s\n", fname, get_err_msg());
+      {  xprintf("Unable to create '%s' - %s\n", fname, get_err_msg());
          ret = 1;
          goto done;
       }
@@ -1468,7 +1468,7 @@ skip2:   if (col->name != NULL)
       xfflush(fp);
 #endif
       if (glp_ioerr(fp))
-      {  xprintf("Write error on `%s' - %s\n", fname, get_err_msg());
+      {  xprintf("Write error on '%s' - %s\n", fname, get_err_msg());
          ret = 1;
          goto done;
       }
@@ -1503,10 +1503,10 @@ int glp_read_cnfsat(glp_prob *P, const char *fname)
       csa->c = '\n';
       csa->field[0] = '\0';
       csa->empty = csa->nonint = 0;
-      xprintf("Reading CNF-SAT problem data from `%s'...\n", fname);
+      xprintf("Reading CNF-SAT problem data from '%s'...\n", fname);
       csa->fp = glp_open(fname, "r");
       if (csa->fp == NULL)
-      {  xprintf("Unable to open `%s' - %s\n", fname, get_err_msg());
+      {  xprintf("Unable to open '%s' - %s\n", fname, get_err_msg());
          longjmp(csa->jump, 1);
       }
       /* read problem line */
@@ -1515,7 +1515,7 @@ int glp_read_cnfsat(glp_prob *P, const char *fname)
          error(csa, "problem line missing or invalid");
       read_field(csa);
       if (strcmp(csa->field, "cnf") != 0)
-         error(csa, "wrong problem designator; `cnf' expected\n");
+         error(csa, "wrong problem designator; 'cnf' expected\n");
       read_field(csa);
       if (!(str2int(csa->field, &n) == 0 && n >= 0))
          error(csa, "number of variables missing or invalid\n");
@@ -1649,10 +1649,10 @@ int glp_write_cnfsat(glp_prob *P, const char *fname)
          ret = 1;
          goto done;
       }
-      xprintf("Writing CNF-SAT problem data to `%s'...\n", fname);
+      xprintf("Writing CNF-SAT problem data to '%s'...\n", fname);
       fp = glp_open(fname, "w");
       if (fp == NULL)
-      {  xprintf("Unable to create `%s' - %s\n", fname, get_err_msg());
+      {  xprintf("Unable to create '%s' - %s\n", fname, get_err_msg());
          ret = 1;
          goto done;
       }
@@ -1680,7 +1680,7 @@ int glp_write_cnfsat(glp_prob *P, const char *fname)
       xfflush(fp);
 #endif
       if (glp_ioerr(fp))
-      {  xprintf("Write error on `%s' - %s\n", fname, get_err_msg());
+      {  xprintf("Write error on '%s' - %s\n", fname, get_err_msg());
          ret = 1;
          goto done;
       }

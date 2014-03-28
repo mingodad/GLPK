@@ -1,3 +1,41 @@
+GLPK 4.54 (release date: Mar 28, 2014)
+
+        Block-triangular LU-factorization was implemented to be used
+        on computing an initial factorization of the basis matrix.
+
+        A new version of the Schur-complement-based factorization
+        module was included in the package. Now it can be used along
+        with plain as well as with block-triangular LU-factorization.
+
+        Currently the following flags can be used to specify the type
+        of the basis matrix factorization (glp_bfcp.type):
+
+        GLP_BF_LUF + GLP_BF_FT   LUF, Forrest-Tomlin update (default)
+        GLP_BF_LUF + GLP_BF_BG   LUF, Schur complement, Bartels-Golub
+                                 update
+        GLP_BF_LUF + GLP_BF_GR   LUF, Schur complement, Givens rotation
+                                 update
+        GLP_BF_BTF + GLP_BF_BG   BTF, Schur complement, Bartels-Golub
+                                 update
+        GLP_BF_BTF + GLP_BF_GR   BTF, Schur complement, Givens rotation
+                                 update
+
+        In case of GLP_BF_FT the update is applied to matrix U, while
+        in cases of GLP_BF_BG and GLP_BF_GR the update is applied to
+        the Schur complement.
+
+        Corresponding new options --luf and --btf were added to glpsol.
+
+        For more details please see a new edition of the GLPK reference
+        manual included in the distribution.
+
+        A minor bug (in reporting the mip solution status) was fixed.
+        Thanks to Remy Roy <remyroyster@gmail.com> for bug report.
+
+        A call to "iodbc-config --cflags" was added in configure.ac
+        to correctly detect iodbc flags. Thanks to Sebastien Villemot
+        <sebastien@debian.org> for patch.
+
 GLPK 4.53 (release date: Feb 13, 2014)
 
         The API routine glp_read_mps was changed to remove free rows.

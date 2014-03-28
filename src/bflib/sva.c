@@ -501,7 +501,11 @@ void sva_check_area(SVA *sva)
       int *prev = sva->prev;
       int *next = sva->next;
       int k;
+#if 0 /* 16/II-2004; SVA may be empty */
       xassert(1 <= n && n <= n_max);
+#else
+      xassert(0 <= n && n <= n_max);
+#endif
       xassert(1 <= m_ptr && m_ptr <= r_ptr && r_ptr <= size+1);
       /* all vectors included the linked list should have non-zero
        * capacity and be stored in the left part */

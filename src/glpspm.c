@@ -266,7 +266,7 @@ int spm_show_mat(const SPM *A, const char *fname)
       int n = A->n;
       int i, j, k, ret;
       char *map;
-      xprintf("spm_show_mat: writing matrix pattern to `%s'...\n",
+      xprintf("spm_show_mat: writing matrix pattern to '%s'...\n",
          fname);
       xassert(1 <= m && m <= 32767);
       xassert(1 <= n && n <= 32767);
@@ -346,7 +346,7 @@ SPM *spm_read_hbm(const char *fname)
       if (!(strcmp(mxtype, "RSA") == 0 || strcmp(mxtype, "PSA") == 0 ||
             strcmp(mxtype, "RUA") == 0 || strcmp(mxtype, "PUA") == 0 ||
             strcmp(mxtype, "RRA") == 0 || strcmp(mxtype, "PRA") == 0))
-      {  xprintf("spm_read_hbm: matrix type `%s' not supported\n",
+      {  xprintf("spm_read_hbm: matrix type '%s' not supported\n",
             mxtype);
          goto fini;
       }
@@ -486,10 +486,10 @@ SPM *spm_read_mat(const char *fname)
       jmp_buf jump;
       int i, j, k, m, n, nnz, fail = 0;
       double val;
-      xprintf("spm_read_mat: reading matrix from `%s'...\n", fname);
+      xprintf("spm_read_mat: reading matrix from '%s'...\n", fname);
       pds = pds_open_file(fname);
       if (pds == NULL)
-      {  xprintf("spm_read_mat: unable to open `%s' - %s\n", fname,
+      {  xprintf("spm_read_mat: unable to open '%s' - %s\n", fname,
             strerror(errno));
          fail = 1;
          goto done;
@@ -582,10 +582,10 @@ int spm_write_mat(const SPM *A, const char *fname)
 int spm_write_mat(const SPM *A, const char *fname)
 {     FILE *fp;
       int i, nnz, ret = 0;
-      xprintf("spm_write_mat: writing matrix to `%s'...\n", fname);
+      xprintf("spm_write_mat: writing matrix to '%s'...\n", fname);
       fp = fopen(fname, "w");
       if (fp == NULL)
-      {  xprintf("spm_write_mat: unable to create `%s' - %s\n", fname,
+      {  xprintf("spm_write_mat: unable to create '%s' - %s\n", fname,
             strerror(errno));
          ret = 1;
          goto done;
@@ -604,7 +604,7 @@ int spm_write_mat(const SPM *A, const char *fname)
       }
       fflush(fp);
       if (ferror(fp))
-      {  xprintf("spm_write_mat: writing error on `%s' - %s\n", fname,
+      {  xprintf("spm_write_mat: writing error on '%s' - %s\n", fname,
             strerror(errno));
          ret = 1;
          goto done;

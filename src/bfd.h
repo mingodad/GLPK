@@ -32,14 +32,26 @@ typedef struct BFD BFD;
 #define BFD_ECOND    2  /* ill-conditioned matrix */
 #define BFD_ECHECK   3  /* insufficient accuracy */
 #define BFD_ELIMIT   4  /* update limit reached */
+#if 0 /* 05/III-2014 */
 #define BFD_EROOM    5  /* SVA overflow */
+#endif
 
 #define bfd_create_it _glp_bfd_create_it
 BFD *bfd_create_it(void);
 /* create LP basis factorization */
 
+#if 0 /* 08/III-2014 */
 #define bfd_set_parm _glp_bfd_set_parm
 void bfd_set_parm(BFD *bfd, const void *parm);
+/* change LP basis factorization control parameters */
+#endif
+
+#define bfd_get_bfcp _glp_bfd_get_bfcp
+void bfd_get_bfcp(BFD *bfd, void /* glp_bfcp */ *parm);
+/* retrieve LP basis factorization control parameters */
+
+#define bfd_set_bfcp _glp_bfd_set_bfcp
+void bfd_set_bfcp(BFD *bfd, const void /* glp_bfcp */ *parm);
 /* change LP basis factorization control parameters */
 
 #define bfd_factorize _glp_bfd_factorize

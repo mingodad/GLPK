@@ -1,6 +1,6 @@
 dnl Process this file with autoconf to produce a configure script
 
-AC_INIT([GLPK], [4.53], [bug-glpk@gnu.org])
+AC_INIT([GLPK], [4.54], [bug-glpk@gnu.org])
 
 AC_CONFIG_SRCDIR([src/glpk.h])
 
@@ -117,6 +117,7 @@ if test "$enable_odbc" = "yes"; then
       AC_MSG_ERROR([--enable-odbc requires --enable-dl])
    fi
    AC_MSG_RESULT([yes])
+   CFLAGS="$(iodbc-config --cflags) $CFLAGS"
    AC_DEFINE_UNQUOTED([ODBC_DLNAME], ["$LIBIODBC"], [N/A])
 elif test "$enable_odbc" = "unix"; then
    if test "$enable_dl" = "no"; then

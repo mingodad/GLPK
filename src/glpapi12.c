@@ -106,8 +106,6 @@ static int b_col(void *info, int j, int ind[], double val[])
       return len;
 }
 
-static void copy_bfcp(glp_prob *lp);
-
 int glp_factorize(glp_prob *lp)
 {     int m = lp->m;
       int n = lp->n;
@@ -151,7 +149,9 @@ int glp_factorize(glp_prob *lp)
       if (m > 0)
       {  if (lp->bfd == NULL)
          {  lp->bfd = bfd_create_it();
+#if 0 /* 08/III-2014 */
             copy_bfcp(lp);
+#endif
          }
          switch (bfd_factorize(lp->bfd, m, lp->head, b_col, lp))
          {  case 0:
@@ -221,25 +221,14 @@ int glp_bf_updated(glp_prob *lp)
 *  Current values of control parameters are stored by the routine in
 *  a glp_bfcp structure, which the parameter parm points to. */
 
-void glp_get_bfcp(glp_prob *lp, glp_bfcp *parm)
-{     glp_bfcp *bfcp = lp->bfcp;
-      if (bfcp == NULL)
-      {  parm->type = GLP_BF_FT;
-         parm->lu_size = 0;
-         parm->piv_tol = 0.10;
-         parm->piv_lim = 4;
-         parm->suhl = GLP_ON;
-         parm->eps_tol = 1e-15;
-         parm->max_gro = 1e+10;
-         parm->nfs_max = 100;
-         parm->upd_tol = 1e-6;
-         parm->nrs_max = 100;
-         parm->rs_size = 0;
-      }
-      else
-         memcpy(parm, bfcp, sizeof(glp_bfcp));
+#if 1 /* 08/III-2014 */
+void glp_get_bfcp(glp_prob *P, glp_bfcp *parm)
+{     if (P->bfd == NULL)
+         P->bfd = bfd_create_it();
+      bfd_get_bfcp(P->bfd, parm);
       return;
 }
+#endif
 
 /***********************************************************************
 *  NAME
@@ -262,86 +251,41 @@ void glp_get_bfcp(glp_prob *lp, glp_bfcp *parm)
 *  The parameter parm can be specified as NULL, in which case all
 *  control parameters are reset to their default values. */
 
-#if 0 /* 15/XI-2009 */
-static void copy_bfcp(glp_prob *lp)
-{     glp_bfcp _parm, *parm = &_parm;
-      BFD *bfd = lp->bfd;
-      glp_get_bfcp(lp, parm);
-      xassert(bfd != NULL);
-      bfd->type = parm->type;
-      bfd->lu_size = parm->lu_size;
-      bfd->piv_tol = parm->piv_tol;
-      bfd->piv_lim = parm->piv_lim;
-      bfd->suhl = parm->suhl;
-      bfd->eps_tol = parm->eps_tol;
-      bfd->max_gro = parm->max_gro;
-      bfd->nfs_max = parm->nfs_max;
-      bfd->upd_tol = parm->upd_tol;
-      bfd->nrs_max = parm->nrs_max;
-      bfd->rs_size = parm->rs_size;
-      return;
-}
-#else
-static void copy_bfcp(glp_prob *lp)
-{     glp_bfcp _parm, *parm = &_parm;
-      glp_get_bfcp(lp, parm);
-      bfd_set_parm(lp->bfd, parm);
+#if 1 /* 08/III-2014 */
+void glp_set_bfcp(glp_prob *P, const glp_bfcp *parm)
+{     if (P->bfd == NULL)
+         P->bfd = bfd_create_it();
+      if (parm != NULL)
+      {  if (!(parm->type == GLP_BF_LUF + GLP_BF_FT ||
+               parm->type == GLP_BF_LUF + GLP_BF_BG ||
+               parm->type == GLP_BF_LUF + GLP_BF_GR ||
+               parm->type == GLP_BF_BTF + GLP_BF_BG ||
+               parm->type == GLP_BF_BTF + GLP_BF_GR))
+            xerror("glp_set_bfcp: type = 0x%02X; invalid parameter\n",
+               parm->type);
+         if (!(0.0 < parm->piv_tol && parm->piv_tol < 1.0))
+            xerror("glp_set_bfcp: piv_tol = %g; invalid parameter\n",
+               parm->piv_tol);
+         if (parm->piv_lim < 1)
+            xerror("glp_set_bfcp: piv_lim = %d; invalid parameter\n",
+               parm->piv_lim);
+         if (!(parm->suhl == GLP_ON || parm->suhl == GLP_OFF))
+            xerror("glp_set_bfcp: suhl = %d; invalid parameter\n",
+               parm->suhl);
+         if (!(0.0 <= parm->eps_tol && parm->eps_tol <= 1e-6))
+            xerror("glp_set_bfcp: eps_tol = %g; invalid parameter\n",
+               parm->eps_tol);
+         if (!(1 <= parm->nfs_max && parm->nfs_max <= 32767))
+            xerror("glp_set_bfcp: nfs_max = %d; invalid parameter\n",
+               parm->nfs_max);
+         if (!(1 <= parm->nrs_max && parm->nrs_max <= 32767))
+            xerror("glp_set_bfcp: nrs_max = %d; invalid parameter\n",
+               parm->nrs_max);
+      }
+      bfd_set_bfcp(P->bfd, parm);
       return;
 }
 #endif
-
-void glp_set_bfcp(glp_prob *lp, const glp_bfcp *parm)
-{     glp_bfcp *bfcp = lp->bfcp;
-      if (parm == NULL)
-      {  /* reset to default values */
-         if (bfcp != NULL)
-            xfree(bfcp), lp->bfcp = NULL;
-      }
-      else
-      {  /* set to specified values */
-         if (bfcp == NULL)
-            bfcp = lp->bfcp = xmalloc(sizeof(glp_bfcp));
-         memcpy(bfcp, parm, sizeof(glp_bfcp));
-         if (!(bfcp->type == GLP_BF_FT || bfcp->type == GLP_BF_BG ||
-               bfcp->type == GLP_BF_GR))
-            xerror("glp_set_bfcp: type = %d; invalid parameter\n",
-               bfcp->type);
-         if (bfcp->lu_size < 0)
-            xerror("glp_set_bfcp: lu_size = %d; invalid parameter\n",
-               bfcp->lu_size);
-         if (!(0.0 < bfcp->piv_tol && bfcp->piv_tol < 1.0))
-            xerror("glp_set_bfcp: piv_tol = %g; invalid parameter\n",
-               bfcp->piv_tol);
-         if (bfcp->piv_lim < 1)
-            xerror("glp_set_bfcp: piv_lim = %d; invalid parameter\n",
-               bfcp->piv_lim);
-         if (!(bfcp->suhl == GLP_ON || bfcp->suhl == GLP_OFF))
-            xerror("glp_set_bfcp: suhl = %d; invalid parameter\n",
-               bfcp->suhl);
-         if (!(0.0 <= bfcp->eps_tol && bfcp->eps_tol <= 1e-6))
-            xerror("glp_set_bfcp: eps_tol = %g; invalid parameter\n",
-               bfcp->eps_tol);
-         if (bfcp->max_gro < 1.0)
-            xerror("glp_set_bfcp: max_gro = %g; invalid parameter\n",
-               bfcp->max_gro);
-         if (!(1 <= bfcp->nfs_max && bfcp->nfs_max <= 32767))
-            xerror("glp_set_bfcp: nfs_max = %d; invalid parameter\n",
-               bfcp->nfs_max);
-         if (!(0.0 < bfcp->upd_tol && bfcp->upd_tol < 1.0))
-            xerror("glp_set_bfcp: upd_tol = %g; invalid parameter\n",
-               bfcp->upd_tol);
-         if (!(1 <= bfcp->nrs_max && bfcp->nrs_max <= 32767))
-            xerror("glp_set_bfcp: nrs_max = %d; invalid parameter\n",
-               bfcp->nrs_max);
-         if (bfcp->rs_size < 0)
-            xerror("glp_set_bfcp: rs_size = %d; invalid parameter\n",
-               bfcp->nrs_max);
-         if (bfcp->rs_size == 0)
-            bfcp->rs_size = 20 * bfcp->nrs_max;
-      }
-      if (lp->bfd != NULL) copy_bfcp(lp);
-      return;
-}
 
 /***********************************************************************
 *  NAME

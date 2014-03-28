@@ -812,7 +812,7 @@ int glp_get_it_cnt(glp_prob *P)
 #endif
 
 #if 1 /* 08/VIII-2013 */
-int glp_set_it_cnt(glp_prob *P, int it_cnt)
+void glp_set_it_cnt(glp_prob *P, int it_cnt)
 {     /* set simplex solver iteration count */
       P->it_cnt = it_cnt;
       return;

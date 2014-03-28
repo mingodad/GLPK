@@ -3,7 +3,7 @@
 /***********************************************************************
 *  This code is part of GLPK (GNU Linear Programming Kit).
 *
-*  Copyright (C) 2012, 2013 Andrew Makhorin, Department for Applied
+*  Copyright (C) 2012, 2014 Andrew Makhorin, Department for Applied
 *  Informatics, Moscow Aviation Institute, Moscow, Russia. All rights
 *  reserved. E-mail: <mao@gnu.org>.
 *
@@ -33,9 +33,9 @@ struct FHVINT
 {     /* interface to FHV-factorization */
       int valid;
       /* factorization is valid only if this flag is set */
-      FHV *fhv;
+      FHV fhv;
       /* FHV-factorization */
-      LUFINT *lufint;
+      LUFINT *lufi;
       /* interface to underlying LU-factorization */
       /*--------------------------------------------------------------*/
       /* control parameters */

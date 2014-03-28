@@ -97,7 +97,7 @@ static int scan_keyword(struct dsa *dsa)
       dsa->token[0] = '\0';
       while (isalnum(dsa->c) || dsa->c == '_')
       {  if (len == 31)
-         {  xprintf("%s:%d: keyword `%s...' too long\n", dsa->fname,
+         {  xprintf("%s:%d: keyword '%s...' too long\n", dsa->fname,
                dsa->seqn, dsa->token);
             return 1;
          }
@@ -114,7 +114,7 @@ static int scan_keyword(struct dsa *dsa)
 static int check_colon(struct dsa *dsa)
 {     if (skip_spaces(dsa, 0)) return 1;
       if (dsa->c != ':')
-      {  xprintf("%s:%d: missing colon after `%s'\n", dsa->fname,
+      {  xprintf("%s:%d: missing colon after '%s'\n", dsa->fname,
             dsa->seqn, dsa->token);
          return 1;
       }
@@ -129,7 +129,7 @@ static int scan_token(struct dsa *dsa, int across)
       while (!(dsa->c == EOF || dsa->c == '\n' || dsa->c == ' '))
       {  if (len == 255)
          {  dsa->token[31] = '\0';
-            xprintf("%s:%d: token `%s...' too long\n", dsa->fname,
+            xprintf("%s:%d: token '%s...' too long\n", dsa->fname,
                dsa->seqn, dsa->token);
             return 1;
          }
@@ -173,7 +173,7 @@ static int scan_integer(struct dsa *dsa, int across, int *val)
          return 1;
       }
       if (str2int(dsa->token, val))
-      {  xprintf("%s:%d: integer `%s' invalid\n", dsa->fname, dsa->seqn
+      {  xprintf("%s:%d: integer '%s' invalid\n", dsa->fname, dsa->seqn
             , dsa->token);
          return 1;
       }
@@ -187,7 +187,7 @@ static int scan_number(struct dsa *dsa, int across, double *val)
          return 1;
       }
       if (str2num(dsa->token, val))
-      {  xprintf("%s:%d: number `%s' invalid\n", dsa->fname, dsa->seqn,
+      {  xprintf("%s:%d: number '%s' invalid\n", dsa->fname, dsa->seqn,
             dsa->token);
          return 1;
       }
@@ -198,11 +198,11 @@ TSP *tsp_read_data(char *fname)
 {     struct dsa _dsa, *dsa = &_dsa;
       TSP *tsp = NULL;
       dsa->fname = fname;
-      xprintf("tsp_read_data: reading TSP data from `%s'...\n",
+      xprintf("tsp_read_data: reading TSP data from '%s'...\n",
          dsa->fname);
       dsa->fp = fopen(dsa->fname, "r");
       if (dsa->fp == NULL)
-      {  xprintf("tsp_read_data: unable to open `%s' - %s\n",
+      {  xprintf("tsp_read_data: unable to open '%s' - %s\n",
             dsa->fname, strerror(errno));
          goto fail;
       }
@@ -256,7 +256,7 @@ loop: if (scan_keyword(dsa)) goto fail;
          else if (strcmp(dsa->token, "TOUR") == 0)
             tsp->type = TSP_TOUR;
          else
-         {  xprintf("%s:%d: data type `%s' not recognized\n",
+         {  xprintf("%s:%d: data type '%s' not recognized\n",
                dsa->fname, dsa->seqn, dsa->token);
             goto fail;
          }
@@ -311,7 +311,7 @@ loop: if (scan_keyword(dsa)) goto fail;
          else if (strcmp(dsa->token, "CEIL_2D") == 0)
             tsp->edge_weight_type = TSP_CEIL_2D;
          else
-         {  xprintf("%s:%d: edge weight type `%s' not recognized\n",
+         {  xprintf("%s:%d: edge weight type '%s' not recognized\n",
                dsa->fname, dsa->seqn, dsa->token);
             goto fail;
          }
@@ -336,7 +336,7 @@ loop: if (scan_keyword(dsa)) goto fail;
          else if (strcmp(dsa->token, "LOWER_DIAG_ROW") == 0)
             tsp->edge_weight_format = TSP_LOWER_DIAG_ROW;
          else
-         {  xprintf("%s:%d: edge weight format `%s' not recognized\n",
+         {  xprintf("%s:%d: edge weight format '%s' not recognized\n",
                dsa->fname, dsa->seqn, dsa->token);
             goto fail;
          }
@@ -356,7 +356,7 @@ loop: if (scan_keyword(dsa)) goto fail;
          else if (strcmp(dsa->token, "TWOD_DISPLAY") == 0)
             tsp->display_data_type = TSP_TWOD_DISPLAY;
          else
-         {  xprintf("%s:%d: display data type `%s' not recognized\n",
+         {  xprintf("%s:%d: display data type '%s' not recognized\n",
                dsa->fname, dsa->seqn, dsa->token);
             goto fail;
          }
@@ -523,7 +523,7 @@ loop: if (scan_keyword(dsa)) goto fail;
          goto done;
       }
       else
-      {  xprintf("%s:%d: keyword `%s' not recognized\n", dsa->fname,
+      {  xprintf("%s:%d: keyword '%s' not recognized\n", dsa->fname,
             dsa->seqn, dsa->token);
          goto fail;
       }

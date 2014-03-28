@@ -3,7 +3,7 @@
 /***********************************************************************
 *  This code is part of GLPK (GNU Linear Programming Kit).
 *
-*  Copyright (C) 2012, 2013 Andrew Makhorin, Department for Applied
+*  Copyright (C) 2012, 2014 Andrew Makhorin, Department for Applied
 *  Informatics, Moscow Aviation Institute, Moscow, Russia. All rights
 *  reserved. E-mail: <mao@gnu.org>.
 *
@@ -28,18 +28,14 @@ FHVINT *fhvint_create(void)
 {     /* create interface to FHV-factorization */
       FHVINT *fi;
       fi = talloc(1, FHVINT);
-      fi->valid = 0;
-      fi->fhv = NULL;
-      fi->lufint = NULL;
-      fi->nfs_max = 0;
+      memset(fi, 0, sizeof(FHVINT));
+      fi->lufi = lufint_create();
       return fi;
 }
 
 int fhvint_factorize(FHVINT *fi, int n, int (*col)(void *info, int j,
       int ind[], double val[]), void *info)
 {     /* compute FHV-factorization of specified matrix A */
-      FHV *fhv;
-      LUFINT *lufint;
       int nfs_max, old_n_max, n_max, k, ret;
       xassert(n > 0);
       fi->valid = 0;
@@ -48,52 +44,36 @@ int fhvint_factorize(FHVINT *fi, int n, int (*col)(void *info, int j,
       if (nfs_max == 0)
          nfs_max = 100;
       xassert(nfs_max > 0);
-      /* create interface to LU-factorization, if necessary */
-      lufint = fi->lufint;
-      if (lufint == NULL)
-      {  lufint = fi->lufint = lufint_create();
-         lufint->sva_n_max = 4 * n + nfs_max;
-         lufint->sva_size = 10 * n;
-         lufint->delta_n0 = 0;
-         lufint->delta_n = 100;
-         lufint->sgf_updat = 1;
-      }
-      /* compute LU-factorization of specified matrix A */
-      old_n_max = lufint->n_max;
-      ret = lufint_factorize(lufint, n, col, info);
-      n_max = lufint->n_max;
-      /* create FHV-factorization, if necessary */
-      fhv = fi->fhv;
-      if (fhv == NULL)
-      {  fhv = fi->fhv = talloc(1, FHV);
-         fhv->luf = lufint->luf;
-         fhv->nfs_max = 0;
-         fhv->hh_ind = NULL;
-         fhv->p0_ind = NULL;
-         fhv->p0_inv = NULL;
-      }
-      /* allocate/reallocate FHV-factorization, if necessary */
-      if (fhv->nfs_max != nfs_max)
-      {  fhv->nfs_max = nfs_max;
-         if (fhv->hh_ind != NULL)
-            tfree(fhv->hh_ind);
-         fhv->hh_ind = talloc(1+nfs_max, int);
+      /* compute factorization of specified matrix A */
+      old_n_max = fi->lufi->n_max;
+      fi->lufi->sva_n_max = 4 * n + nfs_max;
+      fi->lufi->sgf_updat = 1;
+      ret = lufint_factorize(fi->lufi, n, col, info);
+      n_max = fi->lufi->n_max;
+      /* allocate/reallocate arrays, if necessary */
+      if (fi->fhv.nfs_max != nfs_max)
+      {  if (fi->fhv.hh_ind != NULL)
+            tfree(fi->fhv.hh_ind);
+         fi->fhv.hh_ind = talloc(1+nfs_max, int);
       }
       if (old_n_max < n_max)
-      {  if (fhv->p0_ind != NULL)
-            tfree(fhv->p0_ind);
-         if (fhv->p0_inv != NULL)
-            tfree(fhv->p0_inv);
-         fhv->p0_ind = talloc(1+n_max, int);
-         fhv->p0_inv = talloc(1+n_max, int);
+      {  if (fi->fhv.p0_ind != NULL)
+            tfree(fi->fhv.p0_ind);
+         if (fi->fhv.p0_inv != NULL)
+            tfree(fi->fhv.p0_inv);
+         fi->fhv.p0_ind = talloc(1+n_max, int);
+         fi->fhv.p0_inv = talloc(1+n_max, int);
       }
+      /* initialize FHV-factorization */
+      fi->fhv.luf = fi->lufi->luf;
+      fi->fhv.nfs_max = nfs_max;
       /* H := I */
-      fhv->nfs = 0;
-      fhv->hh_ref = sva_alloc_vecs(fi->lufint->sva, nfs_max);
+      fi->fhv.nfs = 0;
+      fi->fhv.hh_ref = sva_alloc_vecs(fi->lufi->sva, nfs_max);
       /* P0 := P */
       for (k = 1; k <= n; k++)
-      {  fhv->p0_ind[k] = fi->lufint->luf->pp_ind[k];
-         fhv->p0_inv[k] = fi->lufint->luf->pp_inv[k];
+      {  fi->fhv.p0_ind[k] = fi->fhv.luf->pp_ind[k];
+         fi->fhv.p0_inv[k] = fi->fhv.luf->pp_inv[k];
       }
       /* set validation flag */
       if (ret == 0)
@@ -104,13 +84,13 @@ int fhvint_factorize(FHVINT *fi, int n, int (*col)(void *info, int j,
 int fhvint_update(FHVINT *fi, int j, int len, const int ind[],
       const double val[])
 {     /* update FHV-factorization after replacing j-th column of A */
-      SGF *sgf = fi->lufint->sgf;
+      SGF *sgf = fi->lufi->sgf;
       int *ind1 = sgf->rs_next;
       double *val1 = sgf->vr_max;
       double *work = sgf->work;
       int ret;
       xassert(fi->valid);
-      ret = fhv_ft_update(fi->fhv, j, len, ind, val, ind1, val1, work);
+      ret = fhv_ft_update(&fi->fhv, j, len, ind, val, ind1, val1, work);
       if (ret != 0)
          fi->valid = 0;
       return ret;
@@ -118,12 +98,12 @@ int fhvint_update(FHVINT *fi, int j, int len, const int ind[],
 
 void fhvint_ftran(FHVINT *fi, double x[])
 {     /* solve system A * x = b */
-      FHV *fhv = fi->fhv;
+      FHV *fhv = &fi->fhv;
       LUF *luf = fhv->luf;
       int n = luf->n;
       int *pp_ind = luf->pp_ind;
       int *pp_inv = luf->pp_inv;
-      SGF *sgf = fi->lufint->sgf;
+      SGF *sgf = fi->lufi->sgf;
       double *work = sgf->work;
       xassert(fi->valid);
       /* A = F * H * V */
@@ -141,12 +121,12 @@ void fhvint_ftran(FHVINT *fi, double x[])
 
 void fhvint_btran(FHVINT *fi, double x[])
 {     /* solve system A'* x = b */
-      FHV *fhv = fi->fhv;
+      FHV *fhv = &fi->fhv;
       LUF *luf = fhv->luf;
       int n = luf->n;
       int *pp_ind = luf->pp_ind;
       int *pp_inv = luf->pp_inv;
-      SGF *sgf = fi->lufint->sgf;
+      SGF *sgf = fi->lufi->sgf;
       double *work = sgf->work;
       xassert(fi->valid);
       /* A' = (F * H * V)' = V'* H'* F' */
@@ -164,16 +144,13 @@ void fhvint_btran(FHVINT *fi, double x[])
 
 void fhvint_delete(FHVINT *fi)
 {     /* delete interface to FHV-factorization */
-      FHV *fhv = fi->fhv;
-      LUFINT *lufint = fi->lufint;
-      if (fhv != NULL)
-      {  tfree(fhv->hh_ind);
-         tfree(fhv->p0_ind);
-         tfree(fhv->p0_inv);
-         tfree(fhv);
-      }
-      if (lufint != NULL)
-         lufint_delete(fi->lufint);
+      lufint_delete(fi->lufi);
+      if (fi->fhv.hh_ind != NULL)
+         tfree(fi->fhv.hh_ind);
+      if (fi->fhv.p0_ind != NULL)
+         tfree(fi->fhv.p0_ind);
+      if (fi->fhv.p0_inv != NULL)
+         tfree(fi->fhv.p0_inv);
       tfree(fi);
       return;
 }

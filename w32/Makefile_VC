@@ -62,7 +62,6 @@ OBJSET = \
 ..\src\glpios11.obj \
 ..\src\glpios12.obj \
 ..\src\glpipm.obj \
-..\src\glplpf.obj \
 ..\src\glpmat.obj \
 ..\src\glpmpl01.obj \
 ..\src\glpmpl02.obj \
@@ -103,11 +102,15 @@ OBJSET = \
 ..\src\amd\amd_postorder.obj \
 ..\src\amd\amd_preprocess.obj \
 ..\src\amd\amd_valid.obj \
+..\src\bflib\btf.obj \
+..\src\bflib\btfint.obj \
 ..\src\bflib\fhv.obj \
 ..\src\bflib\fhvint.obj \
 ..\src\bflib\ifu.obj \
 ..\src\bflib\luf.obj \
 ..\src\bflib\lufint.obj \
+..\src\bflib\scf.obj \
+..\src\bflib\scfint.obj \
 ..\src\bflib\sgf.obj \
 ..\src\bflib\sva.obj \
 ..\src\cglib\cfg.obj \

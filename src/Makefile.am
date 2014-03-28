@@ -17,7 +17,7 @@ libglpk_la_CPPFLAGS = \
 -I$(srcdir)/zlib
 
 libglpk_la_LDFLAGS = \
--version-info 37:0:1 \
+-version-info 37:1:1 \
 -export-symbols-regex '^glp_*'
 
 libglpk_la_SOURCES = \
@@ -64,7 +64,6 @@ glpios10.c \
 glpios11.c \
 glpios12.c \
 glpipm.c \
-glplpf.c \
 glpmat.c \
 glpmpl01.c \
 glpmpl02.c \
@@ -105,11 +104,15 @@ amd/amd_post_tree.c \
 amd/amd_postorder.c \
 amd/amd_preprocess.c \
 amd/amd_valid.c \
+bflib/btf.c \
+bflib/btfint.c \
 bflib/fhv.c \
 bflib/fhvint.c \
 bflib/ifu.c \
 bflib/luf.c \
 bflib/lufint.c \
+bflib/scf.c \
+bflib/scfint.c \
 bflib/sgf.c \
 bflib/sva.c \
 cglib/cfg.c \

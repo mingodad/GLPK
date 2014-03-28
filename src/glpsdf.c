@@ -51,7 +51,7 @@ glp_data *glp_sdf_open_file(const char *fname)
       jmp_buf jump;
       fp = glp_open(fname, "r");
       if (fp == NULL)
-      {  xprintf("Unable to open `%s' - %s\n", fname, get_err_msg());
+      {  xprintf("Unable to open '%s' - %s\n", fname, get_err_msg());
          goto done;
       }
       data = xmalloc(sizeof(glp_data));
@@ -164,7 +164,7 @@ static void next_item(glp_data *data)
       while (!(data->c == ' ' || data->c == '\n'))
       {  data->item[len++] = (char)data->c;
          if (len == sizeof(data->item))
-            glp_sdf_error(data, "data item `%.31s...' too long\n",
+            glp_sdf_error(data, "data item '%.31s...' too long\n",
                data->item);
          next_char(data);
       }
@@ -180,10 +180,10 @@ int glp_sdf_read_int(glp_data *data)
       {  case 0:
             break;
          case 1:
-            glp_sdf_error(data, "integer `%s' out of range\n",
+            glp_sdf_error(data, "integer '%s' out of range\n",
                data->item);
          case 2:
-            glp_sdf_error(data, "cannot convert `%s' to integer\n",
+            glp_sdf_error(data, "cannot convert '%s' to integer\n",
                data->item);
          default:
             xassert(data != data);
@@ -199,10 +199,10 @@ double glp_sdf_read_num(glp_data *data)
       {  case 0:
             break;
          case 1:
-            glp_sdf_error(data, "number `%s' out of range\n",
+            glp_sdf_error(data, "number '%s' out of range\n",
                data->item);
          case 2:
-            glp_sdf_error(data, "cannot convert `%s' to number\n",
+            glp_sdf_error(data, "cannot convert '%s' to number\n",
                data->item);
          default:
             xassert(data != data);

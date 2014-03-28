@@ -156,6 +156,8 @@ shared library support under GNU/Linux.
 
 Raniere Gaia Costa da Silva for bug report.
 
+Remy Roy <remyroyster@gmail.com> for bug report.
+
 Robbie Morrison <robbie@actrix.co.nz> for correcting the glpk manual.
 
 Robert Wood <rgwood01@cox.net> for example model in MathProg.

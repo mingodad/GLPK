@@ -43,42 +43,6 @@ LUFINT *lufint_create(void)
       return fi;
 }
 
-static int setup_v_cols(LUF *luf, int (*col)(void *info, int j,
-      int ind[], double val[]), void *info, int ind[], double val[])
-{     /* setup matrix V = A in column-wise format */
-      int n = luf->n;
-      SVA *sva = luf->sva;
-      int *sv_ind = sva->ind;
-      double *sv_val = sva->val;
-      int vc_ref = luf->vc_ref;
-      int *vc_ptr = &sva->ptr[vc_ref-1];
-      int *vc_len = &sva->len[vc_ref-1];
-      int *vc_cap = &sva->cap[vc_ref-1];
-      int j, len, ptr, nnz;
-      nnz = 0;
-      for (j = 1; j <= n; j++)
-      {  /* get j-th column */
-         len = col(info, j, ind, val);
-         xassert(0 <= len && len <= n);
-         /* enlarge j-th column capacity */
-         if (vc_cap[j] < len)
-         {  if (sva->r_ptr - sva->m_ptr < len)
-            {  sva_more_space(sva, len);
-               sv_ind = sva->ind;
-               sv_val = sva->val;
-            }
-            sva_enlarge_cap(sva, vc_ref-1+j, len, 0);
-         }
-         /* store j-th column */
-         ptr = vc_ptr[j];
-         memcpy(&sv_ind[ptr], &ind[1], len * sizeof(int));
-         memcpy(&sv_val[ptr], &val[1], len * sizeof(double));
-         vc_len[j] = len;
-         nnz += len;
-      }
-      return nnz;
-}
-
 int lufint_factorize(LUFINT *fi, int n, int (*col)(void *info, int j,
       int ind[], double val[]), void *info)
 {     /* compute LU-factorization of specified matrix A */
@@ -169,8 +133,8 @@ int lufint_factorize(LUFINT *fi, int n, int (*col)(void *info, int j,
       luf->fc_ref = sva_alloc_vecs(sva, n);
       luf->vr_ref = sva_alloc_vecs(sva, n);
       luf->vc_ref = sva_alloc_vecs(sva, n);
-      /* setup matrix V = A in column-wise format */
-      setup_v_cols(luf, col, info, sgf->rs_prev, sgf->work);
+      /* store matrix V = A in column-wise format */
+      luf_store_v_cols(luf, col, info, sgf->rs_prev, sgf->work);
       /* setup factorizer control parameters */
       sgf->updat = fi->sgf_updat;
       sgf->piv_tol = fi->sgf_piv_tol;

@@ -168,6 +168,11 @@ struct LUF
       } while (0)
 /* swap columns j1 and j2 of matrix U = P'* V * Q' */
 
+#define luf_store_v_cols _glp_luf_store_v_cols
+int luf_store_v_cols(LUF *luf, int (*col)(void *info, int j, int ind[],
+      double val[]), void *info, int ind[], double val[]);
+/* store matrix V = A in column-wise format */
+
 #define luf_check_all _glp_luf_check_all
 void luf_check_all(LUF *luf, int k);
 /* check LU-factorization before k-th elimination step */

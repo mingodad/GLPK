@@ -25,6 +25,49 @@
 #include "luf.h"
 
 /***********************************************************************
+*  luf_store_v_cols - store matrix V = A in column-wise format
+*
+*  This routine stores matrix V = A in column-wise format, where A is
+*  the original matrix to be factorized.
+*
+*  On exit the routine returns the number of non-zeros in matrix V. */
+
+int luf_store_v_cols(LUF *luf, int (*col)(void *info, int j, int ind[],
+      double val[]), void *info, int ind[], double val[])
+{     int n = luf->n;
+      SVA *sva = luf->sva;
+      int *sv_ind = sva->ind;
+      double *sv_val = sva->val;
+      int vc_ref = luf->vc_ref;
+      int *vc_ptr = &sva->ptr[vc_ref-1];
+      int *vc_len = &sva->len[vc_ref-1];
+      int *vc_cap = &sva->cap[vc_ref-1];
+      int j, len, ptr, nnz;
+      nnz = 0;
+      for (j = 1; j <= n; j++)
+      {  /* get j-th column */
+         len = col(info, j, ind, val);
+         xassert(0 <= len && len <= n);
+         /* enlarge j-th column capacity */
+         if (vc_cap[j] < len)
+         {  if (sva->r_ptr - sva->m_ptr < len)
+            {  sva_more_space(sva, len);
+               sv_ind = sva->ind;
+               sv_val = sva->val;
+            }
+            sva_enlarge_cap(sva, vc_ref-1+j, len, 0);
+         }
+         /* store j-th column */
+         ptr = vc_ptr[j];
+         memcpy(&sv_ind[ptr], &ind[1], len * sizeof(int));
+         memcpy(&sv_val[ptr], &val[1], len * sizeof(double));
+         vc_len[j] = len;
+         nnz += len;
+      }
+      return nnz;
+}
+
+/***********************************************************************
 *  luf_check_all - check LU-factorization before k-th elimination step
 *
 *  This routine checks that before performing k-th elimination step,

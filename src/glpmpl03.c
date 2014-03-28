@@ -5913,7 +5913,7 @@ void execute_printf(MPL *mpl, PRINTF *prt)
          if (mpl->prt_fp == NULL)
          {  mpl->prt_fp = glp_open(fname, prt->app ? "a" : "w");
             if (mpl->prt_fp == NULL)
-               error(mpl, "unable to open `%s' for writing - %s",
+               error(mpl, "unable to open '%s' for writing - %s",
                   fname, get_err_msg());
             mpl->prt_file = xmalloc(strlen(fname)+1);
             strcpy(mpl->prt_file, fname);
@@ -5926,7 +5926,7 @@ void execute_printf(MPL *mpl, PRINTF *prt)
          xfflush(mpl->prt_fp);
 #endif
          if (glp_ioerr(mpl->prt_fp))
-            error(mpl, "writing error to `%s' - %s", mpl->prt_file,
+            error(mpl, "writing error to '%s' - %s", mpl->prt_file,
                get_err_msg());
       }
       return;

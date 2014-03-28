@@ -45,8 +45,10 @@ struct glp_prob
       glp_tree *tree;
       /* pointer to the search tree; set by the MIP solver when this
          object is used in the tree as a core MIP object */
+#if 0 /* 08/III-2014 */
       void *parms;
       /* reserved for backward compatibility */
+#endif
       /*--------------------------------------------------------------*/
       /* LP/MIP data */
       char *name;
@@ -90,8 +92,10 @@ struct glp_prob
          head[i] = k is the ordinal number of auxiliary (1 <= k <= m)
          or structural (m+1 <= k <= m+n) variable which corresponds to
          i-th basic variable xB[i], 1 <= i <= m */
+#if 0 /* 08/III-2014 */
       glp_bfcp *bfcp;
       /* basis factorization control parameters; may be NULL */
+#endif
       BFD *bfd; /* BFD bfd[1:m,1:m]; */
       /* basis factorization driver; may be NULL */
       /*--------------------------------------------------------------*/

@@ -3,8 +3,7 @@
 /***********************************************************************
 *  This code is part of GLPK (GNU Linear Programming Kit).
 *
-*  Copyright (C) 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008,
-*  2009, 2010, 2011, 2013 Andrew Makhorin, Department for Applied
+*  Copyright (C) 2007, 2014 Andrew Makhorin, Department for Applied
 *  Informatics, Moscow Aviation Institute, Moscow, Russia. All rights
 *  reserved. E-mail: <mao@gnu.org>.
 *
@@ -22,554 +21,405 @@
 *  along with GLPK. If not, see <http://www.gnu.org/licenses/>.
 ***********************************************************************/
 
+#include "glpk.h"
 #include "env.h"
-#if 0 /* 27/IV-2013 */
-#include "glpfhv.h"
-#else
+#include "bfd.h"
 #include "fhvint.h"
+#include "scfint.h"
+#ifdef GLP_DEBUG
+#include "glpspm.h"
 #endif
-#include "glplpf.h"
-#include "prob.h"
-
-/* CAUTION: DO NOT CHANGE THE LIMIT BELOW */
-
-#define M_MAX 100000000 /* = 100*10^6 */
-/* maximal order of the basis matrix */
 
 struct BFD
-{     /* LP basis factorization */
+{     /* LP basis factorization driver */
       int valid;
       /* factorization is valid only if this flag is set */
       int type;
-      /* factorization type:
-         GLP_BF_FT - LUF + Forrest-Tomlin
-         GLP_BF_BG - LUF + Schur compl. + Bartels-Golub
-         GLP_BF_GR - LUF + Schur compl. + Givens rotation */
-#if 0 /* 27/IV-2013 */
-      FHV *fhv;
-      /* LP basis factorization (GLP_BF_FT) */
-#else
-      FHVINT *fi;
-      /* interface to FHV-factorization (GLP_BF_FT) */
+      /* type of factorization used:
+         0 - interface not established yet
+         1 - FHV-factorization
+         2 - Schur-complement-based factorization */
+      union
+      {  void *none;   /* type = 0 */
+         FHVINT *fhvi; /* type = 1 */
+         SCFINT *scfi; /* type = 2 */
+      }  u;
+      /* interface to factorization of LP basis */
+      glp_bfcp parm;
+      /* factorization control parameters */
+#ifdef GLP_DEBUG
+      SPM *B;
+      /* current basis (for testing/debugging only) */
 #endif
-      LPF *lpf;
-      /* LP basis factorization (GLP_BF_BG, GLP_BF_GR) */
-      int lu_size;      /* luf.sv_size */
-      double piv_tol;   /* luf.piv_tol */
-      int piv_lim;      /* luf.piv_lim */
-      int suhl;         /* luf.suhl */
-      double eps_tol;   /* luf.eps_tol */
-      double max_gro;   /* luf.max_gro */
-      int nfs_max;      /* fhv.hh_max */
-      double upd_tol;   /* fhv.upd_tol */
-      int nrs_max;      /* lpf.n_max */
-      int rs_size;      /* lpf.v_size */
-      /* internal control parameters */
-      int upd_lim;
-      /* the factorization update limit */
       int upd_cnt;
-      /* the factorization update count */
+      /* factorization update count */
 };
 
-/***********************************************************************
-*  NAME
-*
-*  bfd_create_it - create LP basis factorization
-*
-*  SYNOPSIS
-*
-*  #include "glpbfd.h"
-*  BFD *bfd_create_it(void);
-*
-*  DESCRIPTION
-*
-*  The routine bfd_create_it creates a program object, which represents
-*  a factorization of LP basis.
-*
-*  RETURNS
-*
-*  The routine bfd_create_it returns a pointer to the object created. */
-
 BFD *bfd_create_it(void)
-{     BFD *bfd;
-      bfd = xmalloc(sizeof(BFD));
-      bfd->valid = 0;
-      bfd->type = GLP_BF_FT;
-#if 0 /* 27/IV-2013 */
-      bfd->fhv = NULL;
-#else
-      bfd->fi = NULL;
+{     /* create LP basis factorization */
+      BFD *bfd;
+#ifdef GLP_DEBUG
+      xprintf("bfd_create_it: warning: debugging version used\n");
 #endif
-      bfd->lpf = NULL;
-      bfd->lu_size = 0;
-      bfd->piv_tol = 0.10;
-      bfd->piv_lim = 4;
-      bfd->suhl = 1;
-      bfd->eps_tol = 1e-15;
-      bfd->max_gro = 1e+10;
-      bfd->nfs_max = 100;
-      bfd->upd_tol = 1e-6;
-      bfd->nrs_max = 100;
-      bfd->rs_size = 1000;
-      bfd->upd_lim = -1;
+      bfd = talloc(1, BFD);
+      bfd->valid = 0;
+      bfd->type = 0;
+      bfd->u.none = NULL;
+      bfd_set_bfcp(bfd, NULL);
+#ifdef GLP_DEBUG
+      bfd->B = NULL;
+#endif
       bfd->upd_cnt = 0;
       return bfd;
 }
 
-/**********************************************************************/
-
-void bfd_set_parm(BFD *bfd, const void *_parm)
+#if 0 /* 08/III-2014 */
+void bfd_set_parm(BFD *bfd, const void *parm)
 {     /* change LP basis factorization control parameters */
-      const glp_bfcp *parm = _parm;
-      xassert(bfd != NULL);
-      bfd->type = parm->type;
-      bfd->lu_size = parm->lu_size;
-      bfd->piv_tol = parm->piv_tol;
-      bfd->piv_lim = parm->piv_lim;
-      bfd->suhl = parm->suhl;
-      bfd->eps_tol = parm->eps_tol;
-      bfd->max_gro = parm->max_gro;
-      bfd->nfs_max = parm->nfs_max;
-      bfd->upd_tol = parm->upd_tol;
-      bfd->nrs_max = parm->nrs_max;
-      bfd->rs_size = parm->rs_size;
+      memcpy(&bfd->parm, parm, sizeof(glp_bfcp));
+      return;
+}
+#endif
+
+void bfd_get_bfcp(BFD *bfd, void /* glp_bfcp */ *parm)
+{     /* retrieve LP basis factorization control parameters */
+      memcpy(parm, &bfd->parm, sizeof(glp_bfcp));
       return;
 }
 
-/***********************************************************************
-*  NAME
-*
-*  bfd_factorize - compute LP basis factorization
-*
-*  SYNOPSIS
-*
-*  #include "glpbfd.h"
-*  int bfd_factorize(BFD *bfd, int m, int bh[], int (*col)(void *info,
-*     int j, int ind[], double val[]), void *info);
-*
-*  DESCRIPTION
-*
-*  The routine bfd_factorize computes the factorization of the basis
-*  matrix B specified by the routine col.
-*
-*  The parameter bfd specified the basis factorization data structure
-*  created with the routine bfd_create_it.
-*
-*  The parameter m specifies the order of B, m > 0.
-*
-*  The array bh specifies the basis header: bh[j], 1 <= j <= m, is the
-*  number of j-th column of B in some original matrix. The array bh is
-*  optional and can be specified as NULL.
-*
-*  The formal routine col specifies the matrix B to be factorized. To
-*  obtain j-th column of A the routine bfd_factorize calls the routine
-*  col with the parameter j (1 <= j <= n). In response the routine col
-*  should store row indices and numerical values of non-zero elements
-*  of j-th column of B to locations ind[1,...,len] and val[1,...,len],
-*  respectively, where len is the number of non-zeros in j-th column
-*  returned on exit. Neither zero nor duplicate elements are allowed.
-*
-*  The parameter info is a transit pointer passed to the routine col.
-*
-*  RETURNS
-*
-*  0  The factorization has been successfully computed.
-*
-*  BFD_ESING
-*     The specified matrix is singular within the working precision.
-*
-*  BFD_ECOND
-*     The specified matrix is ill-conditioned.
-*
-*  For more details see comments to the routine luf_factorize. */
+void bfd_set_bfcp(BFD *bfd, const void /* glp_bfcp */ *parm)
+{     /* change LP basis factorization control parameters */
+      if (parm == NULL)
+      {  /* reset to default */
+         memset(&bfd->parm, 0, sizeof(glp_bfcp));
+         bfd->parm.type = GLP_BF_LUF + GLP_BF_FT;
+         bfd->parm.piv_tol = 0.10;
+         bfd->parm.piv_lim = 4;
+         bfd->parm.suhl = 1;
+         bfd->parm.eps_tol = DBL_EPSILON;
+         bfd->parm.nfs_max = 100;
+         bfd->parm.nrs_max = 70;
+      }
+      else
+         memcpy(&bfd->parm, parm, sizeof(glp_bfcp));
+      return;
+}
 
 int bfd_factorize(BFD *bfd, int m, const int bh[], int (*col)
       (void *info, int j, int ind[], double val[]), void *info)
-#if 0 /* 06/VI-2013 */
-{     LUF *luf;
-#else
-{
-#endif
-      int nov, ret;
-      xassert(bfd != NULL);
-      xassert(1 <= m && m <= M_MAX);
-      /* invalidate the factorization */
+{     /* compute LP basis factorization */
+      int type, ret;
+      xassert(bh == bh);
+      /* invalidate current factorization */
       bfd->valid = 0;
-      /* create the factorization, if necessary */
-      nov = 0;
-      switch (bfd->type)
-      {  case GLP_BF_FT:
-            if (bfd->lpf != NULL)
-               lpf_delete_it(bfd->lpf), bfd->lpf = NULL;
-#if 0 /* 27/IV-2013 */
-            if (bfd->fhv == NULL)
-               bfd->fhv = fhv_create_it(), nov = 1;
-#else
-            if (bfd->fi == NULL)
-               bfd->fi = fhvint_create(), nov = 1;
-#endif
+      /* determine required factorization type */
+      switch (bfd->parm.type)
+      {  case GLP_BF_LUF + GLP_BF_FT:
+            type = 1;
             break;
-         case GLP_BF_BG:
-         case GLP_BF_GR:
-#if 0 /* 27/IV-2013 */
-            if (bfd->fhv != NULL)
-               fhv_delete_it(bfd->fhv), bfd->fhv = NULL;
-#else
-            if (bfd->fi != NULL)
-               fhvint_delete(bfd->fi), bfd->fi = NULL;
-#endif
-            if (bfd->lpf == NULL)
-               bfd->lpf = lpf_create_it(), nov = 1;
+         case GLP_BF_LUF + GLP_BF_BG:
+         case GLP_BF_LUF + GLP_BF_GR:
+         case GLP_BF_BTF + GLP_BF_BG:
+         case GLP_BF_BTF + GLP_BF_GR:
+            type = 2;
             break;
          default:
             xassert(bfd != bfd);
       }
-#if 0 /* 06/VI-2013 */
-      /* set control parameters specific to LUF */
-#if 0 /* 27/IV-2013 */
-      if (bfd->fhv != NULL)
-         luf = bfd->fhv->luf;
-#else
-      if (bfd->fi != NULL)
-         goto skip;
-#endif
-      else if (bfd->lpf != NULL)
-         luf = bfd->lpf->luf;
-      else
-         xassert(bfd != bfd);
-      if (nov) luf->new_sva = bfd->lu_size;
-      luf->piv_tol = bfd->piv_tol;
-      luf->piv_lim = bfd->piv_lim;
-      luf->suhl = bfd->suhl;
-      luf->eps_tol = bfd->eps_tol;
-      luf->max_gro = bfd->max_gro;
-#endif
-#if 0 /* 27/IV-2013 */
-      /* set control parameters specific to FHV */
-      if (bfd->fhv != NULL)
-      {  if (nov) bfd->fhv->hh_max = bfd->nfs_max;
-         bfd->fhv->upd_tol = bfd->upd_tol;
+      /* delete factorization interface, if necessary */
+      switch (bfd->type)
+      {  case 0:
+            break;
+         case 1:
+            if (type != 1)
+            {  bfd->type = 0;
+               fhvint_delete(bfd->u.fhvi);
+               bfd->u.fhvi = NULL;
+            }
+            break;
+         case 2:
+            if (type != 2)
+            {  bfd->type = 0;
+               scfint_delete(bfd->u.scfi);
+               bfd->u.scfi = NULL;
+            }
+            break;
+         default:
+            xassert(bfd != bfd);
       }
-#endif
-      /* set control parameters specific to LPF */
-      if (bfd->lpf != NULL)
-      {  if (nov) bfd->lpf->n_max = bfd->nrs_max;
-         if (nov) bfd->lpf->v_size = bfd->rs_size;
-      }
-#if 0 /* 27/IV-2013 */
-      /* try to factorize the basis matrix */
-      if (bfd->fhv != NULL)
-      {  switch (fhv_factorize(bfd->fhv, m, col, info))
-         {  case 0:
+      /* establish factorization interface, if necessary */
+      if (bfd->type == 0)
+      {  switch (type)
+         {  case 1:
+               bfd->type = 1;
+               xassert(bfd->u.fhvi == NULL);
+               bfd->u.fhvi = fhvint_create();
                break;
-            case FHV_ESING:
-               ret = BFD_ESING;
-               goto done;
-            case FHV_ECOND:
-               ret = BFD_ECOND;
-               goto done;
-            default:
-               xassert(bfd != bfd);
-         }
-      }
-#else
-skip: /* try to factorize the basis matrix */
-      if (bfd->fi != NULL)
-      {  /* FIXME */
-         if (fhvint_factorize(bfd->fi, m, col, info) != 0)
-         {  ret = BFD_ESING;
-            goto done;
-         }
-         /* printf("*** FACTORIZED; m = %d ***\n", m); */
-      }
-#endif
-      else if (bfd->lpf != NULL)
-      {  switch (lpf_factorize(bfd->lpf, m, bh, col, info))
-         {  case 0:
-               /* set the Schur complement update type */
-               switch (bfd->type)
-               {  case GLP_BF_BG:
-                     /* Bartels-Golub update */
-#if 0 /* 11/VIII-2013 */
-                     bfd->lpf->scf->t_opt = SCF_TBG;
-#else
-                     bfd->lpf->t_opt = SCF_TBG;
-#endif
-                     break;
-                  case GLP_BF_GR:
-                     /* Givens rotations update */
-#if 0 /* 11/VIII-2013 */
-                     bfd->lpf->scf->t_opt = SCF_TGR;
-#else
-                     bfd->lpf->t_opt = SCF_TGR;
-#endif
-                     break;
-                  default:
-                     xassert(bfd != bfd);
-               }
+            case 2:
+               bfd->type = 2;
+               xassert(bfd->u.scfi == NULL);
+               if (!(bfd->parm.type & GLP_BF_BTF))
+                  bfd->u.scfi = scfint_create(1);
+               else
+                  bfd->u.scfi = scfint_create(2);
                break;
-            case LPF_ESING:
-               ret = BFD_ESING;
-               goto done;
-            case LPF_ECOND:
-               ret = BFD_ECOND;
-               goto done;
             default:
-               xassert(bfd != bfd);
+               xassert(type != type);
          }
       }
-      else
-         xassert(bfd != bfd);
-      /* the basis matrix has been successfully factorized */
-      bfd->valid = 1;
+      /* try to compute factorization */
+      switch (bfd->type)
+      {  case 1:
+            bfd->u.fhvi->lufi->sgf_piv_tol = bfd->parm.piv_tol;
+            bfd->u.fhvi->lufi->sgf_piv_lim = bfd->parm.piv_lim;
+            bfd->u.fhvi->lufi->sgf_suhl = bfd->parm.suhl;
+            bfd->u.fhvi->lufi->sgf_eps_tol = bfd->parm.eps_tol;
+            bfd->u.fhvi->nfs_max = bfd->parm.nfs_max;
+            ret = fhvint_factorize(bfd->u.fhvi, m, col, info);
+#if 1 /* FIXME */
+            if (ret != 0)
+               ret = BFD_ESING;
+#endif
+            break;
+         case 2:
+            if (bfd->u.scfi->scf.type == 1)
+            {  bfd->u.scfi->u.lufi->sgf_piv_tol = bfd->parm.piv_tol;
+               bfd->u.scfi->u.lufi->sgf_piv_lim = bfd->parm.piv_lim;
+               bfd->u.scfi->u.lufi->sgf_suhl = bfd->parm.suhl;
+               bfd->u.scfi->u.lufi->sgf_eps_tol = bfd->parm.eps_tol;
+            }
+            else if (bfd->u.scfi->scf.type == 2)
+            {  bfd->u.scfi->u.btfi->sgf_piv_tol = bfd->parm.piv_tol;
+               bfd->u.scfi->u.btfi->sgf_piv_lim = bfd->parm.piv_lim;
+               bfd->u.scfi->u.btfi->sgf_suhl = bfd->parm.suhl;
+               bfd->u.scfi->u.btfi->sgf_eps_tol = bfd->parm.eps_tol;
+            }
+            else
+               xassert(bfd != bfd);
+            bfd->u.scfi->nn_max = bfd->parm.nrs_max;
+            ret = scfint_factorize(bfd->u.scfi, m, col, info);
+#if 1 /* FIXME */
+            if (ret != 0)
+               ret = BFD_ESING;
+#endif
+            break;
+         default:
+            xassert(bfd != bfd);
+      }
+#ifdef GLP_DEBUG
+      /* save specified LP basis */
+      if (bfd->B != NULL)
+         spm_delete_mat(bfd->B);
+      bfd->B = spm_create_mat(m, m);
+      {  int *ind = talloc(1+m, int);
+         double *val = talloc(1+m, double);
+         int j, k, len;
+         for (j = 1; j <= m; j++)
+         {  len = col(info, j, ind, val);
+            for (k = 1; k <= len; k++)
+               spm_new_elem(bfd->B, ind[k], j, val[k]);
+         }
+         tfree(ind);
+         tfree(val);
+      }
+#endif
+      if (ret == 0)
+      {  /* factorization has been successfully computed */
+         bfd->valid = 1;
+      }
+#ifdef GLP_DEBUG
+      xprintf("bfd_factorize: m = %d; ret = %d\n", m, ret);
+#endif
       bfd->upd_cnt = 0;
-      ret = 0;
-done: /* return to the calling program */
       return ret;
 }
 
-/***********************************************************************
-*  NAME
-*
-*  bfd_ftran - perform forward transformation (solve system B*x = b)
-*
-*  SYNOPSIS
-*
-*  #include "glpbfd.h"
-*  void bfd_ftran(BFD *bfd, double x[]);
-*
-*  DESCRIPTION
-*
-*  The routine bfd_ftran performs forward transformation, i.e. solves
-*  the system B*x = b, where B is the basis matrix, x is the vector of
-*  unknowns to be computed, b is the vector of right-hand sides.
-*
-*  On entry elements of the vector b should be stored in dense format
-*  in locations x[1], ..., x[m], where m is the number of rows. On exit
-*  the routine stores elements of the vector x in the same locations. */
-
 void bfd_ftran(BFD *bfd, double x[])
-{     xassert(bfd != NULL);
-      xassert(bfd->valid);
-#if 0 /* 27/IV-2013 */
-      if (bfd->fhv != NULL)
-         fhv_ftran(bfd->fhv, x);
-#else
-      if (bfd->fi != NULL)
-         fhvint_ftran(bfd->fi, x);
+{     /* perform forward transformation (solve system B * x = b) */
+#ifdef GLP_DEBUG
+      SPM *B = bfd->B;
+      int m = B->m;
+      double *b = talloc(1+m, double);
+      SPME *e;
+      int k;
+      double s, relerr, maxerr;
+      for (k = 1; k <= m; k++)
+         b[k] = x[k];
 #endif
-      else if (bfd->lpf != NULL)
-         lpf_ftran(bfd->lpf, x);
-      else
-         xassert(bfd != bfd);
+      xassert(bfd->valid);
+      switch (bfd->type)
+      {  case 1:
+            fhvint_ftran(bfd->u.fhvi, x);
+            break;
+         case 2:
+            scfint_ftran(bfd->u.scfi, x);
+            break;
+         default:
+            xassert(bfd != bfd);
+      }
+#ifdef GLP_DEBUG
+      maxerr = 0.0;
+      for (k = 1; k <= m; k++)
+      {  s = 0.0;
+         for (e = B->row[k]; e != NULL; e = e->r_next)
+            s += e->val * x[e->j];
+         relerr = (b[k] - s) / (1.0 + fabs(b[k]));
+         if (maxerr < relerr)
+            maxerr = relerr;
+      }
+      if (maxerr > 1e-8)
+         xprintf("bfd_ftran: maxerr = %g; relative error too large\n",
+            maxerr);
+      tfree(b);
+#endif
       return;
 }
-
-/***********************************************************************
-*  NAME
-*
-*  bfd_btran - perform backward transformation (solve system B'*x = b)
-*
-*  SYNOPSIS
-*
-*  #include "glpbfd.h"
-*  void bfd_btran(BFD *bfd, double x[]);
-*
-*  DESCRIPTION
-*
-*  The routine bfd_btran performs backward transformation, i.e. solves
-*  the system B'*x = b, where B' is a matrix transposed to the basis
-*  matrix B, x is the vector of unknowns to be computed, b is the vector
-*  of right-hand sides.
-*
-*  On entry elements of the vector b should be stored in dense format
-*  in locations x[1], ..., x[m], where m is the number of rows. On exit
-*  the routine stores elements of the vector x in the same locations. */
 
 void bfd_btran(BFD *bfd, double x[])
-{     xassert(bfd != NULL);
-      xassert(bfd->valid);
-#if 0 /* 27/IV-2013 */
-      if (bfd->fhv != NULL)
-         fhv_btran(bfd->fhv, x);
-#else
-      if (bfd->fi != NULL)
-         fhvint_btran(bfd->fi, x);
+{     /* perform backward transformation (solve system B'* x = b) */
+#ifdef GLP_DEBUG
+      SPM *B = bfd->B;
+      int m = B->m;
+      double *b = talloc(1+m, double);
+      SPME *e;
+      int k;
+      double s, relerr, maxerr;
+      for (k = 1; k <= m; k++)
+         b[k] = x[k];
 #endif
-      else if (bfd->lpf != NULL)
-         lpf_btran(bfd->lpf, x);
-      else
-         xassert(bfd != bfd);
+      xassert(bfd->valid);
+      switch (bfd->type)
+      {  case 1:
+            fhvint_btran(bfd->u.fhvi, x);
+            break;
+         case 2:
+            scfint_btran(bfd->u.scfi, x);
+            break;
+         default:
+            xassert(bfd != bfd);
+      }
+#ifdef GLP_DEBUG
+      maxerr = 0.0;
+      for (k = 1; k <= m; k++)
+      {  s = 0.0;
+         for (e = B->col[k]; e != NULL; e = e->c_next)
+            s += e->val * x[e->i];
+         relerr = (b[k] - s) / (1.0 + fabs(b[k]));
+         if (maxerr < relerr)
+            maxerr = relerr;
+      }
+      if (maxerr > 1e-8)
+         xprintf("bfd_btran: maxerr = %g; relative error too large\n",
+            maxerr);
+      tfree(b);
+#endif
       return;
 }
-
-/***********************************************************************
-*  NAME
-*
-*  bfd_update_it - update LP basis factorization
-*
-*  SYNOPSIS
-*
-*  #include "glpbfd.h"
-*  int bfd_update_it(BFD *bfd, int j, int bh, int len, const int ind[],
-*     const double val[]);
-*
-*  DESCRIPTION
-*
-*  The routine bfd_update_it updates the factorization of the basis
-*  matrix B after replacing its j-th column by a new vector.
-*
-*  The parameter j specifies the number of column of B, which has been
-*  replaced, 1 <= j <= m, where m is the order of B.
-*
-*  The parameter bh specifies the basis header entry for the new column
-*  of B, which is the number of the new column in some original matrix.
-*  This parameter is optional and can be specified as 0.
-*
-*  Row indices and numerical values of non-zero elements of the new
-*  column of B should be placed in locations ind[1], ..., ind[len] and
-*  val[1], ..., val[len], resp., where len is the number of non-zeros
-*  in the column. Neither zero nor duplicate elements are allowed.
-*
-*  RETURNS
-*
-*  0  The factorization has been successfully updated.
-*
-*  BFD_ESING
-*     New basis matrix is singular within the working precision.
-*
-*  BFD_ECHECK
-*     The factorization is inaccurate.
-*
-*  BFD_ELIMIT
-*     Factorization update limit has been reached.
-*
-*  BFD_EROOM
-*     Overflow of the sparse vector area.
-*
-*  In case of non-zero return code the factorization becomes invalid.
-*  It should not be used until it has been recomputed with the routine
-*  bfd_factorize. */
 
 int bfd_update_it(BFD *bfd, int j, int bh, int len, const int ind[],
       const double val[])
-{     int ret;
-      xassert(bfd != NULL);
+{     /* update LP basis factorization */
+      int ret;
+      xassert(bh == bh);
       xassert(bfd->valid);
-      /* try to update the factorization */
-#if 0 /* 27/IV-2013 */
-      if (bfd->fhv != NULL)
-      {  switch (fhv_update_it(bfd->fhv, j, len, ind, val))
-         {  case 0:
-               break;
-            case FHV_ESING:
-               bfd->valid = 0;
-               ret = BFD_ESING;
-               goto done;
-            case FHV_ECHECK:
-               bfd->valid = 0;
-               ret = BFD_ECHECK;
-               goto done;
-            case FHV_ELIMIT:
-               bfd->valid = 0;
-               ret = BFD_ELIMIT;
-               goto done;
-            case FHV_EROOM:
-               bfd->valid = 0;
-               ret = BFD_EROOM;
-               goto done;
-            default:
-               xassert(bfd != bfd);
-         }
+      switch (bfd->type)
+      {  case 1:
+            ret = fhvint_update(bfd->u.fhvi, j, len, ind, val);
+#if 1 /* FIXME */
+            switch (ret)
+            {  case 0:
+                  break;
+               case 1:
+                  ret = BFD_ESING;
+                  break;
+               case 2:
+               case 3:
+                  ret = BFD_ECOND;
+                  break;
+               case 4:
+                  ret = BFD_ELIMIT;
+                  break;
+               case 5:
+                  ret = BFD_ECHECK;
+                  break;
+               default:
+                  xassert(ret != ret);
+            }
+#endif
+            break;
+         case 2:
+            switch (bfd->parm.type & 0x0F)
+            {  case GLP_BF_BG:
+                  ret = scfint_update(bfd->u.scfi, 1, j, len, ind, val);
+                  break;
+               case GLP_BF_GR:
+                  ret = scfint_update(bfd->u.scfi, 2, j, len, ind, val);
+                  break;
+               default:
+                  xassert(bfd != bfd);
+            }
+#if 1 /* FIXME */
+            switch (ret)
+            {  case 0:
+                  break;
+               case 1:
+                  ret = BFD_ELIMIT;
+                  break;
+               case 2:
+                  ret = BFD_ECOND;
+                  break;
+               default:
+                  xassert(ret != ret);
+            }
+#endif
+            break;
+         default:
+            xassert(bfd != bfd);
       }
-#else
-      if (bfd->fi != NULL)
-      {  /* see fhv_ft_update for return codes */
-         switch (fhvint_update(bfd->fi, j, len, ind, val))
-         {  case 0:
-               break;
-            case 1:
-               bfd->valid = 0;
-               ret = BFD_ESING;
-               goto done;
-            case 2:
-            case 3:
-            case 5:
-               bfd->valid = 0;
-               ret = BFD_ECHECK;
-               goto done;
-            case 4:
-               bfd->valid = 0;
-               ret = BFD_ELIMIT;
-               goto done;
-            default:
-               xassert(bfd != bfd);
-         }
+      if (ret != 0)
+      {  /* updating factorization failed */
+         bfd->valid = 0;
+      }
+#ifdef GLP_DEBUG
+      /* save updated LP basis */
+      {  SPME *e;
+         int k;
+         for (e = bfd->B->col[j]; e != NULL; e = e->c_next)
+            e->val = 0.0;
+         spm_drop_zeros(bfd->B, 0.0);
+         for (k = 1; k <= len; k++)
+            spm_new_elem(bfd->B, ind[k], j, val[k]);
       }
 #endif
-      else if (bfd->lpf != NULL)
-      {  switch (lpf_update_it(bfd->lpf, j, bh, len, ind, val))
-         {  case 0:
-               break;
-            case LPF_ESING:
-               bfd->valid = 0;
-               ret = BFD_ESING;
-               goto done;
-            case LPF_ELIMIT:
-               bfd->valid = 0;
-               ret = BFD_ELIMIT;
-               goto done;
-            default:
-               xassert(bfd != bfd);
-         }
-      }
-      else
-         xassert(bfd != bfd);
-      /* the factorization has been successfully updated */
-      /* increase the update count */
-      bfd->upd_cnt++;
-      ret = 0;
-done: /* return to the calling program */
+      if (ret == 0)
+         bfd->upd_cnt++;
       return ret;
 }
 
-/**********************************************************************/
-
 int bfd_get_count(BFD *bfd)
 {     /* determine factorization update count */
-      xassert(bfd != NULL);
-      xassert(bfd->valid);
       return bfd->upd_cnt;
 }
 
-/***********************************************************************
-*  NAME
-*
-*  bfd_delete_it - delete LP basis factorization
-*
-*  SYNOPSIS
-*
-*  #include "glpbfd.h"
-*  void bfd_delete_it(BFD *bfd);
-*
-*  DESCRIPTION
-*
-*  The routine bfd_delete_it deletes LP basis factorization specified
-*  by the parameter fhv and frees all memory allocated to this program
-*  object. */
-
 void bfd_delete_it(BFD *bfd)
-{     xassert(bfd != NULL);
-#if 0 /* 27/IV-2013 */
-      if (bfd->fhv != NULL)
-         fhv_delete_it(bfd->fhv);
-#else
-      if (bfd->fi != NULL)
-         fhvint_delete(bfd->fi);
+{     /* delete LP basis factorization */
+      switch (bfd->type)
+      {  case 0:
+            break;
+         case 1:
+            fhvint_delete(bfd->u.fhvi);
+            break;
+         case 2:
+            scfint_delete(bfd->u.scfi);
+            break;
+         default:
+            xassert(bfd != bfd);
+      }
+#ifdef GLP_DEBUG
+      if (bfd->B != NULL)
+         spm_delete_mat(bfd->B);
 #endif
-      if (bfd->lpf != NULL)
-         lpf_delete_it(bfd->lpf);
-      xfree(bfd);
+      tfree(bfd);
       return;
 }
 

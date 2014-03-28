@@ -34,7 +34,7 @@ extern "C" {
 
 /* library version numbers: */
 #define GLP_MAJOR_VERSION  4
-#define GLP_MINOR_VERSION  53
+#define GLP_MINOR_VERSION  54
 
 typedef struct glp_prob glp_prob;
 /* LP/MIP problem object */
@@ -84,21 +84,25 @@ typedef struct glp_prob glp_prob;
 
 typedef struct
 {     /* basis factorization control parameters */
-      int msg_lev;            /* (reserved) */
+      int msg_lev;            /* (not used) */
       int type;               /* factorization type: */
-#define GLP_BF_FT          1  /* LUF + Forrest-Tomlin */
-#define GLP_BF_BG          2  /* LUF + Schur compl. + Bartels-Golub */
-#define GLP_BF_GR          3  /* LUF + Schur compl. + Givens rotation */
-      int lu_size;            /* luf.sv_size */
-      double piv_tol;         /* luf.piv_tol */
-      int piv_lim;            /* luf.piv_lim */
-      int suhl;               /* luf.suhl */
-      double eps_tol;         /* luf.eps_tol */
-      double max_gro;         /* luf.max_gro */
-      int nfs_max;            /* fhv.hh_max */
-      double upd_tol;         /* fhv.upd_tol */
-      int nrs_max;            /* lpf.n_max */
-      int rs_size;            /* lpf.v_size */
+#if 1 /* 05/III-2014 */
+#define GLP_BF_LUF      0x00  /* plain LU-factorization */
+#define GLP_BF_BTF      0x10  /* block triangular LU-factorization */
+#endif
+#define GLP_BF_FT       0x01  /* Forrest-Tomlin (LUF only) */
+#define GLP_BF_BG       0x02  /* Schur compl. + Bartels-Golub */
+#define GLP_BF_GR       0x03  /* Schur compl. + Givens rotation */
+      int lu_size;            /* (not used) */
+      double piv_tol;         /* sgf_piv_tol */
+      int piv_lim;            /* sgf_piv_lim */
+      int suhl;               /* sgf_suhl */
+      double eps_tol;         /* sgf_eps_tol */
+      double max_gro;         /* (not used) */
+      int nfs_max;            /* fhvint.nfs_max */
+      double upd_tol;         /* (not used) */
+      int nrs_max;            /* scfint.nn_max */
+      int rs_size;            /* (not used) */
       double foo_bar[38];     /* (reserved) */
 } glp_bfcp;
 
@@ -500,7 +504,7 @@ int glp_get_it_cnt(glp_prob *P);
 #endif
 
 #if 1 /* 08/VIII-2013; not documented yet */
-int glp_set_it_cnt(glp_prob *P, int it_cnt);
+void glp_set_it_cnt(glp_prob *P, int it_cnt);
 /* set simplex solver iteration count */
 #endif
 
@@ -594,22 +598,22 @@ int glp_write_mip(glp_prob *P, const char *fname);
 /* write MIP solution to text file */
 
 int glp_bf_exists(glp_prob *P);
-/* check if the basis factorization exists */
+/* check if LP basis factorization exists */
 
 int glp_factorize(glp_prob *P);
-/* compute the basis factorization */
+/* compute LP basis factorization */
 
 int glp_bf_updated(glp_prob *P);
-/* check if the basis factorization has been updated */
+/* check if LP basis factorization has been updated */
 
 void glp_get_bfcp(glp_prob *P, glp_bfcp *parm);
-/* retrieve basis factorization control parameters */
+/* retrieve LP basis factorization control parameters */
 
 void glp_set_bfcp(glp_prob *P, const glp_bfcp *parm);
-/* change basis factorization control parameters */
+/* change LP basis factorization control parameters */
 
 int glp_get_bhead(glp_prob *P, int k);
-/* retrieve the basis header information */
+/* retrieve LP basis header information */
 
 int glp_get_row_bind(glp_prob *P, int i);
 /* retrieve row index in the basis header */

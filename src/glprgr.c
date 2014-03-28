@@ -100,7 +100,7 @@ int rgr_write_bmp16(const char *fname, int m, int n, const char map[])
          xfault("rgr_write_bmp16: n = %d; invalid width\n", n);
       fp = fopen(fname, "wb");
       if (fp == NULL)
-      {  xprintf("rgr_write_bmp16: unable to create `%s' - %s\n",
+      {  xprintf("rgr_write_bmp16: unable to create '%s' - %s\n",
             fname, strerror(errno));
          ret = 1;
          goto fini;
@@ -154,7 +154,7 @@ int rgr_write_bmp16(const char *fname, int m, int n, const char map[])
       }
       fflush(fp);
       if (ferror(fp))
-      {  xprintf("rgr_write_bmp16: write error on `%s' - %s\n",
+      {  xprintf("rgr_write_bmp16: write error on '%s' - %s\n",
             fname, strerror(errno));
          ret = 1;
       }

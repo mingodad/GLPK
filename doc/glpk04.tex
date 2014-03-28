@@ -568,28 +568,36 @@ names of corresponding members in the structure \verb|glp_bfcp|.
 
 \medskip
 
-{\tt int type} (default: {\tt GLP\_BF\_FT})
+{\tt int type} (default: {\tt GLP\_BF\_LUF + GLP\_BF\_FT})
 
 Basis factorization type:
 
-\verb|GLP_BF_FT|---$LU$ + Forrest--Tomlin update;
+\verb~GLP_BF_LUF + GLP_BF_FT~ --- $LUF$, Forrest--Tomlin update;
 
-\verb|GLP_BF_BG|---$LU$ + Schur complement + Bartels--Golub update;
+\verb~GLP_BF_LUF + GLP_BF_BG~ --- $LUF$, Schur complement,
+Bartels--Golub update;
 
-\verb|GLP_BF_GR|---$LU$ + Schur complement + Givens rotation update.
+\verb~GLP_BF_LUF + GLP_BF_GR~ --- $LUF$, Schur complement,
+Givens rotation update;
+
+\verb~GLP_BF_BTF + GLP_BF_BG~ --- $BTF$, Schur complement,
+Bartels--Golub update;
+
+\verb~GLP_BF_BTF + GLP_BF_GR~ --- $BTF$, Schur complement,
+Givens rotation update.
 
 In case of \verb|GLP_BF_FT| the update is applied to matrix $U$, while
 in cases of \verb|GLP_BF_BG| and \verb|GLP_BF_GR| the update is applied
 to the Schur complement.
 
-\medskip
-
-{\tt int lu\_size} (default: {\tt 0})
-
-The initial size of the Sparse Vector Area, in non-zeros, used on
-computing $LU$-factorization of the basis matrix for the first time.
-If this parameter is set to 0, the initial SVA size is determined
-automatically.
+%\medskip
+%
+%{\tt int lu\_size} (default: {\tt 0})
+%
+%The initial size of the Sparse Vector Area, in non-zeros, used on
+%computing $LU$-factorization of the basis matrix for the first time.
+%If this parameter is set to 0, the initial SVA size is determined
+%automatically.
 
 \medskip
 
@@ -635,17 +643,17 @@ $LU$-factorization of the basis matrix. If an element of the active
 submatrix of factor $U$ is less than \verb|eps_tol| in the magnitude,
 it is replaced by exact zero.
 
-\medskip
-
-{\tt double max\_gro} (default: {\tt 1e+10})
-
-Maximal growth of elements of factor $U$, \verb|max_gro| $\geq$ 1,
-allowable on computing $LU$-factorization of the basis matrix. If on
-some elimination step the ratio $u_{big}/b_{max}$ (where $u_{big}$ is
-the largest magnitude of elements of factor $U$ appeared in its active
-submatrix during all the factorization process, $b_{max}$ is the
-largest magnitude of elements of the basis matrix to be factorized),
-the basis matrix is considered as ill-conditioned.
+%\medskip
+%
+%{\tt double max\_gro} (default: {\tt 1e+10})
+%
+%Maximal growth of elements of factor $U$, \verb|max_gro| $\geq$ 1,
+%allowable on computing $LU$-factorization of the basis matrix. If on
+%some elimination step the ratio $u_{big}/b_{max}$ (where $u_{big}$ is
+%the largest magnitude of elements of factor $U$ appeared in its active
+%submatrix during all the factorization process, $b_{max}$ is the
+%largest magnitude of elements of the basis matrix to be factorized),
+%the basis matrix is considered as ill-conditioned.
 
 \medskip
 
@@ -683,17 +691,15 @@ allocate working arrays. As a rule, each update adds one new row and
 column (however, some updates may need no addition), so this parameter
 limits the number of updates between refactorizations.
 
-\medskip
-
-{\tt int rs\_size} (default: {\tt 0})
-
-The initial size of the Sparse Vector Area, in non-zeros, used to
-store non-zero elements of additional rows and columns introduced on
-updating $LU$-factorization of the basis matrix with the Schur
-complement technique. If this parameter is set to 0, the initial SVA
-size is determined automatically.
-
-\newpage
+%\medskip
+%
+%{\tt int rs\_size} (default: {\tt 0})
+%
+%The initial size of the Sparse Vector Area, in non-zeros, used to
+%store non-zero elements of additional rows and columns introduced on
+%updating $LU$-factorization of the basis matrix with the Schur
+%complement technique. If this parameter is set to 0, the initial SVA
+%size is determined automatically.
 
 \subsection{glp\_get\_bhead --- retrieve the basis header information}
 
@@ -765,8 +771,6 @@ $1\leq i\leq m$, in the current basis associated with the specified
 problem object, where $m$ is the number of rows. However, if $i$-th
 auxiliary variable is non-basic, the routine returns zero.
 
-\newpage
-
 \para{Comments}
 
 The routine \verb|glp_get_row_bind| is an inversion of the routine
@@ -835,8 +839,6 @@ i.e. it solves the system $B^Tx=b$, where $B^T$ is a matrix transposed
 to the basis matrix $B$ associated with the specified problem object,
 $x$ is the vector of unknowns to be computed, $b$ is the vector of
 right-hand sides.
-
-\newpage
 
 On entry to the routine elements of the vector $b$ should be stored in
 locations \verb|x[1]|, \dots, \verb|x[m]|, where $m$ is the number of

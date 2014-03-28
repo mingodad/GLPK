@@ -241,6 +241,7 @@ static void print_help(const char *my_name)
          ;
       xprintf("\n");
       xprintf("LP basis factorization options:\n");
+#if 0 /* 08/III-2014 */
       xprintf("   --luf             LU + Forrest-Tomlin update\n");
       xprintf("                     (faster, less stable; default)\n");
       xprintf("   --cbg             LU + Schur complement + Bartels-Gol"
@@ -249,6 +250,18 @@ static void print_help(const char *my_name)
       xprintf("   --cgr             LU + Schur complement + Givens rota"
          "tion update\n");
       xprintf("                     (slower, more stable)\n");
+#else
+      xprintf("   --luf             plain LU-factorization (default)\n")
+         ;
+      xprintf("   --btf             block triangular LU-factorization\n"
+         );
+      xprintf("   --ft              Forrest-Tomlin update (requires --l"
+         "uf; default)\n");
+      xprintf("   --cbg             Schur complement + Bartels-Golub up"
+         "date\n");
+      xprintf("   --cgr             Schur complement + Givens rotation "
+         "update\n");
+#endif
       xprintf("\n");
       xprintf("Options specific to simplex solver:\n");
       xprintf("   --primal          use primal simplex (default)\n");
@@ -657,12 +670,35 @@ static int parse_cmdline(struct csa *csa, int argc, const char *argv[])
          {  print_version(0);
             return -1;
          }
+#if 0 /* 08/III-2014 */
          else if (p("--luf"))
             csa->bfcp.type = GLP_BF_FT;
          else if (p("--cbg"))
             csa->bfcp.type = GLP_BF_BG;
          else if (p("--cgr"))
             csa->bfcp.type = GLP_BF_GR;
+#else
+         else if (p("--luf"))
+         {  csa->bfcp.type &= 0x0F;
+            csa->bfcp.type |= GLP_BF_LUF;
+         }
+         else if (p("--btf"))
+         {  csa->bfcp.type &= 0x0F;
+            csa->bfcp.type |= GLP_BF_BTF;
+         }
+         else if (p("--ft"))
+         {  csa->bfcp.type &= 0x0F;
+            csa->bfcp.type |= GLP_BF_FT;
+         }
+         else if (p("--cbg"))
+         {  csa->bfcp.type &= 0x0F;
+            csa->bfcp.type |= GLP_BF_BG;
+         }
+         else if (p("--cgr"))
+         {  csa->bfcp.type &= 0x0F;
+            csa->bfcp.type |= GLP_BF_GR;
+         }
+#endif
          else if (p("--primal"))
             csa->smcp.meth = GLP_PRIMAL;
          else if (p("--dual"))

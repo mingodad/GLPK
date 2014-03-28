@@ -626,6 +626,10 @@ int glp_intopt(glp_prob *P, const glp_iocp *parm)
 #endif
       else
          ret = preprocess_and_solve_mip(P, parm);
+#if 1 /* 12/III-2013 */
+      if (ret == GLP_ENOPFS)
+         P->mip_stat = GLP_NOFEAS;
+#endif
 done: /* return to the application program */
       return ret;
 }

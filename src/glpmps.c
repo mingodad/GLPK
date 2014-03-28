@@ -377,7 +377,7 @@ static double read_number(struct csa *csa)
       for (s = csa->field; *s == ' '; s++);
       /* perform conversion */
       if (str2num(s, &x) != 0)
-         error(csa, "cannot convert `%s' to floating-point number\n",
+         error(csa, "cannot convert '%s' to floating-point number\n",
             s);
       return x;
 }
@@ -432,7 +432,7 @@ loop: if (indicator(csa, 0)) goto done;
       if (csa->field[0] == '\0')
          error(csa, "missing row name in field 2\n");
       if (glp_find_row(csa->P, csa->field) != 0)
-         error(csa, "row `%s' multiply specified\n", csa->field);
+         error(csa, "row '%s' multiply specified\n", csa->field);
       i = glp_add_rows(csa->P, 1);
       glp_set_row_name(csa->P, i, csa->field);
       glp_set_row_bnds(csa->P, i, type, 0.0, 0.0);
@@ -513,7 +513,7 @@ loop: if (indicator(csa, 0)) goto done;
          }
          /* create new column */
          if (glp_find_col(csa->P, name) != 0)
-            error(csa, "column `%s' multiply specified\n", name);
+            error(csa, "column '%s' multiply specified\n", name);
          j = glp_add_cols(csa->P, 1);
          glp_set_col_name(csa->P, j, name);
          glp_set_col_kind(csa->P, j, kind);
@@ -541,9 +541,9 @@ loop: if (indicator(csa, 0)) goto done;
          }
          i = glp_find_row(csa->P, csa->field);
          if (i == 0)
-            error(csa, "row `%s' not found\n", csa->field);
+            error(csa, "row '%s' not found\n", csa->field);
          if (flag[i])
-            error(csa, "duplicate coefficient in row `%s'\n",
+            error(csa, "duplicate coefficient in row '%s'\n",
                csa->field);
          /* field 4 or 6: coefficient value */
          aij = read_number(csa);
@@ -616,9 +616,9 @@ blnk: {  /* new RHS vector */
          }
          i = glp_find_row(csa->P, csa->field);
          if (i == 0)
-            error(csa, "row `%s' not found\n", csa->field);
+            error(csa, "row '%s' not found\n", csa->field);
          if (flag[i])
-            error(csa, "duplicate right-hand side for row `%s'\n",
+            error(csa, "duplicate right-hand side for row '%s'\n",
                csa->field);
          /* field 4 or 6: right-hand side value */
          rhs = read_number(csa);
@@ -628,7 +628,7 @@ blnk: {  /* new RHS vector */
          {  if (i == csa->obj_row)
                glp_set_obj_coef(csa->P, 0, rhs);
             else if (rhs != 0.0)
-               warning(csa, "non-zero right-hand side for free row `%s'"
+               warning(csa, "non-zero right-hand side for free row '%s'"
                   " ignored\n", csa->P->row[i]->name);
          }
          else
@@ -696,15 +696,15 @@ blnk: {  /* new RANGES vector */
          }
          i = glp_find_row(csa->P, csa->field);
          if (i == 0)
-            error(csa, "row `%s' not found\n", csa->field);
+            error(csa, "row '%s' not found\n", csa->field);
          if (flag[i])
-            error(csa, "duplicate range for row `%s'\n", csa->field);
+            error(csa, "duplicate range for row '%s'\n", csa->field);
          /* field 4 or 6: range value */
          rng = read_number(csa);
          if (fabs(rng) < csa->parm->tol_mps) rng = 0.0;
          type = csa->P->row[i]->type;
          if (type == GLP_FR)
-            warning(csa, "range for free row `%s' ignored\n",
+            warning(csa, "range for free row '%s' ignored\n",
                csa->P->row[i]->name);
          else if (type == GLP_LO)
          {  rhs = csa->P->row[i]->lb;
@@ -797,12 +797,12 @@ blnk: {  /* new BOUNDS vector */
          error(csa, "missing column name in field 3\n");
       j = glp_find_col(csa->P, csa->field);
       if (j == 0)
-         error(csa, "column `%s' not found\n", csa->field);
+         error(csa, "column '%s' not found\n", csa->field);
       if ((flag[j] & mask) == 0x01)
-         error(csa, "duplicate lower bound for column `%s'\n",
+         error(csa, "duplicate lower bound for column '%s'\n",
             csa->field);
       if ((flag[j] & mask) == 0x10)
-         error(csa, "duplicate upper bound for column `%s'\n",
+         error(csa, "duplicate upper bound for column '%s'\n",
             csa->field);
       xassert((flag[j] & mask) == 0x00);
       /* field 4: bound value */
@@ -887,7 +887,7 @@ int glp_read_mps(glp_prob *P, int fmt, const glp_mpscp *parm,
       glp_mpscp _parm;
       struct csa _csa, *csa = &_csa;
       int ret;
-      xprintf("Reading problem data from `%s'...\n", fname);
+      xprintf("Reading problem data from '%s'...\n", fname);
       if (!(fmt == GLP_MPS_DECK || fmt == GLP_MPS_FILE))
          xerror("glp_read_mps: fmt = %d; invalid parameter\n", fmt);
       if (parm == NULL)
@@ -917,7 +917,7 @@ int glp_read_mps(glp_prob *P, int fmt, const glp_mpscp *parm,
       /* open input MPS file */
       csa->fp = glp_open(fname, "r");
       if (csa->fp == NULL)
-      {  xprintf("Unable to open `%s' - %s\n", fname, get_err_msg());
+      {  xprintf("Unable to open '%s' - %s\n", fname, get_err_msg());
          ret = 1;
          goto done;
       }
@@ -953,7 +953,7 @@ int glp_read_mps(glp_prob *P, int fmt, const glp_mpscp *parm,
             }
          }
          if (csa->obj_row == 0)
-            error(csa, "objective row `%s' not found\n",
+            error(csa, "objective row '%s' not found\n",
                parm->obj_name);
       }
       if (csa->obj_row != 0)
@@ -983,25 +983,6 @@ int glp_read_mps(glp_prob *P, int fmt, const glp_mpscp *parm,
       if (strcmp(csa->field, "ENDATA") != 0)
          error(csa, "invalid use of %s indicator record\n",
             csa->field);
-#if 1 /* 08/VIII-2013 */
-      /* remove free rows */
-      {  int i, nrs, *num;
-         num = talloc(1+P->m, int);
-         nrs = 0;
-         for (i = 1; i <= P->m; i++)
-         {  if (P->row[i]->type == GLP_FR)
-               num[++nrs] = i;
-         }
-         if (nrs > 0)
-         {  glp_del_rows(P, nrs, num);
-            if (nrs == 1)
-               xprintf("One free row was removed\n");
-            else
-               xprintf("%d free rows were removed\n", nrs);
-         }
-         tfree(num);
-      }
-#endif
       /* print some statistics */
       xprintf("%d row%s, %d column%s, %d non-zero%s\n",
          P->m, P->m == 1 ? "" : "s", P->n, P->n == 1 ? "" : "s",
@@ -1029,6 +1010,25 @@ int glp_read_mps(glp_prob *P, int fmt, const glp_mpscp *parm,
          }
       }
       xprintf("%d records were read\n", csa->recno);
+#if 1 /* 08/VIII-2013 */
+      /* remove free rows */
+      {  int i, nrs, *num;
+         num = talloc(1+P->m, int);
+         nrs = 0;
+         for (i = 1; i <= P->m; i++)
+         {  if (P->row[i]->type == GLP_FR)
+               num[++nrs] = i;
+         }
+         if (nrs > 0)
+         {  glp_del_rows(P, nrs, num);
+            if (nrs == 1)
+               xprintf("One free row was removed\n");
+            else
+               xprintf("%d free rows were removed\n", nrs);
+         }
+         tfree(num);
+      }
+#endif
       /* problem data has been successfully read */
       glp_delete_index(P);
       glp_sort_matrix(P);
@@ -1159,7 +1159,7 @@ int glp_write_mps(glp_prob *P, int fmt, const glp_mpscp *parm,
       glp_file *fp;
       int out_obj, one_col = 0, empty = 0;
       int i, j, recno, marker, count, gap, ret;
-      xprintf("Writing problem data to `%s'...\n", fname);
+      xprintf("Writing problem data to '%s'...\n", fname);
       if (!(fmt == GLP_MPS_DECK || fmt == GLP_MPS_FILE))
          xerror("glp_write_mps: fmt = %d; invalid parameter\n", fmt);
       if (parm == NULL)
@@ -1173,7 +1173,7 @@ int glp_write_mps(glp_prob *P, int fmt, const glp_mpscp *parm,
       /* create output MPS file */
       fp = glp_open(fname, "w"), recno = 0;
       if (fp == NULL)
-      {  xprintf("Unable to create `%s' - %s\n", fname, get_err_msg());
+      {  xprintf("Unable to create '%s' - %s\n", fname, get_err_msg());
          ret = 1;
          goto done;
       }
@@ -1419,7 +1419,7 @@ endt: /* write ENDATA indicator record */
       xfflush(fp);
 #endif
       if (glp_ioerr(fp))
-      {  xprintf("Write error on `%s' - %s\n", fname, get_err_msg());
+      {  xprintf("Write error on '%s' - %s\n", fname, get_err_msg());
          ret = 1;
          goto done;
       }

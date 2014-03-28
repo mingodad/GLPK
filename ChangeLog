@@ -1,3 +1,56 @@
+Fri Mar 28 12:00:00 2014 Andrew Makhorin <mao@gnu.org>
+
+        * GLPK 4.54 (37:1:1) has been released.
+
+        * src/bflib/fhvint.h, fhvint.c
+        Some technical changes were made.
+
+        * src/bflib/btf.h, btf.c, btfint.h, btfint.c
+        The module BTF was added to the package. It implements sparse
+        block triangular factorization of a square non-singular matrix
+        and is based on LU-factorization (see the LUF module).
+
+        * src/bflib/scf.h, scf.c, scfint.h, scfint.c
+        The module SCF was added to the package. It implements sparse
+        factorization of a square non-singular matrix based on Schur
+        complement and LU-factorization (plain or block triangular; see
+        the LUF and BTF modules).
+
+        * src/bfd.c
+        LP basis factorization driver was changed to use most recent
+        versions of the FHV and SCF modules.
+
+        * src/glplpf.h, glplpf.c
+        Old version of the Schur-complement-based factorization module
+        was removed from the package.
+
+        * src/glpk.h
+        New flags GLP_BF_LUF, GLP_BF_BTF were added for glp_bfcp.
+
+        * src/glpapi12.c
+        The API routines glp_get_bfcp, glp_set_bfcp were replaced due
+        to new version of the BFD module.
+
+        * src/glpapi21.c
+        New command-line options --luf, --btf, --ft, --cbg, and --cgr
+        were added for the glpsol solver.
+
+        * src/*
+        According to a new version of the GNU Coding Standards in all
+        messages a grave accent character (`) was replaced by a single
+        apostrophe character (').
+
+        * src/glpapi09.c mip status bug was fixed. Thanks to Remy Roy
+        <remyroyster@gmail.com> for bug report.
+
+        * doc/glpk.tex
+        Some comments about invalidating the basis factorization were
+        added. Thanks to Xypron <xypron.glpk@gmx.de> for suggestion.
+
+        * configure.ac
+        "iodbc-config --cflags" was added to detect iodbc flags. Thanks
+        to Sebastien Villemot <sebastien@debian.org> for patch.
+
 Thu Feb 13 12:00:00 2014 Andrew Makhorin <mao@gnu.org>
 
         * GLPK 4.53 (37:0:1) has been released.

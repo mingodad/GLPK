@@ -35,10 +35,10 @@ int glp_print_sol(glp_prob *P, const char *fname)
       GLPCOL *col;
       int i, j, t, ae_ind, re_ind, ret;
       double ae_max, re_max;
-      xprintf("Writing basic solution to `%s'...\n", fname);
+      xprintf("Writing basic solution to '%s'...\n", fname);
       fp = glp_open(fname, "w");
       if (fp == NULL)
-      {  xprintf("Unable to create `%s' - %s\n", fname, get_err_msg());
+      {  xprintf("Unable to create '%s' - %s\n", fname, get_err_msg());
          ret = 1;
          goto done;
       }
@@ -192,7 +192,7 @@ int glp_print_sol(glp_prob *P, const char *fname)
       xfflush(fp);
 #endif
       if (glp_ioerr(fp))
-      {  xprintf("Write error on `%s' - %s\n", fname, get_err_msg());
+      {  xprintf("Write error on '%s' - %s\n", fname, get_err_msg());
          ret = 1;
          goto done;
       }
@@ -225,7 +225,7 @@ int glp_read_sol(glp_prob *lp, const char *fname)
 {     glp_data *data;
       jmp_buf jump;
       int i, j, k, ret = 0;
-      xprintf("Reading basic solution from `%s'...\n", fname);
+      xprintf("Reading basic solution from '%s'...\n", fname);
       data = glp_sdf_open_file(fname);
       if (data == NULL)
       {  ret = 1;
@@ -338,10 +338,10 @@ done: if (ret) lp->pbs_stat = lp->dbs_stat = GLP_UNDEF;
 int glp_write_sol(glp_prob *lp, const char *fname)
 {     glp_file *fp;
       int i, j, ret = 0;
-      xprintf("Writing basic solution to `%s'...\n", fname);
+      xprintf("Writing basic solution to '%s'...\n", fname);
       fp = glp_open(fname, "w");
       if (fp == NULL)
-      {  xprintf("Unable to create `%s' - %s\n", fname, get_err_msg());
+      {  xprintf("Unable to create '%s' - %s\n", fname, get_err_msg());
          ret = 1;
          goto done;
       }
@@ -368,7 +368,7 @@ int glp_write_sol(glp_prob *lp, const char *fname)
       xfflush(fp);
 #endif
       if (glp_ioerr(fp))
-      {  xprintf("Write error on `%s' - %s\n", fname, get_err_msg());
+      {  xprintf("Write error on '%s' - %s\n", fname, get_err_msg());
          ret = 1;
          goto done;
       }
@@ -450,10 +450,10 @@ int glp_print_ranges(glp_prob *P, int len, const int list[],
          goto done;
       }
       /* start reporting */
-      xprintf("Write sensitivity analysis report to `%s'...\n", fname);
+      xprintf("Write sensitivity analysis report to '%s'...\n", fname);
       fp = glp_open(fname, "w");
       if (fp == NULL)
-      {  xprintf("Unable to create `%s' - %s\n", fname, get_err_msg());
+      {  xprintf("Unable to create '%s' - %s\n", fname, get_err_msg());
          ret = 3;
          goto done;
       }
@@ -641,7 +641,7 @@ int glp_print_ranges(glp_prob *P, int len, const int list[],
       xfflush(fp);
 #endif
       if (glp_ioerr(fp))
-      {  xprintf("Write error on `%s' - %s\n", fname, get_err_msg());
+      {  xprintf("Write error on '%s' - %s\n", fname, get_err_msg());
          ret = 4;
          goto done;
       }
@@ -659,10 +659,10 @@ int glp_print_ipt(glp_prob *P, const char *fname)
       GLPCOL *col;
       int i, j, t, ae_ind, re_ind, ret;
       double ae_max, re_max;
-      xprintf("Writing interior-point solution to `%s'...\n", fname);
+      xprintf("Writing interior-point solution to '%s'...\n", fname);
       fp = glp_open(fname, "w");
       if (fp == NULL)
-      {  xprintf("Unable to create `%s' - %s\n", fname, get_err_msg());
+      {  xprintf("Unable to create '%s' - %s\n", fname, get_err_msg());
          ret = 1;
          goto done;
       }
@@ -800,7 +800,7 @@ int glp_print_ipt(glp_prob *P, const char *fname)
       xfflush(fp);
 #endif
       if (glp_ioerr(fp))
-      {  xprintf("Write error on `%s' - %s\n", fname, get_err_msg());
+      {  xprintf("Write error on '%s' - %s\n", fname, get_err_msg());
          ret = 1;
          goto done;
       }
@@ -834,7 +834,7 @@ int glp_read_ipt(glp_prob *lp, const char *fname)
 {     glp_data *data;
       jmp_buf jump;
       int i, j, k, ret = 0;
-      xprintf("Reading interior-point solution from `%s'...\n", fname);
+      xprintf("Reading interior-point solution from '%s'...\n", fname);
       data = glp_sdf_open_file(fname);
       if (data == NULL)
       {  ret = 1;
@@ -924,10 +924,10 @@ done: if (ret) lp->ipt_stat = GLP_UNDEF;
 int glp_write_ipt(glp_prob *lp, const char *fname)
 {     glp_file *fp;
       int i, j, ret = 0;
-      xprintf("Writing interior-point solution to `%s'...\n", fname);
+      xprintf("Writing interior-point solution to '%s'...\n", fname);
       fp = glp_open(fname, "w");
       if (fp == NULL)
-      {  xprintf("Unable to create `%s' - %s\n", fname, get_err_msg());
+      {  xprintf("Unable to create '%s' - %s\n", fname, get_err_msg());
          ret = 1;
          goto done;
       }
@@ -953,7 +953,7 @@ int glp_write_ipt(glp_prob *lp, const char *fname)
       xfflush(fp);
 #endif
       if (glp_ioerr(fp))
-      {  xprintf("Write error on `%s' - %s\n", fname, get_err_msg());
+      {  xprintf("Write error on '%s' - %s\n", fname, get_err_msg());
          ret = 1;
          goto done;
       }
@@ -971,10 +971,10 @@ int glp_print_mip(glp_prob *P, const char *fname)
       GLPCOL *col;
       int i, j, t, ae_ind, re_ind, ret;
       double ae_max, re_max;
-      xprintf("Writing MIP solution to `%s'...\n", fname);
+      xprintf("Writing MIP solution to '%s'...\n", fname);
       fp = glp_open(fname, "w");
       if (fp == NULL)
-      {  xprintf("Unable to create `%s' - %s\n", fname, get_err_msg());
+      {  xprintf("Unable to create '%s' - %s\n", fname, get_err_msg());
          ret = 1;
          goto done;
       }
@@ -1081,7 +1081,7 @@ int glp_print_mip(glp_prob *P, const char *fname)
       xfflush(fp);
 #endif
       if (glp_ioerr(fp))
-      {  xprintf("Write error on `%s' - %s\n", fname, get_err_msg());
+      {  xprintf("Write error on '%s' - %s\n", fname, get_err_msg());
          ret = 1;
          goto done;
       }
@@ -1114,7 +1114,7 @@ int glp_read_mip(glp_prob *mip, const char *fname)
 {     glp_data *data;
       jmp_buf jump;
       int i, j, k, ret = 0;
-      xprintf("Reading MIP solution from `%s'...\n", fname);
+      xprintf("Reading MIP solution from '%s'...\n", fname);
       data = glp_sdf_open_file(fname);
       if (data == NULL)
       {  ret = 1;
@@ -1202,10 +1202,10 @@ done: if (ret) mip->mip_stat = GLP_UNDEF;
 int glp_write_mip(glp_prob *mip, const char *fname)
 {     glp_file *fp;
       int i, j, ret = 0;
-      xprintf("Writing MIP solution to `%s'...\n", fname);
+      xprintf("Writing MIP solution to '%s'...\n", fname);
       fp = glp_open(fname, "w");
       if (fp == NULL)
-      {  xprintf("Unable to create `%s' - %s\n", fname, get_err_msg());
+      {  xprintf("Unable to create '%s' - %s\n", fname, get_err_msg());
          ret = 1;
          goto done;
       }
@@ -1223,7 +1223,7 @@ int glp_write_mip(glp_prob *mip, const char *fname)
       xfflush(fp);
 #endif
       if (glp_ioerr(fp))
-      {  xprintf("Write error on `%s' - %s\n", fname, get_err_msg());
+      {  xprintf("Write error on '%s' - %s\n", fname, get_err_msg());
          ret = 1;
          goto done;
       }

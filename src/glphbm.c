@@ -146,7 +146,7 @@ static int scan_int(struct dsa *dsa, char *fld, int pos, int width,
       xassert(1 <= width && width <= 80);
       memcpy(str, dsa->card + pos, width), str[width] = '\0';
       if (str2int(strspx(str), val))
-      {  xprintf("%s:%d: field `%s' contains invalid value `%s'\n",
+      {  xprintf("%s:%d: field '%s' contains invalid value '%s'\n",
             dsa->fname, dsa->seqn, fld, str);
          return 1;
       }
@@ -167,7 +167,7 @@ static int parse_fmt(struct dsa *dsa, char *fmt)
       char str[80+1];
       /* first character should be left parenthesis */
       if (fmt[0] != '(')
-fail: {  xprintf("hbm_read_mat: format `%s' not recognised\n", fmt);
+fail: {  xprintf("hbm_read_mat: format '%s' not recognised\n", fmt);
          return 1;
       }
       k = 1;
@@ -251,7 +251,7 @@ static int read_int_array(struct dsa *dsa, char *name, char *fmt,
       if (!(dsa->fmt_f == 'I' && dsa->fmt_w <= 80 &&
             dsa->fmt_k * dsa->fmt_w <= 80))
       {  xprintf(
-            "%s:%d: can't read array `%s' - invalid format `%s'\n",
+            "%s:%d: can't read array '%s' - invalid format '%s'\n",
             dsa->fname, dsa->seqn, name, fmt);
          return 1;
       }
@@ -265,7 +265,7 @@ static int read_int_array(struct dsa *dsa, char *name, char *fmt,
          strspx(str);
          if (str2int(str, &val[k]))
          {  xprintf(
-               "%s:%d: can't read array `%s' - invalid value `%s'\n",
+               "%s:%d: can't read array '%s' - invalid value '%s'\n",
                dsa->fname, dsa->seqn, name, str);
             return 1;
          }
@@ -290,7 +290,7 @@ static int read_real_array(struct dsa *dsa, char *name, char *fmt,
       if (!(dsa->fmt_f != 'I' && dsa->fmt_w <= 80 &&
             dsa->fmt_k * dsa->fmt_w <= 80))
       {  xprintf(
-            "%s:%d: can't read array `%s' - invalid format `%s'\n",
+            "%s:%d: can't read array '%s' - invalid format '%s'\n",
             dsa->fname, dsa->seqn, name, fmt);
          return 1;
       }
@@ -303,7 +303,7 @@ static int read_real_array(struct dsa *dsa, char *name, char *fmt,
          str[dsa->fmt_w] = '\0';
          strspx(str);
          if (strchr(str, '.') == NULL && strcmp(str, "0"))
-         {  xprintf("%s(%d): can't read array `%s' - value `%s' has no "
+         {  xprintf("%s(%d): can't read array '%s' - value '%s' has no "
                "decimal point\n", dsa->fname, dsa->seqn, name, str);
             return 1;
          }
@@ -324,7 +324,7 @@ static int read_real_array(struct dsa *dsa, char *name, char *fmt,
          }
          if (str2num(str, &val[k]))
          {  xprintf(
-               "%s:%d: can't read array `%s' - invalid value `%s'\n",
+               "%s:%d: can't read array '%s' - invalid value '%s'\n",
                dsa->fname, dsa->seqn, name, str);
             return 1;
          }
@@ -336,11 +336,11 @@ HBM *hbm_read_mat(const char *fname)
 {     struct dsa _dsa, *dsa = &_dsa;
       HBM *hbm = NULL;
       dsa->fname = fname;
-      xprintf("hbm_read_mat: reading matrix from `%s'...\n",
+      xprintf("hbm_read_mat: reading matrix from '%s'...\n",
          dsa->fname);
       dsa->fp = fopen(dsa->fname, "r");
       if (dsa->fp == NULL)
-      {  xprintf("hbm_read_mat: unable to open `%s' - %s\n",
+      {  xprintf("hbm_read_mat: unable to open '%s' - %s\n",
             dsa->fname, strerror(errno));
          goto fail;
       }
@@ -371,7 +371,7 @@ HBM *hbm_read_mat(const char *fname)
       if (strchr("RCP",   hbm->mxtype[0]) == NULL ||
           strchr("SUHZR", hbm->mxtype[1]) == NULL ||
           strchr("AE",    hbm->mxtype[2]) == NULL)
-      {  xprintf("%s:%d: matrix type `%s' not recognised\n",
+      {  xprintf("%s:%d: matrix type '%s' not recognised\n",
             dsa->fname, dsa->seqn, hbm->mxtype);
          goto fail;
       }
@@ -405,7 +405,7 @@ HBM *hbm_read_mat(const char *fname)
          memcpy(hbm->rhstyp, dsa->card, 3), hbm->rhstyp[3] = '\0';
          if (scan_int(dsa, "nrhs", 14, 14, &hbm->nrhs)) goto fail;
          if (scan_int(dsa, "nrhsix", 28, 14, &hbm->nrhsix)) goto fail;
-         xprintf("rhstyp = `%s'; nrhs = %d; nrhsix = %d\n",
+         xprintf("rhstyp = '%s'; nrhs = %d; nrhsix = %d\n",
             hbm->rhstyp, hbm->nrhs, hbm->nrhsix);
       }
       /* read matrix structure */
@@ -460,7 +460,7 @@ HBM *hbm_read_mat(const char *fname)
             hbm->rhsval)) goto fail;
       }
       else
-      {  xprintf("%s:%d: right-hand side type `%c' not recognised\n",
+      {  xprintf("%s:%d: right-hand side type '%c' not recognised\n",
             dsa->fname, dsa->seqn, hbm->rhstyp[0]);
          goto fail;
       }

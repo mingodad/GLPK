@@ -70,12 +70,11 @@ the problem, and write its solution to an output text file.
 \para{LP basis factorization options}
 
 \begin{verbatim}
-   --luf             LU + Forrest-Tomlin update
-                     (faster, less stable; default)
-   --cbg             LU + Schur complement + Bartels-Golub update
-                     (slower, more stable)
-   --cgr             LU + Schur complement + Givens rotation update
-                     (slower, more stable)
+   --luf             plain LU factorization (default)
+   --btf             block triangular LU factorization
+   --ft              Forrest-Tomlin update (requires --luf; default)
+   --cbg             Schur complement + Bartels-Golub update
+   --cgr             Schur complement + Givens rotation update
 \end{verbatim}
 
 \para{Options specific to the simplex solver}

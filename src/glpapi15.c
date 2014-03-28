@@ -526,7 +526,7 @@ int glp_read_graph(glp_graph *G, const char *fname)
       jmp_buf jump;
       int nv, na, i, j, k, ret;
       glp_erase_graph(G, G->v_size, G->a_size);
-      xprintf("Reading graph from `%s'...\n", fname);
+      xprintf("Reading graph from '%s'...\n", fname);
       data = glp_sdf_open_file(fname);
       if (data == NULL)
       {  ret = 1;
@@ -585,10 +585,10 @@ int glp_write_graph(glp_graph *G, const char *fname)
       glp_vertex *v;
       glp_arc *a;
       int i, count, ret;
-      xprintf("Writing graph to `%s'...\n", fname);
+      xprintf("Writing graph to '%s'...\n", fname);
       fp = glp_open(fname, "w"), count = 0;
       if (fp == NULL)
-      {  xprintf("Unable to create `%s' - %s\n", fname, get_err_msg());
+      {  xprintf("Unable to create '%s' - %s\n", fname, get_err_msg());
          ret = 1;
          goto done;
       }
@@ -602,7 +602,7 @@ int glp_write_graph(glp_graph *G, const char *fname)
       xfflush(fp);
 #endif
       if (glp_ioerr(fp))
-      {  xprintf("Write error on `%s' - %s\n", fname, get_err_msg());
+      {  xprintf("Write error on '%s' - %s\n", fname, get_err_msg());
          ret = 1;
          goto done;
       }

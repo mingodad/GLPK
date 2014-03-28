@@ -58,11 +58,13 @@
 static void create_prob(glp_prob *lp)
 {     lp->magic = GLP_PROB_MAGIC;
       lp->pool = dmp_create_pool();
+#if 0 /* 08/III-2014 */
 #if 0 /* 17/XI-2009 */
       lp->cps = xmalloc(sizeof(struct LPXCPS));
       lpx_reset_parms(lp);
 #else
       lp->parms = NULL;
+#endif
 #endif
       lp->tree = NULL;
 #if 0
@@ -84,7 +86,9 @@ static void create_prob(glp_prob *lp)
       /* basis factorization */
       lp->valid = 0;
       lp->head = xcalloc(1+lp->m_max, sizeof(int));
+#if 0 /* 08/III-2014 */
       lp->bfcp = NULL;
+#endif
       lp->bfd = NULL;
       /* basic solution (LP) */
       lp->pbs_stat = lp->dbs_stat = GLP_UNDEF;
@@ -1540,10 +1544,12 @@ void glp_erase_prob(glp_prob *lp)
 static void delete_prob(glp_prob *lp)
 {     lp->magic = 0x3F3F3F3F;
       dmp_delete_pool(lp->pool);
+#if 0 /* 08/III-2014 */
 #if 0 /* 17/XI-2009 */
       xfree(lp->cps);
 #else
       if (lp->parms != NULL) xfree(lp->parms);
+#endif
 #endif
       xassert(lp->tree == NULL);
 #if 0
@@ -1554,7 +1560,9 @@ static void delete_prob(glp_prob *lp)
       if (lp->r_tree != NULL) avl_delete_tree(lp->r_tree);
       if (lp->c_tree != NULL) avl_delete_tree(lp->c_tree);
       xfree(lp->head);
+#if 0 /* 08/III-2014 */
       if (lp->bfcp != NULL) xfree(lp->bfcp);
+#endif
       if (lp->bfd != NULL) bfd_delete_it(lp->bfd);
       return;
 }

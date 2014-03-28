@@ -352,6 +352,11 @@ the row list, so the ordinal numbers of existing rows are not changed.
 Being added each new row is initially free (unbounded) and has empty
 list of the constraint coefficients.
 
+Each new row becomes a non-active (non-binding) constraint, i.e. the
+corresponding auxiliary variable is marked as basic.
+
+If the basis factorization exists, adding row(s) invalidates it.
+
 \returns
 
 The routine \verb|glp_add_rows| returns the ordinal number of the first
@@ -374,6 +379,11 @@ columns are not changed.
 
 Being added each new column is initially fixed at zero and has empty
 list of the constraint coefficients.
+
+Each new column is marked as non-basic, i.e. zero value of the
+corresponding structural variable becomes an active (binding) bound.
+
+If the basis factorization exists, it remains valid.
 
 \returns
 
@@ -503,6 +513,8 @@ while the parameter \verb|ub| is ignored.
 Being added to the problem object each column is initially fixed at
 zero, i.e. its type is \verb|GLP_FX| and both bounds are 0.
 
+\newpage
+
 \subsection{glp\_set\_obj\_coef --- set (change) objective coefficient
 or constant term}
 
@@ -520,8 +532,6 @@ the objective coefficient is specified by the parameter \verb|coef|.
 
 If the parameter \verb|j| is 0, the routine sets (changes) the constant
 term (``shift'') of the objective function.
-
-\newpage
 
 \subsection{glp\_set\_mat\_row --- set (replace) row of the constraint
 matrix}
@@ -550,6 +560,11 @@ but they are not stored in the constraint matrix.
 If the parameter \verb|len| is 0, the parameters \verb|ind| and/or
 \verb|val| can be specified as \verb|NULL|.
 
+\note
+
+If the basis factorization exists and changing the row changes
+coefficients at basic column(s), the factorization is invalidated.
+
 \subsection{glp\_set\_mat\_col --- set (replace) column of the
 constr\-aint matrix}
 
@@ -576,6 +591,11 @@ they are not stored in the constraint matrix.
 
 If the parameter \verb|len| is 0, the parameters \verb|ind| and/or
 \verb|val| can be specified as \verb|NULL|.
+
+\note
+
+If the basis factorization exists, changing the column corresponding
+to a basic structural variable invalidates it.
 
 \subsection{glp\_load\_matrix --- load (replace) the whole constraint
 matrix}
@@ -605,6 +625,10 @@ however, they are not stored in the constraint matrix.
 
 If the parameter \verb|ne| is 0, the parameters \verb|ia|, \verb|ja|,
 and/or \verb|ar| can be specified as \verb|NULL|.
+
+\note
+
+If the basis factorization exists, this operation invalidates it.
 
 \subsection{glp\_check\_dup --- check for duplicate elements in sparse
 matrix}
@@ -683,6 +707,11 @@ be five rows $a$, $b$, $c$, $d$, $e$ with ordinal numbers 1, 2, 3, 4,
 5, and let rows $b$ and $d$ have been deleted. Then after deletion the
 remaining rows $a$, $c$, $e$ are assigned new oridinal numbers 1, 2, 3.
 
+If the basis factorization exists, deleting active (binding) rows,
+i.e. whose auxiliary variables are marked as non-basic, invalidates it.
+
+\newpage
+
 \subsection{glp\_del\_cols --- delete columns from problem object}
 
 \synopsis
@@ -707,6 +736,9 @@ ordinal numbers 1, 2, 3, 4, 5, 6, and let columns $p$, $q$, $s$ have
 been deleted. Then after deletion the remaining columns $r$, $t$, $u$
 are assigned new ordinal numbers 1, 2, 3.
 
+If the basis factorization exists, deleting basic columns invalidates
+it.
+
 \subsection{glp\_copy\_prob --- copy problem object content}
 
 \synopsis
@@ -724,8 +756,6 @@ The parameter \verb|names| is a flag. If it is \verb|GLP_ON|,
 the routine also copies all symbolic names; otherwise, if it is
 \verb|GLP_OFF|, no symbolic names are copied.
 
-\newpage
-
 \subsection{glp\_erase\_prob --- erase problem object content}
 
 \synopsis
@@ -741,6 +771,8 @@ problem object. The effect of this operation is the same as if the
 problem object would be deleted with the routine \verb|glp_delete_prob|
 and then created anew with the routine \verb|glp_create_prob|, with the
 only exception that the pointer to the problem object remains valid.
+
+\newpage
 
 \subsection{glp\_delete\_prob --- delete problem object}
 

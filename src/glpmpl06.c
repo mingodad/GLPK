@@ -913,7 +913,7 @@ void mpl_tab_drv_open(MPL *mpl, int mode)
          dca->link = db_mysql_open(dca, mode);
       }
       else
-         xprintf("Invalid table driver `%s'\n", dca->arg[1]);
+         xprintf("Invalid table driver '%s'\n", dca->arg[1]);
       if (dca->link == NULL)
          error(mpl, "error on opening table %s",
             mpl->stmt->u.tab->name);
