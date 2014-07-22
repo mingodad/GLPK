@@ -192,6 +192,16 @@ void btf_at_solve(BTF *btf, double b[/*1+n*/], double x[/*1+n*/],
       double w1[/*1+n*/], double w2[/*1+n*/]);
 /* solve system A'* x = b */
 
+#define btf_at_solve1 _glp_btf_at_solve1
+void btf_at_solve1(BTF *btf, double e[/*1+n*/], double y[/*1+n*/],
+      double w1[/*1+n*/], double w2[/*1+n*/]);
+/* solve system A'* y = e' to cause growth in y */
+
+#define btf_estimate_norm _glp_btf_estimate_norm
+double btf_estimate_norm(BTF *btf, double w1[/*1+n*/], double
+      w2[/*1+n*/], double w3[/*1+n*/], double w4[/*1+n*/]);
+/* estimate 1-norm of inv(A) */
+
 #endif
 
 /* eof */

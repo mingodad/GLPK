@@ -195,6 +195,25 @@ void scfint_btran(SCFINT *fi, double x[])
       return;
 }
 
+double scfint_estimate(SCFINT *fi)
+{     /* estimate 1-norm of inv(A) */
+      double norm;
+      xassert(fi->valid);
+      xassert(fi->scf.n == fi->scf.n0);
+      switch (fi->scf.type)
+      {  case 1:
+            norm = luf_estimate_norm(fi->scf.a0.luf, fi->w1, fi->w2);
+            break;
+         case 2:
+            norm = btf_estimate_norm(fi->scf.a0.btf, fi->w1, fi->w2,
+               fi->w3, fi->w4);
+            break;
+         default:
+            xassert(fi != fi);
+      }
+      return norm;
+}
+
 void scfint_delete(SCFINT *fi)
 {     /* delete interface to SC-factorization */
       switch (fi->scf.type)

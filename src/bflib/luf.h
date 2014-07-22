@@ -197,21 +197,30 @@ void luf_check_f_rc(LUF *luf);
 void luf_check_v_rc(LUF *luf);
 /* check rows and columns of matrix V */
 
-#define luf_f_solve _glp_luf_f_solve1
+#define luf_f_solve _glp_luf_f_solve
 void luf_f_solve(LUF *luf, double x[/*1+n*/]);
 /* solve system F * x = b */
 
-#define luf_ft_solve _glp_luf_ft_solve1
+#define luf_ft_solve _glp_luf_ft_solve
 void luf_ft_solve(LUF *luf, double x[/*1+n*/]);
 /* solve system F' * x = b */
 
-#define luf_v_solve _glp_luf_v_solve1
+#define luf_v_solve _glp_luf_v_solve
 void luf_v_solve(LUF *luf, double b[/*1+n*/], double x[/*1+n*/]);
 /* solve system V * x = b */
 
-#define luf_vt_solve _glp_luf_vt_solve1
+#define luf_vt_solve _glp_luf_vt_solve
 void luf_vt_solve(LUF *luf, double b[/*1+n*/], double x[/*1+n*/]);
 /* solve system V' * x = b */
+
+#define luf_vt_solve1 _glp_luf_vt_solve1
+void luf_vt_solve1(LUF *luf, double e[/*1+n*/], double y[/*1+n*/]);
+/* solve system V' * y = e' to cause growth in y */
+
+#define luf_estimate_norm _glp_luf_estimate_norm
+double luf_estimate_norm(LUF *luf, double w1[/*1+n*/], double
+      w2[/*1+n*/]);
+/* estimate 1-norm of inv(A) */
 
 #endif
 

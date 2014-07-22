@@ -687,15 +687,15 @@ static int parse_cmdline(struct csa *csa, int argc, const char *argv[])
             csa->bfcp.type |= GLP_BF_BTF;
          }
          else if (p("--ft"))
-         {  csa->bfcp.type &= 0x0F;
+         {  csa->bfcp.type &= 0xF0;
             csa->bfcp.type |= GLP_BF_FT;
          }
          else if (p("--cbg"))
-         {  csa->bfcp.type &= 0x0F;
+         {  csa->bfcp.type &= 0xF0;
             csa->bfcp.type |= GLP_BF_BG;
          }
          else if (p("--cgr"))
-         {  csa->bfcp.type &= 0x0F;
+         {  csa->bfcp.type &= 0xF0;
             csa->bfcp.type |= GLP_BF_GR;
          }
 #endif

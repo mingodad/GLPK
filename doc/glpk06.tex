@@ -303,68 +303,67 @@ terminated. To prevent abnormal termnation the hook routine may perform
 a global jump using the standard function \verb|longjmp|, in which case
 the application program {\it must} call the routine \verb|glp_free_env|.
 
-\subsection{glp\_malloc --- allocate memory block}
+\subsection{glp\_alloc --- allocate memory block}
 
 \synopsis
 
 \begin{verbatim}
-   void *glp_malloc(int size);
+   void *glp_alloc(int n, int size);
 \end{verbatim}
 
 \description
 
-The routine \verb|glp_malloc| dynamically allocates a memory block of
-\verb|size| bytes long. Note that:
+The routine \verb|glp_alloc| dynamically allocates a memory block of
+\verb|n|$\times$\verb|size| bytes long. Note that:
 
-1) the parameter \verb|size| must be positive;
+1) the parameters \verb|n| and \verb|size| must be positive;
 
-2) being allocated the memory block contains arbitrary data, that is,
-it is {\it not} initialized by binary zeros;
+2) having been allocated the memory block contains arbitrary data, that
+is, it is {\it not} initialized by binary zeros;
 
 3) if the block cannot be allocated due to insufficient memory, the
 routine prints an error message and abnormally terminates the program.
 
 This routine is a replacement of the standard C function \verb|malloc|
-and used by all GLPK routines for dynamic memory allocation. The
-application program may use \verb|glp_malloc| for the same purpose.
+and used by GLPK routines for dynamic memory allocation. The
+application program may use \verb|glp_alloc| for the same purpose.
 
 \returns
 
-The routine \verb|glp_malloc| returns a pointer to the memory block
+The routine \verb|glp_alloc| returns a pointer to the memory block
 allocated. To free this block the routine \verb|glp_free| (not the
-standard C function \verb|free|!) must be used.
+standard C function \verb|free|!) should be used.
 
-\subsection{glp\_calloc --- allocate memory block}
+\subsection{glp\_realloc --- reallocate memory block}
 
 \synopsis
 
 \begin{verbatim}
-   void *glp_calloc(int n, int size);
+   void *glp_realloc(void *ptr, int n, int size);
 \end{verbatim}
 
 \description
 
-The routine \verb|glp_calloc| dynamically allocates a memory block of
-\verb|n|$\times$\verb|size| bytes long. Note that:
+The routine \verb|glp_realloc| dynamically reallocates a memory block
+pointed to by \verb|ptr|, which was previously allocated by the routine
+\verb|glp_alloc| or reallocated by this routine. Note that the pointer
+\verb|ptr| must be valid and must not be \verb|NULL|. The new size of
+the memory block is \verb|n|$\times$\verb|size| bytes long. Note that:
 
 1) both parameters \verb|n| and \verb|size| must be positive;
 
-2) being allocated the memory block contains arbitrary data, that is,
-it is {\it not} initialized by binary zeros;
-
-3) if the block cannot be allocated due to insufficient memory, the
+2) if the block cannot be reallocated due to insufficient memory, the
 routine prints an error message and abnormally terminates the program.
 
-This routine is a replacement of the standard C function \verb|calloc|
-(with exception that the block is not cleaned) and used by all GLPK
-routines for dynamic memory allocation. The application program may use
-\verb|glp_calloc| for the same purpose.
+This routine is a replacement of the standard C function \verb|realloc|
+and used by GLPK routines for dynamic memory allocation. The
+application program may use \verb|glp_realloc| for the same purpose.
 
 \returns
 
-The routine \verb|glp_calloc| returns a pointer to the memory block
-allocated. To free this block the routine \verb|glp_free| (not the
-standard C function \verb|free|!) must be used.
+The routine \verb|glp_realloc| returns a pointer to the memory block
+reallocated. To free this block the routine \verb|glp_free| (not the
+standard C function \verb|free|!) should be used.
 
 \subsection{glp\_free --- free memory block}
 
@@ -378,11 +377,12 @@ standard C function \verb|free|!) must be used.
 
 The routine \verb|glp_free| deallocates a memory block pointed to by
 \verb|ptr|, which was previously allocated by the routine
-\verb|glp_malloc| or \verb|glp_calloc|. Note that the pointer
-\verb|ptr| must be valid and must not be \verb|NULL|.
+\verb|glp_malloc| or reallocated by the routine \verb|glp_realloc|.
+Note that the pointer \verb|ptr| must be valid and must not be
+\verb|NULL|.
 
 This routine is a replacement of the standard C function \verb|free|
-and used by all GLPK routines for dynamic memory allocation. The
+and used by GLPK routines for dynamic memory allocation. The
 application program may use \verb|glp_free| for the same purpose.
 
 \newpage

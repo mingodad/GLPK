@@ -153,7 +153,7 @@ int glp_factorize(glp_prob *lp)
             copy_bfcp(lp);
 #endif
          }
-         switch (bfd_factorize(lp->bfd, m, lp->head, b_col, lp))
+         switch (bfd_factorize(lp->bfd, m, /*lp->head,*/ b_col, lp))
          {  case 0:
                /* ok */
                break;

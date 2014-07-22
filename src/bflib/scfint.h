@@ -54,23 +54,33 @@ struct SCFINT
       /* required maximal number of updates */
 };
 
+#define scfint_create _glp_scfint_create
 SCFINT *scfint_create(int type);
 /* create interface to SC-factorization */
 
+#define scfint_factorize _glp_scfint_factorize
 int scfint_factorize(SCFINT *fi, int n, int (*col)(void *info, int j,
       int ind[], double val[]), void *info);
 /* compute SC-factorization of specified matrix A */
 
+#define scfint_update _glp_scfint_update
 int scfint_update(SCFINT *fi, int upd, int j, int len, const int ind[],
       const double val[]);
 /* update SC-factorization after replacing j-th column of A */
 
+#define scfint_ftran _glp_scfint_ftran
 void scfint_ftran(SCFINT *fi, double x[]);
 /* solve system A * x = b */
 
+#define scfint_btran _glp_scfint_btran
 void scfint_btran(SCFINT *fi, double x[]);
 /* solve system A'* x = b */
 
+#define scfint_estimate _glp_scfint_estimate
+double scfint_estimate(SCFINT *fi);
+/* estimate 1-norm of inv(A) */
+
+#define scfint_delete _glp_scfint_delete
 void scfint_delete(SCFINT *fi);
 /* delete interface to SC-factorization */
 

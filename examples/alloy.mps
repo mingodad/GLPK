@@ -3,15 +3,15 @@
 *COLUMNS:      20
 *NONZERO:      203
 *OPT SOLN:     2149.247891
-*SOURCE:       Linear Programming--Aliminium Alloy Blending,
+*SOURCE:       Linear Programming--Aliminium Alloy Blending
 *              Data Processing Application. N.Y.: IBM Corp.
 *APPLICATION:  Aluminium Alloy Blending
 *COMMENTS:     fixed MPS format
-*              coded by Andrew Makhorin <mao@gnu.org>
+*              encoded by Andrew Makhorin <mao@gnu.org>
 *
 NAME          ALLOY
 ROWS
- N  COST                               $
+ N  COST      $ Cost                   $
  G  ZN        $ Zinc Minimum           lbs
  L  ZX        $ Zinc Maximum           lbs
  G  CN        $ Copper Minimum         lbs

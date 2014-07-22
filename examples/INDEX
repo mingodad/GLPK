@@ -35,7 +35,7 @@ prod.mod       A multiperiod production model
 qfit.mod       Quadratic curve fitting solution
 queens.mod     A classic combinatorial optimization problem
 sat.mod        Satisfiability problem
-shiftcover.mod Workforce shift coverage assignment problem
+shiftcov.mod   Workforce shift coverage assignment problem
 shikaku.mod    A solver for the logic puzzle Shikaku
 sorting.mod    How to sort arrays in MathProg
 spp.mod        Shortest path problem

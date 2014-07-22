@@ -53,6 +53,12 @@ struct BFD
 #endif
       int upd_cnt;
       /* factorization update count */
+#if 1 /* 21/IV-2014 */
+      double b_norm;
+      /* 1-norm of matrix B */
+      double i_norm;
+      /* estimated 1-norm of matrix inv(B) */
+#endif
 };
 
 BFD *bfd_create_it(void)
@@ -105,11 +111,39 @@ void bfd_set_bfcp(BFD *bfd, const void /* glp_bfcp */ *parm)
       return;
 }
 
-int bfd_factorize(BFD *bfd, int m, const int bh[], int (*col)
-      (void *info, int j, int ind[], double val[]), void *info)
+#if 1 /* 21/IV-2014 */
+struct bfd_info
+{     BFD *bfd;
+      int (*col)(void *info, int j, int ind[], double val[]);
+      void *info;
+};
+
+static int bfd_col(void *info_, int j, int ind[], double val[])
+{     struct bfd_info *info = info_;
+      int t, len;
+      double sum;
+      len = info->col(info->info, j, ind, val);
+      sum = 0.0;
+      for (t = 1; t <= len; t++)
+      {  if (val[t] >= 0.0)
+            sum += val[t];
+         else
+            sum -= val[t];
+      }
+      if (info->bfd->b_norm < sum)
+         info->bfd->b_norm = sum;
+      return len;
+}
+#endif
+
+int bfd_factorize(BFD *bfd, int m, /*const int bh[],*/ int (*col1)
+      (void *info, int j, int ind[], double val[]), void *info1)
 {     /* compute LP basis factorization */
+#if 1 /* 21/IV-2014 */
+      struct bfd_info info;
+#endif
       int type, ret;
-      xassert(bh == bh);
+      /*xassert(bh == bh);*/
       /* invalidate current factorization */
       bfd->valid = 0;
       /* determine required factorization type */
@@ -168,6 +202,12 @@ int bfd_factorize(BFD *bfd, int m, const int bh[], int (*col)
          }
       }
       /* try to compute factorization */
+#if 1 /* 21/IV-2014 */
+      bfd->b_norm = bfd->i_norm = 0.0;
+      info.bfd = bfd;
+      info.col = col1;
+      info.info = info1;
+#endif
       switch (bfd->type)
       {  case 1:
             bfd->u.fhvi->lufi->sgf_piv_tol = bfd->parm.piv_tol;
@@ -175,9 +215,11 @@ int bfd_factorize(BFD *bfd, int m, const int bh[], int (*col)
             bfd->u.fhvi->lufi->sgf_suhl = bfd->parm.suhl;
             bfd->u.fhvi->lufi->sgf_eps_tol = bfd->parm.eps_tol;
             bfd->u.fhvi->nfs_max = bfd->parm.nfs_max;
-            ret = fhvint_factorize(bfd->u.fhvi, m, col, info);
+            ret = fhvint_factorize(bfd->u.fhvi, m, bfd_col, &info);
 #if 1 /* FIXME */
-            if (ret != 0)
+            if (ret == 0)
+               bfd->i_norm = fhvint_estimate(bfd->u.fhvi);
+            else
                ret = BFD_ESING;
 #endif
             break;
@@ -197,9 +239,11 @@ int bfd_factorize(BFD *bfd, int m, const int bh[], int (*col)
             else
                xassert(bfd != bfd);
             bfd->u.scfi->nn_max = bfd->parm.nrs_max;
-            ret = scfint_factorize(bfd->u.scfi, m, col, info);
+            ret = scfint_factorize(bfd->u.scfi, m, bfd_col, &info);
 #if 1 /* FIXME */
-            if (ret != 0)
+            if (ret == 0)
+               bfd->i_norm = scfint_estimate(bfd->u.scfi);
+            else
                ret = BFD_ESING;
 #endif
             break;
@@ -233,6 +277,39 @@ int bfd_factorize(BFD *bfd, int m, const int bh[], int (*col)
       bfd->upd_cnt = 0;
       return ret;
 }
+
+#if 0 /* 21/IV-2014 */
+double bfd_estimate(BFD *bfd)
+{     /* estimate 1-norm of inv(B) */
+      double norm;
+      xassert(bfd->valid);
+      xassert(bfd->upd_cnt == 0);
+      switch (bfd->type)
+      {  case 1:
+            norm = fhvint_estimate(bfd->u.fhvi);
+            break;
+         case 2:
+            norm = scfint_estimate(bfd->u.scfi);
+            break;
+         default:
+            xassert(bfd != bfd);
+      }
+      return norm;
+}
+#endif
+
+#if 1 /* 21/IV-2014 */
+double bfd_condest(BFD *bfd)
+{     /* estimate condition of B */
+      double cond;
+      xassert(bfd->valid);
+      /*xassert(bfd->upd_cnt == 0);*/
+      cond = bfd->b_norm * bfd->i_norm;
+      if (cond < 1.0)
+         cond = 1.0;
+      return cond;
+}
+#endif
 
 void bfd_ftran(BFD *bfd, double x[])
 {     /* perform forward transformation (solve system B * x = b) */
@@ -316,11 +393,10 @@ void bfd_btran(BFD *bfd, double x[])
       return;
 }
 
-int bfd_update_it(BFD *bfd, int j, int bh, int len, const int ind[],
-      const double val[])
+int bfd_update(BFD *bfd, int j, int len, const int ind[], const double
+      val[])
 {     /* update LP basis factorization */
       int ret;
-      xassert(bh == bh);
       xassert(bfd->valid);
       switch (bfd->type)
       {  case 1:

@@ -55,9 +55,15 @@ void bfd_set_bfcp(BFD *bfd, const void /* glp_bfcp */ *parm);
 /* change LP basis factorization control parameters */
 
 #define bfd_factorize _glp_bfd_factorize
-int bfd_factorize(BFD *bfd, int m, const int bh[], int (*col)
+int bfd_factorize(BFD *bfd, int m, /*const int bh[],*/ int (*col)
       (void *info, int j, int ind[], double val[]), void *info);
 /* compute LP basis factorization */
+
+#if 1 /* 21/IV-2014 */
+#define bfd_condest _glp_bfd_condest
+double bfd_condest(BFD *bfd);
+/* estimate condition of B */
+#endif
 
 #define bfd_ftran _glp_bfd_ftran
 void bfd_ftran(BFD *bfd, double x[]);
@@ -67,9 +73,9 @@ void bfd_ftran(BFD *bfd, double x[]);
 void bfd_btran(BFD *bfd, double x[]);
 /* perform backward transformation (solve system B'*x = b) */
 
-#define bfd_update_it _glp_bfd_update_it
-int bfd_update_it(BFD *bfd, int j, int bh, int len, const int ind[],
-      const double val[]);
+#define bfd_update _glp_bfd_update
+int bfd_update(BFD *bfd, int j, int len, const int ind[], const double
+      val[]);
 /* update LP basis factorization */
 
 #define bfd_get_count _glp_bfd_get_count

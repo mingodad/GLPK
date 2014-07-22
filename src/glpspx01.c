@@ -451,7 +451,7 @@ static int inv_col(void *info, int i, int ind[], double val[])
 
 static int invert_B(struct csa *csa)
 {     int ret;
-      ret = bfd_factorize(csa->bfd, csa->m, NULL, inv_col, csa);
+      ret = bfd_factorize(csa->bfd, csa->m, /*NULL,*/ inv_col, csa);
       csa->valid = (ret == 0);
       return ret;
 }
@@ -483,7 +483,7 @@ static int update_B(struct csa *csa, int i, int k)
          ind[1] = k;
          val[1] = 1.0;
          xassert(csa->valid);
-         ret = bfd_update_it(csa->bfd, i, 0, 1, ind, val);
+         ret = bfd_update(csa->bfd, i, 1, ind, val);
       }
       else
       {  /* new i-th column of B is (k-m)-th column of (-A) */
@@ -498,7 +498,7 @@ static int update_B(struct csa *csa, int i, int k)
          for (ptr = beg; ptr < end; ptr++)
             val[++len] = - A_val[ptr];
          xassert(csa->valid);
-         ret = bfd_update_it(csa->bfd, i, 0, len, &A_ind[beg-1], val);
+         ret = bfd_update(csa->bfd, i, len, &A_ind[beg-1], val);
       }
       csa->valid = (ret == 0);
       return ret;

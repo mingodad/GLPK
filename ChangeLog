@@ -1,3 +1,54 @@
+Fri Aug 22 12:00:00 2014 Andrew Makhorin <mao@gnu.org>
+
+        * GLPK 4.55 (37:2:1) has been released.
+
+        * src/bflib/luf.c, src/bflib/luf.h
+        Two routines luf_vt_solve1 and luf_estimate_norm were added to
+        estimate 1-norm of matrix inverse.
+
+        * src/bflib/btf.c, src/bflib/btf.h
+        Two routines btf_at_solve1 and btf_estimate_norm were added to
+        estimate 1-norm of block triangular matrix inverse.
+
+        * src/bflib/fhvint.c, src/bflib/fhvint.h
+        The routine fhvint_estimate was added to estimate 1-norm of the
+        basis matrix inverse (FHV-factorization).
+
+        * src/bflib/scfint.c, src/bflib/scfint.h
+        The routine scfint_estimate was added to estimate 1-norm of the
+        basis matrix inverse (Schur-complement-based factorization).
+
+        * src/bfd.c, src/bfd.c
+        The routine bfd_condest was added to estimate the condition of
+        the basis matrix.
+
+        * src/bflib/scfint.h
+        The prefix '_glp' was added to keep the namespace clean.
+
+        * src/env/stream.c
+        Two open modes "a" and "ab" were added. Thanks to Pedro P. Wong
+        <d00604@taipower.com.tw> for bug report.
+
+        * src/glpapi21.c (glpsol)
+        Minor bug was fixed (command-line options --btf, --cbg, --cgr
+        didn't work properly).
+
+        * src/bflib/sgf.c
+        A serious bug was fixed in a basis factorization routine used
+        on the dense phase. (The bug might appear only if the number of
+        rows exceeded sqrt(2**31) ~= 46,340 and caused access violtaion
+        exception because of integer overflow.) Thanks to Mark Meketon
+        <Marc.Meketon@oliverwyman.com> for bug report.
+
+        * doc/glpk.tex
+        Two API routines glp_alloc and glp_realloc were documented.
+        Thanks to Brian Gladman <brg@gladman.plus.com> for suggestion.
+
+        * doc/gmpl_es.tex, doc/gmpl_es.pdf
+        Translation of the document "Modeling Language GNU MathProg"
+        to Spanish was included (in LaTeX and pdf formats). Thanks to
+        Pablo Yapura <ypf@agro.unlp.edu.ar> for contribution.
+
 Fri Mar 28 12:00:00 2014 Andrew Makhorin <mao@gnu.org>
 
         * GLPK 4.54 (37:1:1) has been released.

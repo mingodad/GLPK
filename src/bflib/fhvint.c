@@ -142,6 +142,16 @@ void fhvint_btran(FHVINT *fi, double x[])
       return;
 }
 
+double fhvint_estimate(FHVINT *fi)
+{     /* estimate 1-norm of inv(A) */
+      double norm;
+      xassert(fi->valid);
+      xassert(fi->fhv.nfs == 0);
+      norm = luf_estimate_norm(fi->fhv.luf, fi->lufi->sgf->vr_max,
+         fi->lufi->sgf->work);
+      return norm;
+}
+
 void fhvint_delete(FHVINT *fi)
 {     /* delete interface to FHV-factorization */
       lufint_delete(fi->lufi);

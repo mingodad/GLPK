@@ -3,7 +3,7 @@
 /***********************************************************************
 *  This code is part of GLPK (GNU Linear Programming Kit).
 *
-*  Copyright (C) 2008, 2013 Andrew Makhorin, Department for Applied
+*  Copyright (C) 2008, 2014 Andrew Makhorin, Department for Applied
 *  Informatics, Moscow Aviation Institute, Moscow, Russia. All rights
 *  reserved. E-mail: <mao@gnu.org>.
 *
@@ -77,8 +77,10 @@ struct glp_file
 *
 *  "r"   open text file for reading;
 *  "w"   truncate to zero length or create text file for writing;
+*  "a"   append, open or create text file for writing at end-of-file;
 *  "rb"  open binary file for reading;
-*  "wb"  truncate to zero length or create binary file for writing.
+*  "wb"  truncate to zero length or create binary file for writing;
+*  "ab"  append, open or create binary file for writing at end-of-file.
 *
 *  RETURNS
 *
@@ -93,6 +95,10 @@ glp_file *glp_open(const char *name, const char *mode)
          flag = 0;
       else if (strcmp(mode, "w") == 0 || strcmp(mode, "wb") == 0)
          flag = IOWRT;
+#if 1 /* 08/V-2014 */
+      else if (strcmp(mode, "a") == 0 || strcmp(mode, "ab") == 0)
+         flag = IOWRT;
+#endif
       else
          xerror("glp_open: invalid mode string\n");
       if (strcmp(name, "/dev/null") == 0)
@@ -126,6 +132,10 @@ glp_file *glp_open(const char *name, const char *mode)
                mode = "rb";
             else if (strcmp(mode, "w") == 0)
                mode = "wb";
+#if 1 /* 08/V-2014; this mode seems not to work */
+            else if (strcmp(mode, "a") == 0)
+               mode = "ab";
+#endif
             file = gzopen(name, mode);
             if (file == NULL)
             {  put_err_msg(strerror(errno));

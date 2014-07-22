@@ -484,8 +484,7 @@ void luf_f_solve(LUF *luf, double x[/*1+n*/])
          /* walk thru j-th column of matrix F and substitute x[j] into
           * other equations */
          if ((x_j = x[j]) != 0.0)
-         {  for (end = (ptr = fc_ptr[j]) + fc_len[j];
-               ptr < end; ptr++)
+         {  for (end = (ptr = fc_ptr[j]) + fc_len[j]; ptr < end; ptr++)
                x[sv_ind[ptr]] -= sv_val[ptr] * x_j;
          }
       }
@@ -522,8 +521,7 @@ void luf_ft_solve(LUF *luf, double x[/*1+n*/])
          /* walk thru i-th row of matrix F and substitute x[i] into
           * other equations */
          if ((x_i = x[i]) != 0.0)
-         {  for (end = (ptr = fr_ptr[i]) + fr_len[i];
-               ptr < end; ptr++)
+         {  for (end = (ptr = fr_ptr[i]) + fr_len[i]; ptr < end; ptr++)
                x[sv_ind[ptr]] -= sv_val[ptr] * x_i;
          }
       }
@@ -564,8 +562,7 @@ void luf_v_solve(LUF *luf, double b[/*1+n*/], double x[/*1+n*/])
           * walk through j-th column of matrix V and substitute x[j]
           * into other equations */
          if ((x_j = x[j] = b[i] / vr_piv[i]) != 0.0)
-         {  for (end = (ptr = vc_ptr[j]) + vc_len[j];
-               ptr < end; ptr++)
+         {  for (end = (ptr = vc_ptr[j]) + vc_len[j]; ptr < end; ptr++)
                b[sv_ind[ptr]] -= sv_val[ptr] * x_j;
          }
       }
@@ -607,12 +604,110 @@ void luf_vt_solve(LUF *luf, double b[/*1+n*/], double x[/*1+n*/])
           * walk through i-th row of matrix V and substitute x[i] into
           * other equations */
          if ((x_i = x[i] = b[j] / vr_piv[i]) != 0.0)
-         {  for (end = (ptr = vr_ptr[i]) + vr_len[i];
-               ptr < end; ptr++)
+         {  for (end = (ptr = vr_ptr[i]) + vr_len[i]; ptr < end; ptr++)
                b[sv_ind[ptr]] -= sv_val[ptr] * x_i;
          }
       }
       return;
+}
+
+/***********************************************************************
+*  luf_vt_solve1 - solve system V' * y = e' to cause growth in y
+*
+*  This routine is a special version of luf_vt_solve. It solves the
+*  system V'* y = e' = e + delta e, where V' is a matrix transposed to
+*  the matrix V, e is the specified right-hand side vector, and delta e
+*  is a vector of +1 and -1 chosen to cause growth in the solution
+*  vector y.
+*
+*  On entry the array e should contain elements of the right-hand side
+*  vector e in locations e[1], ..., e[n], where n is the order of the
+*  matrix V. On exit the array y will contain elements of the solution
+*  vector y in locations y[1], ..., y[n]. Note that the array e will be
+*  clobbered on exit. */
+
+void luf_vt_solve1(LUF *luf, double e[/*1+n*/], double y[/*1+n*/])
+{     int n = luf->n;
+      SVA *sva = luf->sva;
+      int *sv_ind = sva->ind;
+      double *sv_val = sva->val;
+      double *vr_piv = luf->vr_piv;
+      int vr_ref = luf->vr_ref;
+      int *vr_ptr = &sva->ptr[vr_ref-1];
+      int *vr_len = &sva->len[vr_ref-1];
+      int *pp_inv = luf->pp_inv;
+      int *qq_ind = luf->qq_ind;
+      int i, j, k, ptr, end;
+      double e_j, y_i;
+      for (k = 1; k <= n; k++)
+      {  /* k-th row of U' = j-th column of V */
+         /* k-th column of U' = i-th row of V */
+         i = pp_inv[k];
+         j = qq_ind[k];
+         /* determine e'[j] = e[j] + delta e[j] */
+         e_j = (e[j] >= 0.0 ? e[j] + 1.0 : e[j] - 1.0);
+         /* compute y[i] = e'[j] / u'[k,k], where u'[k,k] = v[i,j] */
+         y_i = y[i] = e_j / vr_piv[i];
+         /* walk through i-th row of matrix V and substitute y[i] into
+          * other equations */
+         for (end = (ptr = vr_ptr[i]) + vr_len[i]; ptr < end; ptr++)
+            e[sv_ind[ptr]] -= sv_val[ptr] * y_i;
+      }
+      return;
+}
+
+/***********************************************************************
+*  luf_estimate_norm - estimate 1-norm of inv(A)
+*
+*  This routine estimates 1-norm of inv(A) by one step of inverse
+*  iteration for the small singular vector as described in [1]. This
+*  involves solving two systems of equations:
+*
+*     A'* y = e,
+*
+*     A * z = y,
+*
+*  where A' is a matrix transposed to A, and e is a vector of +1 and -1
+*  chosen to cause growth in y. Then
+*
+*     estimate 1-norm of inv(A) = (1-norm of z) / (1-norm of y)
+*
+*  REFERENCES
+*
+*  1. G.E.Forsythe, M.A.Malcolm, C.B.Moler. Computer Methods for
+*     Mathematical Computations. Prentice-Hall, Englewood Cliffs, N.J.,
+*     pp. 30-62 (subroutines DECOMP and SOLVE). */
+
+double luf_estimate_norm(LUF *luf, double w1[/*1+n*/], double
+      w2[/*1+n*/])
+{     int n = luf->n;
+      double *e = w1;
+      double *y = w2;
+      double *z = w1;
+      int i;
+      double y_norm, z_norm;
+      /* y = inv(A') * e = inv(F') * inv(V') * e */
+      /* compute y' = inv(V') * e to cause growth in y' */
+      for (i = 1; i <= n; i++)
+         e[i] = 0.0;
+      luf_vt_solve1(luf, e, y);
+      /* compute y = inv(F') * y' */
+      luf_ft_solve(luf, y);
+      /* compute 1-norm of y = sum |y[i]| */
+      y_norm = 0.0;
+      for (i = 1; i <= n; i++)
+         y_norm += (y[i] >= 0.0 ? +y[i] : -y[i]);
+      /* z = inv(A) * y = inv(V) * inv(F) * y */
+      /* compute z' = inv(F) * y */
+      luf_f_solve(luf, y);
+      /* compute z = inv(V) * z' */
+      luf_v_solve(luf, y, z);
+      /* compute 1-norm of z = sum |z[i]| */
+      z_norm = 0.0;
+      for (i = 1; i <= n; i++)
+         z_norm += (z[i] >= 0.0 ? +z[i] : -z[i]);
+      /* estimate 1-norm of inv(A) = (1-norm of z) / (1-norm of y) */
+      return z_norm / y_norm;
 }
 
 /* eof */

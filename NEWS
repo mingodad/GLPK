@@ -1,3 +1,28 @@
+GLPK 4.55 (release date: Aug 22, 2014)
+
+        Some internal (non-API) routines to estimate the condition of
+        the basis matrix were added. These routines are mainly intended
+        to be used by the simplex-based solvers.
+
+        Two open modes "a" and "ab" were added to GLPK I/O routines.
+        Thanks to Pedro P. Wong <d00604@taipower.com.tw> for bug report.
+
+        Minor bug was fixed in the solver glpsol (command-line options
+        --btf, --cbg, and --cgr didn't work properly).
+
+        A serious bug was fixed in a basis factorization routine used
+        on the dense phase. (The bug might appear only if the number of
+        rows exceeded sqrt(2**31) ~= 46,340 and caused access violation
+        exception because of integer overflow.) Thanks to Mark Meketon
+        <Marc.Meketon@oliverwyman.com> for bug report.
+
+        Two API routines glp_alloc and glp_realloc were documented.
+        Thanks to Brian Gladman <brg@gladman.plus.com> for suggestion.
+
+        Translation of the document "Modeling Language GNU MathProg"
+        to Spanish was included (in LaTeX and pdf formats). Thanks to
+        Pablo Yapura <ypf@agro.unlp.edu.ar> for contribution.
+
 GLPK 4.54 (release date: Mar 28, 2014)
 
         Block-triangular LU-factorization was implemented to be used

@@ -434,4 +434,136 @@ void btf_at_solve(BTF *btf, double b[/*1+n*/], double x[/*1+n*/],
       return;
 }
 
+/***********************************************************************
+*  btf_at_solve1 - solve system A'* y = e' to cause growth in y
+*
+*  This routine is a special version of btf_at_solve. It solves the
+*  system A'* y = e' = e + delta e, where A' is a matrix transposed to
+*  the original matrix A, e is the specified right-hand side vector,
+*  and delta e is a vector of +1 and -1 chosen to cause growth in the
+*  solution vector y.
+*
+*  On entry the array e should contain elements of the right-hand size
+*  vector e in locations e[1], ..., e[n], where n is the order of the
+*  matrix A. On exit the array y will contain elements of the solution
+*  vector in locations y[1], ..., y[n]. Note that the array e will be
+*  clobbered on exit.
+*
+*  The routine also uses locations [1], ..., [max_size] of two working
+*  arrays w1 and w2, where max_size is the maximal size of diagonal
+*  blocks in BT-factorization (max_size <= n). */
+
+void btf_at_solve1(BTF *btf, double e[/*1+n*/], double y[/*1+n*/],
+      double w1[/*1+n*/], double w2[/*1+n*/])
+{     SVA *sva = btf->sva;
+      int *sv_ind = sva->ind;
+      double *sv_val = sva->val;
+      int *pp_inv = btf->pp_inv;
+      int *qq_ind = btf->qq_ind;
+      int num = btf->num;
+      int *beg = btf->beg;
+      int ar_ref = btf->ar_ref;
+      int *ar_ptr = &sva->ptr[ar_ref-1];
+      int *ar_len = &sva->len[ar_ref-1];
+      double *ee = w1;
+      double *yy = w2;
+      LUF luf;
+      int i, j, jj, k, beg_k, ptr, end;
+      double e_k, y_k;
+      for (k = 1; k <= num; k++)
+      {  /* determine order of diagonal block A~[k,k] */
+         luf.n = beg[k+1] - (beg_k = beg[k]);
+         if (luf.n == 1)
+         {  /* trivial case */
+            /* determine E'[k] = E[k] + delta E[k] */
+            e_k = e[qq_ind[beg_k]];
+            e_k = (e_k >= 0.0 ? e_k + 1.0 : e_k - 1.0);
+            /* solve system A~'[k,k] * Y[k] = E[k] */
+            y_k = y[pp_inv[beg_k]] = e_k / btf->vr_piv[beg_k];
+            /* substitute Y[k] into other equations */
+            ptr = ar_ptr[pp_inv[beg_k]];
+            end = ptr + ar_len[pp_inv[beg_k]];
+            for (; ptr < end; ptr++)
+               e[sv_ind[ptr]] -= sv_val[ptr] * y_k;
+         }
+         else
+         {  /* general case */
+            /* construct E[k] */
+            for (i = 1; i <= luf.n; i++)
+               ee[i] = e[qq_ind[i + (beg_k-1)]];
+            /* solve system A~'[k,k] * Y[k] = E[k] + delta E[k] */
+            luf.sva = sva;
+            luf.fr_ref = btf->fr_ref + (beg_k-1);
+            luf.fc_ref = btf->fc_ref + (beg_k-1);
+            luf.vr_ref = btf->vr_ref + (beg_k-1);
+            luf.vr_piv = btf->vr_piv + (beg_k-1);
+            luf.vc_ref = btf->vc_ref + (beg_k-1);
+            luf.pp_ind = btf->p1_ind + (beg_k-1);
+            luf.pp_inv = btf->p1_inv + (beg_k-1);
+            luf.qq_ind = btf->q1_ind + (beg_k-1);
+            luf.qq_inv = btf->q1_inv + (beg_k-1);
+            luf_vt_solve1(&luf, ee, yy);
+            luf_ft_solve(&luf, yy);
+            /* store Y[k] and substitute it into other equations */
+            for (j = 1; j <= luf.n; j++)
+            {  jj = j + (beg_k-1);
+               y_k = y[pp_inv[jj]] = yy[j];
+               ptr = ar_ptr[pp_inv[jj]];
+               end = ptr + ar_len[pp_inv[jj]];
+               for (; ptr < end; ptr++)
+                  e[sv_ind[ptr]] -= sv_val[ptr] * y_k;
+            }
+         }
+      }
+      return;
+}
+
+/***********************************************************************
+*  btf_estimate_norm - estimate 1-norm of inv(A)
+*
+*  This routine estimates 1-norm of inv(A) by one step of inverse
+*  iteration for the small singular vector as described in [1]. This
+*  involves solving two systems of equations:
+*
+*     A'* y = e,
+*
+*     A * z = y,
+*
+*  where A' is a matrix transposed to A, and e is a vector of +1 and -1
+*  chosen to cause growth in y. Then
+*
+*     estimate 1-norm of inv(A) = (1-norm of z) / (1-norm of y)
+*
+*  REFERENCES
+*
+*  1. G.E.Forsythe, M.A.Malcolm, C.B.Moler. Computer Methods for
+*     Mathematical Computations. Prentice-Hall, Englewood Cliffs, N.J.,
+*     pp. 30-62 (subroutines DECOMP and SOLVE). */
+
+double btf_estimate_norm(BTF *btf, double w1[/*1+n*/], double
+      w2[/*1+n*/], double w3[/*1+n*/], double w4[/*1+n*/])
+{     int n = btf->n;
+      double *e = w1;
+      double *y = w2;
+      double *z = w1;
+      int i;
+      double y_norm, z_norm;
+      /* compute y = inv(A') * e to cause growth in y */
+      for (i = 1; i <= n; i++)
+         e[i] = 0.0;
+      btf_at_solve1(btf, e, y, w3, w4);
+      /* compute 1-norm of y = sum |y[i]| */
+      y_norm = 0.0;
+      for (i = 1; i <= n; i++)
+         y_norm += (y[i] >= 0.0 ? +y[i] : -y[i]);
+      /* compute z = inv(A) * y */
+      btf_a_solve(btf, y, z, w3, w4);
+      /* compute 1-norm of z = sum |z[i]| */
+      z_norm = 0.0;
+      for (i = 1; i <= n; i++)
+         z_norm += (z[i] >= 0.0 ? +z[i] : -z[i]);
+      /* estimate 1-norm of inv(A) = (1-norm of z) / (1-norm of y) */
+      return z_norm / y_norm;
+}
+
 /* eof */

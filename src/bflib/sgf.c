@@ -1351,7 +1351,11 @@ int sgf_factorize(SGF *sgf, int singl)
          double den;
          /* calculate density of active submatrix */
          na = n - k + 1; /* order of active submatrix */
+#if 0 /* 21/VIII-2014 */
          den = (double)nnz / (double)(na * na);
+#else
+         den = (double)nnz / ((double)(na) * (double)(na));
+#endif
          /* if active submatrix is relatively dense, switch to dense
           * phase */
 #if 1 /* FIXME */

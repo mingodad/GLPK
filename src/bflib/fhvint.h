@@ -65,6 +65,10 @@ void fhvint_ftran(FHVINT *fi, double x[]);
 void fhvint_btran(FHVINT *fi, double x[]);
 /* solve system A'* x = b */
 
+#define fhvint_estimate _glp_fhvint_estimate
+double fhvint_estimate(FHVINT *fi);
+/* estimate 1-norm of inv(A) */
+
 #define fhvint_delete _glp_fhvint_delete
 void fhvint_delete(FHVINT *fi);
 /* delete interface to FHV-factorization */

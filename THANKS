@@ -23,6 +23,8 @@ for bounds sensitivity analysis.
 Brady Hunsaker <hunsaker@engr.pitt.edu> for some suggestions concerning
 MIP routines.
 
+Brian Gladman <brg@gladman.plus.com> for suggestion.
+
 Cameron Kellough <Cameron.Kellough@sri.com> for bug report.
 
 Carlo Baldassi <carlobaldassi@gmail.com> for bug report.
@@ -105,6 +107,8 @@ Marco Atzeri <marco.atzeri@gmail.com> for bug report.
 
 Marco Atzeri <marco_atzeri@yahoo.it> for bug report.
 
+Mark Meketon <Marc.Meketon@oliverwyman.com> for bug report.
+
 Markus Pilz <pilz@cs.uni-bonn.de> for bug report.
 
 Minh Ha Duong <haduong@centre-cired.fr> for fixing doc typos.
@@ -139,6 +143,11 @@ Olivier <odwl@skynet.be> for bug report.
 
 Oscar Gustafsson <oscarg@isy.liu.se> for contribution of a routine to
 write data in OPB (pseudo boolean) format.
+
+Pablo Yapura <ypf@agro.unlp.edu.ar> for translation the document
+"Modeling Language GNU MathProg" to Spanish.
+
+Pedro P. Wong <d00604@taipower.com.tw> for bug report.
 
 Peter T. Breuer <ptb@inv.it.uc3m.es> for bug report.
 
