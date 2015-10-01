@@ -11,6 +11,7 @@ CFLAGS = \
 /I..\src\minisat \
 /I..\src\misc \
 /I..\src\proxy \
+/I..\src\simplex \
 /I..\src\zlib \
 /DHAVE_CONFIG_H=1 \
 /D_CRT_SECURE_NO_WARNINGS=1 \
@@ -83,7 +84,6 @@ OBJSET = \
 ..\src\glpscl.obj \
 ..\src\glpsdf.obj \
 ..\src\glpspm.obj \
-..\src\glpspx01.obj \
 ..\src\glpspx02.obj \
 ..\src\glpsql.obj \
 ..\src\glpssx01.obj \
@@ -149,6 +149,13 @@ OBJSET = \
 ..\src\misc\wclique1.obj \
 ..\src\proxy\proxy.obj \
 ..\src\proxy\proxy1.obj \
+..\src\simplex\spxat.obj \
+..\src\simplex\spxchuzc.obj \
+..\src\simplex\spxchuzr.obj \
+..\src\simplex\spxlp.obj \
+..\src\simplex\spxnt.obj \
+..\src\simplex\spxprim.obj \
+..\src\simplex\spxprob.obj \
 ..\src\zlib\adler32.obj \
 ..\src\zlib\compress.obj \
 ..\src\zlib\crc32.obj \
@@ -181,6 +188,7 @@ glpk.lib: $(OBJSET)
                 ..\src\minisat\*.obj \
                 ..\src\misc\*.obj \
                 ..\src\proxy\*.obj \
+                ..\src\simplex\*.obj \
                 ..\src\zlib\*.obj
 
 glpsol.exe: ..\examples\glpsol.obj glpk.lib

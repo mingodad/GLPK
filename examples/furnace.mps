@@ -5,7 +5,7 @@
 *OPT SOLN:     2141.923551
 *SOURCE:       Linear Programming--Electric-Arc Furnace Steelmaking
 *              Data Processing Application. N.Y.: IBM Corp.
-*APPLICATION:  Electric-Arc Furnance Steelmaking
+*APPLICATION:  Electric-Arc Furnace Steelmaking
 *COMMENTS:     fixed MPS format
 *              encoded by Andrew Makhorin <mao@gnu.org>
 *

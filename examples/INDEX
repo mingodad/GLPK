@@ -1,3 +1,4 @@
+alloy.mps      Aluminium alloy blending
 assign.mod     Assignment problem
 bpp.mod        Bin packing problem
 cal.mod        Print an ASCII calendar of the given year
@@ -14,10 +15,12 @@ egypt.mod      A static model for fertilizer production
 fctp.mod       Fixed-charge transportation problem
 food.mod       Food manufacture model
 food2.mod      Food manufacture model
+furnace.mps    Electric-arc furnace steelmaking
 gap.mod        Generalized assignment problem
 graph.mod      Graph visualization
 hashi.mod      A solver for the Japanese number-puzzle Hashiwokakero
 huge.mod       Arithmetic mean of a large number of integers
+icecream.mps   Ice cream blending
 jssp.mod       Job-shop scheduling problem
 magic.mod      Magic square
 maxcut.mod     Maximum cut problem
@@ -27,10 +30,13 @@ mfvsp.mod      Minimum feedback vertex set problem
 min01ks.mod    Finding minimal equivalent 0-1 knapsack inequality
 misp.mod       Maximum independent set problem
 money.mod      A crypto-arithmetic puzzle
+murtagh.mps    Oil refinery model
 mvcp.mod       Minimum vertex cover problem
 numbrix.mod    Number placement puzzle
 pbn/*.*        Paint-by-numbers puzzle
-plan.mod       A simple LP problem
+plan.lp        A simple LP problem (CPLEX LP format)
+plan.mod       A simple LP problem (MathProg format)
+plan.mps       A simple LP problem (MPS format)
 prod.mod       A multiperiod production model
 qfit.mod       Quadratic curve fitting solution
 queens.mod     A classic combinatorial optimization problem

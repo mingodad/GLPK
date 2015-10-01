@@ -3,7 +3,7 @@
 *COLUMNS:      20
 *NONZERO:      203
 *OPT SOLN:     2149.247891
-*SOURCE:       Linear Programming--Aliminium Alloy Blending
+*SOURCE:       Linear Programming--Aluminium Alloy Blending
 *              Data Processing Application. N.Y.: IBM Corp.
 *APPLICATION:  Aluminium Alloy Blending
 *COMMENTS:     fixed MPS format

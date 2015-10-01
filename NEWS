@@ -1,3 +1,18 @@
+GLPK 4.56 (release date: Oct 01, 2015)
+
+        A new, more efficient and more robust implementation of the
+        primal simplex method was included in the package. This new
+        implementation replaces the old one, which was removed.
+
+        A bug was fixed in a basis factorization routine. (The bug
+        appeared if the basis matrix was structurally singular having
+        duplicate row and/or column singletons.) Thanks to Martin Jacob
+        <mj@bahntechnik.de> for bug report.
+
+        Scripts to build GLPK with Microsoft Visual Studio 2015 were
+        added. Thanks to Xypron <xypron.glpk@gmx.de> for contribution
+        and testing.
+
 GLPK 4.55 (release date: Aug 22, 2014)
 
         Some internal (non-API) routines to estimate the condition of

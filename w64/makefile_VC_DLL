@@ -11,6 +11,7 @@ CFLAGS = \
 /I..\src\minisat \
 /I..\src\misc \
 /I..\src\proxy \
+/I..\src\simplex \
 /I..\src\zlib \
 /DHAVE_CONFIG_H=1 \
 /D_CRT_SECURE_NO_WARNINGS=1 \
@@ -83,7 +84,6 @@ OBJSET = \
 ..\src\glpscl.obj \
 ..\src\glpsdf.obj \
 ..\src\glpspm.obj \
-..\src\glpspx01.obj \
 ..\src\glpspx02.obj \
 ..\src\glpsql.obj \
 ..\src\glpssx01.obj \
@@ -149,6 +149,13 @@ OBJSET = \
 ..\src\misc\wclique1.obj \
 ..\src\proxy\proxy.obj \
 ..\src\proxy\proxy1.obj \
+..\src\simplex\spxat.obj \
+..\src\simplex\spxchuzc.obj \
+..\src\simplex\spxchuzr.obj \
+..\src\simplex\spxlp.obj \
+..\src\simplex\spxnt.obj \
+..\src\simplex\spxprim.obj \
+..\src\simplex\spxprob.obj \
 ..\src\zlib\adler32.obj \
 ..\src\zlib\compress.obj \
 ..\src\zlib\crc32.obj \
@@ -168,10 +175,10 @@ OBJSET = \
 .c.obj:
         cl.exe $(CFLAGS) /Fo$*.obj /c $*.c
 
-all: glpk_4_55.dll glpsol.exe
+all: glpk_4_56.dll glpsol.exe
 
-glpk_4_55.dll: $(OBJSET)
-        cl.exe $(CFLAGS) /LD /Feglpk_4_55.dll \
+glpk_4_56.dll: $(OBJSET)
+        cl.exe $(CFLAGS) /LD /Feglpk_4_56.dll \
                 ..\src\*.obj \
                 ..\src\amd\*.obj \
                 ..\src\bflib\*.obj \
@@ -181,12 +188,13 @@ glpk_4_55.dll: $(OBJSET)
                 ..\src\minisat\*.obj \
                 ..\src\misc\*.obj \
                 ..\src\proxy\*.obj \
+                ..\src\simplex\*.obj \
                 ..\src\zlib\*.obj \
-                glpk_4_55.def
+                glpk_4_56.def
 
-glpsol.exe: ..\examples\glpsol.obj glpk_4_55.dll
+glpsol.exe: ..\examples\glpsol.obj glpk_4_56.dll
         cl.exe $(CFLAGS) /Feglpsol.exe \
-                ..\examples\glpsol.obj glpk_4_55.lib
+                ..\examples\glpsol.obj glpk_4_56.lib
 
 check: glpsol.exe
         .\glpsol.exe --version

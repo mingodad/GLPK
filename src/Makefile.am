@@ -14,10 +14,11 @@ libglpk_la_CPPFLAGS = \
 -I$(srcdir)/minisat \
 -I$(srcdir)/misc \
 -I$(srcdir)/proxy \
+-I$(srcdir)/simplex \
 -I$(srcdir)/zlib
 
 libglpk_la_LDFLAGS = \
--version-info 37:2:1 \
+-version-info 37:3:1 \
 -export-symbols-regex '^glp_*'
 
 libglpk_la_SOURCES = \
@@ -85,7 +86,6 @@ glprgr.c \
 glpscl.c \
 glpsdf.c \
 glpspm.c \
-glpspx01.c \
 glpspx02.c \
 glpsql.c \
 glpssx01.c \
@@ -151,6 +151,13 @@ misc/wclique.c \
 misc/wclique1.c \
 proxy/proxy.c \
 proxy/proxy1.c \
+simplex/spxat.c \
+simplex/spxchuzc.c \
+simplex/spxchuzr.c \
+simplex/spxlp.c \
+simplex/spxnt.c \
+simplex/spxprim.c \
+simplex/spxprob.c \
 zlib/adler32.c \
 zlib/compress.c \
 zlib/crc32.c \

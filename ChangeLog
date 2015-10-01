@@ -1,3 +1,25 @@
+Thu Oct 01 12:00:00 2015 Andrew Makhorin <mao@gnu.org>
+
+        * GLPK 4.56 (37:3:1) has been released.
+
+        * src/simplex/*.c, *.h
+        New, more efficient and robust implementation of the primal
+        simplex method was included in the package.
+
+        * src/glpspx01.c
+        Old implementation of the primal simplex method was removed
+        from the package.
+
+        * src/bflib/sgf.c
+        A bug was fixed in routine sgf_reduce_nuc. (The bug appeared if
+        the basis matrix was structurally singular.) Thanks to Martin
+        Jacob <mj@bahntechnik.de> for bug report.
+
+        * w32/*.*, w64/*.*
+        Scripts to build GLPK with Microsoft Visual Studio 2015 were
+        added. Thanks to Xypron <xypron.glpk@gmx.de> for contribution
+        and testing.
+
 Fri Aug 22 12:00:00 2014 Andrew Makhorin <mao@gnu.org>
 
         * GLPK 4.55 (37:2:1) has been released.
