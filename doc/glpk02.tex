@@ -1706,8 +1706,8 @@ infeasible or non-optimal, the presolver should be disabled.
 \para{Terminal output}
 
 Solving large problem instances may take a long time, so the solver
-reports some information about the current basic solution, which is sent
-to the terminal. This information has the following format:
+reports some information about the current basic solution, which is
+sent to the terminal. This information has the following format:
 
 \begin{verbatim}
    nnn:  obj = xxx  infeas = yyy (ddd)
@@ -1715,8 +1715,8 @@ to the terminal. This information has the following format:
 
 \noindent
 where: `\verb|nnn|' is the iteration number, `\verb|xxx|' is the
-current value of the objective function (it is is unscaled and has
-correct sign); `\verb|yyy|' is the current sum of primal or dual
+current value of the objective function (it is unscaled and has correct
+sign); `\verb|yyy|' is the current sum of primal or dual
 infeasibilities (it is scaled and therefore may be used only for visual
 estimating), `\verb|ddd|' is the current number of fixed basic
 variables.
@@ -1805,7 +1805,7 @@ purpose.)
 
 \bigskip
 
-{\tt double tol\_piv} (default: {\tt 1e-10})
+{\tt double tol\_piv} (default: {\tt 1e-9})
 
 Tolerance used to choose eligble pivotal elements of the simplex table.
 (Do not change this parameter without detailed understanding its
@@ -2982,6 +2982,16 @@ Preprocessing technique option:
 
 \bigskip\vspace*{-2pt}
 
+{\tt int sr\_heur} (default: {\tt GLP\_ON})
+
+Simple rounding heuristic option:
+
+\verb|GLP_ON | --- enable applying the simple rounding heuristic;
+
+\verb|GLP_OFF| --- disable applying the simple rounding heuristic.
+
+\newpage
+
 {\tt int fp\_heur} (default: {\tt GLP\_OFF})
 
 Feasibility pump heuristic option:
@@ -2990,7 +3000,7 @@ Feasibility pump heuristic option:
 
 \verb|GLP_OFF| --- disable applying the feasibility pump heuristic.
 
-\newpage
+\bigskip
 
 {\tt int ps\_heur} (default: {\tt GLP\_OFF})
 
@@ -3051,7 +3061,7 @@ Clique cut option:
 
 \verb|GLP_OFF| --- disable generating clique cuts.
 
-\bigskip
+\newpage
 
 {\tt double tol\_int} (default: {\tt 1e-5})
 
@@ -3059,7 +3069,7 @@ Absolute tolerance used to check if optimal solution to the current LP
 relaxation is integer feasible. (Do not change this parameter without
 detailed understanding its purpose.)
 
-\newpage
+\bigskip
 
 {\tt double tol\_obj} (default: {\tt 1e-7})
 

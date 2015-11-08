@@ -1,37 +1,17 @@
-/* glptsp.h (TSP format) */
+/* tsplib.h */
 
-/***********************************************************************
-*  This code is part of GLPK (GNU Linear Programming Kit).
-*
-*  Copyright (C) 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008,
-*  2009, 2010, 2011, 2013 Andrew Makhorin, Department for Applied
-*  Informatics, Moscow Aviation Institute, Moscow, Russia. All rights
-*  reserved. E-mail: <mao@gnu.org>.
-*
-*  GLPK is free software: you can redistribute it and/or modify it
-*  under the terms of the GNU General Public License as published by
-*  the Free Software Foundation, either version 3 of the License, or
-*  (at your option) any later version.
-*
-*  GLPK is distributed in the hope that it will be useful, but WITHOUT
-*  ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
-*  or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public
-*  License for more details.
-*
-*  You should have received a copy of the GNU General Public License
-*  along with GLPK. If not, see <http://www.gnu.org/licenses/>.
-***********************************************************************/
+/* Written by Andrew Makhorin <mao@gnu.org>, October 2015. */
 
-#ifndef GLPTSP_H
-#define GLPTSP_H
+#ifndef TSPLIB_H
+#define TSPLIB_H
 
 typedef struct TSP TSP;
 
 struct TSP
 {     /* TSP (or related problem) instance in the format described in
-         the report [G.Reinelt, TSPLIB 95] */
+       * [G.Reinelt, TSPLIB 95] */
       /*--------------------------------------------------------------*/
-      /* the specification part */
+      /* specification part */
       char *name;
       /* identifies the data file */
       int type;
@@ -42,10 +22,10 @@ struct TSP
 #define TSP_TOUR              3  /* collection of tours */
       char *comment;
       /* additional comments (usually the name of the contributor or
-         creator of the problem instance is given here) */
+       * creator of the problem instance is given here) */
       int dimension;
       /* for a TSP or ATSP, the dimension is the number of its nodes
-         for a TOUR it is the dimension of the corresponding problem */
+       * for a TOUR it is the dimension of the corresponding problem */
       int edge_weight_type;
       /* specifies how the edge weights (or distances) are given: */
 #define TSP_UNDEF             0  /* undefined */
@@ -56,22 +36,22 @@ struct TSP
 #define TSP_ATT               5  /* special distance function */
       int edge_weight_format;
       /* describes the format of the edge weights if they are given
-         explicitly: */
+       * explicitly: */
 #define TSP_UNDEF             0  /* undefined */
 #define TSP_FUNCTION          1  /* given by a function */
 #define TSP_FULL_MATRIX       2  /* given by a full matrix */
 #define TSP_UPPER_ROW         3  /* upper triangulat matrix (row-wise
-                                    without diagonal entries) */
+                                  * without diagonal entries) */
 #define TSP_LOWER_DIAG_ROW    4  /* lower triangular matrix (row-wise
-                                    including diagonal entries) */
+                                  * including diagonal entries) */
       int display_data_type;
       /* specifies how a graphical display of the nodes can be
-         obtained: */
+       * obtained: */
 #define TSP_UNDEF             0  /* undefined */
 #define TSP_COORD_DISPLAY     1  /* display is generated from the node
-                                    coordinates */
+                                  * coordinates */
 #define TSP_TWOD_DISPLAY      2  /* explicit coordinates in 2-D are
-                                    given */
+                                  * given */
       /*--------------------------------------------------------------*/
       /* data part */
       /* NODE_COORD_SECTION: */
@@ -86,18 +66,14 @@ struct TSP
       int *edge_weight; /* int edge_weight[1+dimension*dimension]; */
 };
 
-#define tsp_read_data         _glp_tsp_read_data
-#define tsp_free_data         _glp_tsp_free_data
-#define tsp_distance          _glp_tsp_distance
-
-TSP *tsp_read_data(char *fname);
+TSP *tsp_read_data(const char *fname);
 /* read TSP instance data */
+
+int tsp_distance(const TSP *tsp, int i, int j);
+/* compute distance between two nodes */
 
 void tsp_free_data(TSP *tsp);
 /* free TSP instance data */
-
-int tsp_distance(TSP *tsp, int i, int j);
-/* compute distance between two nodes */
 
 #endif
 

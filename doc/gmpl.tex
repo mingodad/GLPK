@@ -4,9 +4,9 @@
 %  This code is part of GLPK (GNU Linear Programming Kit).
 %
 %  Copyright (C) 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008,
-%  2009, 2010, 2011, 2013 Andrew Makhorin, Department for Applied
-%  Informatics, Moscow Aviation Institute, Moscow, Russia. All rights
-%  reserved. E-mail: <mao@gnu.org>.
+%  2009, 2010, 2011, 2013, 2014, 2015 Andrew Makhorin, Department for
+%  Applied Informatics, Moscow Aviation Institute, Moscow, Russia. All
+%  rights reserved. E-mail: <mao@gnu.org>.
 %
 %  GLPK is free software: you can redistribute it and/or modify it
 %  under the terms of the GNU General Public License as published by
@@ -71,12 +71,12 @@ urlcolor=blue]{hyperref}
 \vspace{0.5in}
 
 \begin{LARGE}
-\sf for GLPK Version 4.50
+\sf for GLPK Version 4.57
 \end{LARGE}
 
 \vspace{0.5in}
 \begin{Large}
-\sf (DRAFT, May 2013)
+\sf (DRAFT, October 2015)
 \end{Large}
 
 \end{center}
@@ -93,9 +93,9 @@ GNU.
 
 \noindent
 Copyright \copyright{} 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007,
-2008, 2009, 2010, 2011, 2013 Andrew Makhorin, Department for Applied
-Informatics, Moscow Aviation Institute, Moscow, Russia. All rights
-reserved.
+2008, 2009, 2010, 2011, 2013, 2014, 2015 Andrew Makhorin, Department
+for Applied Informatics, Moscow Aviation Institute, Moscow, Russia. All
+rights reserved.
 
 \noindent
 Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston,
@@ -1519,7 +1519,7 @@ expressions (see Subsection \ref{hierarchy}, page \pageref{hierarchy}).
 
 \section{Linear expressions}
 
-An {\it linear expression} is a rule for computing so called
+A {\it linear expression} is a rule for computing so called
 a {\it linear form} or simply a {\it formula}, which is a linear (or
 affine) function of elemental variables.
 
@@ -2059,7 +2059,7 @@ the constraint. (Commae following expressions may be omitted.)
 s.t. r: x + y + z, >= 0, <= 1;
 limit{t in 1..T}: sum{j in prd} make[j,t] <= max_prd;
 subject to balance{i in raw, t in 1..T}:
-   store[i,t+1] - store[i,t] - sum{j in prd} units[i,j] * make[j,t];
+   store[i,t+1] = store[i,t] - sum{j in prd} units[i,j] * make[j,t];
 subject to rlim 'regular-time limit' {t in time}:
    sum{p in prd} pt[p] * rprd[p,t] <= 1.3 * dpp[t] * crews[t];
 \end{verbatim}
@@ -2283,8 +2283,8 @@ evaluated and displayed for every $n$-tuple in the domain set. In the
 latter case items may include dummy indices introduced in corresponding
 indexing expression.
 
-An item to be displayed can be a model object (set, parameter, v
-ariable, constraint, objective) or an expression.
+An item to be displayed can be a model object (set, parameter,
+variable, constraint, objective) or an expression.
 
 If the item is a computable object (i.e. a set or parameter provided
 with the assign attribute), the object is evaluated over the entire
@@ -2774,7 +2774,7 @@ colon following the keyword {\tt(tr)} may be omitted.)
 set month := Jan Feb Mar Apr May Jun;
 set month "Jan", "Feb", "Mar", "Apr", "May", "Jun";
 set A[3,Mar] := (1,2) (2,3) (4,2) (3,1) (2,2) (4,4) (3,4);
-set A[3,'Mar'] := 1 2 2 3 4 2 3 1 2 2 4 4 2 4;
+set A[3,'Mar'] := 1 2 2 3 4 2 3 1 2 2 4 4 3 4;
 set A[3,'Mar'] : 1 2 3 4 :=
                1 - + - -
                2 - + + -
@@ -3167,7 +3167,7 @@ following it.
 
 2. Symbolic name $s$ may be omitted along with the colon following it.
 
-3. All comae are optional and may be omitted.
+3. All commae are optional and may be omitted.
 
 The data block in the tabbing format shown above is exactly equivalent
 to the following data blocks:

@@ -1,3 +1,25 @@
+GLPK 4.57 (release date: Nov 08, 2015)
+
+        A new, more efficient implementation of the dual simplex method
+        was included in the package. This new implementation replaces
+        the old one, which was removed.
+
+        Option sr_heur was added to struct glp_iocp to enable/disable
+        the simple rounding heuristic used by the MIP solver. Thanks to
+        Chris Matrakidis <cmatraki@gmail.com> for suggestion.
+
+        New API routine glp_at_error was added and documented. Thanks
+        to Jeroen Demeyer <jdemeyer@cage.ugent.be> for suggestion.
+
+        Some minor typos were corrected in the GLPK documentation.
+        Thanks to Anton Voropaev <anton.n.voropaev@gmail.com> for typo
+        report.
+
+        An example application program TSPSOL was added. It uses the
+        GLPK MIP optimizer to solve the Symmetric Traveling Salesman
+        Problem and illustrates "lazy" constraints generation. For more
+        details please see glpk/examples/tsp/README.
+
 GLPK 4.56 (release date: Oct 01, 2015)
 
         A new, more efficient and more robust implementation of the

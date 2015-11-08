@@ -18,7 +18,7 @@ libglpk_la_CPPFLAGS = \
 -I$(srcdir)/zlib
 
 libglpk_la_LDFLAGS = \
--version-info 37:3:1 \
+-version-info 38:0:2 \
 -export-symbols-regex '^glp_*'
 
 libglpk_la_SOURCES = \
@@ -86,11 +86,9 @@ glprgr.c \
 glpscl.c \
 glpsdf.c \
 glpspm.c \
-glpspx02.c \
 glpsql.c \
 glpssx01.c \
 glpssx02.c \
-glptsp.c \
 lux.c \
 amd/amd_1.c \
 amd/amd_2.c \
@@ -158,6 +156,9 @@ simplex/spxlp.c \
 simplex/spxnt.c \
 simplex/spxprim.c \
 simplex/spxprob.c \
+simplex/spychuzc.c \
+simplex/spychuzr.c \
+simplex/spydual.c \
 zlib/adler32.c \
 zlib/compress.c \
 zlib/crc32.c \

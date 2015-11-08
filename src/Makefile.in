@@ -126,9 +126,8 @@ am_libglpk_la_OBJECTS = libglpk_la-avl.lo libglpk_la-bfd.lo \
 	libglpk_la-glpnpp04.lo libglpk_la-glpnpp05.lo \
 	libglpk_la-glpnpp06.lo libglpk_la-glprgr.lo \
 	libglpk_la-glpscl.lo libglpk_la-glpsdf.lo libglpk_la-glpspm.lo \
-	libglpk_la-glpspx02.lo libglpk_la-glpsql.lo \
-	libglpk_la-glpssx01.lo libglpk_la-glpssx02.lo \
-	libglpk_la-glptsp.lo libglpk_la-lux.lo libglpk_la-amd_1.lo \
+	libglpk_la-glpsql.lo libglpk_la-glpssx01.lo \
+	libglpk_la-glpssx02.lo libglpk_la-lux.lo libglpk_la-amd_1.lo \
 	libglpk_la-amd_2.lo libglpk_la-amd_aat.lo \
 	libglpk_la-amd_control.lo libglpk_la-amd_defaults.lo \
 	libglpk_la-amd_dump.lo libglpk_la-amd_info.lo \
@@ -154,13 +153,15 @@ am_libglpk_la_OBJECTS = libglpk_la-avl.lo libglpk_la-bfd.lo \
 	libglpk_la-proxy1.lo libglpk_la-spxat.lo \
 	libglpk_la-spxchuzc.lo libglpk_la-spxchuzr.lo \
 	libglpk_la-spxlp.lo libglpk_la-spxnt.lo libglpk_la-spxprim.lo \
-	libglpk_la-spxprob.lo libglpk_la-adler32.lo \
-	libglpk_la-compress.lo libglpk_la-crc32.lo \
-	libglpk_la-deflate.lo libglpk_la-gzclose.lo \
-	libglpk_la-gzlib.lo libglpk_la-gzread.lo libglpk_la-gzwrite.lo \
-	libglpk_la-inffast.lo libglpk_la-inflate.lo \
-	libglpk_la-inftrees.lo libglpk_la-trees.lo \
-	libglpk_la-uncompr.lo libglpk_la-zio.lo libglpk_la-zutil.lo
+	libglpk_la-spxprob.lo libglpk_la-spychuzc.lo \
+	libglpk_la-spychuzr.lo libglpk_la-spydual.lo \
+	libglpk_la-adler32.lo libglpk_la-compress.lo \
+	libglpk_la-crc32.lo libglpk_la-deflate.lo \
+	libglpk_la-gzclose.lo libglpk_la-gzlib.lo libglpk_la-gzread.lo \
+	libglpk_la-gzwrite.lo libglpk_la-inffast.lo \
+	libglpk_la-inflate.lo libglpk_la-inftrees.lo \
+	libglpk_la-trees.lo libglpk_la-uncompr.lo libglpk_la-zio.lo \
+	libglpk_la-zutil.lo
 libglpk_la_OBJECTS = $(am_libglpk_la_OBJECTS)
 libglpk_la_LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) \
 	$(LIBTOOLFLAGS) --mode=link $(CCLD) $(AM_CFLAGS) $(CFLAGS) \
@@ -318,7 +319,7 @@ libglpk_la_CPPFLAGS = \
 -I$(srcdir)/zlib
 
 libglpk_la_LDFLAGS = \
--version-info 37:3:1 \
+-version-info 38:0:2 \
 -export-symbols-regex '^glp_*'
 
 libglpk_la_SOURCES = \
@@ -386,11 +387,9 @@ glprgr.c \
 glpscl.c \
 glpsdf.c \
 glpspm.c \
-glpspx02.c \
 glpsql.c \
 glpssx01.c \
 glpssx02.c \
-glptsp.c \
 lux.c \
 amd/amd_1.c \
 amd/amd_2.c \
@@ -458,6 +457,9 @@ simplex/spxlp.c \
 simplex/spxnt.c \
 simplex/spxprim.c \
 simplex/spxprob.c \
+simplex/spychuzc.c \
+simplex/spychuzr.c \
+simplex/spydual.c \
 zlib/adler32.c \
 zlib/compress.c \
 zlib/crc32.c \
@@ -647,11 +649,9 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libglpk_la-glpscl.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libglpk_la-glpsdf.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libglpk_la-glpspm.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libglpk_la-glpspx02.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libglpk_la-glpsql.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libglpk_la-glpssx01.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libglpk_la-glpssx02.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libglpk_la-glptsp.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libglpk_la-gzclose.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libglpk_la-gzlib.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libglpk_la-gzread.Plo@am__quote@
@@ -686,6 +686,9 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libglpk_la-spxnt.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libglpk_la-spxprim.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libglpk_la-spxprob.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libglpk_la-spychuzc.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libglpk_la-spychuzr.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libglpk_la-spydual.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libglpk_la-stdout.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libglpk_la-str2int.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libglpk_la-str2num.Plo@am__quote@
@@ -1172,13 +1175,6 @@ libglpk_la-glpspm.lo: glpspm.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(LIBTOOL)  --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libglpk_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libglpk_la-glpspm.lo `test -f 'glpspm.c' || echo '$(srcdir)/'`glpspm.c
 
-libglpk_la-glpspx02.lo: glpspx02.c
-@am__fastdepCC_TRUE@	$(LIBTOOL)  --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libglpk_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libglpk_la-glpspx02.lo -MD -MP -MF $(DEPDIR)/libglpk_la-glpspx02.Tpo -c -o libglpk_la-glpspx02.lo `test -f 'glpspx02.c' || echo '$(srcdir)/'`glpspx02.c
-@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/libglpk_la-glpspx02.Tpo $(DEPDIR)/libglpk_la-glpspx02.Plo
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='glpspx02.c' object='libglpk_la-glpspx02.lo' libtool=yes @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(LIBTOOL)  --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libglpk_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libglpk_la-glpspx02.lo `test -f 'glpspx02.c' || echo '$(srcdir)/'`glpspx02.c
-
 libglpk_la-glpsql.lo: glpsql.c
 @am__fastdepCC_TRUE@	$(LIBTOOL)  --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libglpk_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libglpk_la-glpsql.lo -MD -MP -MF $(DEPDIR)/libglpk_la-glpsql.Tpo -c -o libglpk_la-glpsql.lo `test -f 'glpsql.c' || echo '$(srcdir)/'`glpsql.c
 @am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/libglpk_la-glpsql.Tpo $(DEPDIR)/libglpk_la-glpsql.Plo
@@ -1199,13 +1195,6 @@ libglpk_la-glpssx02.lo: glpssx02.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	source='glpssx02.c' object='libglpk_la-glpssx02.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(LIBTOOL)  --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libglpk_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libglpk_la-glpssx02.lo `test -f 'glpssx02.c' || echo '$(srcdir)/'`glpssx02.c
-
-libglpk_la-glptsp.lo: glptsp.c
-@am__fastdepCC_TRUE@	$(LIBTOOL)  --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libglpk_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libglpk_la-glptsp.lo -MD -MP -MF $(DEPDIR)/libglpk_la-glptsp.Tpo -c -o libglpk_la-glptsp.lo `test -f 'glptsp.c' || echo '$(srcdir)/'`glptsp.c
-@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/libglpk_la-glptsp.Tpo $(DEPDIR)/libglpk_la-glptsp.Plo
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='glptsp.c' object='libglpk_la-glptsp.lo' libtool=yes @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(LIBTOOL)  --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libglpk_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libglpk_la-glptsp.lo `test -f 'glptsp.c' || echo '$(srcdir)/'`glptsp.c
 
 libglpk_la-lux.lo: lux.c
 @am__fastdepCC_TRUE@	$(LIBTOOL)  --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libglpk_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libglpk_la-lux.lo -MD -MP -MF $(DEPDIR)/libglpk_la-lux.Tpo -c -o libglpk_la-lux.lo `test -f 'lux.c' || echo '$(srcdir)/'`lux.c
@@ -1675,6 +1664,27 @@ libglpk_la-spxprob.lo: simplex/spxprob.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	source='simplex/spxprob.c' object='libglpk_la-spxprob.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(LIBTOOL)  --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libglpk_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libglpk_la-spxprob.lo `test -f 'simplex/spxprob.c' || echo '$(srcdir)/'`simplex/spxprob.c
+
+libglpk_la-spychuzc.lo: simplex/spychuzc.c
+@am__fastdepCC_TRUE@	$(LIBTOOL)  --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libglpk_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libglpk_la-spychuzc.lo -MD -MP -MF $(DEPDIR)/libglpk_la-spychuzc.Tpo -c -o libglpk_la-spychuzc.lo `test -f 'simplex/spychuzc.c' || echo '$(srcdir)/'`simplex/spychuzc.c
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/libglpk_la-spychuzc.Tpo $(DEPDIR)/libglpk_la-spychuzc.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='simplex/spychuzc.c' object='libglpk_la-spychuzc.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(LIBTOOL)  --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libglpk_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libglpk_la-spychuzc.lo `test -f 'simplex/spychuzc.c' || echo '$(srcdir)/'`simplex/spychuzc.c
+
+libglpk_la-spychuzr.lo: simplex/spychuzr.c
+@am__fastdepCC_TRUE@	$(LIBTOOL)  --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libglpk_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libglpk_la-spychuzr.lo -MD -MP -MF $(DEPDIR)/libglpk_la-spychuzr.Tpo -c -o libglpk_la-spychuzr.lo `test -f 'simplex/spychuzr.c' || echo '$(srcdir)/'`simplex/spychuzr.c
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/libglpk_la-spychuzr.Tpo $(DEPDIR)/libglpk_la-spychuzr.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='simplex/spychuzr.c' object='libglpk_la-spychuzr.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(LIBTOOL)  --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libglpk_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libglpk_la-spychuzr.lo `test -f 'simplex/spychuzr.c' || echo '$(srcdir)/'`simplex/spychuzr.c
+
+libglpk_la-spydual.lo: simplex/spydual.c
+@am__fastdepCC_TRUE@	$(LIBTOOL)  --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libglpk_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libglpk_la-spydual.lo -MD -MP -MF $(DEPDIR)/libglpk_la-spydual.Tpo -c -o libglpk_la-spydual.lo `test -f 'simplex/spydual.c' || echo '$(srcdir)/'`simplex/spydual.c
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/libglpk_la-spydual.Tpo $(DEPDIR)/libglpk_la-spydual.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='simplex/spydual.c' object='libglpk_la-spydual.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(LIBTOOL)  --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libglpk_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libglpk_la-spydual.lo `test -f 'simplex/spydual.c' || echo '$(srcdir)/'`simplex/spydual.c
 
 libglpk_la-adler32.lo: zlib/adler32.c
 @am__fastdepCC_TRUE@	$(LIBTOOL)  --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libglpk_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libglpk_la-adler32.lo -MD -MP -MF $(DEPDIR)/libglpk_la-adler32.Tpo -c -o libglpk_la-adler32.lo `test -f 'zlib/adler32.c' || echo '$(srcdir)/'`zlib/adler32.c

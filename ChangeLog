@@ -1,3 +1,62 @@
+Sun Nov 08 12:00:00 2015 Andrew Makhorin <mao@gnu.org>
+
+        * GLPK 4.57 (38:0:2) has been released.
+
+        * src/simplex/spy*.*
+        New, more efficient implementation of the dual simplex method
+        was included in the package.
+
+        * src/simplex/spxprim.c
+        Incorrect directive #ifdef USE_AT was changed to #if USE_AT.
+
+        * src/simplex/simplex.h
+        New header for simplex-based drivers was added.
+
+        * src/glpspx02.c
+        Old implementation of the dual simplex method was removed from
+        the package.
+
+        * src/glpspx.h
+        Old header for simplex-based drivers was removed.
+
+        * src/glpapi06.c
+        Call to spx_dual was changed to spy_dual.
+        tol_piv = 1e-10 in glp_init_smcp was changed to 1e-9 (this new
+        tolerance seems to be more adequate for new implementations of
+        the primal and dual simplex methods).
+
+        * src/glpk.h, src/glpapi09.c, src/glpios03.c
+        Option iocp.sr_heur to enable/disable simple rounding heuristic
+        was added. Thanks to Chris Matrakidis <cmatraki@gmail.com> for
+        suggestion.
+
+        * src/env/env.h src/env/error.c
+        API routine glp_at_error was added and documented. Thanks to
+        Jeroen Demeyer <jdemeyer@cage.ugent.be> for suggestion.
+
+        * src/glpapi19.c
+        Translation of MiniSat solver (src/minisat) from C++ to C is
+        made by a non-skilled programmer who converts pointers to ints
+        and vice versa, so MiniSat works on 32-bit platforms only.
+        Fixing this portability issue would require rewriting the code,
+        so currently to prevent crashing the API routine glp_minisat1
+        was changed just to report failure if 64-bit version of GLPK is
+        used. Thanks to Heinrich Schuchardt <xypron.glpk@gmx.de> for
+        bug report.
+
+        * doc/glpk.tex, doc/gmpl.tex
+        Some material was added according to changes in GLPK API.
+        Also some minor typos were corrected. Thanks to Anton Voropaev
+        <anton.n.voropaev@gmail.com> for typo report.
+
+        * w32/makefiles, w64/makefiles
+        Option /Zi was added to pass to MSVC compiler.
+
+        examples/tsp/*.*
+        An example application program TSPSOL was added. This program
+        is intended to solve the Symmetric Traveling Salesman Problem.
+        For more details see examples/tsp/README.
+
 Thu Oct 01 12:00:00 2015 Andrew Makhorin <mao@gnu.org>
 
         * GLPK 4.56 (37:3:1) has been released.

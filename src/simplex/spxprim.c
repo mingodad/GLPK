@@ -22,7 +22,7 @@
 ***********************************************************************/
 
 #include "env.h"
-#include "glpspx.h"
+#include "simplex.h"
 #include "spxat.h"
 #include "spxnt.h"
 #include "spxchuzc.h"
@@ -30,16 +30,16 @@
 #include "spxprob.h"
 
 #define USE_AT 0
-/* 0 - use A in row-wise format
- * 1 - use N in row-wise format */
+/* 1 - use A in row-wise format
+ * 0 - use N in row-wise format */
 
 #define EXCL 1
-/* 0 - don't exclude variables
- * 1 - exclude fixed non-basic variables */
+/* 1 - exclude fixed non-basic variables
+ * 0 - don't exclude variables */
 
 #define SHIFT 1
-/* 0 - don't shift bounds of variables
-   1 - shift bounds of variables toward zero */
+/* 1 - shift bounds of variables toward zero
+ * 0 - don't shift bounds of variables */
 
 #define CHECK_ACCURACY 0
 /* (for debugging) */
@@ -54,7 +54,7 @@ struct csa
        * +1 - minimization
        * -1 - maximization */
       double *c; /* double c[1+n]; */
-      /* copy of objective coefficients */
+      /* copy of original objective coefficients */
       SPXAT *at;
       /* mxn-matrix A of constraint coefficients, in sparse row-wise
        * format (NULL if not used) */
@@ -206,7 +206,7 @@ static int set_penalty(struct csa *csa, double tol, double tol1)
 }
 
 /***********************************************************************
-*  check_feas - check feasibility of basic solution
+*  check_feas - check primal feasibility of basic solution
 *
 *  This routine checks if the specified values of all basic variables
 *  beta = (beta[i]) are within their bounds.
@@ -490,7 +490,7 @@ static void check_accuracy(struct csa *csa)
 *  because the list is assumed to be non-empty. Then the routine
 *  computes q-th column T[*,q] of the simplex table T[i,j] and chooses
 *  basic variable xB[p]. If the pivot T[p,q] is small in magnitude,
-*  the routine tries to choose another xN[q] and xB[p] in order to
+*  the routine attempts to choose another xN[q] and xB[p] in order to
 *  avoid badly conditioned adjacent bases. */
 
 static void choose_pivot(struct csa *csa)
@@ -545,13 +545,13 @@ try:  /* choose non-basic variable xN[q] */
          csa->p_flag = p_flag;
       }
       /* check if current choice is acceptable */
-      if (p <= 0 || fabs(csa->tcol[csa->p]) >= 0.001)
+      if (csa->p <= 0 || fabs(csa->tcol[csa->p]) >= 0.001)
          goto done;
       if (nnn == 1)
          goto done;
       if (try == 5)
          goto done;
-      /* try to choose another xN[q] and xB[p] */
+      /* try to choose other xN[q] and xB[p] */
       /* find xN[q] in the list */
       for (t = 1; t <= nnn; t++)
          if (list[t] == q) break;
@@ -657,7 +657,7 @@ skip: return;
 *
 *  This routine is a driver to the two-phase primal simplex method.
 *
-*  This routine returns one of the following codes:
+*  On exit this routine returns one of the following codes:
 *
 *  0  LP instance has been successfully solved.
 *
@@ -718,7 +718,7 @@ loop: /* main loop starts here */
             goto fini;
          }
          if (cond > 0.001 / DBL_EPSILON)
-         {  if (msg_lev >= GLP_MSG_ALL)
+         {  if (msg_lev >= GLP_MSG_ERR)
                xprintf("Warning: basis matrix is ill-conditioned (cond "
                   "= %.3g)\n", cond);
          }
@@ -916,9 +916,10 @@ loop: /* main loop starts here */
       else
          spx_nt_prod(lp, nt, trow, 1, -1.0, rho);
       /* FIXME: tcol[p] and trow[q] should be close to each other */
+      xassert(trow[csa->q] != 0.0);
       /* update reduced costs of non-basic variables for adjacent
        * basis */
-      if (spx_update_d(lp, d, csa->p, csa->q, trow, tcol) <= 1e-8)
+      if (spx_update_d(lp, d, csa->p, csa->q, trow, tcol) <= 1e-9)
       {  /* successful updating */
          csa->d_st = 2;
          if (csa->phase == 1)
@@ -984,7 +985,7 @@ int spx_primal(glp_prob *P, const glp_smcp *parm)
 {     /* driver to primal simplex method */
       struct csa csa_, *csa = &csa_;
       SPXLP lp;
-#ifdef USE_AT
+#if USE_AT
       SPXAT at;
 #else
       SPXNT nt;
@@ -1009,10 +1010,9 @@ int spx_primal(glp_prob *P, const glp_smcp *parm)
          default:
             xassert(P != P);
       }
-      csa->dir = (P->dir == GLP_MIN ? +1 : -1);
       csa->c = talloc(1+csa->lp->n, double);
       memcpy(csa->c, csa->lp->c, (1+csa->lp->n) * sizeof(double));
-#ifdef USE_AT
+#if USE_AT
       /* build matrix A in row-wise format */
       csa->at = &at;
       csa->nt = NULL;

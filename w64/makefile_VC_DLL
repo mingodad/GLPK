@@ -17,7 +17,8 @@ CFLAGS = \
 /D_CRT_SECURE_NO_WARNINGS=1 \
 /nologo \
 /W3 \
-/O2
+/O2 \
+/Zi
 
 OBJSET = \
 ..\src\avl.obj \
@@ -84,11 +85,9 @@ OBJSET = \
 ..\src\glpscl.obj \
 ..\src\glpsdf.obj \
 ..\src\glpspm.obj \
-..\src\glpspx02.obj \
 ..\src\glpsql.obj \
 ..\src\glpssx01.obj \
 ..\src\glpssx02.obj \
-..\src\glptsp.obj \
 ..\src\lux.obj \
 ..\src\amd\amd_1.obj \
 ..\src\amd\amd_2.obj \
@@ -156,6 +155,9 @@ OBJSET = \
 ..\src\simplex\spxnt.obj \
 ..\src\simplex\spxprim.obj \
 ..\src\simplex\spxprob.obj \
+..\src\simplex\spychuzc.obj \
+..\src\simplex\spychuzr.obj \
+..\src\simplex\spydual.obj \
 ..\src\zlib\adler32.obj \
 ..\src\zlib\compress.obj \
 ..\src\zlib\crc32.obj \
@@ -175,10 +177,10 @@ OBJSET = \
 .c.obj:
         cl.exe $(CFLAGS) /Fo$*.obj /c $*.c
 
-all: glpk_4_56.dll glpsol.exe
+all: glpk_4_57.dll glpsol.exe
 
-glpk_4_56.dll: $(OBJSET)
-        cl.exe $(CFLAGS) /LD /Feglpk_4_56.dll \
+glpk_4_57.dll: $(OBJSET)
+        cl.exe $(CFLAGS) /LD /Feglpk_4_57.dll \
                 ..\src\*.obj \
                 ..\src\amd\*.obj \
                 ..\src\bflib\*.obj \
@@ -190,11 +192,11 @@ glpk_4_56.dll: $(OBJSET)
                 ..\src\proxy\*.obj \
                 ..\src\simplex\*.obj \
                 ..\src\zlib\*.obj \
-                glpk_4_56.def
+                glpk_4_57.def
 
-glpsol.exe: ..\examples\glpsol.obj glpk_4_56.dll
+glpsol.exe: ..\examples\glpsol.obj glpk_4_57.dll
         cl.exe $(CFLAGS) /Feglpsol.exe \
-                ..\examples\glpsol.obj glpk_4_56.lib
+                ..\examples\glpsol.obj glpk_4_57.lib
 
 check: glpsol.exe
         .\glpsol.exe --version

@@ -253,6 +253,29 @@ program.
 
 \newpage
 
+\subsection{glp\_at\_error --- check for error state}
+
+\synopsis
+
+\begin{verbatim}
+   int glp_at_error(void);
+\end{verbatim}
+
+\description
+
+The routine \verb|glp_at_error| checks if the GLPK environment is at
+error state, i.~e.~if the call to the routine is (indirectly) made from
+the \verb|glp_error| routine via an user-defined hook routine.
+
+This routine can be used, for example, by a custom output handler
+(installed with the routine \verb|glp_term_hook|) to determine whether
+or not the message to be displayed is an error message.
+
+\returns
+
+If the GLPK environment is at error state, the routine returns
+non-zero, otherwise zero.
+
 \subsection{glp\_assert --- check logical condition}
 
 \synopsis
@@ -384,8 +407,6 @@ Note that the pointer \verb|ptr| must be valid and must not be
 This routine is a replacement of the standard C function \verb|free|
 and used by GLPK routines for dynamic memory allocation. The
 application program may use \verb|glp_free| for the same purpose.
-
-\newpage
 
 \subsection{glp\_mem\_usage --- get memory usage information}
 
