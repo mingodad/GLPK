@@ -228,6 +228,17 @@ double fp_cos(MPL *mpl, double x)
 }
 
 /*----------------------------------------------------------------------
+-- fp_tan - floating-point trigonometric tangent.
+--
+-- This routine computes the trigonometric tangent tan(x). */
+
+double fp_tan(MPL *mpl, double x)
+{     if (!(-1e6 <= x && x <= +1e6))
+         error(mpl, "tan(%.*g); argument too large", DBL_DIG, x);
+      return tan(x);
+}
+
+/*----------------------------------------------------------------------
 -- fp_atan - floating-point trigonometric arctangent.
 --
 -- This routine computes the trigonometric arctangent atan(x). */
@@ -3679,6 +3690,10 @@ double eval_numeric(MPL *mpl, CODE *code)
             /* trigonometric cosine */
             value = fp_cos(mpl, eval_numeric(mpl, code->arg.arg.x));
             break;
+         case O_TAN:
+            /* trigonometric tangent */
+            value = fp_tan(mpl, eval_numeric(mpl, code->arg.arg.x));
+            break;
          case O_ATAN:
             /* trigonometric arctangent (one argument) */
             value = fp_atan(mpl, eval_numeric(mpl, code->arg.arg.x));
@@ -4874,6 +4889,7 @@ void clean_code(MPL *mpl, CODE *code)
          case O_SQRT:
          case O_SIN:
          case O_COS:
+         case O_TAN:
          case O_ATAN:
          case O_ROUND:
          case O_TRUNC:

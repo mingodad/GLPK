@@ -103,7 +103,7 @@ If $L=\varnothing$ then GO TO 9.
 
 Select $P\in L$, i.e. make active subproblem $P$ current.
 
-\newpage
+%\newpage
 
 {\it 3. Solving LP relaxation}
 
@@ -231,23 +231,23 @@ Fig. 1. An example of the search tree.
 
 In GLPK each node may have one of the following four statuses:
 
-\vspace*{-8pt}
+%\vspace*{-8pt}
 
-\begin{itemize}
-\item {\it current node} is the active node currently being
+%\begin{itemize}
+\Item{---}{\it current node} is the active node currently being
 processed;
 
-\item {\it active node} is a leaf node, which still has to be
+\Item{---}{\it active node} is a leaf node, which still has to be
 processed;
 
-\item {\it non-active node} is a node, which has been processed,
+\Item{---}{\it non-active node} is a node, which has been processed,
 but not fathomed;
 
-\item {\it fathomed node} is a node, which has been processed and
+\Item{---}{\it fathomed node} is a node, which has been processed and
 fathomed.
-\end{itemize}
+%\end{itemize}
 
-\vspace*{-8pt}
+%\vspace*{-8pt}
 
 In the data structure representing the search tree GLPK keeps only
 current, active, and non-active nodes. Once a node has been fathomed,
@@ -571,6 +571,8 @@ where \verb|best_mip| is the best integer feasible solution found so
 far, \verb|best_bnd| is the best (global) bound. If no integer feasible
 solution has been found yet, \verb|gap| is set to \verb|DBL_MAX|.
 
+\newpage
+
 \returns
 
 The routine \verb|glp_ios_mip_gap| returns the relative MIP gap.
@@ -712,6 +714,8 @@ The parameter \verb|sel| is a flag that indicates which branch
 \verb|GLP_UP_BRNCH| --- select up-branch;
 
 \verb|GLP_NO_BRNCH| --- use general selection technique.
+
+\newpage
 
 \para{Comments}
 
@@ -885,6 +889,8 @@ subproblem is the level of its parent plus one.)
 The routine \verb|glp_ios_node_bound| returns the local bound for
 (active or inactive) subproblem, whose reference number is $p$.
 
+\newpage
+
 \para{Comments}
 
 The local bound for subproblem $p$ is an lower (minimization) or upper
@@ -991,6 +997,8 @@ The parameter \verb|type| specifies the constraint type as follows:
 \verb|GLP_LO| means inequality constraint $\Sigma a_jx_j\geq b$;
 
 \verb|GLP_UP| means inequality constraint $\Sigma a_jx_j\leq b$;
+
+\newpage
 
 The parameter \verb|rhs| specifies the right-hand side $b$.
 

@@ -1034,7 +1034,9 @@ more: /* minor loop starts here */
       if (T->parm->msg_lev >= GLP_MSG_DBG)
          xprintf("Solving LP relaxation...\n");
       ret = ios_solve_node(T);
-      if (!(ret == 0 || ret == GLP_EOBJLL || ret == GLP_EOBJUL))
+      if (ret == GLP_ETMLIM)
+         goto done;
+      else if (!(ret == 0 || ret == GLP_EOBJLL || ret == GLP_EOBJUL))
       {  if (T->parm->msg_lev >= GLP_MSG_ERR)
             xprintf("ios_driver: unable to solve current LP relaxation;"
                " glp_simplex returned %d\n", ret);

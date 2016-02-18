@@ -837,6 +837,10 @@ double fp_sin(MPL *mpl, double x);
 double fp_cos(MPL *mpl, double x);
 /* floating-point trigonometric cosine */
 
+#define fp_tan _glp_mpl_fp_tan
+double fp_tan(MPL *mpl, double x);
+/* floating-point trigonometric tangent */
+
 #define fp_atan _glp_mpl_fp_atan
 double fp_atan(MPL *mpl, double x);
 /* floating-point trigonometric arctangent */
@@ -2117,62 +2121,63 @@ struct CODE
 #define O_SQRT          330   /* square root */
 #define O_SIN           331   /* trigonometric sine */
 #define O_COS           332   /* trigonometric cosine */
-#define O_ATAN          333   /* trigonometric arctangent */
-#define O_ROUND         334   /* round to nearest integer */
-#define O_TRUNC         335   /* truncate to nearest integer */
-#define O_CARD          336   /* cardinality of set */
-#define O_LENGTH        337   /* length of symbolic value */
+#define O_TAN           333   /* trigonometric tangent */
+#define O_ATAN          334   /* trigonometric arctangent */
+#define O_ROUND         335   /* round to nearest integer */
+#define O_TRUNC         336   /* truncate to nearest integer */
+#define O_CARD          337   /* cardinality of set */
+#define O_LENGTH        338   /* length of symbolic value */
                               /* binary operations -------------------*/
-#define O_ADD           338   /* addition */
-#define O_SUB           339   /* subtraction */
-#define O_LESS          340   /* non-negative subtraction */
-#define O_MUL           341   /* multiplication */
-#define O_DIV           342   /* division */
-#define O_IDIV          343   /* quotient of exact division */
-#define O_MOD           344   /* remainder of exact division */
-#define O_POWER         345   /* exponentiation (raise to power) */
-#define O_ATAN2         346   /* trigonometric arctangent */
-#define O_ROUND2        347   /* round to n fractional digits */
-#define O_TRUNC2        348   /* truncate to n fractional digits */
-#define O_UNIFORM       349   /* pseudo-random in [a, b) */
-#define O_NORMAL        350   /* gaussian random, given mu and sigma */
-#define O_CONCAT        351   /* concatenation */
-#define O_LT            352   /* comparison on 'less than' */
-#define O_LE            353   /* comparison on 'not greater than' */
-#define O_EQ            354   /* comparison on 'equal to' */
-#define O_GE            355   /* comparison on 'not less than' */
-#define O_GT            356   /* comparison on 'greater than' */
-#define O_NE            357   /* comparison on 'not equal to' */
-#define O_AND           358   /* conjunction (logical "and") */
-#define O_OR            359   /* disjunction (logical "or") */
-#define O_UNION         360   /* union */
-#define O_DIFF          361   /* difference */
-#define O_SYMDIFF       362   /* symmetric difference */
-#define O_INTER         363   /* intersection */
-#define O_CROSS         364   /* cross (Cartesian) product */
-#define O_IN            365   /* test on 'x in Y' */
-#define O_NOTIN         366   /* test on 'x not in Y' */
-#define O_WITHIN        367   /* test on 'X within Y' */
-#define O_NOTWITHIN     368   /* test on 'X not within Y' */
-#define O_SUBSTR        369   /* substring */
-#define O_STR2TIME      370   /* convert string to time */
-#define O_TIME2STR      371   /* convert time to string */
+#define O_ADD           339   /* addition */
+#define O_SUB           340   /* subtraction */
+#define O_LESS          341   /* non-negative subtraction */
+#define O_MUL           342   /* multiplication */
+#define O_DIV           343   /* division */
+#define O_IDIV          344   /* quotient of exact division */
+#define O_MOD           345   /* remainder of exact division */
+#define O_POWER         346   /* exponentiation (raise to power) */
+#define O_ATAN2         347   /* trigonometric arctangent */
+#define O_ROUND2        348   /* round to n fractional digits */
+#define O_TRUNC2        349   /* truncate to n fractional digits */
+#define O_UNIFORM       350   /* pseudo-random in [a, b) */
+#define O_NORMAL        351   /* gaussian random, given mu and sigma */
+#define O_CONCAT        352   /* concatenation */
+#define O_LT            353   /* comparison on 'less than' */
+#define O_LE            354   /* comparison on 'not greater than' */
+#define O_EQ            355   /* comparison on 'equal to' */
+#define O_GE            356   /* comparison on 'not less than' */
+#define O_GT            357   /* comparison on 'greater than' */
+#define O_NE            358   /* comparison on 'not equal to' */
+#define O_AND           359   /* conjunction (logical "and") */
+#define O_OR            360   /* disjunction (logical "or") */
+#define O_UNION         361   /* union */
+#define O_DIFF          362   /* difference */
+#define O_SYMDIFF       363   /* symmetric difference */
+#define O_INTER         364   /* intersection */
+#define O_CROSS         365   /* cross (Cartesian) product */
+#define O_IN            366   /* test on 'x in Y' */
+#define O_NOTIN         367   /* test on 'x not in Y' */
+#define O_WITHIN        368   /* test on 'X within Y' */
+#define O_NOTWITHIN     369   /* test on 'X not within Y' */
+#define O_SUBSTR        370   /* substring */
+#define O_STR2TIME      371   /* convert string to time */
+#define O_TIME2STR      372   /* convert time to string */
                               /* ternary operations ------------------*/
-#define O_DOTS          372   /* build "arithmetic" set */
-#define O_FORK          373   /* if-then-else */
-#define O_SUBSTR3       374   /* substring */
+#define O_DOTS          373   /* build "arithmetic" set */
+#define O_FORK          374   /* if-then-else */
+#define O_SUBSTR3       375   /* substring */
                               /* n-ary operations --------------------*/
-#define O_MIN           375   /* minimal value (n-ary) */
-#define O_MAX           376   /* maximal value (n-ary) */
+#define O_MIN           376   /* minimal value (n-ary) */
+#define O_MAX           377   /* maximal value (n-ary) */
                               /* iterated operations -----------------*/
-#define O_SUM           377   /* summation */
-#define O_PROD          378   /* multiplication */
-#define O_MINIMUM       379   /* minimum */
-#define O_MAXIMUM       380   /* maximum */
-#define O_FORALL        381   /* conjunction (A-quantification) */
-#define O_EXISTS        382   /* disjunction (E-quantification) */
-#define O_SETOF         383   /* compute elemental set */
-#define O_BUILD         384   /* build elemental set */
+#define O_SUM           378   /* summation */
+#define O_PROD          379   /* multiplication */
+#define O_MINIMUM       380   /* minimum */
+#define O_MAXIMUM       381   /* maximum */
+#define O_FORALL        382   /* conjunction (A-quantification) */
+#define O_EXISTS        383   /* disjunction (E-quantification) */
+#define O_SETOF         384   /* compute elemental set */
+#define O_BUILD         385   /* build elemental set */
       OPERANDS arg;
       /* operands that participate in the operation */
       int type;

@@ -26,7 +26,7 @@
 #define LUX_H
 
 #include "dmp.h"
-#include "glpgmp.h"
+#include "mygmp.h"
 
 /***********************************************************************
 *  The structure LUX defines LU-factorization of a square matrix A,

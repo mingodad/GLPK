@@ -92,6 +92,16 @@ struct ENV
        * the sum of the size field over all memory block descriptors */
       size_t mem_tpeak;
       /* peak value of mem_total */
+#if 1 /* 23/XI-2015 */
+      /*--------------------------------------------------------------*/
+      /* bignum module working area */
+      void *gmp_pool; /* DMP *gmp_pool; */
+      /* working memory pool */
+      int gmp_size;
+      /* size of working array */
+      unsigned short *gmp_work; /* ushort gmp_work[gmp_size]; */
+      /* working array */
+#endif
       /*--------------------------------------------------------------*/
       /* dynamic linking support (optional) */
       void *h_odbc;

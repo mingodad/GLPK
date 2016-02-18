@@ -1,4 +1,4 @@
-/* bignum.h (arbitrary precision arithmetic) */
+/* bignum.h (bignum arithmetic) */
 
 /***********************************************************************
 *  This code is part of GLPK (GNU Linear Programming Kit).

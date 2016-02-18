@@ -449,6 +449,10 @@ int glp_exact(glp_prob *lp, const glp_smcp *parm)
       lp->obj_val = sum;
 done: /* delete the simplex solver workspace */
       ssx_delete(ssx);
+#if 1 /* 23/XI-2015 */
+      xassert(gmp_pool_count() == 0);
+      gmp_free_mem();
+#endif
       /* return to the application program */
       return ret;
 }

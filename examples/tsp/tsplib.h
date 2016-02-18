@@ -40,7 +40,7 @@ struct TSP
 #define TSP_UNDEF             0  /* undefined */
 #define TSP_FUNCTION          1  /* given by a function */
 #define TSP_FULL_MATRIX       2  /* given by a full matrix */
-#define TSP_UPPER_ROW         3  /* upper triangulat matrix (row-wise
+#define TSP_UPPER_ROW         3  /* upper triangular matrix (row-wise
                                   * without diagonal entries) */
 #define TSP_LOWER_DIAG_ROW    4  /* lower triangular matrix (row-wise
                                   * including diagonal entries) */

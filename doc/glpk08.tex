@@ -28,7 +28,7 @@ fixed fields:
 
 \begin{center}
 \begin{tabular}{lcccccc}
-& Field 1 & Field 2 & Field 3 & Field 4 & Field 5 & Feld 6 \\
+& Field 1 & Field 2 & Field 3 & Field 4 & Field 5 & Field 6 \\
 \hline
 Columns & 2---3 & 5---12 & 15---22 & 25---36 & 40---47 & 50---61 \\
 Contents & Code & Name & Name & Number & Name & Number \\
@@ -55,7 +55,7 @@ characters. If the sign $s$ is omitted, the plus sign is assumed. The
 exponent part is optional. If a number contains spaces, the spaces are
 ignored.
 
-\newpage
+%\newpage
 
 If a card has the asterisk `\verb|*|' in the column 1, this card is
 considered as a comment and ignored. Besides, if the first character in
@@ -64,37 +64,37 @@ dollar sign to the end of card are considered as a comment and ignored.
 
 MPS file should contain cards in the following order:
 
-\vspace*{-8pt}
+%\vspace*{-8pt}
 
-\begin{itemize}
-\item NAME indicator card;
+%\begin{itemize}
+\Item{---}NAME indicator card;
 
-\item ROWS indicator card;
+\Item{---}ROWS indicator card;
 
-\item data cards specifying rows (constraints);
+\Item{---}data cards specifying rows (constraints);
 
-\item COLUMNS indicator card;
+\Item{---}COLUMNS indicator card;
 
-\item data cards specifying columns (structural variables) and
+\Item{---}data cards specifying columns (structural variables) and
 constraint coefficients;
 
-\item RHS indicator card;
+\Item{---}RHS indicator card;
 
-\item data cards specifying right-hand sides of constraints;
+\Item{---}data cards specifying right-hand sides of constraints;
 
-\item RANGES indicator card;
+\Item{---}RANGES indicator card;
 
-\item data cards specifying ranges for double-bounded constraints;
+\Item{---}data cards specifying ranges for double-bounded constraints;
 
-\item BOUNDS indicator card;
+\Item{---}BOUNDS indicator card;
 
-\item data cards specifying types and bounds of structural
+\Item{---}data cards specifying types and bounds of structural
 variables;
 
-\item ENDATA indicator card.
-\end{itemize}
+\Item{---}ENDATA indicator card.
+%\end{itemize}
 
-\vspace*{-8pt}
+%\vspace*{-8pt}
 
 {\it Section} is a group of cards consisting of an indicator card and
 data cards succeeding this indicator card. For example, the ROWS section
@@ -120,7 +120,7 @@ position, except position 1, which must be blank, and must be separated
 from each other by one or more blanks. However, the fields must appear
 in the same order as in fixed MPS format.
 
-\newpage
+%\newpage
 
 Symbolic names in fields 2, 3, and 5 may be longer than 8
 characters\footnote{GLPK allows symbolic names having up to 255
@@ -135,6 +135,8 @@ ignored.
 If the first character of any field (not necessarily fields 3 and 5)
 is the dollar sign (\$), all characters from the dollar sign to the end
 of record are considered as a comment and ignored.
+
+\newpage
 
 \section{NAME indicator card}
 
@@ -178,7 +180,7 @@ can be considered as bounds of such auxiliary variable.
 The filed 2 specifies a row name (which is considered as the name of
 the corresponding auxiliary variable).
 
-\newpage
+%\newpage
 
 The fields 3, 4, 5, and 6 are not used and should be empty.
 
@@ -236,7 +238,7 @@ vectors in the same MPS file. However, before solving the problem a
 particular RHS vector should be chosen.}. If this field is empty, the
 RHS vector name from the immediately preceeding data card is assumed.
 
-\newpage
+%\newpage
 
 The field 3 specifies a row name defined in the ROWS section.
 
@@ -259,6 +261,8 @@ section.
 Right-hand sides not specified in the RHS section are considered as
 zeros. Therefore zero right-hand sides may be omitted, although it is
 allowed to explicitly specify them.
+
+\newpage
 
 \section{RANGES section}
 
@@ -297,7 +301,7 @@ section.
 For each double-side constraint specified in the RANGES section its
 lower and upper bounds are determined as follows:
 
-\newpage
+%\newpage
 
 \begin{center}
 \begin{tabular}{cccc}
@@ -366,7 +370,7 @@ have zero lower bound and no upper bound. Lower ($l_j$) and upper
 following way, where $s_j$ is a corresponding bound value explicitly
 specified in the BOUNDS section:
 
-\newpage
+%\newpage
 
 \verb|LO| sets $l_j$ to $s_j$;
 
@@ -430,9 +434,6 @@ SI    &= .02\ bin_1 + .06\ bin_2 + .08\ bin_3 + .12\ bin_4 + .02\ bin_5
          + .01\ al + .97\ si \\
 \end{array}
 $$
-
-\newpage
-
 \noindent\hspace{.5in}and bounds of (auxiliary and structural)
 variables
 $$
@@ -452,7 +453,7 @@ $$
 A complete MPS file which specifies data for this example is shown
 below (the first two comment lines show card positions).
 
-\bigskip
+\newpage
 
 \begin{footnotesize}
 \begin{verbatim}
@@ -513,11 +514,11 @@ ENDATA
 \end{verbatim}
 \end{footnotesize}
 
-\vspace*{-6pt}
+%\vspace*{-6pt}
 
 \section{MIP features}
 
-\vspace*{-4pt}
+%\vspace*{-4pt}
 
 The MPS format provides two ways for introducing integer variables into
 the problem.
@@ -590,9 +591,9 @@ $$
 \end{array}
 $$
 
-The corresponding MPS file may look like the following:
+The corresponding MPS file may look like follows:
 
-\medskip
+\newpage
 
 \begin{footnotesize}
 \begin{verbatim}
@@ -628,13 +629,14 @@ ENDATA
 \end{verbatim}
 \end{footnotesize}
 
-\newpage
+%\newpage
+\vspace{-3pt}
 
 The same example may be coded without INTORG/INTEND markers using the
 bound type UI for the variable $x_2$ and the bound type BV for the
 variable $x_3$:
 
-\medskip
+%\medskip
 
 \begin{footnotesize}
 \begin{verbatim}

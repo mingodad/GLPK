@@ -21,7 +21,7 @@
 *
 *  DESCRIPTION
 *
-*  This routine find min cut in a given undirected network.
+*  This routine finds min cut in a given undirected network.
 *
 *  The undirected capacitated network is specified by the parameters
 *  nn, ne, beg, end, and cap. The parameter nn specifies the number of
@@ -207,7 +207,7 @@ int min_st_cut(int nn, int ne, const int beg[/*1+ne*/],
 *
 *  The basic idea of Stoer&Wagner algorithm is the following. Let G be
 *  a capacitated network, and G(s,t) be a network, in which the nodes s
-*  and t are merged into one new node, loops are deleted, but multuple
+*  and t are merged into one new node, loops are deleted, but multiple
 *  edges are retained. It is obvious that a minimum cut in G is the
 *  minimum of two quantities: the minimum cut in G(s,t) and a minimum
 *  cut that separates s and t. This allows to find a minimum cut in the

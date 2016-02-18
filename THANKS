@@ -35,7 +35,8 @@ Cedric[FR] <fox2113@wanadoo.fr> for bug report.
 
 Charles Brixko <charles.brixko@voo.be> for bug report.
 
-Chris Matrakidis <cmatraki@gmail.com> for suggestion.
+Chris Matrakidis <cmatraki@gmail.com> for contribution of a patch that
+implements the tan function in MathProg.
 
 Chris Rosebrugh <cpr@pobox.com> for contribution of a new version of
 GLPK JNI (Java Native Interface).

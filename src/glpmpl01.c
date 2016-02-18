@@ -602,6 +602,7 @@ CODE *make_code(MPL *mpl, int op, OPERANDS *arg, int type, int dim)
          case O_SQRT:
          case O_SIN:
          case O_COS:
+         case O_TAN:
          case O_ATAN:
          case O_ROUND:
          case O_TRUNC:
@@ -1148,6 +1149,7 @@ CODE *elemset_argument(MPL *mpl, char *func)
 -- <primary expression> ::= sqrt ( <arg> )
 -- <primary expression> ::= sin ( <arg> )
 -- <primary expression> ::= cos ( <arg> )
+-- <primary expression> ::= tan ( <arg> )
 -- <primary expression> ::= atan ( <arg> )
 -- <primary expression> ::= atan2 ( <arg> , <arg> )
 -- <primary expression> ::= round ( <arg> )
@@ -1194,6 +1196,8 @@ CODE *function_reference(MPL *mpl)
          op = O_SIN;
       else if (strcmp(mpl->image, "cos") == 0)
          op = O_COS;
+      else if (strcmp(mpl->image, "tan") == 0)
+         op = O_TAN;
       else if (strcmp(mpl->image, "atan") == 0)
          op = O_ATAN;
       else if (strcmp(mpl->image, "min") == 0)

@@ -77,6 +77,9 @@ int glp_init_env(void)
       env->term_hook = NULL;
       env->term_info = NULL;
       env->tee_file = NULL;
+#if 1 /* 23/XI-2015 */
+      env->err_st = 0;
+#endif
       env->err_file = NULL;
       env->err_line = 0;
       env->err_hook = NULL;
@@ -92,6 +95,11 @@ int glp_init_env(void)
       env->mem_ptr = NULL;
       env->mem_count = env->mem_cpeak = 0;
       env->mem_total = env->mem_tpeak = 0;
+#if 1 /* 23/XI-2015 */
+      env->gmp_pool = NULL;
+      env->gmp_size = 0;
+      env->gmp_work = NULL;
+#endif
       env->h_odbc = env->h_mysql = NULL;
       /* save pointer to the environment block */
       tls_set_ptr(env);

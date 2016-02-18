@@ -11,10 +11,10 @@ intended for solving linear programming (LP), mixed integer programming
 \section{LP problem}
 \label{seclp}
 
-GLPK assumes the following formulation of {\it linear programming (LP)}
-problem:
+GLPK assumes the following formulation of the {\it linear programming
+(LP)} problem:
 
-\medskip\noindent
+\noindent
 \hspace{.5in} minimize (or maximize)
 $$z = c_1x_{m+1} + c_2x_{m+2} + \dots + c_nx_{m+n} + c_0 \eqno (1.1)$$
 \hspace{.5in} subject to linear constraints
@@ -36,8 +36,6 @@ l_2&\leq&x_2&\leq&u_2 \\
 l_{m+n}&\leq&x_{m+n}&\leq&u_{m+n} \\
 \end{array} \eqno (1.3)
 $$
-
-\medskip\noindent
 where: $x_1, x_2, \dots, x_m$ are auxiliary variables;
 $x_{m+1}, x_{m+2}, \dots, x_{m+n}$ are structural variables;
 $z$ is the objective function;
@@ -76,16 +74,16 @@ structural as well as to auxiliary variables.
 To solve the LP problem (1.1)---(1.3) is to find such values of all
 structural and auxiliary variables, which:
 
-\vspace*{-10pt}
+%\vspace*{-10pt}
 
-\begin{itemize}\setlength{\itemsep}{0pt}
-\item satisfy to all the linear constraints (1.2), and
+%\begin{itemize}\setlength{\itemsep}{0pt}
+\Item{---}satisfy to all the linear constraints (1.2), and
 
-\item are within their bounds (1.3), and
+\Item{---}are within their bounds (1.3), and
 
-\item provide smallest (in case of minimization) or largest (in case of
-maximization) value of the objective function (1.1).
-\end{itemize}
+\Item{---}provide smallest (in case of minimization) or largest (in
+case of maximization) value of the objective function (1.1).
+%\end{itemize}
 
 \section{MIP problem}
 
@@ -107,8 +105,6 @@ structural variables to be of integer kind.)
 In order to understand what GLPK is from the user's standpoint,
 consider the following simple LP problem:
 
-\medskip
-
 \noindent
 \hspace{.5in} maximize
 $$z = 10 x_1 + 6 x_2 + 4 x_3$$
@@ -127,8 +123,6 @@ At first, this LP problem should be transformed to the standard form
 (1.1)---(1.3). This can be easily done by introducing auxiliary
 variables, by one for each original inequality constraint. Thus, the
 problem can be reformulated as follows:
-
-\medskip
 
 \noindent
 \hspace{.5in} maximize
@@ -149,9 +143,6 @@ $$
 \nonumber -\infty < r \leq 300 && 0 \leq x_3 < +\infty \\
 \end{array}
 $$
-
-\medskip
-
 where $p, q, r$ are auxiliary variables (rows), and $x_1, x_2, x_3$ are
 structural variables (columns).
 
@@ -267,6 +258,8 @@ optimal basic solution found by the solver.
 
 The statement \verb|s36| writes the optimal solution to the standard
 output. The printout may look like follows:
+
+\newpage
 
 \begin{footnotesize}
 \begin{verbatim}

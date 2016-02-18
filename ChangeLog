@@ -1,3 +1,117 @@
+Thu Feb 18 12:00:00 2016 Andrew Makhorin <mao@gnu.org>
+
+        * GLPK 4.58 (39:0:0) has been released.
+
+        * src/misc/dimacs.c, src/misc/dimacs.h
+        Routines to read data files in DIMACS format were implemented
+        as a separate module.
+
+        The following source modules were splitted/renamed to simplify
+        maintenance.
+        * src/glpapi11.c glp_print_sol       -> src/api/prsol.c
+        * src/glpapi11.c glp_read_sol        -> src/api/rdsol.c
+        * src/glpapi11.c glp_write_sol       -> src/api/wrsol.c
+        * src/glpapi11.c glp_print_ipt       -> src/api/pript.c
+        * src/glpapi11.c glp_read_ipt        -> src/api/rdipt.c
+        * src/glpapi11.c glp_write_ipt       -> src/api/wript.c
+        * src/glpapi11.c glp_print_mip       -> src/api/prmip.c
+        * src/glpapi11.c glp_read_mip        -> src/api/rdmip.c
+        * src/glpapi11.c glp_write_mip       -> src/api/wrmip.c
+        * src/glpapi11.c glp_print_ranges    -> src/api/prrngs.c
+        * src/glpapi11.c REMOVED
+        * src/glpapi14.c RENAMED             -> src/api/mpl.c
+        * src/glpapi15.c glp_read_graph      -> src/api/rdgr.c
+        * src/glpapi15.c glp_write_graph     -> src/api/wrgr.c
+        * src/glpapi15.c REMOVED
+        * src/glpapi16.c glp_weak_comp       -> src/api/weak.c
+        * src/glpapi16.c glp_strong_comp     -> src/api/strong.c
+        * src/glpapi16.c glp_top_sort        -> src/api/topsort.c
+        * src/glpapi16.c REMOVED
+        * src/glpapi17.c glp_mincost_lp      -> src/api/mcflp.c
+        * src/glpapi17.c glp_mincost_okalg   -> src/api/mcfokalg.c
+        * src/glpapi17.c glp_mincost_relax4  -> src/api/mcfrelax.c
+        * src/glpapi17.c glp_maxflow_lp      -> src/api/maxflp.c
+        * src/glpapi17.c glp_maxflow_ffalg   -> src/api/maxffalg.c
+        * src/glpapi17.c glp_check_asnprob   -> src/api/ckasn.c
+        * src/glpapi17.c glp_asnprob_lp      -> src/api/asnlp.c
+        * src/glpapi17.c glp_asnprob_okalg   -> src/api/asnokalg.c
+        * src/glpapi17.c glp_asnprob_hall    -> src/api/asnhall.c
+        * src/glpapi17.c glp_cpp             -> src/api/cpp.c
+        * src/glpapi17.c REMOVED
+        * src/glpapi18.c glp_wclique_exact   -> src/api/wcliqex.c
+        * src/glpapi18.c REMOVED
+        * src/glpapi19.c RENAMED             -> src/api/minisat1.c
+        * src/glpapi20.c RENAMED             -> src/api/intfeas1.c
+        * src/glpapi21.c RENAMED             -> examples/glpsol.c
+        * src/glpcpx.c   RENAMED             -> src/api/cplex.c
+        * src/glpdmx.c   glp_read_mincost    -> src/api/rdmcf.c
+        * src/glpdmx.c   glp_write_mincost   -> src/api/wrmcf.c
+        * src/glpdmx.c   glp_read_maxflow    -> src/api/rdmaxf.c
+        * src/glpdmx.c   glp_write_maxflow   -> src/api/wrmaxf.c
+        * src/glpdmx.c   glp_read_asnprob    -> src/api/rdasn.c
+        * src/glpdmx.c   glp_write_asnprob   -> src/api/wrasn.c
+        * src/glpdmx.c   glp_read_ccdata     -> src/api/rdcc.c
+        * src/glpdmx.c   glp_write_ccdata    -> src/api/wrcc.c
+        * src/glpdmx.c   glp_read_prob       -> src/api/rdprob.c
+        * src/glpdmx.c   glp_write_prob      -> src/api/wrprob.c
+        * src/glpdmx.c   glp_read_cnfsat     -> src/api/rdcnf.c
+        * src/glpdmx.c   glp_write_cnfsat    -> src/api/wrcnf.c
+        * src/glpdmx.c   glp_check_cnfsat    -> src/api/ckcnf.c
+        * src/glpdmx.c   REMOVED
+        * src/glpgmp.c   RENAMED             -> src/misc/mygmp.c
+        * src/glpini01.c RENAMED             -> src/api/advbas.c
+        * src/glpini02.c RENAMED             -> src/api/cpxbas.c
+        * src/glpmps.c   RENAMED             -> src/api/mps.c
+        * src/glpnet03.c RENAMED             -> src/api/netgen.c
+        * src/glpnet04.c RENAMED             -> src/api/gridgen.c
+        * src/glpnet05.c RENAMED             -> src/api/rmfgen.c
+
+        The following source modules were changed due to changes in the
+        data formats:
+        * src/api/rdsol.c
+        * src/api/wrsol.c
+        * src/api/rdipt.c
+        * src/api/wript.c
+        * src/api/rdmip.c
+        * src/api/wrmip.c
+
+        * src/glpk.h
+        New API routines were added: glp_mpl_init_rand (not documented
+        yet), glp_time, glp_difftime. The API routine glp_main (glpsol
+        main routine) was removed.
+
+        * src/glpmpl.h, src/glpmpl01.c, src/glpmpl03.c
+        The function tan (trigonometric tangent) was added to MathProg.
+        Thanks to Chris Matrakidis <cmatraki@gmail.com> for patch.
+
+        * src/simplex/spydual.c
+        A minor typo in dual simplex (GLP_EITLIM instead of GLP_ETMLIM)
+        was fixed. Thanks to Chris Matrakidis <cmatraki@gmail.com> for
+        patch.
+
+        * src/glpapi09.c, src/glpios01.c, src/glpios03.c
+        A time limit problem was fixed. Thanks to Chris Matrakidis
+        <cmatraki@gmail.com> for patch.
+
+        * doc/gmpl_es.tex, doc/gmpl_es.pdf
+        A new version of the document "Modeling Language GNU MathProg"
+        in Spanish was included (in LaTeX and pdf formats). Thanks to
+        Pablo Yapura <ypf@agro.unlp.edu.ar> for contribution.
+
+        * configure.ac
+        A check to determine if libtool needs '-no-undefined' flag to
+        build shared libraries on some platforms was added.
+        Thanks to Marco Atzeri <marco.atzeri@gmail.com> and Heinrich
+        Schuchardt <xypron.glpk@gmx.de> for suggestion.
+
+        * autogen.sh
+        A script to regenerate the configure script and the Makefiles
+        was added. Thanks to Heinrich Schuchardt <xypron.glpk@gmx.de>.
+
+        * w32/glpk.def, w64/glpk.def
+        'glp_at_error' symbol was added to the export list. Thanks to
+        Heinrich Schuchardt <xypron.glpk@gmx.de> for bug report.
+
 Sun Nov 08 12:00:00 2015 Andrew Makhorin <mao@gnu.org>
 
         * GLPK 4.57 (38:0:2) has been released.

@@ -238,7 +238,7 @@ static void set_art_bounds(struct csa *csa)
 *  reduced costs d = (d[j]) are used to decide which bound (lower or
 *  upper) should be made active. */
 
-void set_orig_bounds(struct csa *csa)
+static void set_orig_bounds(struct csa *csa)
 {     SPXLP *lp = csa->lp;
       int m = lp->m;
       int n = lp->n;
@@ -904,7 +904,7 @@ loop: /* main loop starts here */
          csa->num = spy_chuzr_sel(lp, beta, tol_bnd, tol_bnd1, list);
          csa->p_stat = (csa->num == 0 ? GLP_FEAS : GLP_INFEAS);
          csa->d_stat = (csa->phase == 1 ? GLP_INFEAS : GLP_FEAS);
-         ret = GLP_EITLIM;
+         ret = GLP_ETMLIM;
          goto fini;
       }
       /* display the search progress */

@@ -1336,6 +1336,11 @@ int ios_solve_node(glp_tree *tree)
             xassert(tree != tree);
       }
       parm.meth = GLP_DUALP;
+      /* respect time limit */
+      if (tree->parm->tm_lim < INT_MAX)
+         parm.tm_lim = tree->parm->tm_lim - (glp_time() - tree->tm_beg);
+      if (parm.tm_lim < 0)
+         parm.tm_lim = 0;
       if (tree->parm->msg_lev < GLP_MSG_DBG)
          parm.out_dly = tree->parm->out_dly;
       else

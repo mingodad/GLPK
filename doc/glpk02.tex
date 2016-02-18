@@ -87,17 +87,17 @@ structure directly and should deal only with pointers to these objects
 
 The problem object consists of the following segments:
 
-\vspace*{-8pt}
+%\vspace*{-8pt}
 
-\begin{itemize}\setlength{\itemsep}{0pt}
-\item problem segment,
+%\begin{itemize}\setlength{\itemsep}{0pt}
+\Item{---}problem segment,
 
-\item basis segment,
+\Item{---}basis segment,
 
-\item interior-point segment, and
+\Item{---}interior-point segment, and
 
-\item MIP segment.
-\end{itemize}
+\Item{---}MIP segment.
+%\end{itemize}
 
 \subsection{Problem segment}
 
@@ -106,37 +106,37 @@ corresponds to the problem formulation (1.1)---(1.3) (see Section
 \ref{seclp}, page \pageref{seclp}). This segment includes the following
 components:
 
-\vspace*{-8pt}
+%\vspace*{-8pt}
 
-\begin{itemize}\setlength{\itemsep}{0pt}
-\item rows (auxiliary variables),
+%\begin{itemize}\setlength{\itemsep}{0pt}
+\Item{---}rows (auxiliary variables),
 
-\item columns (structural variables),
+\Item{---}columns (structural variables),
 
-\item objective function, and
+\Item{---}objective function, and
 
-\item constraint matrix.
-\end{itemize}
+\Item{---}constraint matrix.
+%\end{itemize}
 
-\vspace*{-7pt}
+%\vspace*{-7pt}
 
 Rows and columns have the same set of the following attributes:
 
-\vspace*{-7pt}
+%\vspace*{-7pt}
 
-\begin{itemize}\setlength{\itemsep}{0pt}
-\item ordinal number,
+%\begin{itemize}\setlength{\itemsep}{0pt}
+\Item{---}ordinal number,
 
-\item symbolic name (1 up to 255 arbitrary graphic characters),
+\Item{---}symbolic name (1 up to 255 arbitrary graphic characters),
 
-\item type (free, lower bound, upper bound, double bound, fixed),
+\Item{---}type (free, lower bound, upper bound, double bound, fixed),
 
-\item numerical values of lower and upper bounds,
+\Item{---}numerical values of lower and upper bounds,
 
-\item scale factor.
-\end{itemize}
+\Item{---}scale factor.
+%\end{itemize}
 
-\vspace*{-7pt}
+%\vspace*{-7pt}
 
 {\it Ordinal numbers} are intended for referencing rows and columns.
 Row ordinal numbers are integers $1, 2, \dots, m$, and column ordinal
@@ -173,19 +173,19 @@ order.
 The {\it basis segment} of the problem object keeps information related
 to the current basic solution. It includes:
 
-\vspace*{-8pt}
+%\vspace*{-8pt}
 
-\begin{itemize}\setlength{\itemsep}{0pt}
-\item row and column statuses,
+%\begin{itemize}\setlength{\itemsep}{0pt}
+\Item{---}row and column statuses,
 
-\item basic solution statuses,
+\Item{---}basic solution statuses,
 
-\item factorization of the current basis matrix, and
+\Item{---}factorization of the current basis matrix, and
 
-\item basic solution components.
-\end{itemize}
+\Item{---}basic solution components.
+%\end{itemize}
 
-\vspace*{-8pt}
+%\vspace*{-8pt}
 
 The {\it row and column statuses} define which rows and columns are
 basic and which are non-basic. These statuses may be assigned either by
@@ -223,17 +223,17 @@ values of all auxiliary and structural variables.
 The {\it MIP segment} is used only for MIP problems. This segment
 includes:
 
-\vspace*{-8pt}
+%\vspace*{-8pt}
 
-\begin{itemize}\setlength{\itemsep}{0pt}
-\item column kinds,
+%\begin{itemize}\setlength{\itemsep}{0pt}
+\Item{---}column kinds,
 
-\item MIP solution status, and
+\Item{---}MIP solution status, and
 
-\item MIP solution components.
-\end{itemize}
+\Item{---}MIP solution components.
+%\end{itemize}
 
-\vspace*{-8pt}
+%\vspace*{-8pt}
 
 The {\it column kinds} define which columns (i.e. structural variables)
 are integer and which are continuous.
@@ -332,8 +332,7 @@ by the parameter \verb|dir|:
 
 \verb|GLP_MAX| means maximization.
 
-\noindent
-(Note that by default the problem is minimization.)
+Note that by default the problem is minimization.
 
 \subsection{glp\_add\_rows --- add new rows to problem object}
 
@@ -513,7 +512,7 @@ while the parameter \verb|ub| is ignored.
 Being added to the problem object each column is initially fixed at
 zero, i.e. its type is \verb|GLP_FX| and both bounds are 0.
 
-\newpage
+%\newpage
 
 \subsection{glp\_set\_obj\_coef --- set (change) objective coefficient
 or constant term}
@@ -532,6 +531,8 @@ the objective coefficient is specified by the parameter \verb|coef|.
 
 If the parameter \verb|j| is 0, the routine sets (changes) the constant
 term (``shift'') of the objective function.
+
+\newpage
 
 \subsection{glp\_set\_mat\_row --- set (replace) row of the constraint
 matrix}
@@ -596,6 +597,8 @@ If the parameter \verb|len| is 0, the parameters \verb|ind| and/or
 
 If the basis factorization exists, changing the column corresponding
 to a basic structural variable invalidates it.
+
+\newpage
 
 \subsection{glp\_load\_matrix --- load (replace) the whole constraint
 matrix}
@@ -710,7 +713,7 @@ remaining rows $a$, $c$, $e$ are assigned new oridinal numbers 1, 2, 3.
 If the basis factorization exists, deleting active (binding) rows,
 i.e. whose auxiliary variables are marked as non-basic, invalidates it.
 
-\newpage
+%\newpage
 
 \subsection{glp\_del\_cols --- delete columns from problem object}
 
@@ -772,7 +775,7 @@ problem object would be deleted with the routine \verb|glp_delete_prob|
 and then created anew with the routine \verb|glp_create_prob|, with the
 only exception that the pointer to the problem object remains valid.
 
-\newpage
+%\newpage
 
 \subsection{glp\_delete\_prob --- delete problem object}
 
@@ -853,6 +856,8 @@ flag (i.e. ``sense'' of the objective function):
 
 The routine \verb|glp_get_num_rows| returns the current number of rows
 in the specified problem object.
+
+\newpage
 
 \subsection{glp\_get\_num\_cols --- retrieve number of columns}
 
@@ -1061,7 +1066,7 @@ number of elements in $i$-th row, $n$ is the number of columns.
 The parameter \verb|ind| and/or \verb|val| can be specified as
 \verb|NULL|, in which case corresponding information is not stored.
 
-\newpage
+%\newpage
 
 \returns
 
@@ -1116,28 +1121,28 @@ object.
 
 It is important to note that:
 
-1. On creating the problem object with the routine
+\Item{1.}On creating the problem object with the routine
 \verb|glp_create_prob| the name index is {\it not} created.
 
-2. The name index can be created (destroyed) at any time with the
+\Item{2.}The name index can be created (destroyed) at any time with the
 routine \verb|glp_create_index| (\verb|glp_delete_index|). Having been
 created the name index becomes part of the corresponding problem
 object.
 
-3. The time taken to create the name index is $O[(m+n)\log_2(m+n)]$,
-so it is recommended to create the index only once, for example, just
-after the problem object was created.
+\Item{3.}The time taken to create the name index is
+$O[(m+n)\log_2(m+n)]$, so it is recommended to create the index only
+once, for example, just after the problem object was created.
 
-4. If the name index exists, it is automatically updated every time
-the name of a row/column is assigned/changed. The update operation
+\Item{4.}If the name index exists, it is automatically updated every
+time the name of a row/column is assigned/changed. The update operation
 takes logarithmic time.
 
-5. If the name index does not exist, the application should not call
-the routines \verb|glp_find_row| and \verb|glp_find_col|. Otherwise,
-an error message will be issued and abnormal program termination will
-occur.
+\Item{5.}If the name index does not exist, the application should not
+call the routines \verb|glp_find_row| and \verb|glp_find_col|.
+Otherwise, an error message will be issued and abnormal program
+termination will occur.
 
-6. On destroying the problem object with the routine
+\Item{6.}On destroying the problem object with the routine
 \verb|glp_delete_prob|, the name index, if exists, is automatically
 destroyed.
 
@@ -1267,6 +1272,8 @@ for $i$-th row of the specified problem object.
 The routine \verb|glp_set_sjj| sets (changes) the scale factor $s_{jj}$
 for $j$-th column of the specified problem object.
 
+\newpage
+
 \subsection{glp\_get\_rii --- retrieve row scale factor}
 
 \synopsis
@@ -1385,7 +1392,7 @@ Another way to construct an initial basis is to use API routines like
 {\it crashing}.\footnote{This term is from early linear programming
 systems and means a heuristic to construct a valid initial basis.} Note
 that on normal exit the simplex solver remains the basis valid, so in
-case of reoptimization there is no need to construct an initial basis
+case of re-optimization there is no need to construct an initial basis
 from scratch.
 
 \subsection{glp\_set\_row\_stat --- set (change) row status}
@@ -1653,9 +1660,7 @@ solver failure.\\
 \verb|GLP_EOBJLL| & The search was prematurely terminated, because the
 objective function being maximized has reached its lower limit and
 continues decreasing (the dual simplex only).\\
-\end{retlist}
 
-\begin{retlist}
 \verb|GLP_EOBJUL| & The search was prematurely terminated, because the
 objective function being minimized has reached its upper limit and
 continues increasing (the dual simplex only).\\
@@ -1665,7 +1670,9 @@ simplex iteration limit has been exceeded.\\
 
 \verb|GLP_ETMLIM| & The search was prematurely terminated, because the
 time limit has been exceeded.\\
+\end{retlist}
 
+\begin{retlist}
 \verb|GLP_ENOPFS| & The LP problem instance has no primal feasible
 solution (only if the LP presolver is used).\\
 
@@ -1710,7 +1717,7 @@ reports some information about the current basic solution, which is
 sent to the terminal. This information has the following format:
 
 \begin{verbatim}
-   nnn:  obj = xxx  infeas = yyy (ddd)
+   nnn:  obj = xxx  infeas = yyy (num) cnt
 \end{verbatim}
 
 \noindent
@@ -1718,8 +1725,9 @@ where: `\verb|nnn|' is the iteration number, `\verb|xxx|' is the
 current value of the objective function (it is unscaled and has correct
 sign); `\verb|yyy|' is the current sum of primal or dual
 infeasibilities (it is scaled and therefore may be used only for visual
-estimating), `\verb|ddd|' is the current number of fixed basic
-variables.
+estimating), `\verb|num|' is the current number of primal or dual
+infeasibilities (phase I) or non-optimalities (phase II), `\verb|cnt|'
+is the number of basis factorizations since the last terminal output.
 
 The symbol preceding the iteration number indicates which phase of the
 simplex method is in effect:
@@ -1731,8 +1739,10 @@ the dual simplex;
 {\it Asterisk} (\verb|*|) means that the solver is searching for
 optimal solution using the primal simplex;
 
-{\it Vertical dash} (\verb/|/) means that the solver is searching for
-optimal solution using the dual simplex.
+{\it Hash} (\verb|#|) means that the solver is searching for optimal
+solution using the dual simplex.
+
+\newpage
 
 \para{Control parameters}
 
@@ -1795,7 +1805,8 @@ Tolerance used to check if the basic solution is primal feasible.
 (Do not change this parameter without detailed understanding its
 purpose.)
 
-\newpage
+%\newpage
+\bigskip
 
 {\tt double tol\_dj} (default: {\tt 1e-7})
 
@@ -1811,7 +1822,8 @@ Tolerance used to choose eligble pivotal elements of the simplex table.
 (Do not change this parameter without detailed understanding its
 purpose.)
 
-\bigskip
+%\bigskip
+\newpage
 
 {\tt double obj\_ll} (default: {\tt -DBL\_MAX})
 
@@ -1903,28 +1915,25 @@ Below here is shown the terminal output from this example program.
 
 \begin{footnotesize}
 \begin{verbatim}
-Reading problem data from `25fv47.mps'...
+Reading problem data from '25fv47.mps'...
 Problem: 25FV47
 Objective: R0000
 822 rows, 1571 columns, 11127 non-zeros
 6919 records were read
-Crashing...
-Size of triangular part = 799
-      0: obj =   1.627307307e+04  infeas =  5.194e+04 (23)
-    200: obj =   1.474901610e+04  infeas =  1.233e+04 (19)
-    400: obj =   1.343909995e+04  infeas =  3.648e+03 (13)
-    600: obj =   1.756052217e+04  infeas =  4.179e+02 (7)
-*   775: obj =   1.789251591e+04  infeas =  4.982e-14 (1)
-*   800: obj =   1.663354510e+04  infeas =  2.857e-14 (1)
-*  1000: obj =   1.024935068e+04  infeas =  1.958e-12 (1)
-*  1200: obj =   7.860174791e+03  infeas =  2.810e-29 (1)
-*  1400: obj =   6.642378184e+03  infeas =  2.036e-16 (1)
-*  1600: obj =   6.037014568e+03  infeas =  0.000e+00 (1)
-*  1800: obj =   5.662171307e+03  infeas =  6.447e-15 (1)
-*  2000: obj =   5.528146165e+03  infeas =  9.764e-13 (1)
-*  2125: obj =   5.501845888e+03  infeas =  0.000e+00 (1)
-OPTIMAL SOLUTION FOUND
-Writing basic solution to `25fv47.txt'...
+One free row was removed
+Constructing initial basis...
+Size of triangular part is 812
+GLPK Simplex Optimizer, v4.57
+821 rows, 1571 columns, 10400 non-zeros
+      0: obj =   7.131703290e+03 inf =   2.145e+05 (204)
+    500: obj =   1.886711682e+04 inf =   8.273e+02 (36) 4
+    741: obj =   1.846047936e+04 inf =   5.575e-14 (0) 2
+*  1000: obj =   9.220063473e+03 inf =   2.423e-14 (432) 2
+*  1500: obj =   6.187659664e+03 inf =   1.019e-13 (368) 4
+*  2000: obj =   5.503442062e+03 inf =   0.000e+00 (33) 5
+*  2052: obj =   5.501845888e+03 inf =   0.000e+00 (0)
+OPTIMAL LP SOLUTION FOUND
+Writing basic solution to '25fv47.txt'...
 \end{verbatim}
 \end{footnotesize}
 
@@ -1965,31 +1974,24 @@ Below here is shown the terminal output from this example program.
 
 \begin{footnotesize}
 \begin{verbatim}
-Reading problem data from `25fv47.mps'...
+Reading problem data from '25fv47.mps'...
 Problem: 25FV47
 Objective: R0000
 822 rows, 1571 columns, 11127 non-zeros
 6919 records were read
-      0:                          infeas =  1.223e+03 (516)
-    200:                          infeas =  7.000e+00 (471)
-    240:                          infeas =  1.106e-14 (461)
-|   400: obj =  -5.394267152e+03  infeas =  5.571e-16 (391)
-|   600: obj =  -4.586395752e+03  infeas =  1.389e-15 (340)
-|   800: obj =  -4.158268146e+03  infeas =  1.640e-15 (264)
-|  1000: obj =  -3.725320045e+03  infeas =  5.181e-15 (245)
-|  1200: obj =  -3.104802163e+03  infeas =  1.019e-14 (210)
-|  1400: obj =  -2.584190499e+03  infeas =  8.865e-15 (178)
-|  1600: obj =  -2.073852927e+03  infeas =  7.867e-15 (142)
-|  1800: obj =  -1.164037407e+03  infeas =  8.792e-15 (109)
-|  2000: obj =  -4.370590250e+02  infeas =  2.591e-14 (85)
-|  2200: obj =   1.068240144e+03  infeas =  1.025e-13 (70)
-|  2400: obj =   1.607481126e+03  infeas =  3.272e-14 (67)
-|  2600: obj =   3.038230551e+03  infeas =  4.850e-14 (52)
-|  2800: obj =   4.316238187e+03  infeas =  2.622e-14 (36)
-|  3000: obj =   5.443842629e+03  infeas =  3.976e-15 (11)
-|  3060: obj =   5.501845888e+03  infeas =  8.806e-15 (2)
-OPTIMAL SOLUTION FOUND
-Writing basic solution to `25fv47.txt'...
+One free row was removed
+GLPK Simplex Optimizer, v4.57
+821 rows, 1571 columns, 10400 non-zeros
+      0:                         inf =   1.223e+02 (41)
+    258:                         inf =   3.091e-16 (0) 2
+#   500: obj =  -5.071287080e+03 inf =   2.947e-15 (292) 2
+#  1000: obj =  -1.352843873e+03 inf =   8.452e-15 (302) 5
+#  1500: obj =   7.985859737e+02 inf =   1.127e-14 (263) 5
+#  2000: obj =   3.059023029e+03 inf =   6.290e-11 (197) 4
+#  2500: obj =   5.354770966e+03 inf =   7.172e-13 (130) 5
+#  2673: obj =   5.501845888e+03 inf =   3.802e-16 (0) 2
+OPTIMAL LP SOLUTION FOUND
+Writing basic solution to '25fv47.txt'...
 \end{verbatim}
 \end{footnotesize}
 
@@ -2182,7 +2184,7 @@ the auxiliary variable associated with \verb|i|-th row as follows:
 
 \verb|GLP_NS| --- non-basic fixed variable.
 
-\newpage
+%\newpage
 
 \subsection{glp\_get\_row\_prim --- retrieve row primal value}
 
@@ -2246,7 +2248,7 @@ the structural variable associated with \verb|j|-th column as follows:
 The routine \verb|glp_get_col_prim| returns primal value of the
 structural variable associated with \verb|j|-th column.
 
-\newpage
+%\newpage
 
 \subsection{glp\_get\_col\_dual --- retrieve column dual value}
 
@@ -2260,6 +2262,8 @@ structural variable associated with \verb|j|-th column.
 
 The routine \verb|glp_get_col_dual| returns dual value (i.e. reduced
 cost) of the structural variable associated with \verb|j|-th column.
+
+\newpage
 
 \subsection{glp\_get\_unbnd\_ray --- determine variable causing
 unboundedness}
@@ -2433,22 +2437,22 @@ interior point method. SIAM J. on Optim., 2(4), pp. 575-601, 1992.}
 Note that currently the GLPK interior-point solver does not include
 many important features, in particular:
 
-\vspace*{-8pt}
+%\vspace*{-8pt}
 
-\begin{itemize}
-\item it is not able to process dense columns. Thus, if the constraint
-matrix of the LP problem has dense columns, the solving process may be
-inefficient;
+%\begin{itemize}
+\Item{---}it is not able to process dense columns. Thus, if the
+constraint matrix of the LP problem has dense columns, the solving
+process may be inefficient;
 
-\item it has no features against numerical instability. For some LP
+\Item{---}it has no features against numerical instability. For some LP
 problems premature termination may happen if the matrix $ADA^T$ becomes
 singular or ill-conditioned;
 
-\item it is not able to identify the optimal basis, which corresponds
-to the interior-point solution found.
-\end{itemize}
+\Item{---}it is not able to identify the optimal basis, which
+corresponds to the interior-point solution found.
+%\end{itemize}
 
-\vspace*{-8pt}
+%\vspace*{-8pt}
 
 \para{Terminal output}
 
@@ -3207,6 +3211,8 @@ by the solver).
 The routine \verb|glp_mip_obj_val| returns value of the objective
 function for MIP solution.
 
+\newpage
+
 \subsection{glp\_mip\_row\_val --- retrieve row value}
 
 \synopsis
@@ -3305,6 +3311,8 @@ and variables with numbers $m+1$ to $m+n$ correspond to columns. If
 the error reported is exact zero, corresponding row, column or variable
 number is set to zero.
 
+\newpage
+
 \para{Background}
 
 \def\arraystretch{1.5}
@@ -3358,6 +3366,8 @@ for all $k=1,\dots,m+n$, and determines components of this vector that
 correspond to largest absolute and relative errors:
 $${\tt ae\_max}=\max_{1\leq k \leq m+n}|h_k|,$$
 $${\tt re\_max}=\max_{1\leq k \leq m+n}\frac{|h_k|}{1+|x_k|}.$$
+
+\newpage
 
 The third condition checked by the routine is:
 $${\rm grad}\;Z = c = (\tilde{A})^T \pi + d,$$

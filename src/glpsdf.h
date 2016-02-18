@@ -28,34 +28,34 @@
 typedef struct glp_data glp_data;
 /* plain data file */
 
-glp_data *glp_sdf_open_file(const char *fname);
+glp_data *_glp_sdf_open_file(const char *fname);
 /* open plain data file */
 
-void glp_sdf_set_jump(glp_data *data, void *jump);
+void _glp_sdf_set_jump(glp_data *data, void *jump);
 /* set up error handling */
 
-void glp_sdf_error(glp_data *data, const char *fmt, ...);
+void _glp_sdf_error(glp_data *data, const char *fmt, ...);
 /* print error message */
 
-void glp_sdf_warning(glp_data *data, const char *fmt, ...);
+void _glp_sdf_warning(glp_data *data, const char *fmt, ...);
 /* print warning message */
 
-int glp_sdf_read_int(glp_data *data);
+int _glp_sdf_read_int(glp_data *data);
 /* read integer number */
 
-double glp_sdf_read_num(glp_data *data);
+double _glp_sdf_read_num(glp_data *data);
 /* read floating-point number */
 
-const char *glp_sdf_read_item(glp_data *data);
+const char *_glp_sdf_read_item(glp_data *data);
 /* read data item */
 
-const char *glp_sdf_read_text(glp_data *data);
+const char *_glp_sdf_read_text(glp_data *data);
 /* read text until end of line */
 
-int glp_sdf_line(glp_data *data);
+int _glp_sdf_line(glp_data *data);
 /* determine current line number */
 
-void glp_sdf_close_file(glp_data *data);
+void _glp_sdf_close_file(glp_data *data);
 /* close plain data file */
 
 #endif

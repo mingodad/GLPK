@@ -51,6 +51,8 @@ auxiliary and structural variables. This allows combining all these
 variables into one vector that leads to the following problem
 statement:
 
+\newpage
+
 \noindent
 \hspace{.5in} minimize (or maximize)
 $$z=(0\ |\ c)^Tx+c_0\eqno(3.4)$$
@@ -113,7 +115,7 @@ $$(I\ |-\!A)\Pi^T\Pi x=0\ \ \ \Rightarrow\ \ \ (B\ |\ N)
 where
 $$(B\ |\ N)=(I\ |-\!A)\Pi^T.\eqno(3.9)$$
 
-\newpage
+%\newpage
 
 Matrix $B$ is a square non-singular $m\times m$-matrix, which is
 composed from columns of the augmented constraint matrix corresponding
@@ -166,14 +168,17 @@ $$\lambda_l\leq 0,\ \ \lambda_u\geq 0\ \ \mbox{(maximization)}
 $$(\lambda_l)_k(x_k-l_k)=0,\ \ (\lambda_u)_k(x_k-u_k)=0,\ \ k=1,2,\dots,
 m+n\eqno(3.19)$$
 where:
-$\pi=(\pi_1,\pi_2,\dots,\pi_m)$ is a $m$-vector of Lagrange
-multipliers for equality constraints (3.5);
-$\lambda_l=[(\lambda_l)_1,(\lambda_l)_2,\dots,(\lambda_l)_n]$ is a
-$n$-vector of Lagrange multipliers for lower bound constraints (3.6);
-$\lambda_u=[(\lambda_u)_1,(\lambda_u)_2,\dots,(\lambda_u)_n]$ is a
-$n$-vector of Lagrange multipliers for upper bound constraints (3.6).
 
-\newpage
+$\pi=(\pi_1,\dots,\pi_m)$ is a $m$-vector of Lagrange
+multipliers for equality constraints (3.5);
+
+$\lambda_l=[(\lambda_l)_1,\dots,(\lambda_l)_n]$ is a $n$-vector of
+Lagrange multipliers for lower bound constraints (3.6);
+
+$\lambda_u=[(\lambda_u)_1,\dots,(\lambda_u)_n]$ is a $n$-vector of
+Lagrange multipliers for upper bound constraints (3.6).
+
+%\newpage
 
 Condition (3.14) is the {\it primal} (original) system of equality
 constraints (3.5).
@@ -196,11 +201,11 @@ the corresponding Lagrange multiplier ($(\lambda_l)_k$ or
 $(\lambda_u)_k$) must be active.
 
 In GLPK two multipliers $(\lambda_l)_k$ and $(\lambda_u)_k$ for each
-primal (original) variable $x_k$, $k=1,2,\dots,\linebreak m+n$, are
-combined into one multiplier:
+primal variable $x_k$, $k=1,\dots,m+n$, are combined into one
+multiplier:
 $$\lambda_k=(\lambda_l)_k+(\lambda_u)_k,\eqno(3.20)$$
 which is called a {\it dual variable} for $x_k$. This {\it cannot} lead
-to the ambiguity, because both lower and upper bounds of $x_k$ cannot be
+to an ambiguity, because both lower and upper bounds of $x_k$ cannot be
 active at the same time,\footnote{If $x_k$ is a fixed variable, we can
 think it as double-bounded variable $l_k\leq x_k\leq u_k$, where
 $l_k=u_k.$} so at least one of $(\lambda_l)_k$ and $(\lambda_u)_k$ must
@@ -258,10 +263,6 @@ any basic solution $\lambda_B=0$. Corresponding values of dual variables
 $\lambda_N$ for non-basic variables $x_N$ can be determined in the
 following way. From the dual system (3.15) we have:
 $$(I\ |-\!A)^T\pi+\lambda=(0\ |\ c)^T,\eqno(3.22)$$
-
-\newpage
-
-\noindent
 so multiplying both sides of (3.22) by matrix $\Pi$ gives:
 $$\Pi(I\ |-\!A)^T\pi+\Pi\lambda=\Pi(0\ |\ c)^T.\eqno(3.23)$$
 From (3.9) it follows that
@@ -402,7 +403,7 @@ routine, which uses the basis factorization, the application program
 must make sure (using the routine \verb|glp_bf_exists|) that the
 factorization exists and therefore available for computations.
 
-\newpage
+%\newpage
 
 \subsection{glp\_factorize --- compute the basis factorization}
 
@@ -560,6 +561,8 @@ glp_set_bfcp(lp, &parm);
 \end{verbatim}
 \end{footnotesize}
 
+\newpage
+
 \para{Control parameters}
 
 This paragraph describes all basis factorization control parameters
@@ -622,7 +625,7 @@ on choosing a pivot element, \verb|piv_lim| $\geq$ 1. If \verb|piv_lim|
 candidates have been considered, the pivoting routine prematurely
 terminates the search with the best candidate found.
 
-\newpage
+\medskip
 
 {\tt int suhl} (default: {\tt GLP\_ON})
 
@@ -1013,6 +1016,8 @@ $N$ (3.9). So the routine performs FTRAN to transform $N_j$ to the
 simplex table column $\Xi_j=(\xi_{ij})$ and uses the permutation matrix
 $\Pi$ to convert row indices $i$ to original ordinal numbers of
 auxiliary and structural variables.
+
+\newpage
 
 \subsection{glp\_transform\_row --- transform explicitly specified row}
 

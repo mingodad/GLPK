@@ -14,19 +14,6 @@ int _glp_analyze_row(glp_prob *P, int len, const int ind[],
 /* simulate one iteration of dual simplex method */
 #endif
 
-#if 1 /* 08/XII-2009 */
-void _glp_mpl_init_rand(glp_tran *tran, int seed);
-#endif
-
-#define glp_skpgen _glp_skpgen
-void glp_skpgen(int n, int r, int type, int v, int s, int a[],
-   int *b, int c[]);
-/* Pisinger's 0-1 single knapsack problem generator */
-
-#if 1 /* 28/V-2010 */
-int _glp_intopt1(glp_prob *P, const glp_iocp *parm);
-#endif
-
 #endif
 
 /* eof */

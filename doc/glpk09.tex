@@ -93,24 +93,24 @@ improve readability of the LP file. Besides, blanks should be used to
 separate elements from each other if there is no other way to do that
 (for example, to separate a keyword from a following symbolic name).
 
-The order of an LP file is:
+The order of an LP file is the following:
 
-\vspace*{-8pt}
+%\vspace*{-8pt}
 
-\begin{itemize}
-\item objective function definition;
+%\begin{itemize}
+\Item{---}objective function definition;
 
-\item constraints section;
+\Item{---}constraints section;
 
-\item bounds section;
+\Item{---}bounds section;
 
-\item general, integer, and binary sections (can appear in arbitrary
-order);
+\Item{---}general, integer, and binary sections (can appear in
+arbitrary order);
 
-\item end keyword.
-\end{itemize}
+\Item{---}end keyword.
+%\end{itemize}
 
-\vspace*{-8pt}
+%\vspace*{-8pt}
 
 These components are discussed in following sections.
 
@@ -126,7 +126,7 @@ $$
 \begin{array}{@{}c@{}}
 {\tt minimize} \\ {\tt maximize}
 \end{array}
-\right\}\ f\ {\tt :}\ s\ c\ x\ s\ c\ x\ \dots\ s\ c\ x
+\right\}\ f\ {\tt :}\ s\ c\ x\ \dots\ s\ c\ x
 $$
 where $f$ is a symbolic name of the objective function, $s$ is a sign
 \verb|+| or \verb|-|, $c$ is a numeric constant that denotes an
@@ -165,7 +165,6 @@ The constraint section has the following form:
 \begin{tabular}{l}
 \verb|subject to| \\
 {\it constraint}$_1$ \\
-{\it constraint}$_2$ \\
 \hspace{20pt}\dots \\
 {\it constraint}$_m$ \\
 \end{tabular}
@@ -181,7 +180,7 @@ line as the keyword `\verb|subject to|'.
 
 Constraint definitions have the following form:
 $$
-r\ {\tt:}\ s\ c\ x\ s\ c\ x\ \dots\ s\ c\ x
+r\ {\tt:}\ s\ c\ x\ \dots\ s\ c\ x
 \ \left\{
 \begin{array}{@{}c@{}}
 \mbox{\tt<=} \\ \mbox{\tt>=} \\ \mbox{\tt=}
@@ -194,13 +193,13 @@ coefficient, $x$ is a symbolic name of a variable, $b$ is a right-hand
 side.
 
 The name $r$ of a constraint (which is the name of the corresponding
-auxiliary variable) is optional and may be omitted (together with the
-semicolon that follows it). In this case the default names like
+auxiliary variable) is optional and may be omitted together with the
+semicolon that follows it. In the latter case the default names like
 `\verb|r.nnn|' are assigned to unnamed constraints.
 
-The linear form $s\ c\ x\ s\ c\ x\ \dots\ s\ c\ x$ in the left-hand
-side of a constraint definition has exactly the same meaning as in the
-case of the objective function definition (see above).
+The linear form $s\ c\ x\ \dots\ s\ c\ x$ in the left-hand side of
+a constraint definition has exactly the same meaning as in the case of
+the objective function definition (see above).
 
 After the linear form one of the following delimiters that indicates
 the constraint sense must be specified:
@@ -251,7 +250,6 @@ The bounds section has the following form:
 \begin{tabular}{l}
 \verb|bounds| \\
 {\it definition}$_1$ \\
-{\it definition}$_2$ \\
 \hspace{20pt}\dots \\
 {\it definition}$_p$ \\
 \end{tabular}
@@ -266,7 +264,7 @@ implementation allows several bound definitions to be placed on the
 same line.} except the very first bound definition which can begin on
 the same line as the keyword `\verb|bounds|'.
 
-\newpage
+%\newpage
 
 Syntactically constraint definitions can have one of the following six
 forms:
@@ -285,8 +283,8 @@ $x$ \verb|free|                 &specifies free variable
 \noindent
 where $x$ is a symbolic name of a variable, $l$ is a numeric constant
 with an optional sign that defines a lower bound of the variable or
-\verb|-inf| that means that the variable has no lower bound, $u$ is a
-numeric constant with an optional sign that defines an upper bound of
+\verb|-inf| that means that the variable has no lower bound, $u$ is
+a~numeric constant with an optional sign that defines an upper bound of
 the variable or \verb|+inf| that means that the variable has no upper
 bound, $t$ is a numeric constant with an optional sign that defines a
 fixed value of the variable.
@@ -329,7 +327,6 @@ $
 \right\}
 $ \\
 \hspace{10pt}$x_1$ \\
-\hspace{10pt}$x_2$ \\
 \hspace{10pt}\dots \\
 \hspace{10pt}$x_q$ \\
 \end{tabular}
@@ -344,7 +341,7 @@ line.} except the very first symbolic name which can begin on the same
 line as the keyword `\verb|general|', `\verb|integer|', or
 `\verb|binary|'.
 
-\newpage
+%\newpage
 
 If a variable appears in the general or the integer section, it is
 assumed to be general integer variable. If a variable appears in the
@@ -362,6 +359,8 @@ Here is an example of the integer section:
       z22
       z35
 \end{verbatim}
+
+\newpage
 
 \section{End keyword}
 

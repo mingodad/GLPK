@@ -1,6 +1,6 @@
 dnl Process this file with autoconf to produce a configure script
 
-AC_INIT([GLPK], [4.57], [bug-glpk@gnu.org])
+AC_INIT([GLPK], [4.58], [bug-glpk@gnu.org])
 
 AC_CONFIG_SRCDIR([src/glpk.h])
 
@@ -140,6 +140,21 @@ if test "$enable_mysql" = "yes"; then
 else
    AC_MSG_RESULT([no])
 fi
+
+AC_MSG_CHECKING(
+   [if libtool needs -no-undefined flag to build shared libraries])
+case "${host}" in
+   *-*-cygwin* | *-*-mingw* | *-*-aix*)
+      ## Add in the -no-undefined flag to LDFLAGS for libtool.
+      AC_MSG_RESULT([yes])
+      NOUNDEFINED=" -no-undefined"
+      ;;
+   *)
+      ## Don't add in anything.
+      AC_MSG_RESULT([no])
+      ;;
+esac
+AC_SUBST([NOUNDEFINED])
 
 AC_CONFIG_FILES(
    [src/Makefile examples/Makefile Makefile])

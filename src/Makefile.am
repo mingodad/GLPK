@@ -7,6 +7,7 @@ lib_LTLIBRARIES = libglpk.la
 libglpk_la_CPPFLAGS = \
 -I$(srcdir) \
 -I$(srcdir)/amd \
+-I$(srcdir)/api \
 -I$(srcdir)/bflib \
 -I$(srcdir)/cglib \
 -I$(srcdir)/colamd \
@@ -18,11 +19,11 @@ libglpk_la_CPPFLAGS = \
 -I$(srcdir)/zlib
 
 libglpk_la_LDFLAGS = \
--version-info 38:0:2 \
--export-symbols-regex '^glp_*'
+-version-info 39:0:0 \
+-export-symbols-regex '^glp_*' \
+${NOUNDEFINED}
 
 libglpk_la_SOURCES = \
-avl.c \
 bfd.c \
 bfx.c \
 glpapi01.c \
@@ -35,23 +36,9 @@ glpapi07.c \
 glpapi08.c \
 glpapi09.c \
 glpapi10.c \
-glpapi11.c \
 glpapi12.c \
 glpapi13.c \
-glpapi14.c \
-glpapi15.c \
-glpapi16.c \
-glpapi17.c \
-glpapi18.c \
-glpapi19.c \
-glpapi20.c \
-glpapi21.c \
-glpcpx.c \
-glpdmx.c \
-glpgmp.c \
 glphbm.c \
-glpini01.c \
-glpini02.c \
 glpios01.c \
 glpios02.c \
 glpios03.c \
@@ -72,10 +59,6 @@ glpmpl03.c \
 glpmpl04.c \
 glpmpl05.c \
 glpmpl06.c \
-glpmps.c \
-glpnet03.c \
-glpnet04.c \
-glpnet05.c \
 glpnpp01.c \
 glpnpp02.c \
 glpnpp03.c \
@@ -102,6 +85,56 @@ amd/amd_post_tree.c \
 amd/amd_postorder.c \
 amd/amd_preprocess.c \
 amd/amd_valid.c \
+api/advbas.c \
+api/asnhall.c \
+api/asnlp.c \
+api/asnokalg.c \
+api/ckasn.c \
+api/ckcnf.c \
+api/cplex.c \
+api/cpp.c \
+api/cpxbas.c \
+api/graph.c \
+api/gridgen.c \
+api/intfeas1.c \
+api/maxffalg.c \
+api/maxflp.c \
+api/mcflp.c \
+api/mcfokalg.c \
+api/mcfrelax.c \
+api/minisat1.c \
+api/mpl.c \
+api/mps.c \
+api/netgen.c \
+api/pript.c \
+api/prmip.c \
+api/prrngs.c \
+api/prsol.c \
+api/rdasn.c \
+api/rdcc.c \
+api/rdcnf.c \
+api/rdgr.c \
+api/rdipt.c \
+api/rdmaxf.c \
+api/rdmcf.c \
+api/rdmip.c \
+api/rdprob.c \
+api/rdsol.c \
+api/rmfgen.c \
+api/strong.c \
+api/topsort.c \
+api/weak.c \
+api/wcliqex.c \
+api/wrasn.c \
+api/wrcc.c \
+api/wrcnf.c \
+api/wrgr.c \
+api/wript.c \
+api/wrmaxf.c \
+api/wrmcf.c \
+api/wrmip.c \
+api/wrprob.c \
+api/wrsol.c \
 bflib/btf.c \
 bflib/btfint.c \
 bflib/fhv.c \
@@ -125,7 +158,9 @@ env/stream.c \
 env/time.c \
 env/tls.c \
 minisat/minisat.c \
+misc/avl.c \
 misc/bignum.c \
+misc/dimacs.c \
 misc/dmp.c \
 misc/ffalg.c \
 misc/fp2rat.c \
@@ -134,6 +169,7 @@ misc/jd.c \
 misc/keller.c \
 misc/mc13d.c \
 misc/mc21a.c \
+misc/mygmp.c \
 misc/okalg.c \
 misc/qmd.c \
 misc/relax4.c \
