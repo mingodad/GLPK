@@ -152,4 +152,11 @@ done: if (ret) glp_erase_graph(G, G->v_size, G->a_size);
       return ret;
 }
 
+/**********************************************************************/
+
+int glp_read_graph(glp_graph *G, const char *fname)
+{     return
+         glp_read_ccdata(G, -1, fname);
+}
+
 /* eof */

@@ -689,6 +689,77 @@ done: glp_delete_prob(lp);
 
 /**********************************************************************/
 
+#if 1 /* 08/III-2016 */
+static void gmi_gen(glp_tree *T)
+{     /* generate Gomory's mixed integer cuts */
+      glp_prob *P, *pool;
+      P = T->mip;
+      pool = glp_create_prob();
+      glp_add_cols(pool, P->n);
+      glp_gmi_gen(P, pool, 50);
+      if (pool->m > 0)
+      {  int i, len, *ind;
+         double *val;
+         ind = xcalloc(1+P->n, sizeof(int));
+         val = xcalloc(1+P->n, sizeof(double));
+         for (i = 1; i <= pool->m; i++)
+         {  len = glp_get_mat_row(pool, i, ind, val);
+            glp_ios_add_row(T, NULL, GLP_RF_GMI, 0, len, ind, val,
+               GLP_LO, pool->row[i]->lb);
+         }
+         xfree(ind);
+         xfree(val);
+      }
+      glp_delete_prob(pool);
+      return;
+}
+#endif
+
+#if 1 /* 08/III-2016 */
+static void mir_gen(glp_tree *T)
+{     /* generate mixed integer rounding cuts */
+      glp_prob *P, *pool;
+      P = T->mip;
+      pool = glp_create_prob();
+      glp_add_cols(pool, P->n);
+      glp_mir_gen(P, T->mir_gen, pool);
+      if (pool->m > 0)
+      {  int i, len, *ind;
+         double *val;
+         ind = xcalloc(1+P->n, sizeof(int));
+         val = xcalloc(1+P->n, sizeof(double));
+         for (i = 1; i <= pool->m; i++)
+         {  len = glp_get_mat_row(pool, i, ind, val);
+            glp_ios_add_row(T, NULL, GLP_RF_MIR, 0, len, ind, val,
+               GLP_UP, pool->row[i]->ub);
+         }
+         xfree(ind);
+         xfree(val);
+      }
+      glp_delete_prob(pool);
+      return;
+}
+#endif
+
+#if 1 /* 08/III-2016 */
+static void clq_gen(glp_tree *T, glp_cfg *G)
+{     /* generate clique cut from conflict graph */
+      glp_prob *P = T->mip;
+      int n = P->n;
+      int len, *ind;
+      double *val;
+      ind = talloc(1+n, int);
+      val = talloc(1+n, double);
+      len = glp_clq_cut(T->mip, G, ind, val);
+      if (len > 0)
+         glp_ios_add_row(T, NULL, GLP_RF_CLQ, 0, len, ind, val, GLP_UP,
+            val[0]);
+      tfree(ind);
+      tfree(val);
+      return;
+}
+#endif
+
 static void generate_cuts(glp_tree *T)
 {     /* generate generic cuts with built-in generators */
       if (!(T->parm->mir_cuts == GLP_ON ||
@@ -711,11 +782,19 @@ static void generate_cuts(glp_tree *T)
       /* generate and add to POOL all cuts violated by x* */
       if (T->parm->gmi_cuts == GLP_ON)
       {  if (T->curr->changed < 7)
+#if 0 /* 08/III-2016 */
             ios_gmi_gen(T);
+#else
+            gmi_gen(T);
+#endif
       }
       if (T->parm->mir_cuts == GLP_ON)
       {  xassert(T->mir_gen != NULL);
+#if 0 /* 08/III-2016 */
          ios_mir_gen(T, T->mir_gen);
+#else
+         mir_gen(T);
+#endif
       }
       if (T->parm->cov_cuts == GLP_ON)
       {  /* cover cuts works well along with mir cuts */
@@ -731,7 +810,11 @@ static void generate_cuts(glp_tree *T)
          {  if (T->curr->level == 0 && T->curr->changed < 500 ||
                 T->curr->level >  0 && T->curr->changed < 50)
 #endif
+#if 0 /* 08/III-2016 */
                ios_clq_gen(T, T->clq_gen);
+#else
+               clq_gen(T, T->clq_gen);
+#endif
          }
       }
 done: return;
@@ -851,6 +934,9 @@ int ios_driver(glp_tree *T)
 #else
       double ttt = T->tm_beg;
 #endif
+#if 1 /* 27/II-2016 by Chris */
+      int root_done = 0;
+#endif
 #if 0
       ((glp_iocp *)T->parm)->msg_lev = GLP_MSG_DBG;
 #endif
@@ -939,7 +1025,11 @@ loop: /* main loop starts here */
          {  if (T->parm->msg_lev >= GLP_MSG_ALL)
                xprintf("MIR cuts enabled\n");
             xassert(T->mir_gen == NULL);
+#if 0 /* 06/III-2016 */
             T->mir_gen = ios_mir_init(T);
+#else
+            T->mir_gen = glp_mir_init(T->mip);
+#endif
          }
          if (T->parm->cov_cuts == GLP_ON)
          {  if (T->parm->msg_lev >= GLP_MSG_ALL)
@@ -949,7 +1039,11 @@ loop: /* main loop starts here */
          {  xassert(T->clq_gen == NULL);
             if (T->parm->msg_lev >= GLP_MSG_ALL)
                xprintf("Clique cuts enabled\n");
+#if 0 /* 08/III-2016 */
             T->clq_gen = ios_clq_init(T);
+#else
+            T->clq_gen = glp_cfg_init(T->mip);
+#endif
          }
       }
 #if 1 /* 18/VII-2013 */
@@ -1014,13 +1108,21 @@ more: /* minor loop starts here */
       if (T->parm->pp_tech == GLP_PP_NONE)
          ;
       else if (T->parm->pp_tech == GLP_PP_ROOT)
+#if 0 /* 27/II-2016 by Chris */
       {  if (T->curr->level == 0)
+#else
+      {  if (!root_done)
+#endif
          {  if (ios_preprocess_node(T, 100))
                goto fath;
          }
       }
       else if (T->parm->pp_tech == GLP_PP_ALL)
+#if 0 /* 27/II-2016 by Chris */
       {  if (ios_preprocess_node(T, T->curr->level == 0 ? 100 : 10))
+#else
+      {  if (ios_preprocess_node(T, !root_done ? 100 : 10))
+#endif
             goto fath;
       }
       else
@@ -1195,7 +1297,11 @@ more: /* minor loop starts here */
          }
       }
       /* try to find solution with the feasibility pump heuristic */
+#if 0 /* 27/II-2016 by Chris */
       if (T->parm->fp_heur)
+#else
+      if (T->parm->fp_heur && !root_done)
+#endif
       {  xassert(T->reason == 0);
          T->reason = GLP_IHEUR;
          ios_feas_pump(T);
@@ -1210,7 +1316,11 @@ more: /* minor loop starts here */
       }
 #if 1 /* 25/V-2013 */
       /* try to find solution with the proximity search heuristic */
+#if 0 /* 27/II-2016 by Chris */
       if (T->parm->ps_heur)
+#else
+      if (T->parm->ps_heur && !root_done)
+#endif
       {  xassert(T->reason == 0);
          T->reason = GLP_IHEUR;
          ios_proxy_heur(T);
@@ -1265,14 +1375,22 @@ more: /* minor loop starts here */
             bad_cut = 0;
       }
       old_obj = T->curr->lp_obj;
+#if 0 /* 27/II-2016 by Chris */
       if (bad_cut == 0 || (T->curr->level == 0 && bad_cut <= 3))
+#else
+      if (bad_cut == 0 || (!root_done && bad_cut <= 3))
+#endif
 #endif
       /* try to generate generic cuts with built-in generators
          (as suggested by Prof. Fischetti et al. the built-in cuts are
          not generated at each branching node; an intense attempt of
          generating new cuts is only made at the root node, and then
          a moderate effort is spent after each backtracking step) */
+#if 0 /* 27/II-2016 by Chris */
       if (T->curr->level == 0 || pred_p == 0)
+#else
+      if (!root_done || pred_p == 0)
+#endif
       {  xassert(T->reason == 0);
          T->reason = GLP_ICUTGEN;
          generate_cuts(T);
@@ -1296,8 +1414,16 @@ more: /* minor loop starts here */
       }
       /* no cuts were generated; remove inactive cuts */
       remove_cuts(T);
+#if 0 /* 27/II-2016 by Chris */
       if (T->parm->msg_lev >= GLP_MSG_ALL && T->curr->level == 0)
+#else
+      if (T->parm->msg_lev >= GLP_MSG_ALL && !root_done)
+#endif
          display_cut_info(T);
+#if 1 /* 27/II-2016 by Chris */
+      /* the first node will not be treated as root any more */
+      if (!root_done) root_done = 1;
+#endif
       /* update history information used on pseudocost branching */
       if (T->pcost != NULL) ios_pcost_update(T);
       /* it's time to perform branching */
@@ -1364,9 +1490,17 @@ done: /* display progress of the search on exit from the solver */
       if (T->parm->msg_lev >= GLP_MSG_ON)
          show_progress(T, 0);
       if (T->mir_gen != NULL)
+#if 0 /* 06/III-2016 */
          ios_mir_term(T->mir_gen), T->mir_gen = NULL;
+#else
+         glp_mir_free(T->mir_gen), T->mir_gen = NULL;
+#endif
       if (T->clq_gen != NULL)
+#if 0 /* 08/III-2016 */
          ios_clq_term(T->clq_gen), T->clq_gen = NULL;
+#else
+         glp_cfg_free(T->clq_gen), T->clq_gen = NULL;
+#endif
       /* return to the calling program */
       return ret;
 }

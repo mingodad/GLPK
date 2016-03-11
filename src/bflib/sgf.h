@@ -169,7 +169,7 @@ struct SGF
 /* remove j-th column of matrix V from active set C[len] */
 
 #define sgf_reduce_nuc _glp_sgf_reduce_nuc
-void sgf_reduce_nuc(LUF *luf, int *k1, int *k2, int cnt[/*1+n*/],
+int sgf_reduce_nuc(LUF *luf, int *k1, int *k2, int cnt[/*1+n*/],
       int list[/*1+n*/]);
 /* initial reordering to minimize nucleus size */
 

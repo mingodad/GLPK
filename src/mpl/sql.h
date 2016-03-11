@@ -1,12 +1,11 @@
-/* glpsql.h */
+/* sql.h */
 
 /***********************************************************************
 *  This code is part of GLPK (GNU Linear Programming Kit).
 *
 *  Author: Heinrich Schuchardt <heinrich.schuchardt@gmx.de>.
 *
-*  Copyright (C) 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008,
-*  2009, 2010, 2011, 2013 Andrew Makhorin, Department for Applied
+*  Copyright (C) 2003-2016 Andrew Makhorin, Department for Applied
 *  Informatics, Moscow Aviation Institute, Moscow, Russia. All rights
 *  reserved. E-mail: <mao@gnu.org>.
 *
@@ -24,8 +23,8 @@
 *  along with GLPK. If not, see <http://www.gnu.org/licenses/>.
 ***********************************************************************/
 
-#ifndef GLPSQL_H
-#define GLPSQL_H
+#ifndef SQL_H
+#define SQL_H
 
 #define db_iodbc_open _glp_db_iodbc_open
 void *db_iodbc_open(TABDCA *dca, int mode);

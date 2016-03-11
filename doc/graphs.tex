@@ -4,7 +4,7 @@
 %  This code is part of GLPK (GNU Linear Programming Kit).
 %
 %  Copyright (C) 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008,
-%  2009, 2010, 2011, 2013 Andrew Makhorin, Department for Applied
+%  2009, 2010, 2011, 2013, 2016 Andrew Makhorin, Department for Applied
 %  Informatics, Moscow Aviation Institute, Moscow, Russia. All rights
 %  reserved. E-mail: <mao@gnu.org>.
 %
@@ -22,32 +22,41 @@
 %  along with GLPK. If not, see <http://www.gnu.org/licenses/>.
 %***********************************************************************
 
+%  To make graphs.pdf from graphs.tex run the following two commands:
+%     latex graphs.tex
+%     dvipdfm -p letter graphs.dvi
+%  Note: You need TeX Live 2010 or later version.
+
 \documentclass[11pt]{report}
 \usepackage{amssymb}
 \usepackage[dvipdfm,linktocpage,colorlinks,linkcolor=blue,
 urlcolor=blue]{hyperref}
 \usepackage{indentfirst}
+\usepackage{niceframe}
 \usepackage[all]{xy}
 
+% US Letter = 8.5 x 11 in
 \setlength{\textwidth}{6.5in}
-\setlength{\textheight}{8.5in}
+\setlength{\textheight}{9in}
 \setlength{\oddsidemargin}{0in}
 \setlength{\topmargin}{0in}
 \setlength{\headheight}{0in}
 \setlength{\headsep}{0in}
-\setlength{\footskip}{0.5in}
+%\setlength{\footskip}{0.5in}
 \setlength{\parindent}{16pt}
 \setlength{\parskip}{5pt}
 \setlength{\topsep}{0pt}
 \setlength{\partopsep}{0pt}
-\setlength{\itemsep}{\parskip}
-\setlength{\parsep}{0pt}
-\setlength{\leftmargini}{\parindent}
-\renewcommand{\labelitemi}{---}
+%\setlength{\itemsep}{\parskip}
+%\setlength{\parsep}{0pt}
+%\setlength{\leftmargini}{\parindent}
+%\renewcommand{\labelitemi}{---}
 
+\newcommand{\Item}[1]{\parbox[t]{\parindent}{#1}}
 \def\para#1{\noindent{\bf#1}}
 \def\synopsis{\para{Synopsis}}
 \def\description{\para{Description}}
+\def\note{\para{Note}}
 \def\returns{\para{Returns}}
 
 \renewcommand\contentsname{\sf\bfseries Contents}
@@ -64,6 +73,8 @@ urlcolor=blue]{hyperref}
 \begin{document}
 
 \thispagestyle{empty}
+
+\curlyframe{
 
 \begin{center}
 
@@ -82,14 +93,17 @@ urlcolor=blue]{hyperref}
 \vspace{0.5in}
 
 \begin{LARGE}
-\sf for GLPK Version 4.49
+\sf for GLPK Version 4.59
 \end{LARGE}
 
 \vspace{0.5in}
 \begin{Large}
-\sf (DRAFT, April 2013)
+\sf (DRAFT, March 2016)
 \end{Large}
 \end{center}
+
+\vspace*{4.1in}
+}
 
 \newpage
 
@@ -103,9 +117,9 @@ GNU.
 
 \noindent
 Copyright \copyright{} 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007,
-2008, 2009, 2010, 2011, 2013 Andrew Makhorin, Department for Applied
-Informatics, Moscow Aviation Institute, Moscow, Russia. All rights
-reserved.
+2008, 2009, 2010, 2011, 2013, 2016\linebreak
+Andrew Makhorin, Department for Applied Informatics, Moscow Aviation
+Institute, Moscow, Russia. All rights reserved.
 
 \noindent
 Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
@@ -130,9 +144,7 @@ into another language, under the above conditions for modified versions.
 
 \newpage
 
-{\setlength{\parskip}{0pt}
-\tableofcontents
-}
+{\setlength{\parskip}{0pt}\tableofcontents}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -152,17 +164,17 @@ vertex} of arc $a$, and $y\in V$ is called its {\it head vertex}.
 Representation of a graph in the program includes three structs defined
 by typedef in the header \verb|glpk.h|:
 
-\vspace*{-8pt}
+%\vspace*{-8pt}
 
-\begin{itemize}
-\item \verb|glp_graph|, which represents the graph in a whole,
+%\begin{itemize}
+\Item{---}\verb|glp_graph|, which represents the graph in a whole,
 
-\item \verb|glp_vertex|, which represents a vertex of the graph, and
+\Item{---}\verb|glp_vertex|, which represents a vertex of the graph, and
 
-\item \verb|glp_arc|, which represents an arc of the graph.
-\end{itemize}
+\Item{---}\verb|glp_arc|, which represents an arc of the graph.
+%\end{itemize}
 
-\vspace*{-8pt}
+%\vspace*{-8pt}
 
 All these three structs are ``semi-opaque'', i.e. the application
 program can directly access their fields through pointers, however,
@@ -173,8 +185,11 @@ performed only with appropriate GLPK API routines.
 {\addtolength{\leftskip}{16pt}\noindent}
 {\par\addtolength{\leftskip}{-16pt}}
 
-\para{\bf glp\_graph.} The struct \verb|glp_graph| has the following
-fields available to the application program:
+\subsection{Structure glp\_graph}
+
+%\para{\bf glp\_graph.}
+The struct \verb|glp_graph| has the following fields available to the
+application program.
 
 \noindent
 \verb|char *name;|
@@ -225,8 +240,11 @@ $0\leq v\_size\leq 256$. (See also the field \verb|data| in the struct
 \verb|glp_arc|.)
 \end{comment}
 
-\para{\bf glp\_vertex.} The struct \verb|glp_vertex| has the following
-fields available to the application program:
+\subsection{Structure glp\_vertex}
+
+%\para{\bf glp\_vertex.}
+The struct \verb|glp_vertex| has the following fields available to the
+application program.
 
 \noindent
 \verb|int i;|
@@ -274,8 +292,11 @@ vertex has no incoming arcs, this field contains \verb|NULL|.
 vertex has no outgoing arcs, this field contains \verb|NULL|.
 \end{comment}
 
-\para{\bf glp\_arc.} The struct \verb|glp_arc| has the following fields
-available to the application program:
+\subsection{Structure glp\_arc}
+
+%\para{\bf glp\_arc.}
+The struct \verb|glp_arc| has the following fields available to the
+application program.
 
 \noindent
 \verb|glp_vertex *tail;|
@@ -283,13 +304,15 @@ available to the application program:
 \begin{comment}Pointer to a vertex, which is tail endpoint of the arc.
 \end{comment}
 
+\newpage
+
 \noindent
 \verb|glp_vertex *head;|
 
 \begin{comment}Pointer to a vertex, which is head endpoint of the arc.
 \end{comment}
 
-\newpage
+%\newpage
 
 \noindent
 \verb|void *data;|
@@ -326,6 +349,8 @@ incoming arcs.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \newpage
+
+\setlength{\parskip}{4.6pt}
 
 \section{Graph creating and modifying routines}
 
@@ -398,6 +423,10 @@ Otherwise, if the block size is zero, the field \verb|data| is set to
 The routine \verb|glp_add_vertices| returns the ordinal number of the
 first new vertex added to the graph.
 
+\setlength{\parskip}{5pt}
+
+\newpage
+
 \subsection{glp\_set\_vertex\_name --- assign (change) vertex name}
 
 \synopsis
@@ -456,7 +485,7 @@ vertices remaining in the graph. New ordinal numbers of the remaining
 vertices are assigned under the assumption that the original order of
 vertices is not changed.
 
-\newpage
+%\newpage
 
 \subsection{glp\_del\_arc --- delete arc from graph}
 
@@ -565,7 +594,7 @@ exist, the routine does nothing.
 
 \section{Graph reading/writing routines}
 
-\subsection{glp\_read\_graph --- read graph from plain text file}
+\subsection{glp\_read\_graph --- read graph from text file}
 
 \synopsis
 
@@ -575,20 +604,22 @@ exist, the routine does nothing.
 
 \description
 
-The routine \verb|glp_read_graph| reads a graph from a plain text file,
-whose name is specified by the parameter \verb|fname|. Note that before
-reading data the current content of the graph object is completely
-erased with the routine \verb|glp_erase_graph|.
+The routine \verb|glp_read_graph| reads a graph from a text file, whose
+name is specified by the parameter \verb|fname|. It is equivalent to
 
-For the file format see description of the routine
-\verb|glp_write_graph|.
+\begin{verbatim}
+   glp_read_ccdata(G, -1, fname);
+\end{verbatim}
+
+Note that before reading data the current content of the graph object
+is completely erased with the routine \verb|glp_erase_graph|.
 
 \returns
 
 If the operation was successful, the routine returns zero. Otherwise
 it prints an error message and returns non-zero.
 
-\subsection{glp\_write\_graph --- write graph to plain text file}
+\subsection{glp\_write\_graph --- write graph to text file}
 
 \synopsis
 
@@ -598,34 +629,18 @@ it prints an error message and returns non-zero.
 
 \description
 
-The routine \verb|glp_write_graph| writes the graph to a plain text
-file, whose name is specified by the parameter \verb|fname|.
+The routine \verb|glp_write_graph| writes the graph to a text file,
+whose name is specified by the parameter \verb|fname|.
+It is equivalent to
+
+\begin{verbatim}
+   glp_write_ccdata(G, -1, fname);
+\end{verbatim}
 
 \returns
 
 If the operation was successful, the routine returns zero. Otherwise
 it prints an error message and returns non-zero.
-
-\para{File format}
-
-The file created by the routine \verb|glp_write_graph| is a plain text
-file, which contains the following information:
-
-\begin{verbatim}
-   nv na
-   i[1] j[1]
-   i[2] j[2]
-   . . .
-   i[na] j[na]
-\end{verbatim}
-
-\noindent
-where: \verb|nv| is the number of vertices (nodes); \verb|na| is the
-number of arcs; \verb|i[k]|, $k=1,\dots,na$, is the index of tail
-vertex of arc $k$; \verb|j[k]|, $k=1,\dots,na$, is the index of head
-vertex of arc $k$.
-
-\newpage
 
 \subsection{glp\_read\_ccdata --- read graph from text file in DIMACS
 clique/coloring\\format}
@@ -645,6 +660,8 @@ clique problems, it may be used to represent general undirected and
 directed graphs, because the routine allows reading self-loops and
 multiple edges/arcs keeping the order of vertices specified for each
 edge/arc of the graph.)
+
+\newpage
 
 The parameter {\tt G} specifies the graph object to be read in. Note
 that before reading data the current content of the graph object is
@@ -666,7 +683,7 @@ it prints an error message and returns non-zero.
 
 \para{DIMACS clique/coloring format\footnote{This material is
 based on the paper ``Clique and Coloring Problems Graph Format'', which
-is publically available at \url{http://dimacs.rutgers.edu/Challenges}.}}
+is publicly available at \url{http://dimacs.rutgers.edu/Challenges}.}}
 
 The DIMACS input file is a plain ASCII text file. It contains
 {\it lines} of several types described below. A line is terminated with
@@ -731,7 +748,9 @@ The lower-case character \verb|e| signifies that this is an edge
 descriptor line. For an edge (arc) $(i,j)$ the fields \verb|I| and
 \verb|J| specify its endpoints.
 
-\para{Example.} The following example of an undirected graph:
+\newpage
+
+\para{Example.} The following undirected graph
 
 \bigskip
 
@@ -749,7 +768,7 @@ descriptor line. For an edge (arc) $(i,j)$ the fields \verb|I| and
 \bigskip
 
 \noindent
-might be coded in DIMACS clique/coloring format as follows:
+might be coded in DIMACS clique/coloring format as follows.
 
 \begin{footnotesize}
 \begin{verbatim}
@@ -785,6 +804,8 @@ c
 c eof
 \end{verbatim}
 \end{footnotesize}
+
+\newpage
 
 \subsection{glp\_write\_ccdata --- write graph to text file in DIMACS
 clique/coloring\\format}
@@ -1025,6 +1046,8 @@ int main(void)
 \end{verbatim}
 \end{footnotesize}
 
+\newpage
+
 \noindent
 If the file `\verb|graph.txt|' contains the following graph:
 
@@ -1255,7 +1278,7 @@ int main(void)
 \para{DIMACS minimum cost flow problem format\footnote{This
 material is based on the paper ``The First DIMACS International
 Algorithm Implementation Challenge: Problem Definitions and
-Specifications'', which is publically available at
+Specifications'', which is publicly available at
 \url{http://dimacs.rutgers.edu/Challenges}.}}
 \label{subsecmincost}
 
@@ -1278,7 +1301,7 @@ character \verb|c|.
    c This is a comment line
 \end{verbatim}
 
-\newpage
+%\newpage
 
 \para{Problem line.} There is one problem line per data file. The
 problem line must appear before any node or arc descriptor lines. It
@@ -1287,6 +1310,8 @@ has the following format:
 \begin{verbatim}
    p min NODES ARCS
 \end{verbatim}
+
+\newpage
 
 \noindent
 The lower-case character \verb|p| signifies that this is a problem line.
@@ -1366,6 +1391,8 @@ c eof
 \end{verbatim}
 \end{footnotesize}
 
+\newpage
+
 \subsection{glp\_write\_mincost --- write minimum cost flow problem
 data in DIMACS\\format}
 
@@ -1416,7 +1443,7 @@ automatic compression on writing it.)
 If the operation was successful, the routine returns zero. Otherwise,
 it prints an error message and returns non-zero.
 
-\newpage
+%\newpage
 
 \subsection{glp\_mincost\_lp --- convert minimum cost flow problem
 to LP}
@@ -1542,7 +1569,7 @@ End
 \end{verbatim}
 \end{footnotesize}
 
-\newpage
+%\newpage
 
 \subsection{glp\_mincost\_okalg --- solve minimum cost flow problem
 with out-of-kilter\\algorithm}
@@ -1585,6 +1612,8 @@ bound to the arc flow (the arc capacity). This bound must be integer in
 the range [$l_{ij}$, \verb|INT_MAX|]. If \verb|a_cap| $<0$, it is
 assumed that $u_{ij}=1$ for all arcs.
 
+\newpage
+
 The parameter \verb|a_cost| specifies an offset of the field of type
 \verb|double| in the arc data block, which contains $c_{ij}$, the
 per-unit cost of the arc flow. This value must be integer in the range
@@ -1611,7 +1640,7 @@ bound constraints (see (3) ibid.), using the following formula:
 $$\lambda_{ij}=c_{ij}-(\pi_i-\pi_j),$$
 where $c_{ij}$ is the per-unit cost for arc $(i,j)$.
 
-\newpage
+%\newpage
 
 Note that all solution components (the objective value, arc flows, and
 node potentials) computed by the routine are always integer-valued.
@@ -1660,6 +1689,8 @@ demand arc $(i\rightarrow t)$, flow $x_{it}$ through which is costless
 flow $x_{ts}$ through which is also costless ($c_{ts}=0$) and fixed to
 $F$ ($l_{ts}=u_{ts}=F$), where $\displaystyle F=\sum_{b_i>0}b_i$ is the
 total supply.
+
+\newpage
 
 \para{Example}
 
@@ -1797,7 +1828,10 @@ per-unit cost of the arc flow. This value must be integer in the range
 [$-$\verb|INT_MAX|/4, $+$\verb|INT_MAX|/4]. If \verb|a_cost| $<0$, it
 is assumed that $c_{ij}=0$ for all arcs.
 
-The parameter \verb|crash| is option specifying initialization method:
+\newpage
+
+The parameter \verb|crash| is an option that specifies initialization
+method:
 
 0 --- default initialization is used;
 
@@ -1812,8 +1846,6 @@ results in long running times.
 The parameter \verb|sol| specifies a location, to which the routine
 stores the objective value (that is, the total cost) found. If
 \verb|sol| is NULL, the objective value is not stored.
-
-\newpage
 
 The parameter \verb|a_x| specifies an offset of the field of type
 \verb|double| in the arc data block, to which the routine stores
@@ -1940,6 +1972,8 @@ The parameter \verb|G| specifies the graph object, to which the
 generated  problem data have to be stored. Note that on entry the graph
 object  is erased with the routine \verb|glp_erase_graph|.
 
+\newpage
+
 The parameter \verb|v_rhs| specifies an offset of the field of type
 \verb|double| in the vertex data block, to which the routine stores the
 supply or  demand value. If \verb|v_rhs| $<0$, the value is not stored.
@@ -1947,8 +1981,6 @@ supply or  demand value. If \verb|v_rhs| $<0$, the value is not stored.
 The parameter \verb|a_cap| specifies an offset of the field of type
 \verb|double| in the arc data block, to which the routine stores the
 arc capacity. If \verb|a_cap| $<0$, the capacity is not stored.
-
-\newpage
 
 The parameter \verb|a_cost| specifies an offset of the field of type
 \verb|double| in the arc data block, to which the routine stores the
@@ -2001,6 +2033,8 @@ requested arcs has been reached and the generated instance is not fully
 connected, the routine generates a few remaining arcs to ensure
 connectedness. Thus, the actual number of arcs generated by the routine
 may be greater than the requested number of arcs.
+
+\newpage
 
 \subsection{glp\_netgen\_prob --- Klingman's standard network problem
 instance}
@@ -2090,6 +2124,8 @@ $$
 \end{array}
 $$
 
+\newpage
+
 \subsection{glp\_gridgen --- grid-like network problem generator}
 
 \synopsis
@@ -2104,14 +2140,12 @@ $$
 The routine \verb|glp_gridgen| is a GLPK version of the grid-like
 network problem generator developed by Yusin Lee and Jim
 Orlin.\footnote{Y.~Lee and J.~Orlin. GRIDGEN generator., 1991. The
-original code is publically available from
+original code is publicly available from
 \url{ftp://dimacs.rutgers.edu/pub/netflow/generators/network/gridgen}.}
 
-\newpage
-
 The parameter \verb|G| specifies the graph object, to which the
-generated  problem data have to be stored. Note that on entry the graph
-object  is erased with the routine \verb|glp_erase_graph|.
+generated problem data have to be stored. Note that on entry the graph
+object is erased with the routine \verb|glp_erase_graph|.
 
 The parameter \verb|v_rhs| specifies an offset of the field of type
 \verb|double| in the vertex data block, to which the routine stores the
@@ -2161,6 +2195,8 @@ not used (exponential)\\
 If the instance was successfully generated, the routine
 \verb|glp_gridgen| returns zero; otherwise, if specified parameters are
 inconsistent, the routine returns a non-zero error code.
+
+\newpage
 
 \para{Comments\footnote{This material is based on comments
 to the original version of GRIDGEN.}}
@@ -2290,6 +2326,8 @@ $$
 $$0\leq x_{ij}\leq u_{ij}\ \ \ \hbox{for all}\ (i,j)\in A
 \eqno(9)$$
 
+\newpage
+
 \subsection{glp\_read\_maxflow --- read maximum flow problem data in
 DIMACS\\format}
 
@@ -2361,7 +2399,7 @@ int main(void)
 \para{DIMACS maximum flow problem format\footnote{This material is
 based on the paper ``The First DIMACS International Algorithm
 Implementation Challenge: Problem Definitions and Specifications'',
-which is publically available at
+which is publicly available at
 \url{http://dimacs.rutgers.edu/Challenges/}.}}
 \label{subsecmaxflow}
 
@@ -2637,9 +2675,9 @@ specifies the maximum flow problem instance to be solved.
 
 The parameter $s$ specifies the ordinal number of the source node.
 
-\newpage
-
 The parameter $t$ specifies the ordinal number of the sink node.
+
+\newpage
 
 The parameter \verb|a_cap| specifies an offset of the field of type
 \verb|double| in the arc data block, which contains $u_{ij}$, the upper
@@ -2768,14 +2806,12 @@ pp.~83-123.}$^{,}$\footnote{U.~Derigs and W.~Meier, ``Implementing
 Goldberg's max-flow algorithm: A computational investigation.''
 Zeitschrift f\"ur Operations Research 33 (1989),
 pp.~383-403.}$^{,}$\footnote{The original code of RMFGEN implemented by
-Tamas Badics is publically available from
+Tamas Badics is publicly available from
 \url{ftp://dimacs.rutgers.edu/pub/netflow/generators/network/genrmf}.}
 
 The parameter \verb|G| specifies the graph object, to which the
 generated problem data have to be stored. Note that on entry the graph
 object is erased with the routine \verb|glp_erase_graph|.
-
-\newpage
 
 The pointers \verb|s| and \verb|t| specify locations, to which the
 routine stores the source and sink node numbers, respectively. If
@@ -2783,8 +2819,10 @@ routine stores the source and sink node numbers, respectively. If
 stored.
 
 The parameter \verb|a_cap| specifies an offset of the field of type
-\verb|double| in the arc data block, to which the routine stores the arc
-capacity. If \verb|a_cap| $<0$, the capacity is not stored.
+\verb|double| in the arc data block, to which the routine stores the
+arc capacity. If \verb|a_cap| $<0$, the capacity is not stored.
+
+\newpage
 
 The array \verb|parm| contains description of the network to be
 generated:
@@ -2936,6 +2974,10 @@ directed graph $\overline{G}=(V,A)$, where $V=R\cup S$ and
 $A=\{(i,j):(i,j)\in E\}$, i.e. every edge $(i,j)\in E$ in $G$
 corresponds to arc $(i\rightarrow j)\in A$ in $\overline{G}$.
 
+\newpage
+
+\setlength{\parskip}{4.4pt}
+
 \subsection{glp\_read\_asnprob --- read assignment problem data in
 DIMACS format}
 
@@ -3012,10 +3054,14 @@ int main(void)
 \end{verbatim}
 \end{footnotesize}
 
+\setlength{\parskip}{5pt}
+
+\newpage
+
 \para{DIMACS assignment problem format\footnote{This material is based
 on the paper ``The First DIMACS International Algorithm Implementation
 Challenge: Problem Definitions and Specifications'', which is
-publically available at \url{http://dimacs.rutgers.edu/Challenges/}.}}
+publicly available at \url{http://dimacs.rutgers.edu/Challenges/}.}}
 \label{subsecasnprob}
 
 The DIMACS input file is a plain ASCII text file. It contains
@@ -3132,8 +3178,6 @@ c eof
 \end{verbatim}
 \end{footnotesize}
 
-\newpage
-
 \subsection{glp\_write\_asnprob --- write assignment problem data in
 DIMACS format}
 
@@ -3167,6 +3211,8 @@ The parameter \verb|a_cost| specifies an offset of the field of type
 \verb|double| in the arc data block, which contains $c_{ij}$, the edge
 cost. If \verb|a_cost| $<0$, it is assumed that $c_{ij}=1$ for all
 edges.
+
+\newpage
 
 The character string \verb|fname| specifies a name of the text file to
 be written out. (If the file name ends with suffix `\verb|.gz|', the
@@ -3240,6 +3286,8 @@ or more outgoing arcs;
 The routine \verb|glp_asnprob_lp| builds LP problem, which corresponds
 to the specified assignment problem.
 
+\newpage
+
 The parameter \verb|P| is the resultant LP problem object to be built.
 Note that on entry its current content is erased with the routine
 \verb|glp_erase_prob|.
@@ -3276,8 +3324,6 @@ The parameter \verb|a_cost| specifies an offset of the field of type
 \verb|double| in the arc data block, which contains $c_{ij}$, the edge
 cost. If \verb|a_cost| $<0$, it is assumed that $c_{ij}=1$ for all
 edges.
-
-\newpage
 
 \returns
 
@@ -3316,6 +3362,8 @@ int main(void)
 }
 \end{verbatim}
 \end{footnotesize}
+
+\newpage
 
 If `\verb|sample.asn|' is the example data file from the subsection
 describing \verb|glp_read_asnprob|, file `\verb|matching.lp|' may look
@@ -3378,6 +3426,8 @@ End
 \end{verbatim}
 \end{footnotesize}
 
+\newpage
+
 \subsection{glp\_asnprob\_okalg --- solve assignment problem with
 out-of-kilter\\algorithm}
 
@@ -3405,8 +3455,6 @@ The parameter \verb|form| defines which LP formulation should be used:
 \verb|GLP_ASN_MAX| --- perfect matching (15)---(18), maximization;
 
 \verb|GLP_ASN_MMP| --- maximum weighted matching (11)---(14).
-
-\newpage
 
 The parameter \verb|G| is the graph program object, which specifies the
 assignment problem instance.
@@ -3456,6 +3504,8 @@ integer overflow.\\
 \verb|<bug-glpk@gnu.org>|.)\\
 \end{retlist}
 
+\newpage
+
 \para{Comments}
 
 Since the out-of-kilter algorithm is designed to find a minimal cost
@@ -3478,8 +3528,6 @@ arc $(k\rightarrow i)$, flow $x_{ki}$ through which is costless
 \verb|GLP_ASN_MIN| and \verb|GLP_ASN_MAX|) or has zero lower bound and
 unity upper bound ($l_{ij}=0$, $u_{ij}=1$, in case of
 \verb|GLP_ASN_MMP|);
-
-\newpage
 
 4) similarly, for each original node $j\in S$ the routine adds
 auxiliary demand arc $(j\rightarrow k)$, flow $x_{jk}$ through which is
@@ -3597,6 +3645,8 @@ indicator:
 
 1 --- the node is in set $S$.
 
+\newpage
+
 \noindent
 If \verb|v_set| $<0$, it is assumed that a node having no incoming arcs
 is in set $R$, and a node having no outgoing arcs is in set $S$.
@@ -3611,8 +3661,6 @@ The routine \verb|glp_asnprob_hall| returns the cardinality of the
 matching found. However, if the specified graph is incorrect (as
 detected by the routine \verb|glp_check_asnprob|), this routine returns
 a negative value.
-
-\newpage
 
 \para{Comments}
 
@@ -3667,6 +3715,8 @@ int main(void)
 
 If `\verb|sample.asn|' is the example data file from the subsection
 describing \verb|glp_read_asnprob|, the output may look like follows:
+
+\newpage
 
 \begin{footnotesize}
 \begin{verbatim}
@@ -3757,12 +3807,6 @@ That representation, however, is much less convenient than the one,
 where jobs are represented as nodes of the network.} The project network
 for the example above is shown on Fig.~4.
 
-May note that the project network must be acyclic; otherwise, it would
-be impossible to satisfy to the precedence relation for any job that
-belongs to a cycle.
-
-\newpage
-
 \hspace*{.5in}
 \xymatrix
 {&&&C|3\ar[rd]&&I|5\ar[r]&K|4\ar[rd]&\\
@@ -3776,7 +3820,11 @@ A|3\ar[r]&B|4\ar[rru]\ar[rd]&&E|8\ar[r]&H|8\ar[ru]\ar[rd]&&&M|4\\
 \noindent\hfil
 Fig.~4. An example of the project network.
 
-\medskip
+\newpage
+
+May note that the project network must be acyclic; otherwise, it would
+be impossible to satisfy to the precedence relation for any job that
+belongs to a cycle.
 
 The critical path problem can be naturally formulated as the following
 LP problem:
@@ -3824,8 +3872,6 @@ The parameter \verb|v_es| specifies an offset of the field of type
 the {\it earliest start time} for corresponding job. If \verb|v_es|
 $<0$, this time is not stored.
 
-\newpage
-
 The parameter \verb|v_ls| specifies an offset of the field of type
 \verb|double| in the vertex data block, to which the routine stores
 the {\it latest start time} for corresponding job. If \verb|v_ls|
@@ -3840,6 +3886,8 @@ zero, the corresponding job is critical.
 
 The routine \verb|glp_cpp| returns the minimal project duration, i.e.
 minimal time needed to perform all jobs in the project.
+
+\newpage
 
 \para{Example}
 
@@ -3940,6 +3988,10 @@ Job  Time      ES     EF     LS     LF
  13   4.00 *  42.00  46.00  42.00  46.00
 \end{verbatim}
 \end{footnotesize}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\end{document}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 

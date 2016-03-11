@@ -1,4 +1,4 @@
-/* glpmpl05.c */
+/* mpl5.c */
 
 /***********************************************************************
 *  This code is part of GLPK (GNU Linear Programming Kit).
@@ -6,8 +6,7 @@
 *  Authors: Andrew Makhorin <mao@gnu.org>
 *           Heinrich Schuchardt <xypron.glpk@gmx.de>
 *
-*  Copyright (C) 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008,
-*  2009, 2010, 2011, 2013 Andrew Makhorin, Department for Applied
+*  Copyright (C) 2003-2016 Andrew Makhorin, Department for Applied
 *  Informatics, Moscow Aviation Institute, Moscow, Russia. All rights
 *  reserved. E-mail: <mao@gnu.org>.
 *
@@ -25,10 +24,10 @@
 *  along with GLPK. If not, see <http://www.gnu.org/licenses/>.
 ***********************************************************************/
 
-#include "glpmpl.h"
 #if 1 /* 11/VI-2013 */
 #include "jd.h"
 #endif
+#include "mpl.h"
 
 double fn_gmtime(MPL *mpl)
 {     /* obtain the current calendar time (UTC) */

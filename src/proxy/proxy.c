@@ -5,7 +5,7 @@
 *
 *  Author: Giorgio Sartor <0gioker0@gmail.com>.
 *
-*  Copyright (C) 2013 Andrew Makhorin, Department for Applied
+*  Copyright (C) 2013, 2016 Andrew Makhorin, Department for Applied
 *  Informatics, Moscow Aviation Institute, Moscow, Russia. All rights
 *  reserved. E-mail: <mao@gnu.org>.
 *
@@ -1013,6 +1013,18 @@ static int do_refine(struct csa *csa, glp_prob *lp_ref, int ncols,
         else {
             status = glp_get_status(lp_ref);
         }
+
+#if 1 /* 29/II-2016 by mao as reported by Chris */
+      switch (status)
+      {  case GLP_OPT:
+         case GLP_FEAS:
+            break;
+         default:
+            status = GLP_UNDEF;
+            break;
+      }
+#endif
+
 #ifdef PROXY_DEBUG
         xprintf("STATUS REFINING = %d\n",status);
 #endif

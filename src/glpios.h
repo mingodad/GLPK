@@ -148,10 +148,19 @@ struct glp_tree
       /* built-in cut generators segment */
       IOSPOOL *local;
       /* local cut pool */
+#if 0 /* 06/III-2016 */
       void *mir_gen;
+#else
+      glp_mir *mir_gen;
+#endif
       /* pointer to working area used by the MIR cut generator */
+#if 0 /* 08/III-2016 */
       void *clq_gen;
       /* pointer to working area used by the clique cut generator */
+#else
+      glp_cfg *clq_gen;
+      /* pointer to conflict graph used by the clique cut generator */
+#endif
       /*--------------------------------------------------------------*/
       void *pcost;
       /* pointer to working area used on pseudocost branching */
@@ -487,95 +496,9 @@ int ios_preprocess_node(glp_tree *tree, int max_pass);
 int ios_driver(glp_tree *tree);
 /* branch-and-bound driver */
 
-/**********************************************************************/
-
-typedef struct IOSVEC IOSVEC;
-
-struct IOSVEC
-{     /* sparse vector v = (v[j]) */
-      int n;
-      /* dimension, n >= 0 */
-      int nnz;
-      /* number of non-zero components, 0 <= nnz <= n */
-      int *pos; /* int pos[1+n]; */
-      /* pos[j] = k, 1 <= j <= n, is position of (non-zero) v[j] in the
-         arrays ind and val, where 1 <= k <= nnz; pos[j] = 0 means that
-         v[j] is structural zero */
-      int *ind; /* int ind[1+n]; */
-      /* ind[k] = j, 1 <= k <= nnz, is index of v[j] */
-      double *val; /* double val[1+n]; */
-      /* val[k], 1 <= k <= nnz, is a numeric value of v[j] */
-};
-
-#define ios_create_vec _glp_ios_create_vec
-IOSVEC *ios_create_vec(int n);
-/* create sparse vector */
-
-#define ios_check_vec _glp_ios_check_vec
-void ios_check_vec(IOSVEC *v);
-/* check that sparse vector has correct representation */
-
-#define ios_get_vj _glp_ios_get_vj
-double ios_get_vj(IOSVEC *v, int j);
-/* retrieve component of sparse vector */
-
-#define ios_set_vj _glp_ios_set_vj
-void ios_set_vj(IOSVEC *v, int j, double val);
-/* set/change component of sparse vector */
-
-#define ios_clear_vec _glp_ios_clear_vec
-void ios_clear_vec(IOSVEC *v);
-/* set all components of sparse vector to zero */
-
-#define ios_clean_vec _glp_ios_clean_vec
-void ios_clean_vec(IOSVEC *v, double eps);
-/* remove zero or small components from sparse vector */
-
-#define ios_copy_vec _glp_ios_copy_vec
-void ios_copy_vec(IOSVEC *x, IOSVEC *y);
-/* copy sparse vector (x := y) */
-
-#define ios_linear_comb _glp_ios_linear_comb
-void ios_linear_comb(IOSVEC *x, double a, IOSVEC *y);
-/* compute linear combination (x := x + a * y) */
-
-#define ios_delete_vec _glp_ios_delete_vec
-void ios_delete_vec(IOSVEC *v);
-/* delete sparse vector */
-
-/**********************************************************************/
-
-#define ios_gmi_gen _glp_ios_gmi_gen
-void ios_gmi_gen(glp_tree *tree);
-/* generate Gomory's mixed integer cuts */
-
-#define ios_mir_init _glp_ios_mir_init
-void *ios_mir_init(glp_tree *tree);
-/* initialize MIR cut generator */
-
-#define ios_mir_gen _glp_ios_mir_gen
-void ios_mir_gen(glp_tree *tree, void *gen);
-/* generate MIR cuts */
-
-#define ios_mir_term _glp_ios_mir_term
-void ios_mir_term(void *gen);
-/* terminate MIR cut generator */
-
 #define ios_cov_gen _glp_ios_cov_gen
 void ios_cov_gen(glp_tree *tree);
 /* generate mixed cover cuts */
-
-#define ios_clq_init _glp_ios_clq_init
-void *ios_clq_init(glp_tree *tree);
-/* initialize clique cut generator */
-
-#define ios_clq_gen _glp_ios_clq_gen
-void ios_clq_gen(glp_tree *tree, void *gen);
-/* generate clique cuts */
-
-#define ios_clq_term _glp_ios_clq_term
-void ios_clq_term(void *gen);
-/* terminate clique cut generator */
 
 #define ios_pcost_init _glp_ios_pcost_init
 void *ios_pcost_init(glp_tree *tree);

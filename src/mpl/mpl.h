@@ -1,10 +1,9 @@
-/* glpmpl.h (GNU MathProg translator) */
+/* mpl.h (GNU MathProg translator) */
 
 /***********************************************************************
 *  This code is part of GLPK (GNU Linear Programming Kit).
 *
-*  Copyright (C) 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008,
-*  2009, 2010, 2011, 2013 Andrew Makhorin, Department for Applied
+*  Copyright (C) 2003-2016 Andrew Makhorin, Department for Applied
 *  Informatics, Moscow Aviation Institute, Moscow, Russia. All rights
 *  reserved. E-mail: <mao@gnu.org>.
 *
@@ -22,8 +21,8 @@
 *  along with GLPK. If not, see <http://www.gnu.org/licenses/>.
 ***********************************************************************/
 
-#ifndef GLPMPL_H
-#define GLPMPL_H
+#ifndef MPL_H
+#define MPL_H
 
 #include "avl.h"
 #include "dmp.h"

@@ -59,7 +59,12 @@
 *  used. However, processing row and column singletons by the routines
 *  sgf_minimize_nuc and sgf_singl_phase is more efficient. */
 
-void sgf_reduce_nuc(LUF *luf, int *k1_, int *k2_, int cnt[/*1+n*/],
+#if 1 /* 21/II-2016 */
+/* Normally this routine returns zero. If the matrix is structurally
+*  singular, the routine returns non-zero. */
+#endif
+
+int sgf_reduce_nuc(LUF *luf, int *k1_, int *k2_, int cnt[/*1+n*/],
       int list[/*1+n*/])
 {     int n = luf->n;
       SVA *sva = luf->sva;
@@ -91,15 +96,14 @@ void sgf_reduce_nuc(LUF *luf, int *k1_, int *k2_, int cnt[/*1+n*/],
       while (ns > 0)
       {  /* column singleton is in j-th column of V */
          j = list[ns--];
-#if 1 /* 25/IX-2015 */
+#if 1 /* 21/II-2016 */
          if (cnt[j] == 0)
          {  /* j-th column in the current nucleus is actually empty */
             /* this happened because on a previous step in the nucleus
              * there were two or more identical column singletons (that
              * means structural singularity), so removing one of them
              * from the nucleus made other columns empty */
-            /* do not remove empty column from the nucleus */
-            continue;
+            return 1;
          }
 #endif
          /* find i-th row of V containing column singleton */
@@ -149,12 +153,11 @@ void sgf_reduce_nuc(LUF *luf, int *k1_, int *k2_, int cnt[/*1+n*/],
       while (ns > 0)
       {  /* row singleton is in i-th row of V */
          i = list[ns--];
-#if 1 /* 25/IX-2015 */
+#if 1 /* 21/II-2016 */
          if (cnt[i] == 0)
          {  /* i-th row in the current nucleus is actually empty */
             /* (see comments above for similar case of empty column) */
-            /* do not remove empty row from the nucleus */
-            continue;
+            return 2;
          }
 #endif
          /* find j-th column of V containing row singleton */
@@ -183,7 +186,7 @@ void sgf_reduce_nuc(LUF *luf, int *k1_, int *k2_, int cnt[/*1+n*/],
       /* nucleus ends at k2-th row/column of U */
       xassert(k1 < k2);
 done: *k1_ = k1, *k2_ = k2;
-      return;
+      return 0;
 }
 
 /***********************************************************************
@@ -1294,6 +1297,11 @@ int sgf_dense_phase(LUF *luf, int k, int updat)
 *  returns k (information on linearly dependent rows/columns in this
 *  case is provided by matrices P and Q). */
 
+#if 1 /* 21/II-2016 */
+/* If the matrix A is structurally singular, the routine returns -1.
+*  NOTE: This case can be detected only if the singl flag is set. */
+#endif
+
 int sgf_factorize(SGF *sgf, int singl)
 {     LUF *luf = sgf->luf;
       int n = luf->n;
@@ -1335,7 +1343,12 @@ int sgf_factorize(SGF *sgf, int singl)
       }
       else
       {  /* minimize nucleus size */
+#if 0 /* 21/II-2016 */
          sgf_reduce_nuc(luf, &k1, &k2, rs_prev, rs_next);
+#else
+         if (sgf_reduce_nuc(luf, &k1, &k2, rs_prev, rs_next))
+            return -1;
+#endif
 #ifdef GLP_DEBUG
          xprintf("n = %d; k1 = %d; k2 = %d\n", n, k1, k2);
 #endif

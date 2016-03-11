@@ -40,11 +40,19 @@
 *  Since the conflict graph may be dense, it is stored as an union of
 *  its cliques rather than explicitly. */
 
+#if 0 /* 08/III-2016 */
 typedef struct CFG CFG;
+#else
+typedef struct glp_cfg CFG;
+#endif
 typedef struct CFGVLE CFGVLE;
 typedef struct CFGCLE CFGCLE;
 
+#if 0 /* 08/III-2016 */
 struct CFG
+#else
+struct glp_cfg
+#endif
 {     /* conflict graph descriptor */
       int n;
       /* number of *all* variables (columns) in corresponding MIP */

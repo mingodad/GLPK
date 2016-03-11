@@ -1,3 +1,21 @@
+GLPK 4.59 (release date: Mar 11, 2016)
+
+        This is a maintainer release.
+
+        Some bugs were fixed and some improvements were made in the MIP
+        solver. Thanks to Chris Matrakidis <cmatraki@gmail.com> for bug
+        reports and patches.
+
+        The data file format used by API routines glp_read_graph and
+        glp_write_graph was changed. For more details please see the
+        document "GLPK: Graph and Network Routines" included in the
+        distribution.
+
+        Translation of the document "Modeling Language GNU MathProg"
+        to Brazilian Portuguese (pt-BR) was included (in LaTeX and pdf
+        formats). Thanks to Joao Flavio de Freitas Almeida
+        <joao.flavio@dep.ufmg.br> for contribution.
+
 GLPK 4.58 (release date: Feb 18, 2016)
 
         The solution file format used by API routines glp_read_sol,

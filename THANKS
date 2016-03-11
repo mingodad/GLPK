@@ -93,6 +93,10 @@ Jeroen Demeyer <jdemeyer@cage.ugent.be> for suggestion.
 
 Jiri Spitz <jiri.spitz@telecom.cz> for bug report.
 
+Joao Flavio de Freitas Almeida <joao.flavio@dep.ufmg.br> for
+translation of the document "Modeling Language GNU MathProg" to
+Brazilian Portuguese (pt-BR).
+
 Joey Rios <joeylrios@hotmail.com> for some suggestions.
 
 Jonathan Senning <Jonathan.Senning@gordon.edu> for bug report.
@@ -153,7 +157,7 @@ Olivier <odwl@skynet.be> for bug report.
 Oscar Gustafsson <oscarg@isy.liu.se> for contribution of a routine to
 write data in OPB (pseudo boolean) format.
 
-Pablo Yapura <ypf@agro.unlp.edu.ar> for translation the document
+Pablo Yapura <ypf@agro.unlp.edu.ar> for translation of the document
 "Modeling Language GNU MathProg" to Spanish.
 
 Pedro P. Wong <d00604@taipower.com.tw> for bug report.

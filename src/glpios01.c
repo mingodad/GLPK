@@ -1361,6 +1361,13 @@ int ios_solve_node(glp_tree *tree)
       }
       /* try to solve/re-optimize the LP relaxation */
       ret = glp_simplex(mip, &parm);
+#if 1 /* 21/II-2016 by Chris */
+      if (ret == GLP_EFAIL)
+      {  /* retry with a new basis */
+         glp_adv_basis(mip, 0);
+         ret = glp_simplex(mip, &parm);
+      }
+#endif
       tree->curr->solved++;
 #if 0
       xprintf("ret = %d; status = %d; pbs = %d; dbs = %d; some = %d\n",

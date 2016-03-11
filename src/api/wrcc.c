@@ -92,4 +92,11 @@ done: if (fp != NULL) glp_close(fp);
       return ret;
 }
 
+/**********************************************************************/
+
+int glp_write_graph(glp_graph *G, const char *fname)
+{     return
+         glp_write_ccdata(G, -1, fname);
+}
+
 /* eof */

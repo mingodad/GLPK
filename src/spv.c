@@ -1,4 +1,4 @@
-/* glpios04.c (operations on sparse vectors) */
+/* spv.c (operations on sparse vectors) */
 
 /***********************************************************************
 *  This code is part of GLPK (GNU Linear Programming Kit).
@@ -23,31 +23,31 @@
 ***********************************************************************/
 
 #include "env.h"
-#include "glpios.h"
+#include "spv.h"
 
 /***********************************************************************
 *  NAME
 *
-*  ios_create_vec - create sparse vector
+*  spv_create_vec - create sparse vector
 *
 *  SYNOPSIS
 *
 *  #include "glpios.h"
-*  IOSVEC *ios_create_vec(int n);
+*  SPV *spv_create_vec(int n);
 *
 *  DESCRIPTION
 *
-*  The routine ios_create_vec creates a sparse vector of dimension n,
+*  The routine spv_create_vec creates a sparse vector of dimension n,
 *  which initially is a null vector.
 *
 *  RETURNS
 *
 *  The routine returns a pointer to the vector created. */
 
-IOSVEC *ios_create_vec(int n)
-{     IOSVEC *v;
+SPV *spv_create_vec(int n)
+{     SPV *v;
       xassert(n >= 0);
-      v = xmalloc(sizeof(IOSVEC));
+      v = xmalloc(sizeof(SPV));
       v->n = n;
       v->nnz = 0;
       v->pos = xcalloc(1+n, sizeof(int));
@@ -60,23 +60,23 @@ IOSVEC *ios_create_vec(int n)
 /***********************************************************************
 *  NAME
 *
-*  ios_check_vec - check that sparse vector has correct representation
+*  spv_check_vec - check that sparse vector has correct representation
 *
 *  SYNOPSIS
 *
 *  #include "glpios.h"
-*  void ios_check_vec(IOSVEC *v);
+*  void spv_check_vec(SPV *v);
 *
 *  DESCRIPTION
 *
-*  The routine ios_check_vec checks that a sparse vector specified by
+*  The routine spv_check_vec checks that a sparse vector specified by
 *  the parameter v has correct representation.
 *
 *  NOTE
 *
 *  Complexity of this operation is O(n). */
 
-void ios_check_vec(IOSVEC *v)
+void spv_check_vec(SPV *v)
 {     int j, k, nnz;
       xassert(v->n >= 0);
       nnz = 0;
@@ -95,19 +95,19 @@ void ios_check_vec(IOSVEC *v)
 /***********************************************************************
 *  NAME
 *
-*  ios_get_vj - retrieve component of sparse vector
+*  spv_get_vj - retrieve component of sparse vector
 *
 *  SYNOPSIS
 *
 *  #include "glpios.h"
-*  double ios_get_vj(IOSVEC *v, int j);
+*  double spv_get_vj(SPV *v, int j);
 *
 *  RETURNS
 *
-*  The routine ios_get_vj returns j-th component of a sparse vector
+*  The routine spv_get_vj returns j-th component of a sparse vector
 *  specified by the parameter v. */
 
-double ios_get_vj(IOSVEC *v, int j)
+double spv_get_vj(SPV *v, int j)
 {     int k;
       xassert(1 <= j && j <= v->n);
       k = v->pos[j];
@@ -118,19 +118,19 @@ double ios_get_vj(IOSVEC *v, int j)
 /***********************************************************************
 *  NAME
 *
-*  ios_set_vj - set/change component of sparse vector
+*  spv_set_vj - set/change component of sparse vector
 *
 *  SYNOPSIS
 *
 *  #include "glpios.h"
-*  void ios_set_vj(IOSVEC *v, int j, double val);
+*  void spv_set_vj(SPV *v, int j, double val);
 *
 *  DESCRIPTION
 *
-*  The routine ios_set_vj assigns val to j-th component of a sparse
+*  The routine spv_set_vj assigns val to j-th component of a sparse
 *  vector specified by the parameter v. */
 
-void ios_set_vj(IOSVEC *v, int j, double val)
+void spv_set_vj(SPV *v, int j, double val)
 {     int k;
       xassert(1 <= j && j <= v->n);
       k = v->pos[j];
@@ -161,19 +161,19 @@ void ios_set_vj(IOSVEC *v, int j, double val)
 /***********************************************************************
 *  NAME
 *
-*  ios_clear_vec - set all components of sparse vector to zero
+*  spv_clear_vec - set all components of sparse vector to zero
 *
 *  SYNOPSIS
 *
 *  #include "glpios.h"
-*  void ios_clear_vec(IOSVEC *v);
+*  void spv_clear_vec(SPV *v);
 *
 *  DESCRIPTION
 *
-*  The routine ios_clear_vec sets all components of a sparse vector
+*  The routine spv_clear_vec sets all components of a sparse vector
 *  specified by the parameter v to zero. */
 
-void ios_clear_vec(IOSVEC *v)
+void spv_clear_vec(SPV *v)
 {     int k;
       for (k = 1; k <= v->nnz; k++)
          v->pos[v->ind[k]] = 0;
@@ -184,20 +184,20 @@ void ios_clear_vec(IOSVEC *v)
 /***********************************************************************
 *  NAME
 *
-*  ios_clean_vec - remove zero or small components from sparse vector
+*  spv_clean_vec - remove zero or small components from sparse vector
 *
 *  SYNOPSIS
 *
 *  #include "glpios.h"
-*  void ios_clean_vec(IOSVEC *v, double eps);
+*  void spv_clean_vec(SPV *v, double eps);
 *
 *  DESCRIPTION
 *
-*  The routine ios_clean_vec removes zero components and components
+*  The routine spv_clean_vec removes zero components and components
 *  whose magnitude is less than eps from a sparse vector specified by
 *  the parameter v. If eps is 0.0, only zero components are removed. */
 
-void ios_clean_vec(IOSVEC *v, double eps)
+void spv_clean_vec(SPV *v, double eps)
 {     int k, nnz;
       nnz = 0;
       for (k = 1; k <= v->nnz; k++)
@@ -220,23 +220,23 @@ void ios_clean_vec(IOSVEC *v, double eps)
 /***********************************************************************
 *  NAME
 *
-*  ios_copy_vec - copy sparse vector (x := y)
+*  spv_copy_vec - copy sparse vector (x := y)
 *
 *  SYNOPSIS
 *
 *  #include "glpios.h"
-*  void ios_copy_vec(IOSVEC *x, IOSVEC *y);
+*  void spv_copy_vec(SPV *x, SPV *y);
 *
 *  DESCRIPTION
 *
-*  The routine ios_copy_vec copies a sparse vector specified by the
+*  The routine spv_copy_vec copies a sparse vector specified by the
 *  parameter y to a sparse vector specified by the parameter x. */
 
-void ios_copy_vec(IOSVEC *x, IOSVEC *y)
+void spv_copy_vec(SPV *x, SPV *y)
 {     int j;
       xassert(x != y);
       xassert(x->n == y->n);
-      ios_clear_vec(x);
+      spv_clear_vec(x);
       x->nnz = y->nnz;
       memcpy(&x->ind[1], &y->ind[1], x->nnz * sizeof(int));
       memcpy(&x->val[1], &y->val[1], x->nnz * sizeof(double));
@@ -248,31 +248,31 @@ void ios_copy_vec(IOSVEC *x, IOSVEC *y)
 /***********************************************************************
 *  NAME
 *
-*  ios_linear_comb - compute linear combination (x := x + a * y)
+*  spv_linear_comb - compute linear combination (x := x + a * y)
 *
 *  SYNOPSIS
 *
 *  #include "glpios.h"
-*  void ios_linear_comb(IOSVEC *x, double a, IOSVEC *y);
+*  void spv_linear_comb(SPV *x, double a, SPV *y);
 *
 *  DESCRIPTION
 *
-*  The routine ios_linear_comb computes the linear combination
+*  The routine spv_linear_comb computes the linear combination
 *
 *     x := x + a * y,
 *
 *  where x and y are sparse vectors, a is a scalar. */
 
-void ios_linear_comb(IOSVEC *x, double a, IOSVEC *y)
+void spv_linear_comb(SPV *x, double a, SPV *y)
 {     int j, k;
       double xj, yj;
       xassert(x != y);
       xassert(x->n == y->n);
       for (k = 1; k <= y->nnz; k++)
       {  j = y->ind[k];
-         xj = ios_get_vj(x, j);
+         xj = spv_get_vj(x, j);
          yj = y->val[k];
-         ios_set_vj(x, j, xj + a * yj);
+         spv_set_vj(x, j, xj + a * yj);
       }
       return;
 }
@@ -280,19 +280,19 @@ void ios_linear_comb(IOSVEC *x, double a, IOSVEC *y)
 /***********************************************************************
 *  NAME
 *
-*  ios_delete_vec - delete sparse vector
+*  spv_delete_vec - delete sparse vector
 *
 *  SYNOPSIS
 *
 *  #include "glpios.h"
-*  void ios_delete_vec(IOSVEC *v);
+*  void spv_delete_vec(SPV *v);
 *
 *  DESCRIPTION
 *
-*  The routine ios_delete_vec deletes a sparse vector specified by the
+*  The routine spv_delete_vec deletes a sparse vector specified by the
 *  parameter v freeing all the memory allocated to this object. */
 
-void ios_delete_vec(IOSVEC *v)
+void spv_delete_vec(SPV *v)
 {     /* delete sparse vector */
       xfree(v->pos);
       xfree(v->ind);

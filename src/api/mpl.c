@@ -21,7 +21,7 @@
 *  along with GLPK. If not, see <http://www.gnu.org/licenses/>.
 ***********************************************************************/
 
-#include "glpmpl.h"
+#include "mpl.h"
 #include "prob.h"
 
 glp_tran *glp_mpl_alloc_wksp(void)

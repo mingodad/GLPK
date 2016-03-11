@@ -14,12 +14,13 @@ libglpk_la_CPPFLAGS = \
 -I$(srcdir)/env \
 -I$(srcdir)/minisat \
 -I$(srcdir)/misc \
+-I$(srcdir)/mpl \
 -I$(srcdir)/proxy \
 -I$(srcdir)/simplex \
 -I$(srcdir)/zlib
 
 libglpk_la_LDFLAGS = \
--version-info 39:0:0 \
+-version-info 40:0:0 \
 -export-symbols-regex '^glp_*' \
 ${NOUNDEFINED}
 
@@ -42,23 +43,13 @@ glphbm.c \
 glpios01.c \
 glpios02.c \
 glpios03.c \
-glpios04.c \
-glpios05.c \
-glpios06.c \
 glpios07.c \
-glpios08.c \
 glpios09.c \
 glpios10.c \
 glpios11.c \
 glpios12.c \
 glpipm.c \
 glpmat.c \
-glpmpl01.c \
-glpmpl02.c \
-glpmpl03.c \
-glpmpl04.c \
-glpmpl05.c \
-glpmpl06.c \
 glpnpp01.c \
 glpnpp02.c \
 glpnpp03.c \
@@ -67,12 +58,11 @@ glpnpp05.c \
 glpnpp06.c \
 glprgr.c \
 glpscl.c \
-glpsdf.c \
 glpspm.c \
-glpsql.c \
 glpssx01.c \
 glpssx02.c \
 lux.c \
+spv.c \
 amd/amd_1.c \
 amd/amd_2.c \
 amd/amd_aat.c \
@@ -113,7 +103,6 @@ api/prsol.c \
 api/rdasn.c \
 api/rdcc.c \
 api/rdcnf.c \
-api/rdgr.c \
 api/rdipt.c \
 api/rdmaxf.c \
 api/rdmcf.c \
@@ -128,7 +117,6 @@ api/wcliqex.c \
 api/wrasn.c \
 api/wrcc.c \
 api/wrcnf.c \
-api/wrgr.c \
 api/wript.c \
 api/wrmaxf.c \
 api/wrmcf.c \
@@ -148,6 +136,11 @@ bflib/sgf.c \
 bflib/sva.c \
 cglib/cfg.c \
 cglib/cfg1.c \
+cglib/cfg2.c \
+cglib/clqcut.c \
+cglib/gmicut.c \
+cglib/gmigen.c \
+cglib/mirgen.c \
 colamd/colamd.c \
 env/alloc.c \
 env/dlsup.c \
@@ -183,6 +176,13 @@ misc/strtrim.c \
 misc/triang.c \
 misc/wclique.c \
 misc/wclique1.c \
+mpl/mpl1.c \
+mpl/mpl2.c \
+mpl/mpl3.c \
+mpl/mpl4.c \
+mpl/mpl5.c \
+mpl/mpl6.c \
+mpl/sql.c \
 proxy/proxy.c \
 proxy/proxy1.c \
 simplex/spxat.c \

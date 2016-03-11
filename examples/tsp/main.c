@@ -268,7 +268,7 @@ void build_tour(void)
 *  tour_length - calculate tour length
 *
 *  This routine calculates the length of the specified tour, which is
-*  a sum of corresponding edge length. */
+*  the sum of corresponding edge lengths. */
 
 int tour_length(const int tour[/*1+n*/])
 {     int i, j, sum;

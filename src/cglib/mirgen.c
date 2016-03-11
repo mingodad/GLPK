@@ -1,10 +1,9 @@
-/* glpios06.c (MIR cut generator) */
+/* mirgen.c (mixed integer rounding cuts generator) */
 
 /***********************************************************************
 *  This code is part of GLPK (GNU Linear Programming Kit).
 *
-*  Copyright (C) 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008,
-*  2009, 2010, 2011, 2013 Andrew Makhorin, Department for Applied
+*  Copyright (C) 2007-2016 Andrew Makhorin, Department for Applied
 *  Informatics, Moscow Aviation Institute, Moscow, Russia. All rights
 *  reserved. E-mail: <mao@gnu.org>.
 *
@@ -22,15 +21,40 @@
 *  along with GLPK. If not, see <http://www.gnu.org/licenses/>.
 ***********************************************************************/
 
-#include "env.h"
-#include "glpios.h"
+#if 1 /* 29/II-2016 by Chris */
+/*----------------------------------------------------------------------
+Subject: Mir cut generation performance improvement
+From: Chris Matrakidis <cmatraki@gmail.com>
+To: Andrew Makhorin <mao@gnu.org>, help-glpk <help-glpk@gnu.org>
 
-#define _MIR_DEBUG 0
+Andrew,
+
+I noticed that mir cut generation takes considerable time on some large
+problems (like rocII-4-11 from miplib). The attached patch makes two
+improvements that considerably improve performance in such instances:
+1. A lot of time was spent on generating a temporary vector in function
+aggregate_row. It is a lot faster to reuse an existing vector.
+2. A search for an element in the same function was done in row order,
+where using the elements in the order they are in the column is more
+efficient. This changes the generated cuts in some cases, but seems
+neutral overall (0.3% less cuts in a test set of 64 miplib instances).
+
+Best Regards,
+
+Chris Matrakidis
+----------------------------------------------------------------------*/
+#endif
+
+#include "env.h"
+#include "prob.h"
+#include "spv.h"
+
+#define MIR_DEBUG 0
 
 #define MAXAGGR 5
-/* maximal number of rows which can be aggregated */
+/* maximal number of rows that can be aggregated */
 
-struct MIR
+struct glp_mir
 {     /* MIR cut generator working area */
       /*--------------------------------------------------------------*/
       /* global information valid for the root subproblem */
@@ -74,7 +98,7 @@ struct MIR
       int *agg_row; /* int agg_row[1+MAXAGGR]; */
       /* agg_row[k], 1 <= k <= agg_cnt, is the row number used to build
          aggregated constraint */
-      IOSVEC *agg_vec; /* IOSVEC agg_vec[1:m+n]; */
+      SPV *agg_vec; /* SPV agg_vec[1:m+n]; */
       /* sparse vector of aggregated constraint coefficients, a[k] */
       double agg_rhs;
       /* right-hand side of the aggregated constraint, b */
@@ -91,13 +115,13 @@ struct MIR
          derived from aggregated constraint by substituting bounds;
          note that due to substitution of variable bounds there may be
          additional terms in the modified constraint */
-      IOSVEC *mod_vec; /* IOSVEC mod_vec[1:m+n]; */
+      SPV *mod_vec; /* SPV mod_vec[1:m+n]; */
       /* sparse vector of modified constraint coefficients, a'[k] */
       double mod_rhs;
       /* right-hand side of the modified constraint, b' */
       /*--------------------------------------------------------------*/
       /* cutting plane sum alpha[k] * x[k] <= beta */
-      IOSVEC *cut_vec; /* IOSVEC cut_vec[1:m+n]; */
+      SPV *cut_vec; /* SPV cut_vec[1:m+n]; */
       /* sparse vector of cutting plane coefficients, alpha[k] */
       double cut_rhs;
       /* right-hand size of the cutting plane, beta */
@@ -106,26 +130,23 @@ struct MIR
 /***********************************************************************
 *  NAME
 *
-*  ios_mir_init - initialize MIR cut generator
+*  glp_mir_init - create and initialize MIR cut generator
 *
 *  SYNOPSIS
 *
-*  #include "glpios.h"
-*  void *ios_mir_init(glp_tree *tree);
+*  glp_mir *glp_mir_init(glp_prob *P);
 *
 *  DESCRIPTION
 *
-*  The routine ios_mir_init initializes the MIR cut generator assuming
-*  that the current subproblem is the root subproblem.
+*  This routine creates and initializes the MIR cut generator for the
+*  specified problem object.
 *
 *  RETURNS
 *
-*  The routine ios_mir_init returns a pointer to the MIR cut generator
-*  working area. */
+*  The routine returns a pointer to the MIR cut generator workspace. */
 
-static void set_row_attrib(glp_tree *tree, struct MIR *mir)
+static void set_row_attrib(glp_prob *mip, glp_mir *mir)
 {     /* set global row attributes */
-      glp_prob *mip = tree->mip;
       int m = mir->m;
       int k;
       for (k = 1; k <= m; k++)
@@ -151,9 +172,8 @@ static void set_row_attrib(glp_tree *tree, struct MIR *mir)
       return;
 }
 
-static void set_col_attrib(glp_tree *tree, struct MIR *mir)
+static void set_col_attrib(glp_prob *mip, glp_mir *mir)
 {     /* set global column attributes */
-      glp_prob *mip = tree->mip;
       int m = mir->m;
       int n = mir->n;
       int k;
@@ -186,9 +206,8 @@ static void set_col_attrib(glp_tree *tree, struct MIR *mir)
       return;
 }
 
-static void set_var_bounds(glp_tree *tree, struct MIR *mir)
+static void set_var_bounds(glp_prob *mip, glp_mir *mir)
 {     /* set variable bounds */
-      glp_prob *mip = tree->mip;
       int m = mir->m;
       GLPAIJ *aij;
       int i, k1, k2;
@@ -249,9 +268,8 @@ static void set_var_bounds(glp_tree *tree, struct MIR *mir)
       return;
 }
 
-static void mark_useless_rows(glp_tree *tree, struct MIR *mir)
+static void mark_useless_rows(glp_prob *mip, glp_mir *mir)
 {     /* mark rows which should not be used */
-      glp_prob *mip = tree->mip;
       int m = mir->m;
       GLPAIJ *aij;
       int i, k, nv;
@@ -289,17 +307,16 @@ static void mark_useless_rows(glp_tree *tree, struct MIR *mir)
       return;
 }
 
-void *ios_mir_init(glp_tree *tree)
-{     /* initialize MIR cut generator */
-      glp_prob *mip = tree->mip;
+glp_mir *glp_mir_init(glp_prob *mip)
+{     /* create and initialize MIR cut generator */
       int m = mip->m;
       int n = mip->n;
-      struct MIR *mir;
-#if _MIR_DEBUG
+      glp_mir *mir;
+#if MIR_DEBUG
       xprintf("ios_mir_init: warning: debug mode enabled\n");
 #endif
       /* allocate working area */
-      mir = xmalloc(sizeof(struct MIR));
+      mir = xmalloc(sizeof(glp_mir));
       mir->m = m;
       mir->n = n;
       mir->skip = xcalloc(1+m, sizeof(char));
@@ -310,39 +327,45 @@ void *ios_mir_init(glp_tree *tree)
       mir->vub = xcalloc(1+m+n, sizeof(int));
       mir->x = xcalloc(1+m+n, sizeof(double));
       mir->agg_row = xcalloc(1+MAXAGGR, sizeof(int));
-      mir->agg_vec = ios_create_vec(m+n);
+      mir->agg_vec = spv_create_vec(m+n);
       mir->subst = xcalloc(1+m+n, sizeof(char));
-      mir->mod_vec = ios_create_vec(m+n);
-      mir->cut_vec = ios_create_vec(m+n);
+      mir->mod_vec = spv_create_vec(m+n);
+      mir->cut_vec = spv_create_vec(m+n);
       /* set global row attributes */
-      set_row_attrib(tree, mir);
+      set_row_attrib(mip, mir);
       /* set global column attributes */
-      set_col_attrib(tree, mir);
+      set_col_attrib(mip, mir);
       /* set variable bounds */
-      set_var_bounds(tree, mir);
+      set_var_bounds(mip, mir);
       /* mark rows which should not be used */
-      mark_useless_rows(tree, mir);
+      mark_useless_rows(mip, mir);
       return mir;
 }
 
 /***********************************************************************
 *  NAME
 *
-*  ios_mir_gen - generate MIR cuts
+*  glp_mir_gen - generate mixed integer rounding (MIR) cuts
 *
 *  SYNOPSIS
 *
-*  #include "glpios.h"
-*  void ios_mir_gen(glp_tree *tree, void *gen, IOSPOOL *pool);
+*  int glp_mir_gen(glp_prob *P, glp_mir *mir, glp_prob *pool);
 *
 *  DESCRIPTION
 *
-*  The routine ios_mir_gen generates MIR cuts for the current point and
-*  adds them to the cut pool. */
+*  This routine attempts to generate mixed integer rounding (MIR) cuts
+*  for current basic solution to the specified problem object.
+*
+*  The cutting plane inequalities generated by the routine are added to
+*  the specified cut pool.
+*
+*  RETURNS
+*
+*  The routine returns the number of cuts that have been generated and
+*  added to the cut pool. */
 
-static void get_current_point(glp_tree *tree, struct MIR *mir)
+static void get_current_point(glp_prob *mip, glp_mir *mir)
 {     /* obtain current point */
-      glp_prob *mip = tree->mip;
       int m = mir->m;
       int n = mir->n;
       int k;
@@ -353,8 +376,8 @@ static void get_current_point(glp_tree *tree, struct MIR *mir)
       return;
 }
 
-#if _MIR_DEBUG
-static void check_current_point(struct MIR *mir)
+#if MIR_DEBUG
+static void check_current_point(glp_mir *mir)
 {     /* check current point */
       int m = mir->m;
       int n = mir->n;
@@ -394,9 +417,8 @@ static void check_current_point(struct MIR *mir)
 }
 #endif
 
-static void initial_agg_row(glp_tree *tree, struct MIR *mir, int i)
+static void initial_agg_row(glp_prob *mip, glp_mir *mir, int i)
 {     /* use original i-th row as initial aggregated constraint */
-      glp_prob *mip = tree->mip;
       int m = mir->m;
       GLPAIJ *aij;
       xassert(1 <= i && i <= m);
@@ -408,19 +430,19 @@ static void initial_agg_row(glp_tree *tree, struct MIR *mir, int i)
       mir->agg_row[1] = i;
       /* use x[i] - sum a[i,j] * x[m+j] = 0, where x[i] is auxiliary
          variable of row i, x[m+j] are structural variables */
-      ios_clear_vec(mir->agg_vec);
-      ios_set_vj(mir->agg_vec, i, 1.0);
+      spv_clear_vec(mir->agg_vec);
+      spv_set_vj(mir->agg_vec, i, 1.0);
       for (aij = mip->row[i]->ptr; aij != NULL; aij = aij->r_next)
-         ios_set_vj(mir->agg_vec, m + aij->col->j, - aij->val);
+         spv_set_vj(mir->agg_vec, m + aij->col->j, - aij->val);
       mir->agg_rhs = 0.0;
-#if _MIR_DEBUG
-      ios_check_vec(mir->agg_vec);
+#if MIR_DEBUG
+      spv_check_vec(mir->agg_vec);
 #endif
       return;
 }
 
-#if _MIR_DEBUG
-static void check_agg_row(struct MIR *mir)
+#if MIR_DEBUG
+static void check_agg_row(glp_mir *mir)
 {     /* check aggregated constraint */
       int m = mir->m;
       int n = mir->n;
@@ -445,7 +467,7 @@ static void check_agg_row(struct MIR *mir)
 }
 #endif
 
-static void subst_fixed_vars(struct MIR *mir)
+static void subst_fixed_vars(glp_mir *mir)
 {     /* substitute fixed variables into aggregated constraint */
       int m = mir->m;
       int n = mir->n;
@@ -461,14 +483,14 @@ static void subst_fixed_vars(struct MIR *mir)
          }
       }
       /* remove terms corresponding to fixed variables */
-      ios_clean_vec(mir->agg_vec, DBL_EPSILON);
-#if _MIR_DEBUG
-      ios_check_vec(mir->agg_vec);
+      spv_clean_vec(mir->agg_vec, DBL_EPSILON);
+#if MIR_DEBUG
+      spv_check_vec(mir->agg_vec);
 #endif
       return;
 }
 
-static void bound_subst_heur(struct MIR *mir)
+static void bound_subst_heur(glp_mir *mir)
 {     /* bound substitution heuristic */
       int m = mir->m;
       int n = mir->n;
@@ -518,16 +540,16 @@ static void bound_subst_heur(struct MIR *mir)
       return;
 }
 
-static void build_mod_row(struct MIR *mir)
+static void build_mod_row(glp_mir *mir)
 {     /* substitute bounds and build modified constraint */
       int m = mir->m;
       int n = mir->n;
       int j, jj, k, kk;
       /* initially modified constraint is aggregated constraint */
-      ios_copy_vec(mir->mod_vec, mir->agg_vec);
+      spv_copy_vec(mir->mod_vec, mir->agg_vec);
       mir->mod_rhs = mir->agg_rhs;
-#if _MIR_DEBUG
-      ios_check_vec(mir->mod_vec);
+#if MIR_DEBUG
+      spv_check_vec(mir->mod_vec);
 #endif
       /* substitute bounds for continuous variables; note that due to
          substitution of variable bounds additional terms may appear in
@@ -549,7 +571,7 @@ static void build_mod_row(struct MIR *mir)
                xassert(mir->isint[kk]);
                jj = mir->mod_vec->pos[kk];
                if (jj == 0)
-               {  ios_set_vj(mir->mod_vec, kk, 1.0);
+               {  spv_set_vj(mir->mod_vec, kk, 1.0);
                   jj = mir->mod_vec->pos[kk];
                   mir->mod_vec->val[jj] = 0.0;
                }
@@ -570,7 +592,7 @@ static void build_mod_row(struct MIR *mir)
                xassert(mir->isint[kk]);
                jj = mir->mod_vec->pos[kk];
                if (jj == 0)
-               {  ios_set_vj(mir->mod_vec, kk, 1.0);
+               {  spv_set_vj(mir->mod_vec, kk, 1.0);
                   jj = mir->mod_vec->pos[kk];
                   mir->mod_vec->val[jj] = 0.0;
                }
@@ -582,8 +604,8 @@ static void build_mod_row(struct MIR *mir)
          else
             xassert(k != k);
       }
-#if _MIR_DEBUG
-      ios_check_vec(mir->mod_vec);
+#if MIR_DEBUG
+      spv_check_vec(mir->mod_vec);
 #endif
       /* substitute bounds for integer variables */
       for (j = 1; j <= mir->mod_vec->nnz; j++)
@@ -605,14 +627,14 @@ static void build_mod_row(struct MIR *mir)
             mir->mod_vec->val[j] = - mir->mod_vec->val[j];
          }
       }
-#if _MIR_DEBUG
-      ios_check_vec(mir->mod_vec);
+#if MIR_DEBUG
+      spv_check_vec(mir->mod_vec);
 #endif
       return;
 }
 
-#if _MIR_DEBUG
-static void check_mod_row(struct MIR *mir)
+#if MIR_DEBUG
+static void check_mod_row(glp_mir *mir)
 {     /* check modified constraint */
       int m = mir->m;
       int n = mir->n;
@@ -870,19 +892,19 @@ done: /* free working arrays */
       return r_best;
 }
 
-static double generate(struct MIR *mir)
+static double generate(glp_mir *mir)
 {     /* try to generate violated c-MIR cut for modified constraint */
       int m = mir->m;
       int n = mir->n;
       int j, k, kk, nint;
       double s, *u, *x, *alpha, r_best = 0.0, b, beta, gamma;
-      ios_copy_vec(mir->cut_vec, mir->mod_vec);
+      spv_copy_vec(mir->cut_vec, mir->mod_vec);
       mir->cut_rhs = mir->mod_rhs;
       /* remove small terms, which can appear due to substitution of
          variable bounds */
-      ios_clean_vec(mir->cut_vec, DBL_EPSILON);
-#if _MIR_DEBUG
-      ios_check_vec(mir->cut_vec);
+      spv_clean_vec(mir->cut_vec, DBL_EPSILON);
+#if MIR_DEBUG
+      spv_check_vec(mir->cut_vec);
 #endif
       /* remove positive continuous terms to obtain MK relaxation */
       for (j = 1; j <= mir->cut_vec->nnz; j++)
@@ -891,9 +913,9 @@ static double generate(struct MIR *mir)
          if (!mir->isint[k] && mir->cut_vec->val[j] > 0.0)
             mir->cut_vec->val[j] = 0.0;
       }
-      ios_clean_vec(mir->cut_vec, 0.0);
-#if _MIR_DEBUG
-      ios_check_vec(mir->cut_vec);
+      spv_clean_vec(mir->cut_vec, 0.0);
+#if MIR_DEBUG
+      spv_check_vec(mir->cut_vec);
 #endif
       /* move integer terms to the beginning of the sparse vector and
          determine the number of integer variables */
@@ -915,8 +937,8 @@ static double generate(struct MIR *mir)
             mir->cut_vec->val[j] = temp;
          }
       }
-#if _MIR_DEBUG
-      ios_check_vec(mir->cut_vec);
+#if MIR_DEBUG
+      spv_check_vec(mir->cut_vec);
 #endif
       /* if there is no integer variable, nothing to generate */
       if (nint == 0) goto done;
@@ -937,7 +959,15 @@ static double generate(struct MIR *mir)
             x[j] = mir->ub[k] - mir->x[k];
          else
             xassert(k != k);
+#if 0 /* 06/III-2016; notorious bug reported many times */
          xassert(x[j] >= -0.001);
+#else
+         if (x[j] < -0.001)
+         {  xprintf("glp_mir_gen: warning: x[%d] = %g\n", j, x[j]);
+            r_best = 0.0;
+            goto skip;
+         }
+#endif
          if (x[j] < 0.0) x[j] = 0.0;
       }
       /* compute s = - sum of continuous terms */
@@ -966,7 +996,15 @@ static double generate(struct MIR *mir)
          }
          else
             xassert(k != k);
+#if 0 /* 06/III-2016; notorious bug reported many times */
          xassert(x >= -0.001);
+#else
+         if (x < -0.001)
+         {  xprintf("glp_mir_gen: warning: x = %g\n", x);
+            r_best = 0.0;
+            goto skip;
+         }
+#endif
          if (x < 0.0) x = 0.0;
          s -= mir->cut_vec->val[j] * x;
       }
@@ -986,8 +1024,8 @@ static double generate(struct MIR *mir)
          if (k <= m+n) mir->cut_vec->val[j] *= gamma;
       }
       mir->cut_rhs = beta;
-#if _MIR_DEBUG
-      ios_check_vec(mir->cut_vec);
+#if MIR_DEBUG
+      spv_check_vec(mir->cut_vec);
 #endif
 skip: /* free working arrays */
       xfree(u);
@@ -996,8 +1034,8 @@ skip: /* free working arrays */
 done: return r_best;
 }
 
-#if _MIR_DEBUG
-static void check_raw_cut(struct MIR *mir, double r_best)
+#if MIR_DEBUG
+static void check_raw_cut(glp_mir *mir, double r_best)
 {     /* check raw cut before back bound substitution */
       int m = mir->m;
       int n = mir->n;
@@ -1040,7 +1078,7 @@ static void check_raw_cut(struct MIR *mir, double r_best)
 }
 #endif
 
-static void back_subst(struct MIR *mir)
+static void back_subst(glp_mir *mir)
 {     /* back substitution of original bounds */
       int m = mir->m;
       int n = mir->n;
@@ -1088,7 +1126,7 @@ static void back_subst(struct MIR *mir)
                xassert(jj != 0);
 #else
                if (jj == 0)
-               {  ios_set_vj(mir->cut_vec, kk, 1.0);
+               {  spv_set_vj(mir->cut_vec, kk, 1.0);
                   jj = mir->cut_vec->pos[kk];
                   xassert(jj != 0);
                   mir->cut_vec->val[jj] = 0.0;
@@ -1110,7 +1148,7 @@ static void back_subst(struct MIR *mir)
             {  /* x'[k] = ub[k] * x[kk] - x[k] */
                jj = mir->cut_vec->pos[kk];
                if (jj == 0)
-               {  ios_set_vj(mir->cut_vec, kk, 1.0);
+               {  spv_set_vj(mir->cut_vec, kk, 1.0);
                   jj = mir->cut_vec->pos[kk];
                   xassert(jj != 0);
                   mir->cut_vec->val[jj] = 0.0;
@@ -1123,14 +1161,14 @@ static void back_subst(struct MIR *mir)
          else
             xassert(k != k);
       }
-#if _MIR_DEBUG
-      ios_check_vec(mir->cut_vec);
+#if MIR_DEBUG
+      spv_check_vec(mir->cut_vec);
 #endif
       return;
 }
 
-#if _MIR_DEBUG
-static void check_cut_row(struct MIR *mir, double r_best)
+#if MIR_DEBUG
+static void check_cut_row(glp_mir *mir, double r_best)
 {     /* check the cut after back bound substitution or elimination of
          auxiliary variables */
       int m = mir->m;
@@ -1156,9 +1194,8 @@ static void check_cut_row(struct MIR *mir, double r_best)
 }
 #endif
 
-static void subst_aux_vars(glp_tree *tree, struct MIR *mir)
+static void subst_aux_vars(glp_prob *mip, glp_mir *mir)
 {     /* final substitution to eliminate auxiliary variables */
-      glp_prob *mip = tree->mip;
       int m = mir->m;
       int n = mir->n;
       GLPAIJ *aij;
@@ -1171,7 +1208,7 @@ static void subst_aux_vars(glp_tree *tree, struct MIR *mir)
          {  kk = m + aij->col->j; /* structural */
             jj = mir->cut_vec->pos[kk];
             if (jj == 0)
-            {  ios_set_vj(mir->cut_vec, kk, 1.0);
+            {  spv_set_vj(mir->cut_vec, kk, 1.0);
                jj = mir->cut_vec->pos[kk];
                mir->cut_vec->val[jj] = 0.0;
             }
@@ -1179,11 +1216,11 @@ static void subst_aux_vars(glp_tree *tree, struct MIR *mir)
          }
          mir->cut_vec->val[j] = 0.0;
       }
-      ios_clean_vec(mir->cut_vec, 0.0);
+      spv_clean_vec(mir->cut_vec, 0.0);
       return;
 }
 
-static void add_cut(glp_tree *tree, struct MIR *mir)
+static void add_cut(glp_mir *mir, glp_prob *pool)
 {     /* add constructed cut inequality to the cut pool */
       int m = mir->m;
       int n = mir->n;
@@ -1197,24 +1234,37 @@ static void add_cut(glp_tree *tree, struct MIR *mir)
          len++, ind[len] = k - m, val[len] = mir->cut_vec->val[j];
       }
 #if 0
+#if 0
       ios_add_cut_row(tree, pool, GLP_RF_MIR, len, ind, val, GLP_UP,
          mir->cut_rhs);
 #else
       glp_ios_add_row(tree, NULL, GLP_RF_MIR, 0, len, ind, val, GLP_UP,
          mir->cut_rhs);
 #endif
+#else
+      {  int i;
+         i = glp_add_rows(pool, 1);
+         glp_set_row_bnds(pool, i, GLP_UP, 0, mir->cut_rhs);
+         glp_set_mat_row(pool, i, len, ind, val);
+      }
+#endif
       xfree(ind);
       xfree(val);
       return;
 }
 
-static int aggregate_row(glp_tree *tree, struct MIR *mir)
+#if 0 /* 29/II-2016 by Chris */
+static int aggregate_row(glp_prob *mip, glp_mir *mir)
+#else
+static int aggregate_row(glp_prob *mip, glp_mir *mir, SPV *v)
+#endif
 {     /* try to aggregate another row */
-      glp_prob *mip = tree->mip;
       int m = mir->m;
       int n = mir->n;
       GLPAIJ *aij;
-      IOSVEC *v;
+#if 0 /* 29/II-2016 by Chris */
+      SPV *v;
+#endif
       int ii, j, jj, k, kk, kappa = 0, ret = 0;
       double d1, d2, d, d_max = 0.0;
       /* choose appropriate structural variable in the aggregated row
@@ -1272,13 +1322,29 @@ static int aggregate_row(glp_tree *tree, struct MIR *mir)
       xassert(!mir->isint[kappa]);
       /* find another row, which have not been used yet, to eliminate
          x[kappa] from the aggregated row */
+#if 0 /* 29/II-2016 by Chris */
       for (ii = 1; ii <= m; ii++)
       {  if (mir->skip[ii]) continue;
          for (aij = mip->row[ii]->ptr; aij != NULL; aij = aij->r_next)
             if (aij->col->j == kappa - m) break;
          if (aij != NULL && fabs(aij->val) >= 0.001) break;
+#else
+      ii = 0;
+      for (aij = mip->col[kappa - m]->ptr; aij != NULL;
+         aij = aij->c_next)
+      {  if (aij->row->i > m) continue;
+         if (mir->skip[aij->row->i]) continue;
+         if (fabs(aij->val) >= 0.001)
+         {  ii = aij->row->i;
+            break;
+         }
+#endif
       }
+#if 0 /* 29/II-2016 by Chris */
       if (ii > m)
+#else
+      if (ii == 0)
+#endif
       {  /* nothing found */
          ret = 2;
          goto done;
@@ -1289,63 +1355,73 @@ static int aggregate_row(glp_tree *tree, struct MIR *mir)
       mir->agg_row[mir->agg_cnt] = ii;
       mir->skip[ii] = 2;
       /* v := new row */
+#if 0 /* 29/II-2016 by Chris */
       v = ios_create_vec(m+n);
-      ios_set_vj(v, ii, 1.0);
+#else
+      spv_clear_vec(v);
+#endif
+      spv_set_vj(v, ii, 1.0);
       for (aij = mip->row[ii]->ptr; aij != NULL; aij = aij->r_next)
-         ios_set_vj(v, m + aij->col->j, - aij->val);
-#if _MIR_DEBUG
-      ios_check_vec(v);
+         spv_set_vj(v, m + aij->col->j, - aij->val);
+#if MIR_DEBUG
+      spv_check_vec(v);
 #endif
       /* perform gaussian elimination to remove x[kappa] */
       j = mir->agg_vec->pos[kappa];
       xassert(j != 0);
       jj = v->pos[kappa];
       xassert(jj != 0);
-      ios_linear_comb(mir->agg_vec,
+      spv_linear_comb(mir->agg_vec,
          - mir->agg_vec->val[j] / v->val[jj], v);
+#if 0 /* 29/II-2016 by Chris */
       ios_delete_vec(v);
-      ios_set_vj(mir->agg_vec, kappa, 0.0);
-#if _MIR_DEBUG
-      ios_check_vec(mir->agg_vec);
+#endif
+      spv_set_vj(mir->agg_vec, kappa, 0.0);
+#if MIR_DEBUG
+      spv_check_vec(mir->agg_vec);
 #endif
 done: return ret;
 }
 
-void ios_mir_gen(glp_tree *tree, void *gen)
+int glp_mir_gen(glp_prob *mip, glp_mir *mir, glp_prob *pool)
 {     /* main routine to generate MIR cuts */
-      glp_prob *mip = tree->mip;
-      struct MIR *mir = gen;
       int m = mir->m;
       int n = mir->n;
-      int i;
+      int i, nnn = 0;
       double r_best;
+#if 1 /* 29/II-2016 by Chris */
+      SPV *work;
+#endif
       xassert(mip->m >= m);
       xassert(mip->n == n);
       /* obtain current point */
-      get_current_point(tree, mir);
-#if _MIR_DEBUG
+      get_current_point(mip, mir);
+#if MIR_DEBUG
       /* check current point */
       check_current_point(mir);
 #endif
       /* reset bound substitution flags */
       memset(&mir->subst[1], '?', m+n);
+#if 1 /* 29/II-2016 by Chris */
+      work = spv_create_vec(m+n);
+#endif
       /* try to generate a set of violated MIR cuts */
       for (i = 1; i <= m; i++)
       {  if (mir->skip[i]) continue;
          /* use original i-th row as initial aggregated constraint */
-         initial_agg_row(tree, mir, i);
+         initial_agg_row(mip, mir, i);
 loop:    ;
-#if _MIR_DEBUG
+#if MIR_DEBUG
          /* check aggregated row */
          check_agg_row(mir);
 #endif
          /* substitute fixed variables into aggregated constraint */
          subst_fixed_vars(mir);
-#if _MIR_DEBUG
+#if MIR_DEBUG
          /* check aggregated row */
          check_agg_row(mir);
 #endif
-#if _MIR_DEBUG
+#if MIR_DEBUG
          /* check bound substitution flags */
          {  int k;
             for (k = 1; k <= m+n; k++)
@@ -1356,7 +1432,7 @@ loop:    ;
          bound_subst_heur(mir);
          /* substitute bounds and build modified constraint */
          build_mod_row(mir);
-#if _MIR_DEBUG
+#if MIR_DEBUG
          /* check modified row */
          check_mod_row(mir);
 #endif
@@ -1364,24 +1440,24 @@ loop:    ;
          r_best = generate(mir);
          if (r_best > 0.0)
          {  /* success */
-#if _MIR_DEBUG
+#if MIR_DEBUG
             /* check raw cut before back bound substitution */
             check_raw_cut(mir, r_best);
 #endif
             /* back substitution of original bounds */
             back_subst(mir);
-#if _MIR_DEBUG
+#if MIR_DEBUG
             /* check the cut after back bound substitution */
             check_cut_row(mir, r_best);
 #endif
             /* final substitution to eliminate auxiliary variables */
-            subst_aux_vars(tree, mir);
-#if _MIR_DEBUG
+            subst_aux_vars(mip, mir);
+#if MIR_DEBUG
             /* check the cut after elimination of auxiliaries */
             check_cut_row(mir, r_best);
 #endif
             /* add constructed cut inequality to the cut pool */
-            add_cut(tree, mir);
+            add_cut(mir, pool), nnn++;
          }
          /* reset bound substitution flags */
          {  int j, k;
@@ -1396,7 +1472,11 @@ loop:    ;
          {  /* failure */
             if (mir->agg_cnt < MAXAGGR)
             {  /* try to aggregate another row */
-               if (aggregate_row(tree, mir) == 0) goto loop;
+#if 0 /* 29/II-2016 by Chris */
+               if (aggregate_row(mip, mir) == 0) goto loop;
+#else
+               if (aggregate_row(mip, mir, work) == 0) goto loop;
+#endif
             }
          }
          /* unmark rows used in the aggregated constraint */
@@ -1409,27 +1489,28 @@ loop:    ;
             }
          }
       }
-      return;
+#if 1 /* 29/II-2016 by Chris */
+      spv_delete_vec(work);
+#endif
+      return nnn;
 }
 
 /***********************************************************************
 *  NAME
 *
-*  ios_mir_term - terminate MIR cut generator
+*  glp_mir_free - delete MIR cut generator workspace
 *
 *  SYNOPSIS
 *
-*  #include "glpios.h"
-*  void ios_mir_term(void *gen);
+*  void glp_mir_free(glp_mir *mir);
 *
 *  DESCRIPTION
 *
-*  The routine ios_mir_term deletes the MIR cut generator working area
-*  freeing all the memory allocated to it. */
+*  This routine deletes the MIR cut generator workspace and frees all
+*  the memory allocated to it. */
 
-void ios_mir_term(void *gen)
-{     struct MIR *mir = gen;
-      xfree(mir->skip);
+void glp_mir_free(glp_mir *mir)
+{     xfree(mir->skip);
       xfree(mir->isint);
       xfree(mir->lb);
       xfree(mir->vlb);
@@ -1437,10 +1518,10 @@ void ios_mir_term(void *gen)
       xfree(mir->vub);
       xfree(mir->x);
       xfree(mir->agg_row);
-      ios_delete_vec(mir->agg_vec);
+      spv_delete_vec(mir->agg_vec);
       xfree(mir->subst);
-      ios_delete_vec(mir->mod_vec);
-      ios_delete_vec(mir->cut_vec);
+      spv_delete_vec(mir->mod_vec);
+      spv_delete_vec(mir->cut_vec);
       xfree(mir);
       return;
 }

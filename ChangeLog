@@ -1,3 +1,85 @@
+Fri Mar 11 12:00:00 2016 Andrew Makhorin <mao@gnu.org>
+
+        * GLPK 4.59 (40:0:0) has been released.
+
+        * src/sgf.c, src/sgf.h
+        The routines sgf_reduce_nuc and sgf_factorize were changed to
+        correctly report structural singularity.
+
+        * src/glpios01.c
+        The routine ios_solve_node was changed to retry solving node
+        problem in case of the simplex solver failure. Thanks to Chris
+        Matrakidis <cmatraki@gmail.com> for patch.
+
+        * src/glpios03.c
+        The routine ios_driver was changed to correctly process the
+        root node. Thanks to Chris Matrakidis <cmatraki@gmail.com> for
+        patch.
+
+        * src/glpios06.c
+        Some improvements were made in the MIR cut generation routines.
+        Thanks to Chris Matrakidis <cmatraki@gmail.com> for patch.
+
+        The following source modules were splitted/renamed to simplify
+        maintenance.
+        * src/glpios04.c RENAMED            -> src/spv.c
+        * src/glpios05.c glp_gmi_cut  (new) -> src/cglib/gmicut.c
+        * src/glpios05.c glp_gmi_gen  (new) -> src/cglib/gmigen.c
+        * src/glpios05.c REMOVED
+        * src/glpios06.c glp_mir_init (new) -> src/cglib/mirgen.c
+        * src/glpios06.c glp_mir_gen  (new) -> src/cglib/mirgen.c
+        * src/glpios06.c glp_mir_free (new) -> src/cglib/mirgen.c
+        * src/glpios06.c REMOVED
+        * src/glpios08.c glp_cfg_init (new) -> src/cglib/cfg2.c
+        * src/glpios08.c glp_cfg_free (new) -> src/cglib/cfg2.c
+        * src/glpios08.c glp_clq_cut  (new) -> src/cglib/clqcut.c
+        * src/glpios08.c REMOVED
+        * src/glpmpl.h   RENAMED             -> src/mpl/mpl.h
+        * src/glpmpl01.c RENAMED             -> src/mpl/mpl1.c
+        * src/glpmpl02.c RENAMED             -> src/mpl/mpl2.c
+        * src/glpmpl03.c RENAMED             -> src/mpl/mpl3.c
+        * src/glpmpl04.c RENAMED             -> src/mpl/mpl4.c
+        * src/glpmpl05.c RENAMED             -> src/mpl/mpl5.c
+        * src/glpmpl06.c RENAMED             -> src/mpl/mpl6.c
+        * src/glpsql.h   RENAMED             -> src/mpl/sql.h
+        * src/glpsql.c   RENAMED             -> src/mpl/sql.c
+
+        * src/proxy/proxy.c
+        Minor bug was fixed in the PROXY heuristic routine. Thanks to
+        Chris Matrakidis <cmatraki@gmail.com> for bug report.
+
+        * src/cglib/gmicut.c, src/glpk.h
+        New API routine glp_gmi_cut was added (not documented yet).
+
+        * src/cglib/gmigen.c, src/glpk.h
+        New API routine glp_gmi_gen was added (not documented yet).
+
+        * src/cglib/mirgen.c, src/glpk.h
+        New API routines glp_mir_init, glp_mir_gen, and glp_mir_free
+        were added (not documented yet).
+
+        * src/cglib/cfg2.c, src/glpk.h
+        New API routines glp_cfg_init and glp_cfg_free were added (not
+        documented yet).
+
+        * src/cglib/clqcut.c, src/glpk.h
+        New API routine glp_clq_cut was added (not documented yet).
+
+        * src/api/rdcc.c, src/api/wrcc.c
+        API routines glp_read_graph and glp_write_graph were changed
+        due to changes in the data format. For details see the document
+        "GLPK: Graph and Network Routines".
+
+        * src/api/rdgr.c, src/api/wrgr.c, src/glpsdf.c, src/glpsdf.h
+        Old versions of API routines glp_read_graph and glp_write_graph
+        were removed.
+
+        * doc/gmpl_pt-BR.tex, doc/gmpl_pt-BR.pdf
+        Translation of the document "Modeling Language GNU MathProg"
+        to Brazilian Portuguese (pt-BR) was included (in LaTeX and pdf
+        formats). Thanks to Joao Flavio de Freitas Almeida
+        <joao.flavio@dep.ufmg.br> for contribution.
+
 Thu Feb 18 12:00:00 2016 Andrew Makhorin <mao@gnu.org>
 
         * GLPK 4.58 (39:0:0) has been released.
