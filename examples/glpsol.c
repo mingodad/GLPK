@@ -321,6 +321,10 @@ static void print_help(const char *my_name)
          "fault)\n");
       xprintf("   --norelax         use standard \"textbook\" ratio tes"
          "t\n");
+#if 1 /* 28/III-2016 */
+      xprintf("   --flip            use flip-flop ratio test (assumes -"
+         "-dual)\n");
+#endif
       xprintf("   --presol          use presolver (default; assumes --s"
          "cale and --adv)\n");
       xprintf("   --nopresol        do not use presolver\n");
@@ -768,6 +772,13 @@ static int parse_cmdline(struct csa *csa, int argc, char *argv[])
             csa->smcp.r_test = GLP_RT_HAR;
          else if (p("--norelax"))
             csa->smcp.r_test = GLP_RT_STD;
+#if 1 /* 28/III-2016 */
+         else if (p("--flip"))
+         {  csa->smcp.meth = GLP_DUAL;
+            csa->smcp.r_test = GLP_RT_FLIP;
+            csa->iocp.flip = GLP_ON;
+         }
+#endif
          else if (p("--presol"))
             csa->smcp.presolve = GLP_ON;
          else if (p("--nopresol"))
@@ -1222,7 +1233,25 @@ err2:    {  xprintf("MathProg model processing error\n");
       /*--------------------------------------------------------------*/
       /* if only problem data check is required, skip computations */
       if (csa->check)
-      {  ret = EXIT_SUCCESS;
+      {
+#if 1 /* 29/III-2016 */
+         /* report problem characteristics */
+         int j, cnt = 0;
+         xprintf("--- Problem Characteristics ---\n");
+         xprintf("Number of rows               = %8d\n",
+            glp_get_num_rows(csa->prob));
+         xprintf("Number of columns            = %8d\n",
+            glp_get_num_cols(csa->prob));
+         xprintf("Number of non-zeros (matrix) = %8d\n",
+            glp_get_num_nz(csa->prob));
+         for (j = glp_get_num_cols(csa->prob); j >= 1; j--)
+         {  if (glp_get_obj_coef(csa->prob, j) != 0.0)
+               cnt++;
+         }
+         xprintf("Number of non-zeros (objrow) = %8d\n",
+            cnt);
+#endif
+         ret = EXIT_SUCCESS;
          goto done;
       }
       /*--------------------------------------------------------------*/

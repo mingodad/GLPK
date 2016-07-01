@@ -1,5 +1,5 @@
-LIBRARY glpk_4_59
-VERSION 4.59
+LIBRARY glpk_4_60
+VERSION 4.60
 DESCRIPTION "GNU Linear Programming Kit"
 EXPORTS
 glp_create_prob

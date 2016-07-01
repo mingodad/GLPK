@@ -5,6 +5,9 @@
 #ifndef DRAFT_H
 #define DRAFT_H
 
+#if 1 /* 28/III-2016 */
+#define GLP_UNDOC 1
+#endif
 #include "glpk.h"
 
 #if 1 /* 28/XI-2009 */

@@ -493,7 +493,10 @@ static void check_accuracy(struct csa *csa)
 *  the routine attempts to choose another xN[q] and xB[p] in order to
 *  avoid badly conditioned adjacent bases. */
 
-static void choose_pivot(struct csa *csa)
+#if 1 /* 17/III-2016 */
+#define MIN_RATIO 0.0001
+
+static int choose_pivot(struct csa *csa)
 {     SPXLP *lp = csa->lp;
       int m = lp->m;
       int n = lp->n;
@@ -501,12 +504,17 @@ static void choose_pivot(struct csa *csa)
       double *d = csa->d;
       SPXSE *se = csa->se;
       int *list = csa->list;
-      int nnn, try, q, t, p_flag, p;
       double *tcol = csa->work;
-      /* initial number of eligible non-basic variables */
+      double tol_piv = csa->tol_piv;
+      int try, nnn, /*i,*/ p, p_flag, q, t;
+      double big, /*temp,*/ best_ratio;
+      xassert(csa->beta_st);
+      xassert(csa->d_st);
+more: /* initial number of eligible non-basic variables */
       nnn = csa->num;
       /* nothing has been chosen so far */
       csa->q = 0;
+      best_ratio = 0.0;
       try = 0;
 try:  /* choose non-basic variable xN[q] */
       xassert(nnn > 0);
@@ -522,34 +530,53 @@ try:  /* choose non-basic variable xN[q] */
       xassert(1 <= q && q <= n-m);
       /* compute q-th column of the simplex table */
       spx_eval_tcol(lp, q, tcol);
+#if 0
+      /* big := max(1, |tcol[1]|, ..., |tcol[m]|) */
+      big = 1.0;
+      for (i = 1; i <= m; i++)
+      {  temp = tcol[i];
+         if (temp < 0.0)
+            temp = - temp;
+         if (big < temp)
+            big = temp;
+      }
+#else
+      /* this still puzzles me */
+      big = 1.0;
+#endif
       /* choose basic variable xB[p] */
       if (!csa->harris)
       {  /* textbook ratio test */
          p = spx_chuzr_std(lp, csa->phase, beta, q,
-            d[q] < 0.0 ? +1. : -1., tcol, &p_flag, csa->tol_piv,
+            d[q] < 0.0 ? +1. : -1., tcol, &p_flag, tol_piv,
             .30 * csa->tol_bnd, .30 * csa->tol_bnd1);
       }
       else
       {  /* Harris' two-pass ratio test */
          p = spx_chuzr_harris(lp, csa->phase, beta, q,
-            d[q] < 0.0 ? +1. : -1., tcol, &p_flag , csa->tol_piv,
+            d[q] < 0.0 ? +1. : -1., tcol, &p_flag , tol_piv,
             .50 * csa->tol_bnd, .50 * csa->tol_bnd1);
+      }
+      if (p <= 0)
+      {  /* primal unboundedness or special case */
+         csa->q = q;
+         memcpy(&csa->tcol[1], &tcol[1], m * sizeof(double));
+         csa->p = p;
+         csa->p_flag = p_flag;
+         best_ratio = 1.0;
+         goto done;
       }
       /* either keep previous choice or accept new choice depending on
        * which one is better */
-      if (csa->q == 0 || p <= 0 ||
-         fabs(tcol[p]) > fabs(csa->tcol[csa->p]))
+      if (best_ratio < fabs(tcol[p]) / big)
       {  csa->q = q;
          memcpy(&csa->tcol[1], &tcol[1], m * sizeof(double));
          csa->p = p;
          csa->p_flag = p_flag;
+         best_ratio = fabs(tcol[p]) / big;
       }
-      /* check if current choice is acceptable */
-      if (csa->p <= 0 || fabs(csa->tcol[csa->p]) >= 0.001)
-         goto done;
-      if (nnn == 1)
-         goto done;
-      if (try == 5)
+      /* check if the current choice is acceptable */
+      if (best_ratio >= MIN_RATIO || nnn == 1 || try == 5)
          goto done;
       /* try to choose other xN[q] and xB[p] */
       /* find xN[q] in the list */
@@ -563,8 +590,21 @@ try:  /* choose non-basic variable xN[q] */
       /* repeat the choice */
       goto try;
 done: /* the choice has been made */
-      return;
+#if 1 /* FIXME: currently just to avoid badly conditioned basis */
+      if (best_ratio < .001 * MIN_RATIO)
+      {  /* looks like this helps */
+         if (bfd_get_count(lp->bfd) > 0)
+            return -1;
+         /* didn't help; last chance to improve the choice */
+         if (tol_piv == csa->tol_piv)
+         {  tol_piv *= 1000.;
+            goto more;
+         }
+      }
+#endif
+      return 0;
 }
+#endif
 
 /***********************************************************************
 *  sum_infeas - compute sum of primal infeasibilities
@@ -871,7 +911,14 @@ loop: /* main loop starts here */
          }
       }
       /* choose xN[q] and xB[p] */
+#if 0 /* 17/III-2016 */
       choose_pivot(csa);
+#else
+      if (choose_pivot(csa) < 0)
+      {  lp->valid = 0;
+         goto loop;
+      }
+#endif
       /* check for unboundedness */
       if (csa->p == 0)
       {  if (csa->beta_st != 1)
@@ -1054,6 +1101,12 @@ int spx_primal(glp_prob *P, const glp_smcp *parm)
             csa->harris = 0;
             break;
          case GLP_RT_HAR:
+#if 1 /* 16/III-2016 */
+         case GLP_RT_FLIP:
+            /* FIXME */
+            /* currently for primal simplex GLP_RT_FLIP is equivalent
+             * to GLP_RT_HAR */
+#endif
             csa->harris = 1;
             break;
          default:

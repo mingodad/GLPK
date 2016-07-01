@@ -125,6 +125,7 @@ OBJSET = \
 ..\src\bflib\btfint.obj \
 ..\src\bflib\fhv.obj \
 ..\src\bflib\fhvint.obj \
+..\src\bflib\fvs.obj \
 ..\src\bflib\ifu.obj \
 ..\src\bflib\luf.obj \
 ..\src\bflib\lufint.obj \
@@ -180,7 +181,7 @@ OBJSET = \
 ..\src\mpl\mpl4.obj \
 ..\src\mpl\mpl5.obj \
 ..\src\mpl\mpl6.obj \
-..\src\mpl\sql.obj \
+..\src\mpl\mplsql.obj \
 ..\src\proxy\proxy.obj \
 ..\src\proxy\proxy1.obj \
 ..\src\simplex\spxat.obj \
@@ -212,10 +213,10 @@ OBJSET = \
 .c.obj:
         cl.exe $(CFLAGS) /Fo$*.obj /c $*.c
 
-all: glpk_4_59.dll glpsol.exe
+all: glpk_4_60.dll glpsol.exe
 
-glpk_4_59.dll: $(OBJSET)
-        cl.exe $(CFLAGS) /LD /Feglpk_4_59.dll \
+glpk_4_60.dll: $(OBJSET)
+        cl.exe $(CFLAGS) /LD /Feglpk_4_60.dll \
                 ..\src\*.obj \
                 ..\src\amd\*.obj \
                 ..\src\api\*.obj \
@@ -229,14 +230,14 @@ glpk_4_59.dll: $(OBJSET)
                 ..\src\proxy\*.obj \
                 ..\src\simplex\*.obj \
                 ..\src\zlib\*.obj \
-                glpk_4_59.def
+                glpk_4_60.def
 
-glpsol.exe: ..\examples\glpsol.obj glpk_4_59.dll
+glpsol.exe: ..\examples\glpsol.obj glpk_4_60.dll
         cl.exe $(CFLAGS) /Feglpsol.exe \
-                ..\examples\glpsol.obj glpk_4_59.lib
+                ..\examples\glpsol.obj glpk_4_60.lib
 
 check: glpsol.exe
         .\glpsol.exe --version
-        .\glpsol.exe --mps ..\examples\plan.mps
+        .\glpsol.exe --mps ..\examples\murtagh.mps --max
 
 ## eof ##

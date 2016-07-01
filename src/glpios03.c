@@ -940,6 +940,10 @@ int ios_driver(glp_tree *T)
 #if 0
       ((glp_iocp *)T->parm)->msg_lev = GLP_MSG_DBG;
 #endif
+#if 1 /* 16/III-2016 */
+      if (((glp_iocp *)T->parm)->flip)
+         xprintf("WARNING: LONG-STEP DUAL SIMPLEX WILL BE USED\n");
+#endif
       /* on entry to the B&B driver it is assumed that the active list
          contains the only active (i.e. root) subproblem, which is the
          original MIP problem to be solved */

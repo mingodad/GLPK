@@ -307,12 +307,18 @@ skip: /* check if the time limit has been exhausted */
          if (ret != 0)
          {  if (T->parm->msg_lev >= GLP_MSG_ERR)
                xprintf("Warning: glp_simplex returned %d\n", ret);
+#if 1 /* 17/III-2016: fix memory leak */
+            xfree(x);
+#endif
             goto done;
          }
          ret = glp_get_status(lp);
          if (ret != GLP_OPT)
          {  if (T->parm->msg_lev >= GLP_MSG_ERR)
                xprintf("Warning: glp_get_status returned %d\n", ret);
+#if 1 /* 17/III-2016: fix memory leak */
+            xfree(x);
+#endif
             goto done;
          }
          for (j = 1; j <= n; j++)

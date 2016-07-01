@@ -182,6 +182,12 @@ void spx_eval_tcol(SPXLP *lp, int j, double tcol[/*1+m*/]);
 void spx_eval_rho(SPXLP *lp, int i, double rho[/*1+m*/]);
 /* compute i-th row of basis matrix inverse */
 
+#if 1 /* 31/III-2016 */
+#define spx_eval_rho_s _glp_spx_eval_rho_s
+void spx_eval_rho_s(SPXLP *lp, int i, FVS *rho);
+/* sparse version of spx_eval_rho */
+#endif
+
 #define spx_eval_tij _glp_spx_eval_tij
 double spx_eval_tij(SPXLP *lp, const double rho[/*1+m*/], int j);
 /* compute element T[i,j] of simplex table */
@@ -196,10 +202,24 @@ void spx_update_beta(SPXLP *lp, double beta[/*1+m*/], int p,
       int p_flag, int q, const double tcol[/*1+m*/]);
 /* update values of basic variables */
 
+#if 1 /* 30/III-2016 */
+#define spx_update_beta_s _glp_spx_update_beta_s
+void spx_update_beta_s(SPXLP *lp, double beta[/*1+m*/], int p,
+      int p_flag, int q, const FVS *tcol);
+/* sparse version of spx_update_beta */
+#endif
+
 #define spx_update_d _glp_spx_update_d
 double spx_update_d(SPXLP *lp, double d[/*1+n-m*/], int p, int q,
       const double trow[/*1+n-m*/], const double tcol[/*1+m*/]);
 /* update reduced costs of non-basic variables */
+
+#if 1 /* 30/III-2016 */
+#define spx_update_d_s _glp_spx_update_d_s
+double spx_update_d_s(SPXLP *lp, double d[/*1+n-m*/], int p, int q,
+      const FVS *trow, const FVS *tcol);
+/* sparse version of spx_update_d */
+#endif
 
 #define spx_change_basis _glp_spx_change_basis
 void spx_change_basis(SPXLP *lp, int p, int p_flag, int q);

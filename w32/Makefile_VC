@@ -125,6 +125,7 @@ OBJSET = \
 ..\src\bflib\btfint.obj \
 ..\src\bflib\fhv.obj \
 ..\src\bflib\fhvint.obj \
+..\src\bflib\fvs.obj \
 ..\src\bflib\ifu.obj \
 ..\src\bflib\luf.obj \
 ..\src\bflib\lufint.obj \
@@ -180,7 +181,7 @@ OBJSET = \
 ..\src\mpl\mpl4.obj \
 ..\src\mpl\mpl5.obj \
 ..\src\mpl\mpl6.obj \
-..\src\mpl\sql.obj \
+..\src\mpl\mplsql.obj \
 ..\src\proxy\proxy.obj \
 ..\src\proxy\proxy1.obj \
 ..\src\simplex\spxat.obj \
@@ -236,6 +237,6 @@ glpsol.exe: ..\examples\glpsol.obj glpk.lib
 
 check: glpsol.exe
         .\glpsol.exe --version
-        .\glpsol.exe --mps ..\examples\plan.mps
+        .\glpsol.exe --mps ..\examples\murtagh.mps --max
 
 ## eof ##

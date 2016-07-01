@@ -25,6 +25,10 @@
 #ifndef BFD_H
 #define BFD_H
 
+#if 1 /* 30/III-2016 */
+#include "fvs.h"
+#endif
+
 typedef struct BFD BFD;
 
 /* return codes: */
@@ -69,9 +73,21 @@ double bfd_condest(BFD *bfd);
 void bfd_ftran(BFD *bfd, double x[]);
 /* perform forward transformation (solve system B*x = b) */
 
+#if 1 /* 30/III-2016 */
+#define bfd_ftran_s _glp_bfd_ftran_s
+void bfd_ftran_s(BFD *bfd, FVS *x);
+/* sparse version of bfd_ftran */
+#endif
+
 #define bfd_btran _glp_bfd_btran
 void bfd_btran(BFD *bfd, double x[]);
 /* perform backward transformation (solve system B'*x = b) */
+
+#if 1 /* 30/III-2016 */
+#define bfd_btran_s _glp_bfd_btran_s
+void bfd_btran_s(BFD *bfd, FVS *x);
+/* sparse version of bfd_btran */
+#endif
 
 #define bfd_update _glp_bfd_update
 int bfd_update(BFD *bfd, int j, int len, const int ind[], const double

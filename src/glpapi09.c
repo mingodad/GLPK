@@ -684,6 +684,9 @@ void glp_init_iocp(glp_iocp *parm)
       parm->save_sol = NULL;
       parm->alien = GLP_OFF;
 #endif
+#if 1 /* 16/III-2016; not documented--should not be used */
+      parm->flip = GLP_OFF;
+#endif
       return;
 }
 

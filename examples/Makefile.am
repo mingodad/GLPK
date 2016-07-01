@@ -10,6 +10,6 @@ glpsol_SOURCES = glpsol.c
 
 check: glpsol$(EXEEXT)
 	./glpsol$(EXEEXT) --version
-	./glpsol$(EXEEXT) --mps $(srcdir)/plan.mps
+	./glpsol$(EXEEXT) --mps $(srcdir)/murtagh.mps --max
 
 ## eof ##

@@ -393,6 +393,9 @@ int glp_simplex(glp_prob *P, const glp_smcp *parm)
          xerror("glp_simplex: pricing = %d; invalid parameter\n",
             parm->pricing);
       if (!(parm->r_test == GLP_RT_STD ||
+#if 1 /* 16/III-2016 */
+            parm->r_test == GLP_RT_FLIP ||
+#endif
             parm->r_test == GLP_RT_HAR))
          xerror("glp_simplex: r_test = %d; invalid parameter\n",
             parm->r_test);

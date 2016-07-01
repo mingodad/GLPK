@@ -1,3 +1,72 @@
+Fri Apr 01 12:00:00 2016 Andrew Makhorin <mao@gnu.org>
+
+        * GLPK 4.60 (41:0:1) has been released.
+
+        * src/glpk.h
+        Declarations of all non-documented API routines were hidden by
+        #ifdef GLP_UNDOC / #endif.
+
+        src/simplex/spydual.c
+        An experimental feature (objective coefficient perturbation)
+        to improve numerical stabilty and avoid cycling was included in
+        the dual simplex solver.
+
+        This release also includes all the changes made in 4.59.2 and
+        4.59.1 non-official test releases (see below).
+
+Fri Mar 18 12:00:00 2016 Andrew Makhorin <mao@gnu.org>
+
+        * GLPK 4.59.2 (40:1:0) has been released.
+
+        NOTE: THIS IS A NON-OFFICIAL TEST RELEASE.
+
+        src/simplex/spxprim.c
+        Improvements were made in the internal routine choose_pivot to
+        prevent choosing a too small pivot in the primal simplex.
+
+        src/simplex/spydual.c
+        Improvements were made in the internal routine choose_pivot to
+        prevent choosing a too small pivot in the dual simplex.
+
+        src/simplex/spychuzc.c
+        The internal routine spy_eval_bp was added to determine break-
+        points of the dual objective function.
+
+        src/simplex/spydual.c
+        An experimental feature (long-step ratio test) was included in
+        the dual simplex.
+
+        src/glpk.h, src/glpapi06.c
+        The GLP_RT_FLIP option (long-step ratio test) was added to
+        the simplex solver. Currently it affects only the dual simplex.
+        For the primal simplex it is equivalent to GLP_RT_HAR.
+
+        src/examples/glpsol.c
+        The '--flip' command-line option was added to glpsol (long-step
+        dual ratio test).
+
+        src/proxy/proxy1.c
+        Additional check was added to reject wrong solutions somwtimes
+        reported by the PROXY heuristic.
+
+        src/glpios10.c
+        A bug (memory leak) was fixed in the FPUMP heuristic routine.
+        Thanks to <nicolas.derhy@engie.com> for bug report.
+
+Tue Mar 15 12:00:00 2016 Andrew Makhorin <mao@gnu.org>
+
+        * GLPK 4.59.1 (40:1:0) has been released.
+
+        NOTE: THIS IS A NON-OFFICIAL BUG-FIX RELEASE.
+
+        * src/simplex/mpl6.c, src/simplex/sql.c, src/simplex/sql.h
+        The header sql.h was renamed to avoid conflicts with standard
+        ODBC headers. Thanks to Noli Sicad <nsicad@gmail.com> for bug
+        report.
+
+        * src/simplex/spychuzc.c, src/simplex/spychuzc.h
+        Minor changes were made.
+
 Fri Mar 11 12:00:00 2016 Andrew Makhorin <mao@gnu.org>
 
         * GLPK 4.59 (40:0:0) has been released.

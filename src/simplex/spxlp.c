@@ -314,6 +314,22 @@ void spx_eval_rho(SPXLP *lp, int i, double rho[/*1+m*/])
       return;
 }
 
+#if 1 /* 31/III-2016 */
+void spx_eval_rho_s(SPXLP *lp, int i, FVS *rho)
+{     /* sparse version of spx_eval_rho */
+      int m = lp->m;
+      xassert(1 <= i && i <= m);
+      /* compute rho = inv(B') * e[i] */
+      xassert(rho->n == m);
+      fvs_clear_vec(rho);
+      rho->nnz = 1;
+      rho->ind[1] = i;
+      rho->vec[i] = 1.0;
+      bfd_btran_s(lp->bfd, rho);
+      return;
+}
+#endif
+
 /***********************************************************************
 *  spx_eval_tij - compute element T[i,j] of simplex table
 *
@@ -514,6 +530,93 @@ void spx_update_beta(SPXLP *lp, double beta[/*1+m*/], int p,
       return;
 }
 
+#if 1 /* 30/III-2016 */
+void spx_update_beta_s(SPXLP *lp, double beta[/*1+m*/], int p,
+      int p_flag, int q, const FVS *tcol)
+{     /* sparse version of spx_update_beta */
+      int m = lp->m;
+      int n = lp->n;
+      double *l = lp->l;
+      double *u = lp->u;
+      int *head = lp->head;
+      char *flag = lp->flag;
+      int nnz = tcol->nnz;
+      int *ind = tcol->ind;
+      double *vec = tcol->vec;
+      int i, k;
+      double delta_p, delta_q;
+      xassert(tcol->n == m);
+      if (p < 0)
+      {  /* special case: xN[q] goes to its opposite bound */
+#if 1
+         /* FIXME: not tested yet */
+         xassert(0);
+#endif
+         xassert(1 <= q && q <= n-m);
+         /* xN[q] should be double-bounded variable */
+         k = head[m+q]; /* x[k] = xN[q] */
+         xassert(l[k] != -DBL_MAX && u[k] != +DBL_MAX && l[k] != u[k]);
+         /* determine delta xN[q] */
+         if (flag[q])
+         {  /* xN[q] goes from its upper bound to its lower bound */
+            delta_q = l[k] - u[k];
+         }
+         else
+         {  /* xN[q] goes from its lower bound to its upper bound */
+            delta_q = u[k] - l[k];
+         }
+      }
+      else
+      {  /* xB[p] leaves the basis, xN[q] enters the basis */
+         xassert(1 <= p && p <= m);
+         xassert(1 <= q && q <= n-m);
+         /* determine delta xB[p] */
+         k = head[p]; /* x[k] = xB[p] */
+         if (p_flag)
+         {  /* xB[p] goes to its upper bound */
+            xassert(l[k] != u[k] && u[k] != +DBL_MAX);
+            delta_p = u[k] - beta[p];
+         }
+         else if (l[k] == -DBL_MAX)
+         {  /* unbounded xB[p] becomes non-basic (unusual case) */
+            xassert(u[k] == +DBL_MAX);
+            delta_p = 0.0 - beta[p];
+         }
+         else
+         {  /* xB[p] goes to its lower bound or becomes fixed */
+            delta_p = l[k] - beta[p];
+         }
+         /* determine delta xN[q] */
+         delta_q = delta_p / vec[p];
+         /* compute new beta[p], which is the value of xN[q] in the
+          * adjacent basis */
+         k = head[m+q]; /* x[k] = xN[q] */
+         if (flag[q])
+         {  /* xN[q] has its upper bound active */
+            xassert(l[k] != u[k] && u[k] != +DBL_MAX);
+            beta[p] = u[k] + delta_q;
+         }
+         else if (l[k] == -DBL_MAX)
+         {  /* xN[q] is non-basic unbounded variable */
+            xassert(u[k] == +DBL_MAX);
+            beta[p] = 0.0 + delta_q;
+         }
+         else
+         {  /* xN[q] has its lower bound active or is fixed (latter
+             * case is unusual) */
+            beta[p] = l[k] + delta_q;
+         }
+      }
+      /* compute new beta[i] for all i != p */
+      for (k = 1; k <= nnz; k++)
+      {  i = ind[k];
+         if (i != p)
+            beta[i] += vec[i] * delta_q;
+      }
+      return;
+}
+#endif
+
 /***********************************************************************
 *  spx_update_d - update reduced costs of non-basic variables
 *
@@ -593,6 +696,48 @@ double spx_update_d(SPXLP *lp, double d[/*1+n-m*/], int p, int q,
       }
       return e;
 }
+
+#if 1 /* 30/III-2016 */
+double spx_update_d_s(SPXLP *lp, double d[/*1+n-m*/], int p, int q,
+      const FVS *trow, const FVS *tcol)
+{     /* sparse version of spx_update_d */
+      int m = lp->m;
+      int n = lp->n;
+      double *c = lp->c;
+      int *head = lp->head;
+      int trow_nnz = trow->nnz;
+      int *trow_ind = trow->ind;
+      double *trow_vec = trow->vec;
+      int tcol_nnz = tcol->nnz;
+      int *tcol_ind = tcol->ind;
+      double *tcol_vec = tcol->vec;
+      int i, j, k;
+      double dq, e;
+      xassert(1 <= p && p <= m);
+      xassert(1 <= q && q <= n);
+      xassert(trow->n == n-m);
+      xassert(tcol->n == m);
+      /* compute d[q] in current basis more accurately */
+      k = head[m+q]; /* x[k] = xN[q] */
+      dq = c[k];
+      for (k = 1; k <= tcol_nnz; k++)
+      {  i = tcol_ind[k];
+         dq += tcol_vec[i] * c[head[i]];
+      }
+      /* compute relative error in d[q] */
+      e = fabs(dq - d[q]) / (1.0 + fabs(dq));
+      /* compute new d[q], which is the reduced cost of xB[p] in the
+       * adjacent basis */
+      d[q] = (dq /= tcol_vec[p]);
+      /* compute new d[j] for all j != q */
+      for (k = 1; k <= trow_nnz; k++)
+      {  j = trow_ind[k];
+         if (j != q)
+            d[j] -= trow_vec[j] * dq;
+      }
+      return e;
+}
+#endif
 
 /***********************************************************************
 *  spx_change_basis - change current basis to adjacent one

@@ -1,4 +1,4 @@
-/* sql.h */
+/* mplsql.h */
 
 /***********************************************************************
 *  This code is part of GLPK (GNU Linear Programming Kit).
@@ -23,8 +23,8 @@
 *  along with GLPK. If not, see <http://www.gnu.org/licenses/>.
 ***********************************************************************/
 
-#ifndef SQL_H
-#define SQL_H
+#ifndef MPLSQL_H
+#define MPLSQL_H
 
 #define db_iodbc_open _glp_db_iodbc_open
 void *db_iodbc_open(TABDCA *dca, int mode);

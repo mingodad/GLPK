@@ -1,3 +1,24 @@
+GLPK 4.60 (release date: Apr 01, 2016)
+
+        Some improvements were made in the primal and dual simplex
+        solvers to make the solution process more numerically stable.
+
+        An experimental long-step ratio test feature was added to the
+        dual simplex. On API level this feature is available thru the
+        GLP_RT_FLIP option. For glpsol it is available thru the options
+        --flip (for MIP) or --flip and --dual (for LP). This feature is
+        not documented yet.
+
+        Additional check was added to reject wrong solutions sometimes
+        reported by the PROXY heuristic.
+
+        A bug (memory leak) was fixed in the FPUMP heuristic routine.
+        Thanks to <nicolas.derhy@engie.com> for bug report.
+
+        The header sql.h was renamed to avoid conflicts with standard
+        ODBC headers. Thanks to Noli Sicad <nsicad@gmail.com> for bug
+        report.
+
 GLPK 4.59 (release date: Mar 11, 2016)
 
         This is a maintainer release.

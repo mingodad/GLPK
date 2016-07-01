@@ -161,10 +161,21 @@ int spy_chuzr_std(SPXLP *lp, const double beta[/*1+m*/], int num,
 void spy_alloc_se(SPXLP *lp, SPYSE *se)
 {     int m = lp->m;
       int n = lp->n;
+#if 1 /* 30/III-2016 */
+      int i;
+#endif
       se->valid = 0;
       se->refsp = talloc(1+n, char);
       se->gamma = talloc(1+m, double);
       se->work = talloc(1+m, double);
+#if 1 /* 30/III-2016 */
+      se->u.n = m;
+      se->u.nnz = 0;
+      se->u.ind = talloc(1+m, int);
+      se->u.vec = talloc(1+m, double);
+      for (i = 1; i <= m; i++)
+         se->u.vec[i] = 0.0;
+#endif
       return;
 }
 
@@ -389,6 +400,68 @@ double spy_update_gamma(SPXLP *lp, SPYSE *se, int p, int q,
       return e;
 }
 
+#if 1 /* 30/III-2016 */
+double spy_update_gamma_s(SPXLP *lp, SPYSE *se, int p, int q,
+      const FVS *trow, const FVS *tcol)
+{     /* sparse version of spy_update_gamma */
+      int m = lp->m;
+      int n = lp->n;
+      int *head = lp->head;
+      char *refsp = se->refsp;
+      double *gamma = se->gamma;
+      double *u = se->work;
+      int trow_nnz = trow->nnz;
+      int *trow_ind = trow->ind;
+      double *trow_vec = trow->vec;
+      int tcol_nnz = tcol->nnz;
+      int *tcol_ind = tcol->ind;
+      double *tcol_vec = tcol->vec;
+      int i, j, k, t, ptr, end;
+      double gamma_p, delta_p, e, r, t1, t2;
+      xassert(se->valid);
+      xassert(1 <= p && p <= m);
+      xassert(1 <= q && q <= n-m);
+      /* compute gamma[p] in current basis more accurately; also
+       * compute auxiliary vector u */
+      k = head[p]; /* x[k] = xB[p] */
+      gamma_p = delta_p = (refsp[k] ? 1.0 : 0.0);
+      for (i = 1; i <= m; i++)
+         u[i] = 0.0;
+      for (t = 1; t <= trow_nnz; t++)
+      {  j = trow_ind[t];
+         k = head[m+j]; /* x[k] = xN[j] */
+         if (refsp[k])
+         {  gamma_p += trow_vec[j] * trow_vec[j];
+            /* u := u + T[p,j] * N[j], where N[j] = A[k] is constraint
+             * matrix column corresponding to xN[j] */
+            ptr = lp->A_ptr[k];
+            end = lp->A_ptr[k+1];
+            for (; ptr < end; ptr++)
+               u[lp->A_ind[ptr]] += trow_vec[j] * lp->A_val[ptr];
+         }
+      }
+      bfd_ftran(lp->bfd, u);
+      /* compute relative error in gamma[p] */
+      e = fabs(gamma_p - gamma[p]) / (1.0 + gamma_p);
+      /* compute new gamma[p] */
+      gamma[p] = gamma_p / (tcol_vec[p] * tcol_vec[p]);
+      /* compute new gamma[i] for all i != p */
+      for (t = 1; t <= tcol_nnz; t++)
+      {  i = tcol_ind[t];
+         if (i == p)
+            continue;
+         /* compute r[i] = T[i,q] / T[p,q] */
+         r = tcol_vec[i] / tcol_vec[p];
+         /* compute new gamma[i] */
+         t1 = gamma[i] + r * (r * gamma_p + u[i] + u[i]);
+         k = head[i]; /* x[k] = xB[i] */
+         t2 = (refsp[k] ? 1.0 : 0.0) + delta_p * r * r;
+         gamma[i] = (t1 >= t2 ? t1 : t2);
+      }
+      return e;
+}
+#endif
+
 /***********************************************************************
 *  spy_free_se - deallocate dual pricing data block
 *
@@ -400,6 +473,10 @@ void spy_free_se(SPXLP *lp, SPYSE *se)
       tfree(se->refsp);
       tfree(se->gamma);
       tfree(se->work);
+#if 1 /* 30/III-2016 */
+      tfree(se->u.ind);
+      tfree(se->u.vec);
+#endif
       return;
 }
 

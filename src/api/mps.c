@@ -1009,6 +1009,9 @@ int glp_read_mps(glp_prob *P, int fmt, const glp_mpscp *parm,
          }
       }
       xprintf("%d records were read\n", csa->recno);
+#if 1 /* 31/III-2016 */
+      /* free (unbounded) row(s) in MPS file are intended to specify
+       * objective function(s), so all such rows can be removed */
 #if 1 /* 08/VIII-2013 */
       /* remove free rows */
       {  int i, nrs, *num;
@@ -1026,6 +1029,15 @@ int glp_read_mps(glp_prob *P, int fmt, const glp_mpscp *parm,
                xprintf("%d free rows were removed\n", nrs);
          }
          tfree(num);
+      }
+#endif
+#else
+      /* if objective function row is free, remove it */
+      if (csa->obj_row != 0 && P->row[csa->obj_row]->type == GLP_FR)
+      {  int num[1+1];
+         num[1] = csa->obj_row;
+         glp_del_rows(P, 1, num);
+         xprintf("Free objective row was removed\n");
       }
 #endif
       /* problem data has been successfully read */

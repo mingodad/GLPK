@@ -1336,6 +1336,10 @@ int ios_solve_node(glp_tree *tree)
             xassert(tree != tree);
       }
       parm.meth = GLP_DUALP;
+#if 1 /* 16/III-2016 */
+      if (tree->parm->flip)
+         parm.r_test = GLP_RT_FLIP;
+#endif
       /* respect time limit */
       if (tree->parm->tm_lim < INT_MAX)
          parm.tm_lim = tree->parm->tm_lim - (glp_time() - tree->tm_beg);

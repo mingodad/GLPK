@@ -242,6 +242,49 @@ void spx_nt_prod(SPXLP *lp, SPXNT *nt, double y[/*1+n-m*/], int ign,
       return;
 }
 
+#if 1 /* 31/III-2016 */
+void spx_nt_prod_s(SPXLP *lp, SPXNT *nt, FVS *y, int ign, double s,
+      const FVS *x, double eps)
+{     /* sparse version of spx_nt_prod */
+      int *NT_ptr = nt->ptr;
+      int *NT_len = nt->len;
+      int *NT_ind = nt->ind;
+      double *NT_val = nt->val;
+      int *x_ind = x->ind;
+      double *x_vec = x->vec;
+      int *y_ind = y->ind;
+      double *y_vec = y->vec;
+      int i, j, k, nnz, ptr, end;
+      double t;
+      xassert(x->n == lp->m);
+      xassert(y->n == lp->n-lp->m);
+      if (ign)
+      {  /* y := 0 */
+         fvs_clear_vec(y);
+      }
+      nnz = y->nnz;
+      for (k = x->nnz; k >= 1; k--)
+      {  i = x_ind[k];
+         /* y := y + s * (i-th row of N) * x[i] */
+         t = s * x_vec[i];
+         ptr = NT_ptr[i];
+         end = ptr + NT_len[i];
+         for (; ptr < end; ptr++)
+         {  j = NT_ind[ptr];
+            if (y_vec[j] == 0.0)
+               y_ind[++nnz] = j;
+            y_vec[j] += NT_val[ptr] * t;
+            /* don't forget about numeric cancellation */
+            if (y_vec[j] == 0.0)
+               y_vec[j] = DBL_MIN;
+         }
+      }
+      y->nnz = nnz;
+      fvs_adjust_vec(y, eps);
+      return;
+}
+#endif
+
 /***********************************************************************
 *  spx_free_nt - deallocate matrix N in sparse row-wise format
 *

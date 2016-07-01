@@ -552,7 +552,7 @@ uninstall-am: uninstall-binPROGRAMS
 
 check: glpsol$(EXEEXT)
 	./glpsol$(EXEEXT) --version
-	./glpsol$(EXEEXT) --mps $(srcdir)/plan.mps
+	./glpsol$(EXEEXT) --mps $(srcdir)/murtagh.mps --max
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.

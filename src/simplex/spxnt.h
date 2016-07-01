@@ -80,6 +80,12 @@ void spx_nt_prod(SPXLP *lp, SPXNT *nt, double y[/*1+n-m*/], int ign,
       double s, const double x[/*1+m*/]);
 /* compute product y := y + s * N'* x */
 
+#if 1 /* 31/III-2016 */
+void spx_nt_prod_s(SPXLP *lp, SPXNT *nt, FVS *y, int ign, double s,
+      const FVS *x, double eps);
+/* sparse version of spx_nt_prod */
+#endif
+
 #define spx_free_nt _glp_spx_free_nt
 void spx_free_nt(SPXLP *lp, SPXNT *nt);
 /* deallocate matrix N in sparse row-wise format */

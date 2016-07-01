@@ -28,6 +28,9 @@
 #include "avl.h"
 #include "bfd.h"
 #include "dmp.h"
+#if 1 /* 28/III-2016 */
+#define GLP_UNDOC 1
+#endif
 #include "glpk.h"
 
 typedef struct GLPROW GLPROW;

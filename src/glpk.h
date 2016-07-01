@@ -34,7 +34,7 @@ extern "C" {
 
 /* library version numbers: */
 #define GLP_MAJOR_VERSION  4
-#define GLP_MINOR_VERSION  59
+#define GLP_MINOR_VERSION  60
 
 typedef struct glp_prob glp_prob;
 /* LP/MIP problem object */
@@ -124,6 +124,9 @@ typedef struct
       int r_test;             /* ratio test technique: */
 #define GLP_RT_STD      0x11  /* standard (textbook) */
 #define GLP_RT_HAR      0x22  /* Harris' two-pass ratio test */
+#if 1 /* 16/III-2016 */
+#define GLP_RT_FLIP     0x33  /* long-step (flip-flop) ratio test */
+#endif
       double tol_bnd;         /* spx.tol_bnd */
       double tol_dj;          /* spx.tol_dj */
       double tol_piv;         /* spx.tol_piv */
@@ -194,7 +197,10 @@ typedef struct
       const char *save_sol;   /* filename to save every new solution */
       int alien;              /* use alien solver */
 #endif
-      double foo_bar[24];     /* (reserved) */
+#if 1 /* 16/III-2016; not documented--should not be used */
+      int flip;               /* use long-step dual simplex */
+#endif
+      double foo_bar[23];     /* (reserved) */
 } glp_iocp;
 
 typedef struct
@@ -722,39 +728,53 @@ int glp_ios_heur_sol(glp_tree *T, const double x[]);
 void glp_ios_terminate(glp_tree *T);
 /* terminate the solution process */
 
-#if 1 /* 06/III-2016; not documented yet */
+#ifdef GLP_UNDOC
 int glp_gmi_cut(glp_prob *P, int j, int ind[], double val[], double
       phi[]);
 /* generate Gomory's mixed integer cut (core routine) */
+#endif
 
+#ifdef GLP_UNDOC
 int glp_gmi_gen(glp_prob *P, glp_prob *pool, int max_cuts);
 /* generate Gomory's mixed integer cuts */
 #endif
 
-#if 1 /* 06/III-2016; not documented yet */
+#ifdef GLP_UNDOC
 typedef struct glp_mir glp_mir;
 /* MIR cut generator workspace */
+#endif
 
+#ifdef GLP_UNDOC
 glp_mir *glp_mir_init(glp_prob *P);
 /* create and initialize MIR cut generator */
+#endif
 
+#ifdef GLP_UNDOC
 int glp_mir_gen(glp_prob *P, glp_mir *mir, glp_prob *pool);
 /* generate mixed integer rounding (MIR) cuts */
+#endif
 
+#ifdef GLP_UNDOC
 void glp_mir_free(glp_mir *mir);
 /* delete MIR cut generator workspace */
 #endif
 
-#if 1 /* 08/III-2016; not documented yet */
+#ifdef GLP_UNDOC
 typedef struct glp_cfg glp_cfg;
 /* conflict graph descriptor */
+#endif
 
+#ifdef GLP_UNDOC
 glp_cfg *glp_cfg_init(glp_prob *P);
 /* create and initialize conflict graph */
+#endif
 
+#ifdef GLP_UNDOC
 void glp_cfg_free(glp_cfg *G);
 /* delete conflict graph descriptor */
+#endif
 
+#ifdef GLP_UNDOC
 int glp_clq_cut(glp_prob *P, glp_cfg *G, int ind[], double val[]);
 /* generate clique cut from conflict graph */
 #endif

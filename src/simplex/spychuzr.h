@@ -53,6 +53,10 @@ struct SPYSE
        * (r[i] is bound violation for basic variable xB[i]) */
       double *work; /* double work[1+m]; */
       /* working array */
+#if 1 /* 30/III-2016 */
+      FVS u; /* FVS u[1:m]; */
+      /* working vector */
+#endif
 };
 
 #define spy_alloc_se _glp_spy_alloc_se
@@ -76,6 +80,13 @@ int spy_chuzr_pse(SPXLP *lp, SPYSE *se, const double beta[/*1+m*/],
 double spy_update_gamma(SPXLP *lp, SPYSE *se, int p, int q,
       const double trow[/*1+n-m*/], const double tcol[/*1+m*/]);
 /* update dual projected steepest edge weights exactly */
+
+#if 1 /* 30/III-2016 */
+#define spy_update_gamma_s _glp_spy_update_gamma_s
+double spy_update_gamma_s(SPXLP *lp, SPYSE *se, int p, int q,
+      const FVS *trow, const FVS *tcol);
+/* sparse version of spy_update_gamma */
+#endif
 
 #define spy_free_se _glp_spy_free_se
 void spy_free_se(SPXLP *lp, SPYSE *se);

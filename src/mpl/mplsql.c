@@ -1,4 +1,4 @@
-/* sql.c */
+/* mplsql.c */
 
 /***********************************************************************
 *  This code is part of GLPK (GNU Linear Programming Kit).
@@ -28,7 +28,7 @@
 #endif
 
 #include "mpl.h"
-#include "sql.h"
+#include "mplsql.h"
 
 #ifdef ODBC_DLNAME
 #define HAVE_ODBC
@@ -653,7 +653,7 @@ static int is_numeric(
 *
 *  SYNOPSIS
 *
-*  #include "glpsql.h"
+*  #include "mplsql.h"
 *  void *db_iodbc_open(TABDCA *dca, int mode);
 *
 *  DESCRIPTION
@@ -1268,7 +1268,7 @@ MYSQL_RES * STDCALL dl_mysql_use_result(MYSQL *mysql)
 *
 *  SYNOPSIS
 *
-*  #include "glpsql.h"
+*  #include "mplsql.h"
 *  void *db_mysql_open(TABDCA *dca, int mode);
 *
 *  DESCRIPTION
