@@ -707,12 +707,20 @@ blnk: {  /* new RANGES vector */
                csa->P->row[i]->name);
          else if (type == GLP_LO)
          {  rhs = csa->P->row[i]->lb;
+#if 0 /* 26/V-2017 by cmatraki */
             glp_set_row_bnds(csa->P, i, rhs == 0.0 ? GLP_FX : GLP_DB,
+#else
+            glp_set_row_bnds(csa->P, i, rng == 0.0 ? GLP_FX : GLP_DB,
+#endif
                rhs, rhs + fabs(rng));
          }
          else if (type == GLP_UP)
          {  rhs = csa->P->row[i]->ub;
+#if 0 /* 26/V-2017 by cmatraki */
             glp_set_row_bnds(csa->P, i, rhs == 0.0 ? GLP_FX : GLP_DB,
+#else
+            glp_set_row_bnds(csa->P, i, rng == 0.0 ? GLP_FX : GLP_DB,
+#endif
                rhs - fabs(rng), rhs);
          }
          else if (type == GLP_FX)

@@ -548,7 +548,7 @@ void spx_update_beta_s(SPXLP *lp, double beta[/*1+m*/], int p,
       xassert(tcol->n == m);
       if (p < 0)
       {  /* special case: xN[q] goes to its opposite bound */
-#if 1
+#if 0 /* 11/VI-2017 */
          /* FIXME: not tested yet */
          xassert(0);
 #endif

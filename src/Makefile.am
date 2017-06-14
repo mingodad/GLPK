@@ -20,7 +20,7 @@ libglpk_la_CPPFLAGS = \
 -I$(srcdir)/zlib
 
 libglpk_la_LDFLAGS = \
--version-info 42:0:2 \
+-version-info 42:1:2 \
 -export-symbols-regex '^glp_*' \
 ${NOUNDEFINED}
 
@@ -147,6 +147,7 @@ env/alloc.c \
 env/dlsup.c \
 env/env.c \
 env/error.c \
+env/stdc.c \
 env/stdout.c \
 env/stream.c \
 env/time.c \

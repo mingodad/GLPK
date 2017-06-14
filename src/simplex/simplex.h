@@ -28,11 +28,11 @@
 
 #define spx_primal _glp_spx_primal
 int spx_primal(glp_prob *P, const glp_smcp *parm);
-/* driver to primal simplex method */
+/* driver to the primal simplex method */
 
 #define spy_dual _glp_spy_dual
 int spy_dual(glp_prob *P, const glp_smcp *parm);
-/* driver to dual simplex method */
+/* driver to the dual simplex method */
 
 #endif
 

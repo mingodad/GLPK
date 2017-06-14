@@ -146,6 +146,7 @@ OBJSET = \
 ..\src\env\dlsup.obj \
 ..\src\env\env.obj \
 ..\src\env\error.obj \
+..\src\env\stdc.obj \
 ..\src\env\stdout.obj \
 ..\src\env\stream.obj \
 ..\src\env\time.obj \
@@ -214,10 +215,10 @@ OBJSET = \
 .c.obj:
         cl.exe $(CFLAGS) /Fo$*.obj /c $*.c
 
-all: glpk_4_61_stdcall.dll glpsol.exe
+all: glpk_4_62_stdcall.dll glpsol.exe
 
-glpk_4_61_stdcall.dll: $(OBJSET)
-        cl.exe $(CFLAGS) /LD /Feglpk_4_61_stdcall.dll \
+glpk_4_62_stdcall.dll: $(OBJSET)
+        cl.exe $(CFLAGS) /LD /Feglpk_4_62_stdcall.dll \
                 ..\src\*.obj \
                 ..\src\amd\*.obj \
                 ..\src\api\*.obj \
@@ -231,11 +232,11 @@ glpk_4_61_stdcall.dll: $(OBJSET)
                 ..\src\proxy\*.obj \
                 ..\src\simplex\*.obj \
                 ..\src\zlib\*.obj \
-                glpk_4_61_stdcall.def
+                glpk_4_62_stdcall.def
 
-glpsol.exe: ..\examples\glpsol.obj glpk_4_61_stdcall.dll
+glpsol.exe: ..\examples\glpsol.obj glpk_4_62_stdcall.dll
         cl.exe $(CFLAGS) /Feglpsol.exe \
-                ..\examples\glpsol.obj glpk_4_61_stdcall.lib
+                ..\examples\glpsol.obj glpk_4_62_stdcall.lib
 
 check: glpsol.exe
         .\glpsol.exe --version

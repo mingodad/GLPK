@@ -32,8 +32,10 @@
 #include "spxprob.h"
 #include "spychuzc.h"
 #include "spychuzr.h"
+#if 0 /* 11/VI-2017 */
 #if 1 /* 29/III-2016 */
 #include "fvs.h"
+#endif
 #endif
 
 #if 0 /* 23/III-2016 */
@@ -139,10 +141,12 @@ struct csa
       /* working array */
       double *work1; /* double work1[1+n-m]; */
       /* another working array */
+#if 0 /* 11/VI-2017 */
 #if 1 /* 31/III-2016 */
       FVS wrow; /* FVS wrow[1:n-m]; */
       FVS wcol; /* FVS wcol[1:m]; */
       /* working sparse vectors */
+#endif
 #endif
       int p_stat, d_stat;
       /* primal and dual solution statuses */
@@ -1156,7 +1160,7 @@ void spy_update_r(SPXLP *lp, int p, int q, const double beta[/*1+m*/],
 #endif
 
 /***********************************************************************
-*  spy_dual - driver to dual simplex method
+*  spy_dual - driver to the dual simplex method
 *
 *  This routine is a driver to the two-phase dual simplex method.
 *
@@ -1374,13 +1378,23 @@ loop: /* main loop starts here */
       check_accuracy(csa);
 #endif
       /* check if the objective limit has been reached */
-#if PERTURB
-      /* FIXME */
-      if (!perturb)
-#endif
       if (csa->phase == 2 && csa->obj_lim != DBL_MAX
          && spx_eval_obj(lp, beta) >= csa->obj_lim)
-      {  if (csa->beta_st != 1)
+      {
+#if 1 /* 26/V-2017 by mao */
+         if (perturb)
+         {  /* remove perturbation */
+            /* [Should note that perturbing of objective coefficients
+             * implemented in play_coef is equivalent to *relaxing* of
+             * (zero) bounds of dual variables, so the perturbed
+             * objective is always better (*greater*) that the original
+             * one at the same basic point.] */
+            perturb = 0;
+            memcpy(csa->lp->c, csa->orig_c, (1+n) * sizeof(double));
+            csa->phase = csa->d_st = 0;
+         }
+#endif
+         if (csa->beta_st != 1)
             csa->beta_st = 0;
          if (csa->d_st != 1)
             csa->d_st = 0;
@@ -1530,6 +1544,17 @@ loop: /* main loop starts here */
                   xassert(!csa->beta_st);
                   goto loop;
                }
+#if 1 /* 26/V-2017 by cmatraki */
+#if PERTURB
+               if (perturb)
+               {  /* remove perturbation */
+                  perturb = 0;
+               memcpy(csa->lp->c, csa->orig_c, (1+n) * sizeof(double));
+                  csa->phase = csa->d_st = 0;
+                  goto loop;
+               }
+#endif
+#endif
                /* no dual feasible solution exists */
                if (msg_lev >= GLP_MSG_ALL)
                   xprintf("LP HAS NO DUAL FEASIBLE SOLUTION\n");
@@ -1630,7 +1655,17 @@ loop: /* main loop starts here */
       t_pivcol += timer() - t_start;
 #endif
       /* FIXME: tcol[p] and trow[q] should be close to each other */
+#if 0 /* 26/V-2017 by cmatraki */
       xassert(csa->tcol.vec[csa->p] != 0.0);
+#else
+      if (csa->tcol.vec[csa->p] == 0.0)
+      {  if (msg_lev >= GLP_MSG_ERR)
+            xprintf("Error: tcol[p] = 0.0\n");
+         csa->p_stat = csa->d_stat = GLP_UNDEF;
+         ret = GLP_EFAIL;
+         goto fini;
+      }
+#endif
       /* update values of basic variables for adjacent basis */
       k = head[csa->p]; /* x[k] = xB[p] */
       p_flag = (l[k] != u[k] && beta[csa->p] > u[k]);
@@ -1769,7 +1804,7 @@ fini:
 }
 
 int spy_dual(glp_prob *P, const glp_smcp *parm)
-{     /* driver to dual simplex method */
+{     /* driver to the dual simplex method */
       struct csa csa_, *csa = &csa_;
       SPXLP lp;
 #if USE_AT
@@ -1852,9 +1887,11 @@ int spy_dual(glp_prob *P, const glp_smcp *parm)
 #endif
       csa->work = talloc(1+csa->lp->m, double);
       csa->work1 = talloc(1+csa->lp->n-csa->lp->m, double);
+#if 0 /* 11/VI-2017 */
 #if 1 /* 31/III-2016 */
       fvs_alloc_vec(&csa->wrow, csa->lp->n-csa->lp->m);
       fvs_alloc_vec(&csa->wcol, csa->lp->m);
+#endif
 #endif
       /* initialize control parameters */
       csa->msg_lev = parm->msg_lev;
@@ -1991,9 +2028,11 @@ skip: /* deallocate working objects and arrays */
 #endif
       tfree(csa->work);
       tfree(csa->work1);
+#if 0 /* 11/VI-2017 */
 #if 1 /* 31/III-2016 */
       fvs_free_vec(&csa->wrow);
       fvs_free_vec(&csa->wcol);
+#endif
 #endif
       /* return to calling program */
       return ret >= 0 ? ret : GLP_EFAIL;

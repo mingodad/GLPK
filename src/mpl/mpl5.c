@@ -6,7 +6,7 @@
 *  Authors: Andrew Makhorin <mao@gnu.org>
 *           Heinrich Schuchardt <xypron.glpk@gmx.de>
 *
-*  Copyright (C) 2003-2016 Andrew Makhorin, Department for Applied
+*  Copyright (C) 2003-2017 Andrew Makhorin, Department for Applied
 *  Informatics, Moscow Aviation Institute, Moscow, Russia. All rights
 *  reserved. E-mail: <mao@gnu.org>.
 *
@@ -37,7 +37,11 @@ double fn_gmtime(MPL *mpl)
       time(&timer);
       if (timer == (time_t)(-1))
 err:     error(mpl, "gmtime(); unable to obtain current calendar time");
+#if 0 /* 29/I-2017 */
       tm = gmtime(&timer);
+#else
+      tm = xgmtime(&timer);
+#endif
       if (tm == NULL) goto err;
       j = jday(tm->tm_mday, tm->tm_mon + 1, 1900 + tm->tm_year);
       if (j < 0) goto err;

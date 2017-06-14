@@ -3,7 +3,7 @@
 /***********************************************************************
 *  This code is part of GLPK (GNU Linear Programming Kit).
 *
-*  Copyright (C) 2000-2013 Andrew Makhorin, Department for Applied
+*  Copyright (C) 2000-2017 Andrew Makhorin, Department for Applied
 *  Informatics, Moscow Aviation Institute, Moscow, Russia. All rights
 *  reserved. E-mail: <mao@gnu.org>.
 *
@@ -57,7 +57,11 @@ double glp_time(void)
       int j;
       double t;
       gettimeofday(&tv, NULL);
+#if 0 /* 29/I-2017 */
       tm = gmtime(&tv.tv_sec);
+#else
+      tm = xgmtime(&tv.tv_sec);
+#endif
       j = jday(tm->tm_mday, tm->tm_mon + 1, 1900 + tm->tm_year);
       xassert(j >= 0);
       t = ((((double)(j - EPOCH) * 24.0 + (double)tm->tm_hour) * 60.0 +
@@ -97,7 +101,11 @@ double glp_time(void)
       int j;
       double t;
       timer = time(NULL);
+#if 0 /* 29/I-2017 */
       tm = gmtime(&timer);
+#else
+      tm = xgmtime(&timer);
+#endif
       j = jday(tm->tm_mday, tm->tm_mon + 1, 1900 + tm->tm_year);
       xassert(j >= 0);
       t = ((((double)(j - EPOCH) * 24.0 + (double)tm->tm_hour) * 60.0 +

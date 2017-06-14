@@ -4,7 +4,7 @@
 *  This code is part of GLPK (GNU Linear Programming Kit).
 *
 *  Copyright (C) 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008,
-*  2009, 2010, 2011, 2013 Andrew Makhorin, Department for Applied
+*  2009, 2010, 2011, 2013, 2017 Andrew Makhorin, Department for Applied
 *  Informatics, Moscow Aviation Institute, Moscow, Russia. All rights
 *  reserved. E-mail: <mao@gnu.org>.
 *
@@ -341,7 +341,11 @@ HBM *hbm_read_mat(const char *fname)
       dsa->fp = fopen(dsa->fname, "r");
       if (dsa->fp == NULL)
       {  xprintf("hbm_read_mat: unable to open '%s' - %s\n",
+#if 0 /* 29/I-2017 */
             dsa->fname, strerror(errno));
+#else
+            dsa->fname, xstrerr(errno));
+#endif
          goto fail;
       }
       dsa->seqn = 0;

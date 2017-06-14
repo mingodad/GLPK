@@ -1,5 +1,5 @@
-LIBRARY glpk_4_61
-VERSION 4.61
+LIBRARY glpk_4_62
+VERSION 4.62
 DESCRIPTION "GNU Linear Programming Kit"
 EXPORTS
 glp_create_prob
@@ -164,6 +164,7 @@ glp_minisat1
 glp_intfeas1
 glp_init_env
 glp_version
+glp_config
 glp_free_env
 glp_puts
 glp_printf

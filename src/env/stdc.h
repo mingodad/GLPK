@@ -3,7 +3,7 @@
 /***********************************************************************
 *  This code is part of GLPK (GNU Linear Programming Kit).
 *
-*  Copyright (C) 2000-2013 Andrew Makhorin, Department for Applied
+*  Copyright (C) 2000-2017 Andrew Makhorin, Department for Applied
 *  Informatics, Moscow Aviation Institute, Moscow, Russia. All rights
 *  reserved. E-mail: <mao@gnu.org>.
 *
@@ -36,6 +36,26 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
+
+#ifndef ENABLE_NON_SAFE /* 29/I-2017 */
+/* disable using non-thread-safe functions directly */
+#undef gmtime
+#define gmtime ???
+#undef strerror
+#define strerror ???
+#undef strtok
+#define strtok ???
+#endif
+
+#if 1 /* 29/I-2017 */
+/* provide replacements for these functions on a per-thread basis */
+#define xgmtime _glp_xgmtime
+struct tm *xgmtime(const time_t *);
+#define xstrerr _glp_xstrerr
+char *xstrerr(int);
+#define xstrtok _glp_xstrtok
+char *xstrtok(char *, const char *);
+#endif
 
 #endif
 

@@ -49,10 +49,19 @@ int glp_minisat1(glp_prob *P)
          ret = GLP_EDATA;
          goto done;
       }
+#if 0 /* 08/I-2017 by cmatraki */
 #if 1 /* 07/XI-2015 */
       if (sizeof(void *) != sizeof(int))
       {  xprintf("glp_minisat1: sorry, MiniSat solver is not supported "
             "on 64-bit platforms\n");
+         ret = GLP_EFAIL;
+         goto done;
+      }
+#endif
+#else
+      if (sizeof(void *) != sizeof(size_t))
+      {  xprintf("glp_minisat1: sorry, MiniSat solver is not supported "
+            "on this platform\n");
          ret = GLP_EFAIL;
          goto done;
       }
@@ -88,7 +97,17 @@ int glp_minisat1(glp_prob *P)
                ind[len] = lit_neg(ind[len]);
          }
          xassert(len > 0);
+#if 0 /* 08/I-2017 by cmatraki */
          xassert(solver_addclause(s, &ind[1], &ind[1+len]));
+#else
+         if (!solver_addclause(s, &ind[1], &ind[1+len]))
+         {  /* found trivial conflict */
+            xfree(ind);
+            solver_delete(s);
+            P->mip_stat = GLP_NOFEAS;
+            goto fini;
+         }
+#endif
       }
       xfree(ind);
       /* call the solver */

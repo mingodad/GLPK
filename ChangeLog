@@ -1,3 +1,58 @@
+Wed Jun 14 12:00:00 2017 Andrew Makhorin <mao@gnu.org>
+
+        * GLPK 4.62 (42:1:2) has been released.
+
+        * src/simplex/spxprim.c
+        An experimental feature (bound perturbation) to improve
+        numerical stabilty and avoid cycling was included in the primal
+        simplex solver. Currently it is enabled by default.
+
+        * src/simplex/spxprim.c
+        Some dense vectors were replaced by sparse ones in full-vector
+        storage (FVS) format.
+
+        * src/simplex/spxprim.c, src/simplex/spydual.c
+        Assertions trow[q] != 0.0 and tcol[p] != 0.0 were replaced by
+        setting an error code to prevent abnormal termination. Thanks
+        to Chris Matrakidis <cmatraki@gmail.com> for patch.
+
+        * src/simplex/spydual.c
+        Removing perturbation was added if the perturbed problem is
+        dual infeasible while the original one is dual feasible. Thanks
+        to Chris Matrakidis <cmatraki@gmail.com> for patch.
+
+        * src/api/mps.c
+        A range bug was fixed.
+        Thanks to Chris Matrakidis <cmatraki@gmail.com> for patch.
+
+        * src/minisat/minisat.c
+        Changes were made to provide 64-bit portability. Thanks to
+        Chris Matrakidis <cmatraki@gmail.com> for patch.
+
+        * src/api/minisat1.c
+        Changes related to the minisat solver were made. Thanks to
+        Chris Matrakidis <cmatraki@gmail.com> for patch.
+
+        * src/api/intfeas1.c
+        Changes were made to skip objective integrality check when
+        no objective bound is specified. Thanks to Chris Matrakidis
+        <cmatraki@gmail.com> for patch.
+
+        * src/glphbm.c, src/glprgr.c, src/env/stream.c, src/env/time.c,
+        * src/mpl/mpl5.c, src/mpl/mpl6.c, src/mpl/mplsql.c
+        Calls to non-thread-safe functions gmtime, strerror, and strtok
+        were replaced by calls to corresponding thread-safe equivalents
+        (gmtime_r, strerror_r, and strtok_r for GNU/Linux).
+
+        * w32/*.def, w64/*.def
+        glp_config symbol was added. Thanks to Heinrich Schuchardt
+        <xypron.glpk@gmx.de> for bug report.
+
+        * examples/pbn/pbn.mod
+        A bug was fixed (model didn't work for odd number of rows or
+        columns). Thanks to Chris Matrakidis <cmatraki@gmail.com> for
+        bug report and patch provided.
+
 Sun Jan 22 12:00:00 2017 Andrew Makhorin <mao@gnu.org>
 
         * GLPK 4.61 (42:0:2) has been released.

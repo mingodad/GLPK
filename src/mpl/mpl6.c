@@ -3,7 +3,7 @@
 /***********************************************************************
 *  This code is part of GLPK (GNU Linear Programming Kit).
 *
-*  Copyright (C) 2003-2016 Andrew Makhorin, Department for Applied
+*  Copyright (C) 2003-2017 Andrew Makhorin, Department for Applied
 *  Informatics, Moscow Aviation Institute, Moscow, Russia. All rights
 *  reserved. E-mail: <mao@gnu.org>.
 *
@@ -78,7 +78,11 @@ static void read_char(struct csv *csv)
 loop: c = fgetc(csv->fp);
       if (ferror(csv->fp))
       {  xprintf("%s:%d: read error - %s\n", csv->fname, csv->count,
+#if 0 /* 29/I-2017 */
             strerror(errno));
+#else
+            xstrerr(errno));
+#endif
          longjmp(csv->jump, 0);
       }
       if (feof(csv->fp))
@@ -237,7 +241,11 @@ static struct csv *csv_open_file(TABDCA *dca, int mode)
          csv->fp = fopen(csv->fname, "r");
          if (csv->fp == NULL)
          {  xprintf("csv_driver: unable to open %s - %s\n",
+#if 0 /* 29/I-2017 */
                csv->fname, strerror(errno));
+#else
+               csv->fname, xstrerr(errno));
+#endif
             longjmp(csv->jump, 0);
          }
 #if 1 /* 01/VI-2010 */
@@ -281,7 +289,11 @@ static struct csv *csv_open_file(TABDCA *dca, int mode)
          csv->fp = fopen(csv->fname, "w");
          if (csv->fp == NULL)
          {  xprintf("csv_driver: unable to create %s - %s\n",
+#if 0 /* 29/I-2017 */
                csv->fname, strerror(errno));
+#else
+               csv->fname, xstrerr(errno));
+#endif
             longjmp(csv->jump, 0);
          }
          /* write field names */
@@ -393,7 +405,11 @@ static int csv_write_record(TABDCA *dca, struct csv *csv)
       csv->count++;
       if (ferror(csv->fp))
       {  xprintf("%s:%d: write error - %s\n", csv->fname, csv->count,
+#if 0 /* 29/I-2017 */
             strerror(errno));
+#else
+            xstrerr(errno));
+#endif
          ret = 1;
       }
       return ret;
@@ -407,7 +423,11 @@ static int csv_close_file(TABDCA *dca, struct csv *csv)
       {  fflush(csv->fp);
          if (ferror(csv->fp))
          {  xprintf("%s:%d: write error - %s\n", csv->fname,
+#if 0 /* 29/I-2017 */
                csv->count, strerror(errno));
+#else
+               csv->count, xstrerr(errno));
+#endif
             ret = 1;
          }
       }
@@ -459,7 +479,11 @@ static int read_byte(struct dbf *dbf)
       b = fgetc(dbf->fp);
       if (ferror(dbf->fp))
       {  xprintf("%s:0x%X: read error - %s\n", dbf->fname,
+#if 0 /* 29/I-2017 */
             dbf->offset, strerror(errno));
+#else
+            dbf->offset, xstrerr(errno));
+#endif
          longjmp(dbf->jump, 0);
       }
       if (feof(dbf->fp))
@@ -706,7 +730,11 @@ static struct dbf *dbf_open_file(TABDCA *dca, int mode)
          dbf->fp = fopen(dbf->fname, "rb");
          if (dbf->fp == NULL)
          {  xprintf("xBASE driver: unable to open %s - %s\n",
+#if 0 /* 29/I-2017 */
                dbf->fname, strerror(errno));
+#else
+               dbf->fname, xstrerr(errno));
+#endif
             longjmp(dbf->jump, 0);
          }
          read_header(dca, dbf);
@@ -721,7 +749,11 @@ static struct dbf *dbf_open_file(TABDCA *dca, int mode)
          dbf->fp = fopen(dbf->fname, "wb");
          if (dbf->fp == NULL)
          {  xprintf("xBASE driver: unable to create %s - %s\n",
+#if 0 /* 29/I-2017 */
                dbf->fname, strerror(errno));
+#else
+               dbf->fname, xstrerr(errno));
+#endif
             longjmp(dbf->jump, 0);
          }
          write_header(dca, dbf);
@@ -861,7 +893,11 @@ static int dbf_close_file(TABDCA *dca, struct dbf *dbf)
          dbf->offset = 4;
          if (fseek(dbf->fp, dbf->offset, SEEK_SET))
          {  xprintf("%s:0x%X: seek error - %s\n", dbf->fname,
+#if 0 /* 29/I-2017 */
                dbf->offset, strerror(errno));
+#else
+               dbf->offset, xstrerr(errno));
+#endif
             longjmp(dbf->jump, 0);
          }
          write_byte(dbf, dbf->count);
@@ -871,7 +907,11 @@ static int dbf_close_file(TABDCA *dca, struct dbf *dbf)
          fflush(dbf->fp);
          if (ferror(dbf->fp))
          {  xprintf("%s:0x%X: write error - %s\n", dbf->fname,
+#if 0 /* 29/I-2017 */
                dbf->offset, strerror(errno));
+#else
+               dbf->offset, xstrerr(errno));
+#endif
             longjmp(dbf->jump, 0);
          }
 skip:    ;

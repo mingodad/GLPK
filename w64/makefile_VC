@@ -145,6 +145,7 @@ OBJSET = \
 ..\src\env\dlsup.obj \
 ..\src\env\env.obj \
 ..\src\env\error.obj \
+..\src\env\stdc.obj \
 ..\src\env\stdout.obj \
 ..\src\env\stream.obj \
 ..\src\env\time.obj \

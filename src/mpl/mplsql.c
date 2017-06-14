@@ -5,7 +5,7 @@
 *
 *  Author: Heinrich Schuchardt <xypron.glpk@gmx.de>.
 *
-*  Copyright (C) 2003-2016 Andrew Makhorin, Department for Applied
+*  Copyright (C) 2003-2017 Andrew Makhorin, Department for Applied
 *  Informatics, Moscow Aviation Institute, Moscow, Russia. All rights
 *  reserved. E-mail: <mao@gnu.org>.
 *
@@ -963,8 +963,13 @@ int db_iodbc_write(TABDCA *dca, void *link)
    }
    query = xmalloc( (len + 1 ) * sizeof(char) );
    query[0] = 0x00;
+#if 0 /* 29/I-2017 */
    for (k = 1, part = strtok (template, "?"); (part != NULL);
       part = strtok (NULL, "?"), k++)
+#else
+   for (k = 1, part = xstrtok (template, "?"); (part != NULL);
+      part = xstrtok (NULL, "?"), k++)
+#endif
    {
       if (k > nf) break;
       strcat( query, part );
@@ -1355,10 +1360,19 @@ static void *db_mysql_open_int(TABDCA *dca, int mode, const char
    arg = xmalloc(i * sizeof(char));
    strcpy(arg, dsn);
    /*tokenize connection string*/
+#if 0 /* 29/I-2017 */
    for (i = 1, keyword = strtok (arg, "="); (keyword != NULL);
       keyword = strtok (NULL, "="), i++)
+#else
+   for (i = 1, keyword = xstrtok (arg, "="); (keyword != NULL);
+      keyword = xstrtok (NULL, "="), i++)
+#endif
    {
+#if 0 /* 29/I-2017 */
          value = strtok (NULL, ";");
+#else
+         value = xstrtok (NULL, ";");
+#endif
       if (value==NULL)
          {
             xprintf("db_mysql_open: Missing value for keyword %s\n",
@@ -1581,8 +1595,13 @@ int db_mysql_write(TABDCA *dca, void *link)
    }
    query = xmalloc( (len + 1 ) * sizeof(char) );
    query[0] = 0x00;
+#if 0 /* 29/I-2017 */
    for (k = 1, part = strtok (template, "?"); (part != NULL);
       part = strtok (NULL, "?"), k++)
+#else
+   for (k = 1, part = xstrtok (template, "?"); (part != NULL);
+      part = xstrtok (NULL, "?"), k++)
+#endif
    {
       if (k > nf) break;
       strcat( query, part );

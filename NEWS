@@ -1,3 +1,20 @@
+GLPK 4.62 (release date: Jun 14, 2017)
+
+        The bound perturbation technique was included in the primal
+        simplex solver to improve numerical stability and avoid cycling.
+        Currently this feature is enabled by default.
+
+        A range bug was fixed in the MPS reading routine. Thanks to
+        Chris Matrakidis <cmatraki@gmail.com> for bug report and patch.
+
+        Changes were made to provide 64-bit portability of the Minisat
+        solver. Thanks to Chris Matrakidis <cmatraki@gmail.com> for
+        patch.
+
+        Calls to non-thread-safe functions gmtime, strerror, and strtok
+        were replaced by calls to corresponding thread-safe equivalents
+        (gmtime_r, strerror_r, and strtok_r for GNU/Linux).
+
 GLPK 4.61 (release date: Jan 22, 2017)
 
         An option was added to build a re-entrant version of the

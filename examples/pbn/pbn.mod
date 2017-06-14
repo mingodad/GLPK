@@ -52,16 +52,16 @@ param m, integer, >= 1;
 param n, integer, >= 1;
 /* the number of columns */
 
-param row{i in 1..m, 1..n div 2}, integer, >= 0, default 0;
+param row{i in 1..m, 1..(n+1) div 2}, integer, >= 0, default 0;
 /* the cluster-size sequence for row i (raw data) */
 
-param col{j in 1..n, 1..m div 2}, integer, >= 0, default 0;
+param col{j in 1..n, 1..(m+1) div 2}, integer, >= 0, default 0;
 /* the cluster-size sequence for column j (raw data) */
 
-param kr{i in 1..m} := sum{t in 1..n div 2: row[i,t] > 0} 1;
+param kr{i in 1..m} := sum{t in 1..(n+1) div 2: row[i,t] > 0} 1;
 /* the number of clusters in row i */
 
-param kc{j in 1..n} := sum{t in 1..m div 2: col[j,t] > 0} 1;
+param kc{j in 1..n} := sum{t in 1..(m+1) div 2: col[j,t] > 0} 1;
 /* the number of clusters in column j */
 
 param sr{i in 1..m, t in 1..kr[i]} := row[i,t], integer, >= 1;

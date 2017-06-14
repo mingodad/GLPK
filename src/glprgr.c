@@ -4,7 +4,7 @@
 *  This code is part of GLPK (GNU Linear Programming Kit).
 *
 *  Copyright (C) 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008,
-*  2009, 2010, 2011, 2013 Andrew Makhorin, Department for Applied
+*  2009, 2010, 2011, 2013, 2017 Andrew Makhorin, Department for Applied
 *  Informatics, Moscow Aviation Institute, Moscow, Russia. All rights
 *  reserved. E-mail: <mao@gnu.org>.
 *
@@ -101,7 +101,11 @@ int rgr_write_bmp16(const char *fname, int m, int n, const char map[])
       fp = fopen(fname, "wb");
       if (fp == NULL)
       {  xprintf("rgr_write_bmp16: unable to create '%s' - %s\n",
+#if 0 /* 29/I-2017 */
             fname, strerror(errno));
+#else
+            fname, xstrerr(errno));
+#endif
          ret = 1;
          goto fini;
       }
@@ -155,7 +159,11 @@ int rgr_write_bmp16(const char *fname, int m, int n, const char map[])
       fflush(fp);
       if (ferror(fp))
       {  xprintf("rgr_write_bmp16: write error on '%s' - %s\n",
+#if 0 /* 29/I-2017 */
             fname, strerror(errno));
+#else
+            fname, xstrerr(errno));
+#endif
          ret = 1;
       }
 fini: if (fp != NULL) fclose(fp);

@@ -3,7 +3,7 @@
 /***********************************************************************
 *  This code is part of GLPK (GNU Linear Programming Kit).
 *
-*  Copyright (C) 2008-2014 Andrew Makhorin, Department for Applied
+*  Copyright (C) 2008-2017 Andrew Makhorin, Department for Applied
 *  Informatics, Moscow Aviation Institute, Moscow, Russia. All rights
 *  reserved. E-mail: <mao@gnu.org>.
 *
@@ -122,7 +122,11 @@ glp_file *glp_open(const char *name, const char *mode)
          if (ext == NULL || strcmp(ext, ".gz") != 0)
          {  file = fopen(name, mode);
             if (file == NULL)
+#if 0 /* 29/I-2017 */
             {  put_err_msg(strerror(errno));
+#else
+            {  put_err_msg(xstrerr(errno));
+#endif
                return NULL;
             }
          }
@@ -138,7 +142,11 @@ glp_file *glp_open(const char *name, const char *mode)
 #endif
             file = gzopen(name, mode);
             if (file == NULL)
+#if 0 /* 29/I-2017 */
             {  put_err_msg(strerror(errno));
+#else
+            {  put_err_msg(xstrerr(errno));
+#endif
                return NULL;
             }
          }
@@ -238,7 +246,11 @@ int glp_read(glp_file *f, void *buf, int nnn)
             {  cnt = fread(f->base, 1, f->size, (FILE *)(f->file));
                if (ferror((FILE *)(f->file)))
                {  f->flag |= IOERR;
+#if 0 /* 29/I-2017 */
                   put_err_msg(strerror(errno));
+#else
+                  put_err_msg(xstrerr(errno));
+#endif
                   return EOF;
                }
             }
@@ -250,7 +262,11 @@ int glp_read(glp_file *f, void *buf, int nnn)
                {  f->flag |= IOERR;
                   msg = gzerror((gzFile)(f->file), &errnum);
                   if (errnum == Z_ERRNO)
+#if 0 /* 29/I-2017 */
                      put_err_msg(strerror(errno));
+#else
+                     put_err_msg(xstrerr(errno));
+#endif
                   else
                      put_err_msg(msg);
                   return EOF;
@@ -322,7 +338,11 @@ static int do_flush(glp_file *f)
          {  if ((int)fwrite(f->base, 1, f->cnt, (FILE *)(f->file))
                != f->cnt)
             {  f->flag |= IOERR;
+#if 0 /* 29/I-2017 */
                put_err_msg(strerror(errno));
+#else
+               put_err_msg(xstrerr(errno));
+#endif
                return EOF;
             }
          }
@@ -333,7 +353,11 @@ static int do_flush(glp_file *f)
             {  f->flag |= IOERR;
                msg = gzerror((gzFile)(f->file), &errnum);
                if (errnum == Z_ERRNO)
+#if 0 /* 29/I-2017 */
                   put_err_msg(strerror(errno));
+#else
+                  put_err_msg(xstrerr(errno));
+#endif
                else
                   put_err_msg(msg);
                return EOF;
@@ -450,7 +474,11 @@ int glp_close(glp_file *f)
       else if (!(f->flag & IOGZIP))
       {  if (fclose((FILE *)(f->file)) != 0)
          {  if (ret == 0)
+#if 0 /* 29/I-2017 */
             {  put_err_msg(strerror(errno));
+#else
+            {  put_err_msg(xstrerr(errno));
+#endif
                ret = EOF;
             }
          }
@@ -462,7 +490,11 @@ int glp_close(glp_file *f)
             ;
          else if (errnum == Z_ERRNO)
          {  if (ret == 0)
+#if 0 /* 29/I-2017 */
             {  put_err_msg(strerror(errno));
+#else
+            {  put_err_msg(xstrerr(errno));
+#endif
                ret = EOF;
             }
          }

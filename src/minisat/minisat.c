@@ -1,6 +1,8 @@
 /* minisat.c */
 
 /* Modified by Andrew Makhorin <mao@gnu.org>, August 2011 */
+/* May 2017: Changes were made to provide 64-bit portability; thanks to
+ * Chris Matrakidis <cmatraki@gmail.com> for patch */
 
 /***********************************************************************
 *  MiniSat -- Copyright (c) 2005, Niklas Sorensson
@@ -142,6 +144,7 @@ struct clause_t
 /*====================================================================*/
 /* Encode literals in clause pointers: */
 
+#if 0 /* 8/I-2017 by cmatraki (64-bit portability) */
 #define clause_from_lit(l) \
       (clause*)((unsigned long)(l) + (unsigned long)(l) + 1)
 
@@ -150,6 +153,16 @@ struct clause_t
 
 #define clause_read_lit(c) \
       (lit)((unsigned long)(c) >> 1)
+#else
+#define clause_from_lit(l) \
+      (clause*)((size_t)(l) + (size_t)(l) + 1)
+
+#define clause_is_lit(c) \
+      ((size_t)(c) & 1)
+
+#define clause_read_lit(c) \
+      (lit)((size_t)(c) >> 1)
+#endif
 
 /*====================================================================*/
 /* Simple helpers: */
@@ -332,8 +345,11 @@ static clause* clause_new(solver* s, lit* begin, lit* end, int learnt)
     c              = (clause*)malloc(sizeof(clause)
                      + sizeof(lit) * size + learnt * sizeof(float));
     c->size_learnt = (size << 1) | learnt;
-#if 0 /* by mao; meaningless non-portable check */
-    assert(((unsigned int)c & 1) == 0);
+#if 1 /* by mao & cmatraki; non-portable check that is a fundamental  \
+       * assumption of minisat code: bit 0 is used as a flag (zero    \
+       * for pointer, one for shifted int) so allocated memory should \
+       * be at least 16-bit aligned */
+    assert(((size_t)c & 1) == 0);
 #endif
 
     for (i = 0; i < size; i++)

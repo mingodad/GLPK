@@ -3,7 +3,7 @@
 /***********************************************************************
 *  This code is part of GLPK (GNU Linear Programming Kit).
 *
-*  Copyright (C) 2015 Andrew Makhorin, Department for Applied
+*  Copyright (C) 2015-2017 Andrew Makhorin, Department for Applied
 *  Informatics, Moscow Aviation Institute, Moscow, Russia. All rights
 *  reserved. E-mail: <mao@gnu.org>.
 *
@@ -20,6 +20,10 @@
 *  You should have received a copy of the GNU General Public License
 *  along with GLPK. If not, see <http://www.gnu.org/licenses/>.
 ***********************************************************************/
+
+#if 1 /* 26/V-2017 */
+#define PERTURB 1
+#endif
 
 #include "env.h"
 #include "simplex.h"
@@ -53,8 +57,14 @@ struct csa
       /* original optimization direction:
        * +1 - minimization
        * -1 - maximization */
-      double *c; /* double c[1+n]; */
+      double *orig_c; /* double orig_c[1+n]; */
       /* copy of original objective coefficients */
+#if PERTURB
+      double *orig_l; /* double orig_l[1+n]; */
+      /* copy of original lower bounds */
+      double *orig_u; /* double orig_u[1+n]; */
+      /* copy of original upper bounds */
+#endif
       SPXAT *at;
       /* mxn-matrix A of constraint coefficients, in sparse row-wise
        * format (NULL if not used) */
@@ -90,7 +100,11 @@ struct csa
        * variables xN[j] */
       int q;
       /* xN[q] is a non-basic variable chosen to enter the basis */
+#if 0 /* 11/VI-2017 */
       double *tcol; /* double tcol[1+m]; */
+#else
+      FVS tcol; /* FVS tcol[1:m]; */
+#endif
       /* q-th (pivot) column of the simplex table */
       int p;
       /* xB[p] is a basic variable chosen to leave the basis;
@@ -100,7 +114,11 @@ struct csa
       int p_flag;
       /* if this flag is set, the active bound of xB[p] in the adjacent
        * basis should be set to the upper bound */
+#if 0 /* 11/VI-2017 */
       double *trow; /* double trow[1+n-m]; */
+#else
+      FVS trow; /* FVS trow[1:n-m]; */
+#endif
       /* p-th (pivot) row of the simplex table */
       double *work; /* double work[1+m]; */
       /* working array */
@@ -560,7 +578,12 @@ try:  /* choose non-basic variable xN[q] */
       if (p <= 0)
       {  /* primal unboundedness or special case */
          csa->q = q;
+#if 0 /* 11/VI-2017 */
          memcpy(&csa->tcol[1], &tcol[1], m * sizeof(double));
+#else
+         memcpy(&csa->tcol.vec[1], &tcol[1], m * sizeof(double));
+         fvs_gather_vec(&csa->tcol, DBL_EPSILON);
+#endif
          csa->p = p;
          csa->p_flag = p_flag;
          best_ratio = 1.0;
@@ -570,7 +593,12 @@ try:  /* choose non-basic variable xN[q] */
        * which one is better */
       if (best_ratio < fabs(tcol[p]) / big)
       {  csa->q = q;
+#if 0 /* 11/VI-2017 */
          memcpy(&csa->tcol[1], &tcol[1], m * sizeof(double));
+#else
+         memcpy(&csa->tcol.vec[1], &tcol[1], m * sizeof(double));
+         fvs_gather_vec(&csa->tcol, DBL_EPSILON);
+#endif
          csa->p = p;
          csa->p_flag = p_flag;
          best_ratio = fabs(tcol[p]) / big;
@@ -603,6 +631,113 @@ done: /* the choice has been made */
       }
 #endif
       return 0;
+}
+#endif
+
+#if PERTURB
+/***********************************************************************
+*  play_bounds - play bounds of primal variables
+*
+*  This routine is called after the primal values of basic variables
+*  beta[i] were updated and the basis was changed to the adjacent one.
+*
+*  It is assumed that before updating all the primal values beta[i]
+*  were strongly feasible, so in the adjacent basis beta[i] remain
+*  feasible within a tolerance, i.e. if some beta[i] violates its lower
+*  or upper bound, the violation is insignificant.
+*
+*  If some beta[i] violates its lower or upper bound, this routine
+*  changes (perturbs) the bound to remove such violation, i.e. to make
+*  all beta[i] strongly feasible. Otherwise, if beta[i] has a feasible
+*  value, this routine attempts to reduce (or remove) perturbation of
+*  corresponding lower/upper bound keeping strong feasibility. */
+
+/* FIXME: what to do if l[k] = u[k]? */
+
+/* FIXME: reduce/remove perturbation if x[k] becomes non-basic? */
+
+static void play_bounds(struct csa *csa, int all)
+{     SPXLP *lp = csa->lp;
+      int m = lp->m;
+      double *c = lp->c;
+      double *l = lp->l;
+      double *u = lp->u;
+      int *head = lp->head;
+      double *orig_l = csa->orig_l;
+      double *orig_u = csa->orig_u;
+      double *beta = csa->beta;
+#if 0 /* 11/VI-2017 */
+      const double *tcol = csa->tcol; /* was used to update beta */
+#else
+      const double *tcol = csa->tcol.vec;
+#endif
+      int i, k;
+      xassert(csa->phase == 1 || csa->phase == 2);
+      /* primal values beta = (beta[i]) should be valid */
+      xassert(csa->beta_st);
+      /* walk thru the list of basic variables xB = (xB[i]) */
+      for (i = 1; i <= m; i++)
+      {  if (all || tcol[i] != 0.0)
+         {  /* beta[i] has changed in the adjacent basis */
+            k = head[i]; /* x[k] = xB[i] */
+            if (csa->phase == 1 && c[k] < 0.0)
+            {  /* -inf < xB[i] <= lB[i] (artificial bounds) */
+               if (beta[i] < l[k] - 1e-9)
+                  continue;
+               /* restore actual bounds */
+               c[k] = 0.0;
+               csa->d_st = 0; /* since c[k] = cB[i] has changed */
+            }
+            if (csa->phase == 1 && c[k] > 0.0)
+            {  /* uB[i] <= xB[i] < +inf (artificial bounds) */
+               if (beta[i] > u[k] + 1e-9)
+                  continue;
+               /* restore actual bounds */
+               c[k] = 0.0;
+               csa->d_st = 0; /* since c[k] = cB[i] has changed */
+            }
+            /* lB[i] <= xB[i] <= uB[i] */
+            if (csa->phase == 1)
+               xassert(c[k] == 0.0);
+            if (l[k] != -DBL_MAX)
+            {  /* xB[i] has lower bound */
+               if (beta[i] < l[k])
+               {  /* strong feasibility means xB[i] >= lB[i] */
+#if 0 /* 11/VI-2017 */
+                  l[k] = beta[i];
+#else
+                  l[k] = beta[i] - 1e-9;
+#endif
+               }
+               else if (l[k] < orig_l[k])
+               {  /* remove/reduce perturbation of lB[i] */
+                  if (beta[i] >= orig_l[k])
+                     l[k] = orig_l[k];
+                  else
+                     l[k] = beta[i];
+               }
+            }
+            if (u[k] != +DBL_MAX)
+            {  /* xB[i] has upper bound */
+               if (beta[i] > u[k])
+               {  /* strong feasibility means xB[i] <= uB[i] */
+#if 0 /* 11/VI-2017 */
+                  u[k] = beta[i];
+#else
+                  u[k] = beta[i] + 1e-9;
+#endif
+               }
+               else if (u[k] > orig_u[k])
+               {  /* remove/reduce perturbation of uB[i] */
+                  if (beta[i] <= orig_u[k])
+                     u[k] = orig_u[k];
+                  else
+                     u[k] = beta[i];
+               }
+            }
+         }
+      }
+      return;
 }
 #endif
 
@@ -659,11 +794,21 @@ static void display(struct csa *csa, int spec)
       if (!spec && csa->it_cnt % csa->out_frq != 0) goto skip;
       /* compute original objective value */
       save = csa->lp->c;
-      csa->lp->c = csa->c;
+      csa->lp->c = csa->orig_c;
       obj = csa->dir * spx_eval_obj(csa->lp, csa->beta);
       csa->lp->c = save;
       /* compute sum of (scaled) primal infeasibilities */
+#if 0 /* 27/V-2017 */
+      save = csa->lp->l;
+      save1 = csa->lp->u;
+      csa->lp->l = csa->orig_l;
+      csa->lp->u = csa->orig_u;
+#endif
       sum = sum_infeas(csa->lp, csa->beta);
+#if 0 /* 27/V-2017 */
+      csa->lp->l = save;
+      csa->lp->u = save1;
+#endif
       /* compute number of infeasibilities/non-optimalities */
       switch (csa->phase)
       {  case 1:
@@ -693,7 +838,7 @@ skip: return;
 }
 
 /***********************************************************************
-*  spx_primal - driver to primal simplex method
+*  spx_primal - driver to the primal simplex method
 *
 *  This routine is a driver to the two-phase primal simplex method.
 *
@@ -723,8 +868,10 @@ static int primal_simplex(struct csa *csa)
       double *d = csa->d;
       SPXSE *se = csa->se;
       int *list = csa->list;
+#if 0 /* 11/VI-2017 */
       double *tcol = csa->tcol;
       double *trow = csa->trow;
+#endif
       double *pi = csa->work;
       double *rho = csa->work;
       int msg_lev = csa->msg_lev;
@@ -733,6 +880,9 @@ static int primal_simplex(struct csa *csa)
       double tol_dj = csa->tol_dj;
       double tol_dj1 = csa->tol_dj1;
       int j, refct, ret;
+#if PERTURB
+      int perturb = 1;
+#endif
 loop: /* main loop starts here */
       /* compute factorization of the basis matrix */
       if (!lp->valid)
@@ -780,7 +930,7 @@ loop: /* main loop starts here */
             {  /* current basic solution is primal feasible */
                /* start to minimize the original objective function */
                csa->phase = 2;
-               memcpy(c, csa->c, (1+n) * sizeof(double));
+               memcpy(c, csa->orig_c, (1+n) * sizeof(double));
             }
             /* working objective coefficients have been changed, so
              * invalidate reduced costs */
@@ -788,7 +938,16 @@ loop: /* main loop starts here */
          }
          /* make sure that the current basic solution remains primal
           * feasible (or pseudo-feasible on phase I) */
+#if PERTURB
+         if (perturb)
+            j = check_feas(csa, csa->phase, 3.14 * tol_bnd, 3.14 *
+               tol_bnd1);
+         else
+            j = check_feas(csa, csa->phase, tol_bnd, tol_bnd1);
+         if (j)
+#else
          if (check_feas(csa, csa->phase, tol_bnd, tol_bnd1))
+#endif
          {  /* excessive bound violations due to round-off errors */
             if (msg_lev >= GLP_MSG_ERR)
                xprintf("Warning: numerical instability (primal simplex,"
@@ -798,6 +957,12 @@ loop: /* main loop starts here */
             csa->phase = 0;
             goto loop;
          }
+#if PERTURB
+         /* check_feas guarantees that all beta[i] are feasible within
+          * a tolerance */
+         if (perturb)
+            play_bounds(csa, 1);
+#endif
       }
       /* at this point the search phase is determined */
       xassert(csa->phase == 1 || csa->phase == 2);
@@ -829,7 +994,17 @@ loop: /* main loop starts here */
 #endif
       /* check if the iteration limit has been exhausted */
       if (csa->it_cnt - csa->it_beg >= csa->it_lim)
-      {  if (csa->beta_st != 1)
+      {
+#if PERTURB
+         if (perturb)
+         {  /* remove perturbation */
+            perturb = 0;
+            memcpy(csa->lp->l, csa->orig_l, (1+n) * sizeof(double));
+            memcpy(csa->lp->u, csa->orig_u, (1+n) * sizeof(double));
+            csa->phase = csa->beta_st = 0;
+         }
+#endif
+         if (csa->beta_st != 1)
             csa->beta_st = 0;
          if (csa->d_st != 1)
             csa->d_st = 0;
@@ -845,7 +1020,17 @@ loop: /* main loop starts here */
       }
       /* check if the time limit has been exhausted */
       if (1000.0 * xdifftime(xtime(), csa->tm_beg) >= csa->tm_lim)
-      {  if (csa->beta_st != 1)
+      {
+#if PERTURB
+         if (perturb)
+         {  /* remove perturbation */
+            perturb = 0;
+            memcpy(csa->lp->l, csa->orig_l, (1+n) * sizeof(double));
+            memcpy(csa->lp->u, csa->orig_u, (1+n) * sizeof(double));
+            csa->phase = csa->beta_st = 0;
+         }
+#endif
+         if (csa->beta_st != 1)
             csa->beta_st = 0;
          if (csa->d_st != 1)
             csa->d_st = 0;
@@ -874,7 +1059,22 @@ loop: /* main loop starts here */
       }
       /* check for optimality */
       if (csa->num == 0)
-      {  if (csa->beta_st != 1)
+      {
+#if PERTURB
+         if (perturb && csa->phase == 2)
+         {  /* remove perturbation */
+            perturb = 0;
+            memcpy(csa->lp->l, csa->orig_l, (1+n) * sizeof(double));
+            memcpy(csa->lp->u, csa->orig_u, (1+n) * sizeof(double));
+            csa->phase = csa->beta_st = 0;
+#if 0
+            if (msg_lev >= GLP_MSG_ALL)
+               xprintf("Perturbation removed at iteration %d\n",
+                  csa->it_cnt);
+#endif
+         }
+#endif
+         if (csa->beta_st != 1)
             csa->beta_st = 0;
          if (csa->d_st != 1)
             csa->d_st = 0;
@@ -887,7 +1087,7 @@ loop: /* main loop starts here */
                /* check for primal feasibility */
                if (!check_feas(csa, 2, tol_bnd, tol_bnd1))
                {  /* feasible solution found; switch to phase II */
-                  memcpy(c, csa->c, (1+n) * sizeof(double));
+                  memcpy(c, csa->orig_c, (1+n) * sizeof(double));
                   csa->phase = 2;
                   csa->d_st = 0;
                   goto loop;
@@ -921,7 +1121,17 @@ loop: /* main loop starts here */
 #endif
       /* check for unboundedness */
       if (csa->p == 0)
-      {  if (csa->beta_st != 1)
+      {
+#if PERTURB
+         if (perturb)
+         {  /* remove perturbation */
+            perturb = 0;
+            memcpy(csa->lp->l, csa->orig_l, (1+n) * sizeof(double));
+            memcpy(csa->lp->u, csa->orig_u, (1+n) * sizeof(double));
+            csa->phase = csa->beta_st = 0;
+         }
+#endif
+         if (csa->beta_st != 1)
             csa->beta_st = 0;
          if (csa->d_st != 1)
             csa->d_st = 0;
@@ -949,7 +1159,12 @@ loop: /* main loop starts here */
          }
       }
       /* update values of basic variables for adjacent basis */
+#if 0 /* 11/VI-2017 */
       spx_update_beta(lp, beta, csa->p, csa->p_flag, csa->q, tcol);
+#else
+      spx_update_beta_s(lp, beta, csa->p, csa->p_flag, csa->q,
+         &csa->tcol);
+#endif
       csa->beta_st = 2;
       /* p < 0 means that xN[q] jumps to its opposite bound */
       if (csa->p < 0)
@@ -958,15 +1173,38 @@ loop: /* main loop starts here */
       /* compute p-th row of inv(B) */
       spx_eval_rho(lp, csa->p, rho);
       /* compute p-th (pivot) row of the simplex table */
+#if 0 /* 11/VI-2017 */
       if (at != NULL)
          spx_eval_trow1(lp, at, rho, trow);
       else
          spx_nt_prod(lp, nt, trow, 1, -1.0, rho);
+#else
+      if (at != NULL)
+         spx_eval_trow1(lp, at, rho, csa->trow.vec);
+      else
+         spx_nt_prod(lp, nt, csa->trow.vec, 1, -1.0, rho);
+      fvs_gather_vec(&csa->trow, DBL_EPSILON);
+#endif
       /* FIXME: tcol[p] and trow[q] should be close to each other */
+#if 0 /* 26/V-2017 by cmatraki */
       xassert(trow[csa->q] != 0.0);
+#else
+      if (csa->trow.vec[csa->q] == 0.0)
+      {  if (msg_lev >= GLP_MSG_ERR)
+            xprintf("Error: trow[q] = 0.0\n");
+         csa->p_stat = csa->d_stat = GLP_UNDEF;
+         ret = GLP_EFAIL;
+         goto fini;
+      }
+#endif
       /* update reduced costs of non-basic variables for adjacent
        * basis */
+#if 0 /* 11/VI-2017 */
       if (spx_update_d(lp, d, csa->p, csa->q, trow, tcol) <= 1e-9)
+#else
+      if (spx_update_d_s(lp, d, csa->p, csa->q, &csa->trow, &csa->tcol)
+         <= 1e-9)
+#endif
       {  /* successful updating */
          csa->d_st = 2;
          if (csa->phase == 1)
@@ -987,8 +1225,13 @@ loop: /* main loop starts here */
       /* update steepest edge weights for adjacent basis, if used */
       if (se != NULL)
       {  if (refct > 0)
+#if 0 /* 11/VI-2017 */
          {  if (spx_update_gamma(lp, se, csa->p, csa->q, trow, tcol)
                <= 1e-3)
+#else /* FIXME: spx_update_gamma_s */
+         {  if (spx_update_gamma(lp, se, csa->p, csa->q, csa->trow.vec,
+               csa->tcol.vec) <= 1e-3)
+#endif
             {  /* successful updating */
                refct--;
             }
@@ -1010,11 +1253,15 @@ skip: /* change current basis header to adjacent one */
       /* and update factorization of the basis matrix */
       if (csa->p > 0)
          spx_update_invb(lp, csa->p, head[csa->p]);
+#if PERTURB
+      if (perturb && csa->beta_st)
+         play_bounds(csa, 0);
+#endif
       /* simplex iteration complete */
       csa->it_cnt++;
       goto loop;
 fini: /* restore original objective function */
-      memcpy(c, csa->c, (1+n) * sizeof(double));
+      memcpy(c, csa->orig_c, (1+n) * sizeof(double));
       /* compute reduced costs of non-basic variables and determine
        * solution dual status, if necessary */
       if (csa->p_stat != GLP_UNDEF && csa->d_stat == GLP_UNDEF)
@@ -1029,7 +1276,7 @@ fini: /* restore original objective function */
 }
 
 int spx_primal(glp_prob *P, const glp_smcp *parm)
-{     /* driver to primal simplex method */
+{     /* driver to the primal simplex method */
       struct csa csa_, *csa = &csa_;
       SPXLP lp;
 #if USE_AT
@@ -1057,8 +1304,14 @@ int spx_primal(glp_prob *P, const glp_smcp *parm)
          default:
             xassert(P != P);
       }
-      csa->c = talloc(1+csa->lp->n, double);
-      memcpy(csa->c, csa->lp->c, (1+csa->lp->n) * sizeof(double));
+      csa->orig_c = talloc(1+csa->lp->n, double);
+      memcpy(csa->orig_c, csa->lp->c, (1+csa->lp->n) * sizeof(double));
+#if PERTURB
+      csa->orig_l = talloc(1+csa->lp->n, double);
+      memcpy(csa->orig_l, csa->lp->l, (1+csa->lp->n) * sizeof(double));
+      csa->orig_u = talloc(1+csa->lp->n, double);
+      memcpy(csa->orig_u, csa->lp->u, (1+csa->lp->n) * sizeof(double));
+#endif
 #if USE_AT
       /* build matrix A in row-wise format */
       csa->at = &at;
@@ -1091,8 +1344,13 @@ int spx_primal(glp_prob *P, const glp_smcp *parm)
             xassert(parm != parm);
       }
       csa->list = talloc(1+csa->lp->n-csa->lp->m, int);
+#if 0 /* 11/VI-2017 */
       csa->tcol = talloc(1+csa->lp->m, double);
       csa->trow = talloc(1+csa->lp->n-csa->lp->m, double);
+#else
+      fvs_alloc_vec(&csa->tcol, csa->lp->m);
+      fvs_alloc_vec(&csa->trow, csa->lp->n-csa->lp->m);
+#endif
       csa->work = talloc(1+csa->lp->m, double);
       /* initialize control parameters */
       csa->msg_lev = parm->msg_lev;
@@ -1172,7 +1430,11 @@ int spx_primal(glp_prob *P, const glp_smcp *parm)
 skip: /* deallocate working objects and arrays */
       spx_free_lp(csa->lp);
       tfree(map);
-      tfree(csa->c);
+      tfree(csa->orig_c);
+#if PERTURB
+      tfree(csa->orig_l);
+      tfree(csa->orig_u);
+#endif
       if (csa->at != NULL)
          spx_free_at(csa->lp, csa->at);
       if (csa->nt != NULL)
@@ -1182,8 +1444,13 @@ skip: /* deallocate working objects and arrays */
       if (csa->se != NULL)
          spx_free_se(csa->lp, csa->se);
       tfree(csa->list);
+#if 0 /* 11/VI-2017 */
       tfree(csa->tcol);
       tfree(csa->trow);
+#else
+      fvs_free_vec(&csa->tcol);
+      fvs_free_vec(&csa->trow);
+#endif
       tfree(csa->work);
       /* return to calling program */
       return ret;

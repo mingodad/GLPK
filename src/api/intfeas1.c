@@ -124,6 +124,12 @@ int glp_intfeas1(glp_prob *P, int use_bound, int obj_bound)
          }
       }
       /* check the objective function */
+#if 1 /* 08/I-2017 by cmatraki & mao */
+      if (!use_bound)
+      {  /* skip check if no obj. bound is specified */
+         goto skip;
+      }
+#endif
       temp = (int)P->c0;
       if ((double)temp != P->c0)
       {  xprintf("glp_intfeas1: objective constant term %g is non-integ"
@@ -140,6 +146,9 @@ int glp_intfeas1(glp_prob *P, int use_bound, int obj_bound)
             goto done;
          }
       }
+#if 1 /* 08/I-2017 by cmatraki & mao */
+skip: ;
+#endif
       /* save the objective function and set it to zero */
       obj_ind = xcalloc(1+P->n, sizeof(int));
       obj_val = xcalloc(1+P->n, sizeof(double));
