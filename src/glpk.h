@@ -34,7 +34,7 @@ extern "C" {
 
 /* library version numbers: */
 #define GLP_MAJOR_VERSION  4
-#define GLP_MINOR_VERSION  63
+#define GLP_MINOR_VERSION  64
 
 typedef struct glp_prob glp_prob;
 /* LP/MIP problem object */

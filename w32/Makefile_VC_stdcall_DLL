@@ -8,6 +8,7 @@ CFLAGS = \
 /I..\src\bflib \
 /I..\src\cglib \
 /I..\src\colamd \
+/I..\src\draft \
 /I..\src\env \
 /I..\src\minisat \
 /I..\src\misc \
@@ -24,38 +25,6 @@ CFLAGS = \
 /Gz
 
 OBJSET = \
-..\src\bfd.obj \
-..\src\bfx.obj \
-..\src\glpapi06.obj \
-..\src\glpapi07.obj \
-..\src\glpapi08.obj \
-..\src\glpapi09.obj \
-..\src\glpapi10.obj \
-..\src\glpapi12.obj \
-..\src\glpapi13.obj \
-..\src\glphbm.obj \
-..\src\glpios01.obj \
-..\src\glpios02.obj \
-..\src\glpios03.obj \
-..\src\glpios07.obj \
-..\src\glpios09.obj \
-..\src\glpios10.obj \
-..\src\glpios11.obj \
-..\src\glpios12.obj \
-..\src\glpipm.obj \
-..\src\glpmat.obj \
-..\src\glpnpp01.obj \
-..\src\glpnpp02.obj \
-..\src\glpnpp03.obj \
-..\src\glpnpp04.obj \
-..\src\glpnpp05.obj \
-..\src\glpnpp06.obj \
-..\src\glprgr.obj \
-..\src\glpscl.obj \
-..\src\glpspm.obj \
-..\src\glpssx01.obj \
-..\src\glpssx02.obj \
-..\src\lux.obj \
 ..\src\amd\amd_1.obj \
 ..\src\amd\amd_2.obj \
 ..\src\amd\amd_aat.obj \
@@ -142,6 +111,38 @@ OBJSET = \
 ..\src\cglib\mirgen.obj \
 ..\src\cglib\spv.obj \
 ..\src\colamd\colamd.obj \
+..\src\draft\bfd.obj \
+..\src\draft\bfx.obj \
+..\src\draft\glpapi06.obj \
+..\src\draft\glpapi07.obj \
+..\src\draft\glpapi08.obj \
+..\src\draft\glpapi09.obj \
+..\src\draft\glpapi10.obj \
+..\src\draft\glpapi12.obj \
+..\src\draft\glpapi13.obj \
+..\src\draft\glphbm.obj \
+..\src\draft\glpios01.obj \
+..\src\draft\glpios02.obj \
+..\src\draft\glpios03.obj \
+..\src\draft\glpios07.obj \
+..\src\draft\glpios09.obj \
+..\src\draft\glpios10.obj \
+..\src\draft\glpios11.obj \
+..\src\draft\glpios12.obj \
+..\src\draft\glpipm.obj \
+..\src\draft\glpmat.obj \
+..\src\draft\glpnpp01.obj \
+..\src\draft\glpnpp02.obj \
+..\src\draft\glpnpp03.obj \
+..\src\draft\glpnpp04.obj \
+..\src\draft\glpnpp05.obj \
+..\src\draft\glpnpp06.obj \
+..\src\draft\glprgr.obj \
+..\src\draft\glpscl.obj \
+..\src\draft\glpspm.obj \
+..\src\draft\glpssx01.obj \
+..\src\draft\glpssx02.obj \
+..\src\draft\lux.obj \
 ..\src\env\alloc.obj \
 ..\src\env\dlsup.obj \
 ..\src\env\env.obj \
@@ -215,16 +216,17 @@ OBJSET = \
 .c.obj:
         cl.exe $(CFLAGS) /Fo$*.obj /c $*.c
 
-all: glpk_4_63_stdcall.dll glpsol.exe
+all: glpk_4_64_stdcall.dll glpsol.exe
 
-glpk_4_63_stdcall.dll: $(OBJSET)
-        cl.exe $(CFLAGS) /LD /Feglpk_4_63_stdcall.dll \
+glpk_4_64_stdcall.dll: $(OBJSET)
+        cl.exe $(CFLAGS) /LD /Feglpk_4_64_stdcall.dll \
                 ..\src\*.obj \
                 ..\src\amd\*.obj \
                 ..\src\api\*.obj \
                 ..\src\bflib\*.obj \
                 ..\src\cglib\*.obj \
                 ..\src\colamd\*.obj \
+                ..\src\draft\*.obj \
                 ..\src\env\*.obj \
                 ..\src\minisat\*.obj \
                 ..\src\misc\*.obj \
@@ -232,11 +234,11 @@ glpk_4_63_stdcall.dll: $(OBJSET)
                 ..\src\proxy\*.obj \
                 ..\src\simplex\*.obj \
                 ..\src\zlib\*.obj \
-                glpk_4_63_stdcall.def
+                glpk_4_64_stdcall.def
 
-glpsol.exe: ..\examples\glpsol.obj glpk_4_63_stdcall.dll
+glpsol.exe: ..\examples\glpsol.obj glpk_4_64_stdcall.dll
         cl.exe $(CFLAGS) /Feglpsol.exe \
-                ..\examples\glpsol.obj glpk_4_63_stdcall.lib
+                ..\examples\glpsol.obj glpk_4_64_stdcall.lib
 
 check: glpsol.exe
         .\glpsol.exe --version

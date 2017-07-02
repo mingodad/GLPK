@@ -17,6 +17,7 @@ food.mod       Food manufacture model
 food2.mod      Food manufacture model
 furnace.mps    Electric-arc furnace steelmaking
 gap.mod        Generalized assignment problem
+graceful.mod   Graceful Tree Labeling Problem
 graph.mod      Graph visualization
 hashi.mod      A solver for the Japanese number-puzzle Hashiwokakero
 huge.mod       Arithmetic mean of a large number of integers
@@ -40,6 +41,8 @@ plan.lp        A simple LP problem (CPLEX LP format)
 plan.mod       A simple LP problem (MathProg format)
 plan.mps       A simple LP problem (MPS format)
 planarity.mod  Graph planarity testing
+powpl25h.mod   Power plant LP scheduler (25hrs for daylightsavings)
+powplant.mod   Power plant LP scheduler
 prod.mod       A multiperiod production model
 qfit.mod       Quadratic curve fitting solution
 queens.mod     A classic combinatorial optimization problem
@@ -59,6 +62,8 @@ train.mod      A model of railroad passenger car allocation
 transp.mod     A transportation problem
 trick.mod      A transportation design problem
 tsp.mod        Traveling salesman problem
+wolfra6d.lp    Neumann CA grid emulator generator
+wolfra6d.mod   Neumann CA grid emulator generator
 xyacfs.mod     Extended yet another curve fitting solution
 yacfs.mod      Yet another curve fitting solution
 zebra.mod      Who owns the zebra?

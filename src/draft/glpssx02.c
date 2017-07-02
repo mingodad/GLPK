@@ -4,7 +4,7 @@
 *  This code is part of GLPK (GNU Linear Programming Kit).
 *
 *  Copyright (C) 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008,
-*  2009, 2010, 2011, 2013 Andrew Makhorin, Department for Applied
+*  2009, 2010, 2011, 2013, 2017 Andrew Makhorin, Department for Applied
 *  Informatics, Moscow Aviation Institute, Moscow, Russia. All rights
 *  reserved. E-mail: <mao@gnu.org>.
 *
@@ -132,10 +132,16 @@ int ssx_phase_I(SSX *ssx)
       ssx_eval_pi(ssx);
       ssx_eval_cbar(ssx);
       /* display initial progress of the search */
+#if 1 /* 25/XI-2017 */
+      if (ssx->msg_lev >= GLP_MSG_ON)
+#endif
       show_progress(ssx, 1);
       /* main loop starts here */
       for (;;)
       {  /* display current progress of the search */
+#if 1 /* 25/XI-2017 */
+         if (ssx->msg_lev >= GLP_MSG_ON)
+#endif
 #if 0
          if (utime() - ssx->tm_lag >= ssx->out_frq - 0.001)
 #else
@@ -243,6 +249,9 @@ int ssx_phase_I(SSX *ssx)
          ssx->it_cnt++;
       }
       /* display final progress of the search */
+#if 1 /* 25/XI-2017 */
+      if (ssx->msg_lev >= GLP_MSG_ON)
+#endif
       show_progress(ssx, 1);
       /* restore components of the original problem, which were changed
          by the routine */
@@ -282,10 +291,16 @@ int ssx_phase_I(SSX *ssx)
 int ssx_phase_II(SSX *ssx)
 {     int ret;
       /* display initial progress of the search */
+#if 1 /* 25/XI-2017 */
+      if (ssx->msg_lev >= GLP_MSG_ON)
+#endif
       show_progress(ssx, 2);
       /* main loop starts here */
       for (;;)
       {  /* display current progress of the search */
+#if 1 /* 25/XI-2017 */
+         if (ssx->msg_lev >= GLP_MSG_ON)
+#endif
 #if 0
          if (utime() - ssx->tm_lag >= ssx->out_frq - 0.001)
 #else
@@ -347,6 +362,9 @@ int ssx_phase_II(SSX *ssx)
          ssx->it_cnt++;
       }
       /* display final progress of the search */
+#if 1 /* 25/XI-2017 */
+      if (ssx->msg_lev >= GLP_MSG_ON)
+#endif
       show_progress(ssx, 2);
       /* return to the calling program */
       return ret;
@@ -381,7 +399,12 @@ int ssx_driver(SSX *ssx)
       ssx->tm_beg = xtime();
       /* factorize the initial basis matrix */
       if (ssx_factorize(ssx))
+#if 0 /* 25/XI-2017 */
       {  xprintf("Initial basis matrix is singular\n");
+#else
+      {  if (ssx->msg_lev >= GLP_MSG_ERR)
+            xprintf("Initial basis matrix is singular\n");
+#endif
          ret = 7;
          goto done;
       }
@@ -419,14 +442,23 @@ int ssx_driver(SSX *ssx)
             ret = 0;
             break;
          case 1:
+#if 1 /* 25/XI-2017 */
+            if (ssx->msg_lev >= GLP_MSG_ALL)
+#endif
             xprintf("PROBLEM HAS NO FEASIBLE SOLUTION\n");
             ret = 1;
             break;
          case 2:
+#if 1 /* 25/XI-2017 */
+            if (ssx->msg_lev >= GLP_MSG_ALL)
+#endif
             xprintf("ITERATIONS LIMIT EXCEEDED; SEARCH TERMINATED\n");
             ret = 3;
             break;
          case 3:
+#if 1 /* 25/XI-2017 */
+            if (ssx->msg_lev >= GLP_MSG_ALL)
+#endif
             xprintf("TIME LIMIT EXCEEDED; SEARCH TERMINATED\n");
             ret = 5;
             break;
@@ -446,18 +478,30 @@ skip: /* compute simplex multipliers */
       ret = ssx_phase_II(ssx);
       switch (ret)
       {  case 0:
+#if 1 /* 25/XI-2017 */
+            if (ssx->msg_lev >= GLP_MSG_ALL)
+#endif
             xprintf("OPTIMAL SOLUTION FOUND\n");
             ret = 0;
             break;
          case 1:
+#if 1 /* 25/XI-2017 */
+            if (ssx->msg_lev >= GLP_MSG_ALL)
+#endif
             xprintf("PROBLEM HAS UNBOUNDED SOLUTION\n");
             ret = 2;
             break;
          case 2:
+#if 1 /* 25/XI-2017 */
+            if (ssx->msg_lev >= GLP_MSG_ALL)
+#endif
             xprintf("ITERATIONS LIMIT EXCEEDED; SEARCH TERMINATED\n");
             ret = 4;
             break;
          case 3:
+#if 1 /* 25/XI-2017 */
+            if (ssx->msg_lev >= GLP_MSG_ALL)
+#endif
             xprintf("TIME LIMIT EXCEEDED; SEARCH TERMINATED\n");
             ret = 6;
             break;

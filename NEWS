@@ -1,3 +1,29 @@
+GLPK 4.64 (release date: Dec 02, 2017)
+
+        The dual simplex solver routine was changed to perform more
+        aggressive perturbation to prevent dual degeneracy and avoid
+        stalling even if the current dual basic solution is strongly
+        feasible (mainly if the objective is zero). Thanks to David
+        Monniaux <David.Monniaux@univ-grenoble-alpes.fr> for bug report
+        and example model.
+
+        The exact simplex solver routine was changed to perform
+        terminal output according to the verbosity level (specified by
+        the control parameter smcp.msg_lev). Thanks to Jeroen Demeyer
+        <jdemeyer@cage.ugent.be> for bug report.
+
+        A minor bug (related to MS Windows version) was fixed. Thanks
+        to Heinrich Schuchardt <xypron.glpk@gmx.de> for bug report.
+
+        An example model (Graceful Tree Labeling Problem) in MathProg
+        was added. Thanks to Mike Appleby <mike@app.leby.org> for
+        contribution.
+
+        Three example models (Power plant LP scheduler, Neumann CA
+        grid emulator generator) in MathProg and one in Cplex LP format
+        were added. Thanks to Peter Naszvadi <vuk@cs.elte.hu> for
+        contribution.
+
 GLPK 4.63 (release date: Jul 25, 2017)
 
         A "smart" LP perturbation was implemented in the primal and

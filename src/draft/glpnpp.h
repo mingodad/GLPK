@@ -27,14 +27,22 @@
 
 #include "prob.h"
 
+#if 0 /* 20/XI-2017 */
 typedef struct NPP NPP;
+#else
+typedef struct glp_prep NPP;
+#endif
 typedef struct NPPROW NPPROW;
 typedef struct NPPCOL NPPCOL;
 typedef struct NPPAIJ NPPAIJ;
 typedef struct NPPTSE NPPTSE;
 typedef struct NPPLFE NPPLFE;
 
+#if 0 /* 20/XI-2017 */
 struct NPP
+#else
+struct glp_prep
+#endif
 {     /* LP/MIP preprocessor workspace */
       /*--------------------------------------------------------------*/
       /* original problem segment */

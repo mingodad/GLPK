@@ -4,7 +4,7 @@
 *  This code is part of GLPK (GNU Linear Programming Kit).
 *
 *  Copyright (C) 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008,
-*  2009, 2010, 2011, 2013 Andrew Makhorin, Department for Applied
+*  2009, 2010, 2011, 2013, 2017 Andrew Makhorin, Department for Applied
 *  Informatics, Moscow Aviation Institute, Moscow, Russia. All rights
 *  reserved. E-mail: <mao@gnu.org>.
 *
@@ -267,6 +267,19 @@ int glp_exact(glp_prob *lp, const glp_smcp *parm)
       if (parm == NULL)
          parm = &_parm, glp_init_smcp((glp_smcp *)parm);
       /* check control parameters */
+#if 1 /* 25/XI-2017 */
+      switch (parm->msg_lev)
+      {  case GLP_MSG_OFF:
+         case GLP_MSG_ERR:
+         case GLP_MSG_ON:
+         case GLP_MSG_ALL:
+         case GLP_MSG_DBG:
+            break;
+         default:
+            xerror("glp_exact: msg_lev = %d; invalid parameter\n",
+               parm->msg_lev);
+      }
+#endif
       if (parm->it_lim < 0)
          xerror("glp_exact: it_lim = %d; invalid parameter\n",
             parm->it_lim);
@@ -275,7 +288,12 @@ int glp_exact(glp_prob *lp, const glp_smcp *parm)
             parm->tm_lim);
       /* the problem must have at least one row and one column */
       if (!(m > 0 && n > 0))
+#if 0 /* 25/XI-2017 */
       {  xprintf("glp_exact: problem has no rows/columns\n");
+#else
+      {  if (parm->msg_lev >= GLP_MSG_ERR)
+            xprintf("glp_exact: problem has no rows/columns\n");
+#endif
          return GLP_EFAIL;
       }
 #if 1
@@ -297,12 +315,22 @@ int glp_exact(glp_prob *lp, const glp_smcp *parm)
             ub = lp->col[k-m]->ub;
          }
          if (type == GLP_DB && lb >= ub)
+#if 0 /* 25/XI-2017 */
          {  xprintf("glp_exact: %s %d has invalid bounds\n",
                k <= m ? "row" : "column", k <= m ? k : k-m);
+#else
+         {  if (parm->msg_lev >= GLP_MSG_ERR)
+               xprintf("glp_exact: %s %d has invalid bounds\n",
+                  k <= m ? "row" : "column", k <= m ? k : k-m);
+#endif
             return GLP_EBOUND;
          }
       }
       /* create the simplex solver workspace */
+#if 1 /* 25/XI-2017 */
+      if (parm->msg_lev >= GLP_MSG_ALL)
+      {
+#endif
       xprintf("glp_exact: %d rows, %d columns, %d non-zeros\n",
          m, n, nnz);
 #ifdef HAVE_GMP
@@ -312,21 +340,32 @@ int glp_exact(glp_prob *lp, const glp_smcp *parm)
       xprintf("(Consider installing GNU MP to attain a much better perf"
          "ormance.)\n");
 #endif
+#if 1 /* 25/XI-2017 */
+      }
+#endif
       ssx = ssx_create(m, n, nnz);
       /* load LP problem data into the workspace */
       load_data(ssx, lp);
       /* load current LP basis into the workspace */
       if (load_basis(ssx, lp))
+#if 0 /* 25/XI-2017 */
       {  xprintf("glp_exact: initial LP basis is invalid\n");
+#else
+      {  if (parm->msg_lev >= GLP_MSG_ERR)
+            xprintf("glp_exact: initial LP basis is invalid\n");
+#endif
          ret = GLP_EBADB;
          goto done;
       }
-      /* inherit some control parameters from the LP object */
 #if 0
+      /* inherit some control parameters from the LP object */
       ssx->it_lim = lpx_get_int_parm(lp, LPX_K_ITLIM);
       ssx->it_cnt = lpx_get_int_parm(lp, LPX_K_ITCNT);
       ssx->tm_lim = lpx_get_real_parm(lp, LPX_K_TMLIM);
 #else
+#if 1 /* 25/XI-2017 */
+      ssx->msg_lev = parm->msg_lev;
+#endif
       ssx->it_lim = parm->it_lim;
       ssx->it_cnt = lp->it_cnt;
       ssx->tm_lim = (double)parm->tm_lim / 1000.0;
@@ -340,8 +379,8 @@ int glp_exact(glp_prob *lp, const glp_smcp *parm)
 #endif
       /* solve LP */
       ret = ssx_driver(ssx);
-      /* copy back some statistics to the LP object */
 #if 0
+      /* copy back some statistics to the LP object */
       lpx_set_int_parm(lp, LPX_K_ITLIM, ssx->it_lim);
       lpx_set_int_parm(lp, LPX_K_ITCNT, ssx->it_cnt);
       lpx_set_real_parm(lp, LPX_K_TMLIM, ssx->tm_lim);

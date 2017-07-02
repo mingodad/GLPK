@@ -1,3 +1,34 @@
+Sat Dec 02 12:00:00 2017 Andrew Makhorin <mao@gnu.org>
+
+        * GLPK 4.64 (42:3:2) has been released.
+
+        * src/simplex/spydual.c
+        The internal routine play_coef of the dual simplex solver was
+        changed to perform more aggressive perturbation to prevent dual
+        degeneracy and avoid stalling even if the current dual basic
+        solution is strongly feasible (mainly if the objective is zero,
+        so all reduced costs are always zero). Thanks to David Monniaux
+        <David.Monniaux@univ-grenoble-alpes.fr> for bug report.
+
+        * src/draft/glpssx.h, glpssx02.c, glpapi07.c
+        The exact simplex solver routines were changed to perform
+        terminal output according to the verbosity level (specified by
+        the control parameter smcp.msg_lev). Thanks to Jeroen Demeyer
+        <jdemeyer@cage.ugent.be> for bug report.
+
+        * src/simplex/spxchuzr.c
+        The directive #include <config.h> was added. Thanks to Heinrich
+        Schuchardt <xypron.glpk@gmx.de> for bug report.
+
+        * examples/graceful.mod
+        An example model in MathProg was added. Thanks to Mike Appleby
+        <mike@app.leby.org> for contribution.
+
+        * examples/powpl25h.mod powplant.mod wolfra6d.lp wolfra6d.mod
+        Three example models in MathProg and one in Cplex LP format
+        were added. Thanks to Peter Naszvadi <vuk@cs.elte.hu> for
+        contribution.
+
 Tue Jul 25 12:00:00 2017 Andrew Makhorin <mao@gnu.org>
 
         * GLPK 4.63 (42:2:2) has been released.

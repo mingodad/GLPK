@@ -161,12 +161,20 @@ int glp_mincost_relax4(glp_graph *G, int v_rhs, int a_low, int a_cap,
             {  ret = GLP_ERANGE;
                goto done;
             }
+#if 0 /* 29/IX-2017 */
             csa.dfct[a->tail->i] += low;
+#else
+            csa.dfct[a->tail->i] += (int)low;
+#endif
             if (overflow(csa.dfct[a->head->i], -low))
             {  ret = GLP_ERANGE;
                goto done;
             }
+#if 0 /* 29/IX-2017 */
             csa.dfct[a->head->i] -= low;
+#else
+            csa.dfct[a->head->i] -= (int)low;
+#endif
          }
       }
       /* construct linked list for network topology */

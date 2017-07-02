@@ -95,22 +95,7 @@ am__uninstall_files_from_dir = { \
 am__installdirs = "$(DESTDIR)$(libdir)" "$(DESTDIR)$(includedir)"
 LTLIBRARIES = $(lib_LTLIBRARIES)
 libglpk_la_LIBADD =
-am_libglpk_la_OBJECTS = libglpk_la-bfd.lo libglpk_la-bfx.lo \
-	libglpk_la-glpapi06.lo libglpk_la-glpapi07.lo \
-	libglpk_la-glpapi08.lo libglpk_la-glpapi09.lo \
-	libglpk_la-glpapi10.lo libglpk_la-glpapi12.lo \
-	libglpk_la-glpapi13.lo libglpk_la-glphbm.lo \
-	libglpk_la-glpios01.lo libglpk_la-glpios02.lo \
-	libglpk_la-glpios03.lo libglpk_la-glpios07.lo \
-	libglpk_la-glpios09.lo libglpk_la-glpios10.lo \
-	libglpk_la-glpios11.lo libglpk_la-glpios12.lo \
-	libglpk_la-glpipm.lo libglpk_la-glpmat.lo \
-	libglpk_la-glpnpp01.lo libglpk_la-glpnpp02.lo \
-	libglpk_la-glpnpp03.lo libglpk_la-glpnpp04.lo \
-	libglpk_la-glpnpp05.lo libglpk_la-glpnpp06.lo \
-	libglpk_la-glprgr.lo libglpk_la-glpscl.lo libglpk_la-glpspm.lo \
-	libglpk_la-glpssx01.lo libglpk_la-glpssx02.lo \
-	libglpk_la-lux.lo libglpk_la-amd_1.lo libglpk_la-amd_2.lo \
+am_libglpk_la_OBJECTS = libglpk_la-amd_1.lo libglpk_la-amd_2.lo \
 	libglpk_la-amd_aat.lo libglpk_la-amd_control.lo \
 	libglpk_la-amd_defaults.lo libglpk_la-amd_dump.lo \
 	libglpk_la-amd_info.lo libglpk_la-amd_order.lo \
@@ -142,16 +127,31 @@ am_libglpk_la_OBJECTS = libglpk_la-bfd.lo libglpk_la-bfx.lo \
 	libglpk_la-cfg.lo libglpk_la-cfg1.lo libglpk_la-cfg2.lo \
 	libglpk_la-clqcut.lo libglpk_la-gmicut.lo libglpk_la-gmigen.lo \
 	libglpk_la-mirgen.lo libglpk_la-spv.lo libglpk_la-colamd.lo \
-	libglpk_la-alloc.lo libglpk_la-dlsup.lo libglpk_la-env.lo \
-	libglpk_la-error.lo libglpk_la-stdc.lo libglpk_la-stdout.lo \
-	libglpk_la-stream.lo libglpk_la-time.lo libglpk_la-tls.lo \
-	libglpk_la-minisat.lo libglpk_la-avl.lo libglpk_la-bignum.lo \
-	libglpk_la-dimacs.lo libglpk_la-dmp.lo libglpk_la-ffalg.lo \
-	libglpk_la-fp2rat.lo libglpk_la-gcd.lo libglpk_la-jd.lo \
-	libglpk_la-keller.lo libglpk_la-mc13d.lo libglpk_la-mc21a.lo \
-	libglpk_la-mygmp.lo libglpk_la-okalg.lo libglpk_la-qmd.lo \
-	libglpk_la-relax4.lo libglpk_la-rng.lo libglpk_la-rng1.lo \
-	libglpk_la-round2n.lo libglpk_la-str2int.lo \
+	libglpk_la-bfd.lo libglpk_la-bfx.lo libglpk_la-glpapi06.lo \
+	libglpk_la-glpapi07.lo libglpk_la-glpapi08.lo \
+	libglpk_la-glpapi09.lo libglpk_la-glpapi10.lo \
+	libglpk_la-glpapi12.lo libglpk_la-glpapi13.lo \
+	libglpk_la-glphbm.lo libglpk_la-glpios01.lo \
+	libglpk_la-glpios02.lo libglpk_la-glpios03.lo \
+	libglpk_la-glpios07.lo libglpk_la-glpios09.lo \
+	libglpk_la-glpios10.lo libglpk_la-glpios11.lo \
+	libglpk_la-glpios12.lo libglpk_la-glpipm.lo \
+	libglpk_la-glpmat.lo libglpk_la-glpnpp01.lo \
+	libglpk_la-glpnpp02.lo libglpk_la-glpnpp03.lo \
+	libglpk_la-glpnpp04.lo libglpk_la-glpnpp05.lo \
+	libglpk_la-glpnpp06.lo libglpk_la-glprgr.lo \
+	libglpk_la-glpscl.lo libglpk_la-glpspm.lo \
+	libglpk_la-glpssx01.lo libglpk_la-glpssx02.lo \
+	libglpk_la-lux.lo libglpk_la-alloc.lo libglpk_la-dlsup.lo \
+	libglpk_la-env.lo libglpk_la-error.lo libglpk_la-stdc.lo \
+	libglpk_la-stdout.lo libglpk_la-stream.lo libglpk_la-time.lo \
+	libglpk_la-tls.lo libglpk_la-minisat.lo libglpk_la-avl.lo \
+	libglpk_la-bignum.lo libglpk_la-dimacs.lo libglpk_la-dmp.lo \
+	libglpk_la-ffalg.lo libglpk_la-fp2rat.lo libglpk_la-gcd.lo \
+	libglpk_la-jd.lo libglpk_la-keller.lo libglpk_la-mc13d.lo \
+	libglpk_la-mc21a.lo libglpk_la-mygmp.lo libglpk_la-okalg.lo \
+	libglpk_la-qmd.lo libglpk_la-relax4.lo libglpk_la-rng.lo \
+	libglpk_la-rng1.lo libglpk_la-round2n.lo libglpk_la-str2int.lo \
 	libglpk_la-str2num.lo libglpk_la-strspx.lo \
 	libglpk_la-strtrim.lo libglpk_la-triang.lo \
 	libglpk_la-wclique.lo libglpk_la-wclique1.lo \
@@ -320,6 +320,7 @@ libglpk_la_CPPFLAGS = \
 -I$(srcdir)/bflib \
 -I$(srcdir)/cglib \
 -I$(srcdir)/colamd \
+-I$(srcdir)/draft \
 -I$(srcdir)/env \
 -I$(srcdir)/minisat \
 -I$(srcdir)/misc \
@@ -329,43 +330,11 @@ libglpk_la_CPPFLAGS = \
 -I$(srcdir)/zlib
 
 libglpk_la_LDFLAGS = \
--version-info 42:2:2 \
+-version-info 42:3:2 \
 -export-symbols-regex '^glp_*' \
 ${NOUNDEFINED}
 
 libglpk_la_SOURCES = \
-bfd.c \
-bfx.c \
-glpapi06.c \
-glpapi07.c \
-glpapi08.c \
-glpapi09.c \
-glpapi10.c \
-glpapi12.c \
-glpapi13.c \
-glphbm.c \
-glpios01.c \
-glpios02.c \
-glpios03.c \
-glpios07.c \
-glpios09.c \
-glpios10.c \
-glpios11.c \
-glpios12.c \
-glpipm.c \
-glpmat.c \
-glpnpp01.c \
-glpnpp02.c \
-glpnpp03.c \
-glpnpp04.c \
-glpnpp05.c \
-glpnpp06.c \
-glprgr.c \
-glpscl.c \
-glpspm.c \
-glpssx01.c \
-glpssx02.c \
-lux.c \
 amd/amd_1.c \
 amd/amd_2.c \
 amd/amd_aat.c \
@@ -452,6 +421,38 @@ cglib/gmigen.c \
 cglib/mirgen.c \
 cglib/spv.c \
 colamd/colamd.c \
+draft/bfd.c \
+draft/bfx.c \
+draft/glpapi06.c \
+draft/glpapi07.c \
+draft/glpapi08.c \
+draft/glpapi09.c \
+draft/glpapi10.c \
+draft/glpapi12.c \
+draft/glpapi13.c \
+draft/glphbm.c \
+draft/glpios01.c \
+draft/glpios02.c \
+draft/glpios03.c \
+draft/glpios07.c \
+draft/glpios09.c \
+draft/glpios10.c \
+draft/glpios11.c \
+draft/glpios12.c \
+draft/glpipm.c \
+draft/glpmat.c \
+draft/glpnpp01.c \
+draft/glpnpp02.c \
+draft/glpnpp03.c \
+draft/glpnpp04.c \
+draft/glpnpp05.c \
+draft/glpnpp06.c \
+draft/glprgr.c \
+draft/glpscl.c \
+draft/glpspm.c \
+draft/glpssx01.c \
+draft/glpssx02.c \
+draft/lux.c \
 env/alloc.c \
 env/dlsup.c \
 env/env.c \
@@ -807,230 +808,6 @@ distclean-compile:
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	source='$<' object='$@' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(LTCOMPILE) -c -o $@ $<
-
-libglpk_la-bfd.lo: bfd.c
-@am__fastdepCC_TRUE@	$(LIBTOOL)  --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libglpk_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libglpk_la-bfd.lo -MD -MP -MF $(DEPDIR)/libglpk_la-bfd.Tpo -c -o libglpk_la-bfd.lo `test -f 'bfd.c' || echo '$(srcdir)/'`bfd.c
-@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/libglpk_la-bfd.Tpo $(DEPDIR)/libglpk_la-bfd.Plo
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='bfd.c' object='libglpk_la-bfd.lo' libtool=yes @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(LIBTOOL)  --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libglpk_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libglpk_la-bfd.lo `test -f 'bfd.c' || echo '$(srcdir)/'`bfd.c
-
-libglpk_la-bfx.lo: bfx.c
-@am__fastdepCC_TRUE@	$(LIBTOOL)  --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libglpk_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libglpk_la-bfx.lo -MD -MP -MF $(DEPDIR)/libglpk_la-bfx.Tpo -c -o libglpk_la-bfx.lo `test -f 'bfx.c' || echo '$(srcdir)/'`bfx.c
-@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/libglpk_la-bfx.Tpo $(DEPDIR)/libglpk_la-bfx.Plo
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='bfx.c' object='libglpk_la-bfx.lo' libtool=yes @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(LIBTOOL)  --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libglpk_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libglpk_la-bfx.lo `test -f 'bfx.c' || echo '$(srcdir)/'`bfx.c
-
-libglpk_la-glpapi06.lo: glpapi06.c
-@am__fastdepCC_TRUE@	$(LIBTOOL)  --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libglpk_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libglpk_la-glpapi06.lo -MD -MP -MF $(DEPDIR)/libglpk_la-glpapi06.Tpo -c -o libglpk_la-glpapi06.lo `test -f 'glpapi06.c' || echo '$(srcdir)/'`glpapi06.c
-@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/libglpk_la-glpapi06.Tpo $(DEPDIR)/libglpk_la-glpapi06.Plo
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='glpapi06.c' object='libglpk_la-glpapi06.lo' libtool=yes @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(LIBTOOL)  --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libglpk_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libglpk_la-glpapi06.lo `test -f 'glpapi06.c' || echo '$(srcdir)/'`glpapi06.c
-
-libglpk_la-glpapi07.lo: glpapi07.c
-@am__fastdepCC_TRUE@	$(LIBTOOL)  --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libglpk_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libglpk_la-glpapi07.lo -MD -MP -MF $(DEPDIR)/libglpk_la-glpapi07.Tpo -c -o libglpk_la-glpapi07.lo `test -f 'glpapi07.c' || echo '$(srcdir)/'`glpapi07.c
-@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/libglpk_la-glpapi07.Tpo $(DEPDIR)/libglpk_la-glpapi07.Plo
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='glpapi07.c' object='libglpk_la-glpapi07.lo' libtool=yes @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(LIBTOOL)  --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libglpk_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libglpk_la-glpapi07.lo `test -f 'glpapi07.c' || echo '$(srcdir)/'`glpapi07.c
-
-libglpk_la-glpapi08.lo: glpapi08.c
-@am__fastdepCC_TRUE@	$(LIBTOOL)  --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libglpk_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libglpk_la-glpapi08.lo -MD -MP -MF $(DEPDIR)/libglpk_la-glpapi08.Tpo -c -o libglpk_la-glpapi08.lo `test -f 'glpapi08.c' || echo '$(srcdir)/'`glpapi08.c
-@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/libglpk_la-glpapi08.Tpo $(DEPDIR)/libglpk_la-glpapi08.Plo
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='glpapi08.c' object='libglpk_la-glpapi08.lo' libtool=yes @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(LIBTOOL)  --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libglpk_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libglpk_la-glpapi08.lo `test -f 'glpapi08.c' || echo '$(srcdir)/'`glpapi08.c
-
-libglpk_la-glpapi09.lo: glpapi09.c
-@am__fastdepCC_TRUE@	$(LIBTOOL)  --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libglpk_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libglpk_la-glpapi09.lo -MD -MP -MF $(DEPDIR)/libglpk_la-glpapi09.Tpo -c -o libglpk_la-glpapi09.lo `test -f 'glpapi09.c' || echo '$(srcdir)/'`glpapi09.c
-@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/libglpk_la-glpapi09.Tpo $(DEPDIR)/libglpk_la-glpapi09.Plo
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='glpapi09.c' object='libglpk_la-glpapi09.lo' libtool=yes @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(LIBTOOL)  --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libglpk_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libglpk_la-glpapi09.lo `test -f 'glpapi09.c' || echo '$(srcdir)/'`glpapi09.c
-
-libglpk_la-glpapi10.lo: glpapi10.c
-@am__fastdepCC_TRUE@	$(LIBTOOL)  --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libglpk_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libglpk_la-glpapi10.lo -MD -MP -MF $(DEPDIR)/libglpk_la-glpapi10.Tpo -c -o libglpk_la-glpapi10.lo `test -f 'glpapi10.c' || echo '$(srcdir)/'`glpapi10.c
-@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/libglpk_la-glpapi10.Tpo $(DEPDIR)/libglpk_la-glpapi10.Plo
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='glpapi10.c' object='libglpk_la-glpapi10.lo' libtool=yes @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(LIBTOOL)  --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libglpk_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libglpk_la-glpapi10.lo `test -f 'glpapi10.c' || echo '$(srcdir)/'`glpapi10.c
-
-libglpk_la-glpapi12.lo: glpapi12.c
-@am__fastdepCC_TRUE@	$(LIBTOOL)  --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libglpk_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libglpk_la-glpapi12.lo -MD -MP -MF $(DEPDIR)/libglpk_la-glpapi12.Tpo -c -o libglpk_la-glpapi12.lo `test -f 'glpapi12.c' || echo '$(srcdir)/'`glpapi12.c
-@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/libglpk_la-glpapi12.Tpo $(DEPDIR)/libglpk_la-glpapi12.Plo
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='glpapi12.c' object='libglpk_la-glpapi12.lo' libtool=yes @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(LIBTOOL)  --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libglpk_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libglpk_la-glpapi12.lo `test -f 'glpapi12.c' || echo '$(srcdir)/'`glpapi12.c
-
-libglpk_la-glpapi13.lo: glpapi13.c
-@am__fastdepCC_TRUE@	$(LIBTOOL)  --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libglpk_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libglpk_la-glpapi13.lo -MD -MP -MF $(DEPDIR)/libglpk_la-glpapi13.Tpo -c -o libglpk_la-glpapi13.lo `test -f 'glpapi13.c' || echo '$(srcdir)/'`glpapi13.c
-@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/libglpk_la-glpapi13.Tpo $(DEPDIR)/libglpk_la-glpapi13.Plo
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='glpapi13.c' object='libglpk_la-glpapi13.lo' libtool=yes @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(LIBTOOL)  --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libglpk_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libglpk_la-glpapi13.lo `test -f 'glpapi13.c' || echo '$(srcdir)/'`glpapi13.c
-
-libglpk_la-glphbm.lo: glphbm.c
-@am__fastdepCC_TRUE@	$(LIBTOOL)  --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libglpk_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libglpk_la-glphbm.lo -MD -MP -MF $(DEPDIR)/libglpk_la-glphbm.Tpo -c -o libglpk_la-glphbm.lo `test -f 'glphbm.c' || echo '$(srcdir)/'`glphbm.c
-@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/libglpk_la-glphbm.Tpo $(DEPDIR)/libglpk_la-glphbm.Plo
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='glphbm.c' object='libglpk_la-glphbm.lo' libtool=yes @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(LIBTOOL)  --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libglpk_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libglpk_la-glphbm.lo `test -f 'glphbm.c' || echo '$(srcdir)/'`glphbm.c
-
-libglpk_la-glpios01.lo: glpios01.c
-@am__fastdepCC_TRUE@	$(LIBTOOL)  --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libglpk_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libglpk_la-glpios01.lo -MD -MP -MF $(DEPDIR)/libglpk_la-glpios01.Tpo -c -o libglpk_la-glpios01.lo `test -f 'glpios01.c' || echo '$(srcdir)/'`glpios01.c
-@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/libglpk_la-glpios01.Tpo $(DEPDIR)/libglpk_la-glpios01.Plo
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='glpios01.c' object='libglpk_la-glpios01.lo' libtool=yes @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(LIBTOOL)  --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libglpk_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libglpk_la-glpios01.lo `test -f 'glpios01.c' || echo '$(srcdir)/'`glpios01.c
-
-libglpk_la-glpios02.lo: glpios02.c
-@am__fastdepCC_TRUE@	$(LIBTOOL)  --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libglpk_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libglpk_la-glpios02.lo -MD -MP -MF $(DEPDIR)/libglpk_la-glpios02.Tpo -c -o libglpk_la-glpios02.lo `test -f 'glpios02.c' || echo '$(srcdir)/'`glpios02.c
-@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/libglpk_la-glpios02.Tpo $(DEPDIR)/libglpk_la-glpios02.Plo
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='glpios02.c' object='libglpk_la-glpios02.lo' libtool=yes @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(LIBTOOL)  --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libglpk_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libglpk_la-glpios02.lo `test -f 'glpios02.c' || echo '$(srcdir)/'`glpios02.c
-
-libglpk_la-glpios03.lo: glpios03.c
-@am__fastdepCC_TRUE@	$(LIBTOOL)  --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libglpk_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libglpk_la-glpios03.lo -MD -MP -MF $(DEPDIR)/libglpk_la-glpios03.Tpo -c -o libglpk_la-glpios03.lo `test -f 'glpios03.c' || echo '$(srcdir)/'`glpios03.c
-@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/libglpk_la-glpios03.Tpo $(DEPDIR)/libglpk_la-glpios03.Plo
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='glpios03.c' object='libglpk_la-glpios03.lo' libtool=yes @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(LIBTOOL)  --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libglpk_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libglpk_la-glpios03.lo `test -f 'glpios03.c' || echo '$(srcdir)/'`glpios03.c
-
-libglpk_la-glpios07.lo: glpios07.c
-@am__fastdepCC_TRUE@	$(LIBTOOL)  --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libglpk_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libglpk_la-glpios07.lo -MD -MP -MF $(DEPDIR)/libglpk_la-glpios07.Tpo -c -o libglpk_la-glpios07.lo `test -f 'glpios07.c' || echo '$(srcdir)/'`glpios07.c
-@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/libglpk_la-glpios07.Tpo $(DEPDIR)/libglpk_la-glpios07.Plo
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='glpios07.c' object='libglpk_la-glpios07.lo' libtool=yes @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(LIBTOOL)  --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libglpk_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libglpk_la-glpios07.lo `test -f 'glpios07.c' || echo '$(srcdir)/'`glpios07.c
-
-libglpk_la-glpios09.lo: glpios09.c
-@am__fastdepCC_TRUE@	$(LIBTOOL)  --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libglpk_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libglpk_la-glpios09.lo -MD -MP -MF $(DEPDIR)/libglpk_la-glpios09.Tpo -c -o libglpk_la-glpios09.lo `test -f 'glpios09.c' || echo '$(srcdir)/'`glpios09.c
-@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/libglpk_la-glpios09.Tpo $(DEPDIR)/libglpk_la-glpios09.Plo
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='glpios09.c' object='libglpk_la-glpios09.lo' libtool=yes @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(LIBTOOL)  --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libglpk_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libglpk_la-glpios09.lo `test -f 'glpios09.c' || echo '$(srcdir)/'`glpios09.c
-
-libglpk_la-glpios10.lo: glpios10.c
-@am__fastdepCC_TRUE@	$(LIBTOOL)  --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libglpk_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libglpk_la-glpios10.lo -MD -MP -MF $(DEPDIR)/libglpk_la-glpios10.Tpo -c -o libglpk_la-glpios10.lo `test -f 'glpios10.c' || echo '$(srcdir)/'`glpios10.c
-@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/libglpk_la-glpios10.Tpo $(DEPDIR)/libglpk_la-glpios10.Plo
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='glpios10.c' object='libglpk_la-glpios10.lo' libtool=yes @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(LIBTOOL)  --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libglpk_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libglpk_la-glpios10.lo `test -f 'glpios10.c' || echo '$(srcdir)/'`glpios10.c
-
-libglpk_la-glpios11.lo: glpios11.c
-@am__fastdepCC_TRUE@	$(LIBTOOL)  --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libglpk_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libglpk_la-glpios11.lo -MD -MP -MF $(DEPDIR)/libglpk_la-glpios11.Tpo -c -o libglpk_la-glpios11.lo `test -f 'glpios11.c' || echo '$(srcdir)/'`glpios11.c
-@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/libglpk_la-glpios11.Tpo $(DEPDIR)/libglpk_la-glpios11.Plo
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='glpios11.c' object='libglpk_la-glpios11.lo' libtool=yes @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(LIBTOOL)  --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libglpk_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libglpk_la-glpios11.lo `test -f 'glpios11.c' || echo '$(srcdir)/'`glpios11.c
-
-libglpk_la-glpios12.lo: glpios12.c
-@am__fastdepCC_TRUE@	$(LIBTOOL)  --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libglpk_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libglpk_la-glpios12.lo -MD -MP -MF $(DEPDIR)/libglpk_la-glpios12.Tpo -c -o libglpk_la-glpios12.lo `test -f 'glpios12.c' || echo '$(srcdir)/'`glpios12.c
-@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/libglpk_la-glpios12.Tpo $(DEPDIR)/libglpk_la-glpios12.Plo
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='glpios12.c' object='libglpk_la-glpios12.lo' libtool=yes @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(LIBTOOL)  --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libglpk_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libglpk_la-glpios12.lo `test -f 'glpios12.c' || echo '$(srcdir)/'`glpios12.c
-
-libglpk_la-glpipm.lo: glpipm.c
-@am__fastdepCC_TRUE@	$(LIBTOOL)  --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libglpk_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libglpk_la-glpipm.lo -MD -MP -MF $(DEPDIR)/libglpk_la-glpipm.Tpo -c -o libglpk_la-glpipm.lo `test -f 'glpipm.c' || echo '$(srcdir)/'`glpipm.c
-@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/libglpk_la-glpipm.Tpo $(DEPDIR)/libglpk_la-glpipm.Plo
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='glpipm.c' object='libglpk_la-glpipm.lo' libtool=yes @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(LIBTOOL)  --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libglpk_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libglpk_la-glpipm.lo `test -f 'glpipm.c' || echo '$(srcdir)/'`glpipm.c
-
-libglpk_la-glpmat.lo: glpmat.c
-@am__fastdepCC_TRUE@	$(LIBTOOL)  --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libglpk_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libglpk_la-glpmat.lo -MD -MP -MF $(DEPDIR)/libglpk_la-glpmat.Tpo -c -o libglpk_la-glpmat.lo `test -f 'glpmat.c' || echo '$(srcdir)/'`glpmat.c
-@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/libglpk_la-glpmat.Tpo $(DEPDIR)/libglpk_la-glpmat.Plo
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='glpmat.c' object='libglpk_la-glpmat.lo' libtool=yes @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(LIBTOOL)  --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libglpk_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libglpk_la-glpmat.lo `test -f 'glpmat.c' || echo '$(srcdir)/'`glpmat.c
-
-libglpk_la-glpnpp01.lo: glpnpp01.c
-@am__fastdepCC_TRUE@	$(LIBTOOL)  --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libglpk_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libglpk_la-glpnpp01.lo -MD -MP -MF $(DEPDIR)/libglpk_la-glpnpp01.Tpo -c -o libglpk_la-glpnpp01.lo `test -f 'glpnpp01.c' || echo '$(srcdir)/'`glpnpp01.c
-@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/libglpk_la-glpnpp01.Tpo $(DEPDIR)/libglpk_la-glpnpp01.Plo
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='glpnpp01.c' object='libglpk_la-glpnpp01.lo' libtool=yes @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(LIBTOOL)  --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libglpk_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libglpk_la-glpnpp01.lo `test -f 'glpnpp01.c' || echo '$(srcdir)/'`glpnpp01.c
-
-libglpk_la-glpnpp02.lo: glpnpp02.c
-@am__fastdepCC_TRUE@	$(LIBTOOL)  --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libglpk_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libglpk_la-glpnpp02.lo -MD -MP -MF $(DEPDIR)/libglpk_la-glpnpp02.Tpo -c -o libglpk_la-glpnpp02.lo `test -f 'glpnpp02.c' || echo '$(srcdir)/'`glpnpp02.c
-@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/libglpk_la-glpnpp02.Tpo $(DEPDIR)/libglpk_la-glpnpp02.Plo
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='glpnpp02.c' object='libglpk_la-glpnpp02.lo' libtool=yes @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(LIBTOOL)  --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libglpk_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libglpk_la-glpnpp02.lo `test -f 'glpnpp02.c' || echo '$(srcdir)/'`glpnpp02.c
-
-libglpk_la-glpnpp03.lo: glpnpp03.c
-@am__fastdepCC_TRUE@	$(LIBTOOL)  --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libglpk_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libglpk_la-glpnpp03.lo -MD -MP -MF $(DEPDIR)/libglpk_la-glpnpp03.Tpo -c -o libglpk_la-glpnpp03.lo `test -f 'glpnpp03.c' || echo '$(srcdir)/'`glpnpp03.c
-@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/libglpk_la-glpnpp03.Tpo $(DEPDIR)/libglpk_la-glpnpp03.Plo
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='glpnpp03.c' object='libglpk_la-glpnpp03.lo' libtool=yes @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(LIBTOOL)  --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libglpk_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libglpk_la-glpnpp03.lo `test -f 'glpnpp03.c' || echo '$(srcdir)/'`glpnpp03.c
-
-libglpk_la-glpnpp04.lo: glpnpp04.c
-@am__fastdepCC_TRUE@	$(LIBTOOL)  --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libglpk_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libglpk_la-glpnpp04.lo -MD -MP -MF $(DEPDIR)/libglpk_la-glpnpp04.Tpo -c -o libglpk_la-glpnpp04.lo `test -f 'glpnpp04.c' || echo '$(srcdir)/'`glpnpp04.c
-@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/libglpk_la-glpnpp04.Tpo $(DEPDIR)/libglpk_la-glpnpp04.Plo
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='glpnpp04.c' object='libglpk_la-glpnpp04.lo' libtool=yes @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(LIBTOOL)  --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libglpk_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libglpk_la-glpnpp04.lo `test -f 'glpnpp04.c' || echo '$(srcdir)/'`glpnpp04.c
-
-libglpk_la-glpnpp05.lo: glpnpp05.c
-@am__fastdepCC_TRUE@	$(LIBTOOL)  --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libglpk_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libglpk_la-glpnpp05.lo -MD -MP -MF $(DEPDIR)/libglpk_la-glpnpp05.Tpo -c -o libglpk_la-glpnpp05.lo `test -f 'glpnpp05.c' || echo '$(srcdir)/'`glpnpp05.c
-@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/libglpk_la-glpnpp05.Tpo $(DEPDIR)/libglpk_la-glpnpp05.Plo
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='glpnpp05.c' object='libglpk_la-glpnpp05.lo' libtool=yes @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(LIBTOOL)  --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libglpk_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libglpk_la-glpnpp05.lo `test -f 'glpnpp05.c' || echo '$(srcdir)/'`glpnpp05.c
-
-libglpk_la-glpnpp06.lo: glpnpp06.c
-@am__fastdepCC_TRUE@	$(LIBTOOL)  --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libglpk_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libglpk_la-glpnpp06.lo -MD -MP -MF $(DEPDIR)/libglpk_la-glpnpp06.Tpo -c -o libglpk_la-glpnpp06.lo `test -f 'glpnpp06.c' || echo '$(srcdir)/'`glpnpp06.c
-@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/libglpk_la-glpnpp06.Tpo $(DEPDIR)/libglpk_la-glpnpp06.Plo
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='glpnpp06.c' object='libglpk_la-glpnpp06.lo' libtool=yes @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(LIBTOOL)  --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libglpk_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libglpk_la-glpnpp06.lo `test -f 'glpnpp06.c' || echo '$(srcdir)/'`glpnpp06.c
-
-libglpk_la-glprgr.lo: glprgr.c
-@am__fastdepCC_TRUE@	$(LIBTOOL)  --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libglpk_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libglpk_la-glprgr.lo -MD -MP -MF $(DEPDIR)/libglpk_la-glprgr.Tpo -c -o libglpk_la-glprgr.lo `test -f 'glprgr.c' || echo '$(srcdir)/'`glprgr.c
-@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/libglpk_la-glprgr.Tpo $(DEPDIR)/libglpk_la-glprgr.Plo
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='glprgr.c' object='libglpk_la-glprgr.lo' libtool=yes @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(LIBTOOL)  --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libglpk_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libglpk_la-glprgr.lo `test -f 'glprgr.c' || echo '$(srcdir)/'`glprgr.c
-
-libglpk_la-glpscl.lo: glpscl.c
-@am__fastdepCC_TRUE@	$(LIBTOOL)  --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libglpk_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libglpk_la-glpscl.lo -MD -MP -MF $(DEPDIR)/libglpk_la-glpscl.Tpo -c -o libglpk_la-glpscl.lo `test -f 'glpscl.c' || echo '$(srcdir)/'`glpscl.c
-@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/libglpk_la-glpscl.Tpo $(DEPDIR)/libglpk_la-glpscl.Plo
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='glpscl.c' object='libglpk_la-glpscl.lo' libtool=yes @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(LIBTOOL)  --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libglpk_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libglpk_la-glpscl.lo `test -f 'glpscl.c' || echo '$(srcdir)/'`glpscl.c
-
-libglpk_la-glpspm.lo: glpspm.c
-@am__fastdepCC_TRUE@	$(LIBTOOL)  --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libglpk_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libglpk_la-glpspm.lo -MD -MP -MF $(DEPDIR)/libglpk_la-glpspm.Tpo -c -o libglpk_la-glpspm.lo `test -f 'glpspm.c' || echo '$(srcdir)/'`glpspm.c
-@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/libglpk_la-glpspm.Tpo $(DEPDIR)/libglpk_la-glpspm.Plo
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='glpspm.c' object='libglpk_la-glpspm.lo' libtool=yes @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(LIBTOOL)  --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libglpk_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libglpk_la-glpspm.lo `test -f 'glpspm.c' || echo '$(srcdir)/'`glpspm.c
-
-libglpk_la-glpssx01.lo: glpssx01.c
-@am__fastdepCC_TRUE@	$(LIBTOOL)  --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libglpk_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libglpk_la-glpssx01.lo -MD -MP -MF $(DEPDIR)/libglpk_la-glpssx01.Tpo -c -o libglpk_la-glpssx01.lo `test -f 'glpssx01.c' || echo '$(srcdir)/'`glpssx01.c
-@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/libglpk_la-glpssx01.Tpo $(DEPDIR)/libglpk_la-glpssx01.Plo
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='glpssx01.c' object='libglpk_la-glpssx01.lo' libtool=yes @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(LIBTOOL)  --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libglpk_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libglpk_la-glpssx01.lo `test -f 'glpssx01.c' || echo '$(srcdir)/'`glpssx01.c
-
-libglpk_la-glpssx02.lo: glpssx02.c
-@am__fastdepCC_TRUE@	$(LIBTOOL)  --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libglpk_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libglpk_la-glpssx02.lo -MD -MP -MF $(DEPDIR)/libglpk_la-glpssx02.Tpo -c -o libglpk_la-glpssx02.lo `test -f 'glpssx02.c' || echo '$(srcdir)/'`glpssx02.c
-@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/libglpk_la-glpssx02.Tpo $(DEPDIR)/libglpk_la-glpssx02.Plo
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='glpssx02.c' object='libglpk_la-glpssx02.lo' libtool=yes @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(LIBTOOL)  --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libglpk_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libglpk_la-glpssx02.lo `test -f 'glpssx02.c' || echo '$(srcdir)/'`glpssx02.c
-
-libglpk_la-lux.lo: lux.c
-@am__fastdepCC_TRUE@	$(LIBTOOL)  --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libglpk_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libglpk_la-lux.lo -MD -MP -MF $(DEPDIR)/libglpk_la-lux.Tpo -c -o libglpk_la-lux.lo `test -f 'lux.c' || echo '$(srcdir)/'`lux.c
-@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/libglpk_la-lux.Tpo $(DEPDIR)/libglpk_la-lux.Plo
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='lux.c' object='libglpk_la-lux.lo' libtool=yes @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(LIBTOOL)  --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libglpk_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libglpk_la-lux.lo `test -f 'lux.c' || echo '$(srcdir)/'`lux.c
 
 libglpk_la-amd_1.lo: amd/amd_1.c
 @am__fastdepCC_TRUE@	$(LIBTOOL)  --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libglpk_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libglpk_la-amd_1.lo -MD -MP -MF $(DEPDIR)/libglpk_la-amd_1.Tpo -c -o libglpk_la-amd_1.lo `test -f 'amd/amd_1.c' || echo '$(srcdir)/'`amd/amd_1.c
@@ -1633,6 +1410,230 @@ libglpk_la-colamd.lo: colamd/colamd.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	source='colamd/colamd.c' object='libglpk_la-colamd.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(LIBTOOL)  --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libglpk_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libglpk_la-colamd.lo `test -f 'colamd/colamd.c' || echo '$(srcdir)/'`colamd/colamd.c
+
+libglpk_la-bfd.lo: draft/bfd.c
+@am__fastdepCC_TRUE@	$(LIBTOOL)  --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libglpk_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libglpk_la-bfd.lo -MD -MP -MF $(DEPDIR)/libglpk_la-bfd.Tpo -c -o libglpk_la-bfd.lo `test -f 'draft/bfd.c' || echo '$(srcdir)/'`draft/bfd.c
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/libglpk_la-bfd.Tpo $(DEPDIR)/libglpk_la-bfd.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='draft/bfd.c' object='libglpk_la-bfd.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(LIBTOOL)  --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libglpk_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libglpk_la-bfd.lo `test -f 'draft/bfd.c' || echo '$(srcdir)/'`draft/bfd.c
+
+libglpk_la-bfx.lo: draft/bfx.c
+@am__fastdepCC_TRUE@	$(LIBTOOL)  --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libglpk_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libglpk_la-bfx.lo -MD -MP -MF $(DEPDIR)/libglpk_la-bfx.Tpo -c -o libglpk_la-bfx.lo `test -f 'draft/bfx.c' || echo '$(srcdir)/'`draft/bfx.c
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/libglpk_la-bfx.Tpo $(DEPDIR)/libglpk_la-bfx.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='draft/bfx.c' object='libglpk_la-bfx.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(LIBTOOL)  --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libglpk_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libglpk_la-bfx.lo `test -f 'draft/bfx.c' || echo '$(srcdir)/'`draft/bfx.c
+
+libglpk_la-glpapi06.lo: draft/glpapi06.c
+@am__fastdepCC_TRUE@	$(LIBTOOL)  --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libglpk_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libglpk_la-glpapi06.lo -MD -MP -MF $(DEPDIR)/libglpk_la-glpapi06.Tpo -c -o libglpk_la-glpapi06.lo `test -f 'draft/glpapi06.c' || echo '$(srcdir)/'`draft/glpapi06.c
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/libglpk_la-glpapi06.Tpo $(DEPDIR)/libglpk_la-glpapi06.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='draft/glpapi06.c' object='libglpk_la-glpapi06.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(LIBTOOL)  --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libglpk_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libglpk_la-glpapi06.lo `test -f 'draft/glpapi06.c' || echo '$(srcdir)/'`draft/glpapi06.c
+
+libglpk_la-glpapi07.lo: draft/glpapi07.c
+@am__fastdepCC_TRUE@	$(LIBTOOL)  --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libglpk_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libglpk_la-glpapi07.lo -MD -MP -MF $(DEPDIR)/libglpk_la-glpapi07.Tpo -c -o libglpk_la-glpapi07.lo `test -f 'draft/glpapi07.c' || echo '$(srcdir)/'`draft/glpapi07.c
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/libglpk_la-glpapi07.Tpo $(DEPDIR)/libglpk_la-glpapi07.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='draft/glpapi07.c' object='libglpk_la-glpapi07.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(LIBTOOL)  --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libglpk_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libglpk_la-glpapi07.lo `test -f 'draft/glpapi07.c' || echo '$(srcdir)/'`draft/glpapi07.c
+
+libglpk_la-glpapi08.lo: draft/glpapi08.c
+@am__fastdepCC_TRUE@	$(LIBTOOL)  --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libglpk_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libglpk_la-glpapi08.lo -MD -MP -MF $(DEPDIR)/libglpk_la-glpapi08.Tpo -c -o libglpk_la-glpapi08.lo `test -f 'draft/glpapi08.c' || echo '$(srcdir)/'`draft/glpapi08.c
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/libglpk_la-glpapi08.Tpo $(DEPDIR)/libglpk_la-glpapi08.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='draft/glpapi08.c' object='libglpk_la-glpapi08.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(LIBTOOL)  --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libglpk_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libglpk_la-glpapi08.lo `test -f 'draft/glpapi08.c' || echo '$(srcdir)/'`draft/glpapi08.c
+
+libglpk_la-glpapi09.lo: draft/glpapi09.c
+@am__fastdepCC_TRUE@	$(LIBTOOL)  --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libglpk_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libglpk_la-glpapi09.lo -MD -MP -MF $(DEPDIR)/libglpk_la-glpapi09.Tpo -c -o libglpk_la-glpapi09.lo `test -f 'draft/glpapi09.c' || echo '$(srcdir)/'`draft/glpapi09.c
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/libglpk_la-glpapi09.Tpo $(DEPDIR)/libglpk_la-glpapi09.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='draft/glpapi09.c' object='libglpk_la-glpapi09.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(LIBTOOL)  --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libglpk_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libglpk_la-glpapi09.lo `test -f 'draft/glpapi09.c' || echo '$(srcdir)/'`draft/glpapi09.c
+
+libglpk_la-glpapi10.lo: draft/glpapi10.c
+@am__fastdepCC_TRUE@	$(LIBTOOL)  --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libglpk_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libglpk_la-glpapi10.lo -MD -MP -MF $(DEPDIR)/libglpk_la-glpapi10.Tpo -c -o libglpk_la-glpapi10.lo `test -f 'draft/glpapi10.c' || echo '$(srcdir)/'`draft/glpapi10.c
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/libglpk_la-glpapi10.Tpo $(DEPDIR)/libglpk_la-glpapi10.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='draft/glpapi10.c' object='libglpk_la-glpapi10.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(LIBTOOL)  --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libglpk_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libglpk_la-glpapi10.lo `test -f 'draft/glpapi10.c' || echo '$(srcdir)/'`draft/glpapi10.c
+
+libglpk_la-glpapi12.lo: draft/glpapi12.c
+@am__fastdepCC_TRUE@	$(LIBTOOL)  --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libglpk_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libglpk_la-glpapi12.lo -MD -MP -MF $(DEPDIR)/libglpk_la-glpapi12.Tpo -c -o libglpk_la-glpapi12.lo `test -f 'draft/glpapi12.c' || echo '$(srcdir)/'`draft/glpapi12.c
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/libglpk_la-glpapi12.Tpo $(DEPDIR)/libglpk_la-glpapi12.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='draft/glpapi12.c' object='libglpk_la-glpapi12.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(LIBTOOL)  --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libglpk_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libglpk_la-glpapi12.lo `test -f 'draft/glpapi12.c' || echo '$(srcdir)/'`draft/glpapi12.c
+
+libglpk_la-glpapi13.lo: draft/glpapi13.c
+@am__fastdepCC_TRUE@	$(LIBTOOL)  --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libglpk_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libglpk_la-glpapi13.lo -MD -MP -MF $(DEPDIR)/libglpk_la-glpapi13.Tpo -c -o libglpk_la-glpapi13.lo `test -f 'draft/glpapi13.c' || echo '$(srcdir)/'`draft/glpapi13.c
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/libglpk_la-glpapi13.Tpo $(DEPDIR)/libglpk_la-glpapi13.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='draft/glpapi13.c' object='libglpk_la-glpapi13.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(LIBTOOL)  --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libglpk_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libglpk_la-glpapi13.lo `test -f 'draft/glpapi13.c' || echo '$(srcdir)/'`draft/glpapi13.c
+
+libglpk_la-glphbm.lo: draft/glphbm.c
+@am__fastdepCC_TRUE@	$(LIBTOOL)  --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libglpk_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libglpk_la-glphbm.lo -MD -MP -MF $(DEPDIR)/libglpk_la-glphbm.Tpo -c -o libglpk_la-glphbm.lo `test -f 'draft/glphbm.c' || echo '$(srcdir)/'`draft/glphbm.c
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/libglpk_la-glphbm.Tpo $(DEPDIR)/libglpk_la-glphbm.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='draft/glphbm.c' object='libglpk_la-glphbm.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(LIBTOOL)  --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libglpk_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libglpk_la-glphbm.lo `test -f 'draft/glphbm.c' || echo '$(srcdir)/'`draft/glphbm.c
+
+libglpk_la-glpios01.lo: draft/glpios01.c
+@am__fastdepCC_TRUE@	$(LIBTOOL)  --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libglpk_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libglpk_la-glpios01.lo -MD -MP -MF $(DEPDIR)/libglpk_la-glpios01.Tpo -c -o libglpk_la-glpios01.lo `test -f 'draft/glpios01.c' || echo '$(srcdir)/'`draft/glpios01.c
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/libglpk_la-glpios01.Tpo $(DEPDIR)/libglpk_la-glpios01.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='draft/glpios01.c' object='libglpk_la-glpios01.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(LIBTOOL)  --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libglpk_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libglpk_la-glpios01.lo `test -f 'draft/glpios01.c' || echo '$(srcdir)/'`draft/glpios01.c
+
+libglpk_la-glpios02.lo: draft/glpios02.c
+@am__fastdepCC_TRUE@	$(LIBTOOL)  --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libglpk_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libglpk_la-glpios02.lo -MD -MP -MF $(DEPDIR)/libglpk_la-glpios02.Tpo -c -o libglpk_la-glpios02.lo `test -f 'draft/glpios02.c' || echo '$(srcdir)/'`draft/glpios02.c
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/libglpk_la-glpios02.Tpo $(DEPDIR)/libglpk_la-glpios02.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='draft/glpios02.c' object='libglpk_la-glpios02.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(LIBTOOL)  --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libglpk_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libglpk_la-glpios02.lo `test -f 'draft/glpios02.c' || echo '$(srcdir)/'`draft/glpios02.c
+
+libglpk_la-glpios03.lo: draft/glpios03.c
+@am__fastdepCC_TRUE@	$(LIBTOOL)  --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libglpk_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libglpk_la-glpios03.lo -MD -MP -MF $(DEPDIR)/libglpk_la-glpios03.Tpo -c -o libglpk_la-glpios03.lo `test -f 'draft/glpios03.c' || echo '$(srcdir)/'`draft/glpios03.c
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/libglpk_la-glpios03.Tpo $(DEPDIR)/libglpk_la-glpios03.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='draft/glpios03.c' object='libglpk_la-glpios03.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(LIBTOOL)  --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libglpk_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libglpk_la-glpios03.lo `test -f 'draft/glpios03.c' || echo '$(srcdir)/'`draft/glpios03.c
+
+libglpk_la-glpios07.lo: draft/glpios07.c
+@am__fastdepCC_TRUE@	$(LIBTOOL)  --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libglpk_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libglpk_la-glpios07.lo -MD -MP -MF $(DEPDIR)/libglpk_la-glpios07.Tpo -c -o libglpk_la-glpios07.lo `test -f 'draft/glpios07.c' || echo '$(srcdir)/'`draft/glpios07.c
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/libglpk_la-glpios07.Tpo $(DEPDIR)/libglpk_la-glpios07.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='draft/glpios07.c' object='libglpk_la-glpios07.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(LIBTOOL)  --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libglpk_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libglpk_la-glpios07.lo `test -f 'draft/glpios07.c' || echo '$(srcdir)/'`draft/glpios07.c
+
+libglpk_la-glpios09.lo: draft/glpios09.c
+@am__fastdepCC_TRUE@	$(LIBTOOL)  --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libglpk_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libglpk_la-glpios09.lo -MD -MP -MF $(DEPDIR)/libglpk_la-glpios09.Tpo -c -o libglpk_la-glpios09.lo `test -f 'draft/glpios09.c' || echo '$(srcdir)/'`draft/glpios09.c
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/libglpk_la-glpios09.Tpo $(DEPDIR)/libglpk_la-glpios09.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='draft/glpios09.c' object='libglpk_la-glpios09.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(LIBTOOL)  --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libglpk_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libglpk_la-glpios09.lo `test -f 'draft/glpios09.c' || echo '$(srcdir)/'`draft/glpios09.c
+
+libglpk_la-glpios10.lo: draft/glpios10.c
+@am__fastdepCC_TRUE@	$(LIBTOOL)  --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libglpk_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libglpk_la-glpios10.lo -MD -MP -MF $(DEPDIR)/libglpk_la-glpios10.Tpo -c -o libglpk_la-glpios10.lo `test -f 'draft/glpios10.c' || echo '$(srcdir)/'`draft/glpios10.c
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/libglpk_la-glpios10.Tpo $(DEPDIR)/libglpk_la-glpios10.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='draft/glpios10.c' object='libglpk_la-glpios10.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(LIBTOOL)  --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libglpk_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libglpk_la-glpios10.lo `test -f 'draft/glpios10.c' || echo '$(srcdir)/'`draft/glpios10.c
+
+libglpk_la-glpios11.lo: draft/glpios11.c
+@am__fastdepCC_TRUE@	$(LIBTOOL)  --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libglpk_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libglpk_la-glpios11.lo -MD -MP -MF $(DEPDIR)/libglpk_la-glpios11.Tpo -c -o libglpk_la-glpios11.lo `test -f 'draft/glpios11.c' || echo '$(srcdir)/'`draft/glpios11.c
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/libglpk_la-glpios11.Tpo $(DEPDIR)/libglpk_la-glpios11.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='draft/glpios11.c' object='libglpk_la-glpios11.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(LIBTOOL)  --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libglpk_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libglpk_la-glpios11.lo `test -f 'draft/glpios11.c' || echo '$(srcdir)/'`draft/glpios11.c
+
+libglpk_la-glpios12.lo: draft/glpios12.c
+@am__fastdepCC_TRUE@	$(LIBTOOL)  --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libglpk_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libglpk_la-glpios12.lo -MD -MP -MF $(DEPDIR)/libglpk_la-glpios12.Tpo -c -o libglpk_la-glpios12.lo `test -f 'draft/glpios12.c' || echo '$(srcdir)/'`draft/glpios12.c
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/libglpk_la-glpios12.Tpo $(DEPDIR)/libglpk_la-glpios12.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='draft/glpios12.c' object='libglpk_la-glpios12.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(LIBTOOL)  --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libglpk_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libglpk_la-glpios12.lo `test -f 'draft/glpios12.c' || echo '$(srcdir)/'`draft/glpios12.c
+
+libglpk_la-glpipm.lo: draft/glpipm.c
+@am__fastdepCC_TRUE@	$(LIBTOOL)  --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libglpk_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libglpk_la-glpipm.lo -MD -MP -MF $(DEPDIR)/libglpk_la-glpipm.Tpo -c -o libglpk_la-glpipm.lo `test -f 'draft/glpipm.c' || echo '$(srcdir)/'`draft/glpipm.c
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/libglpk_la-glpipm.Tpo $(DEPDIR)/libglpk_la-glpipm.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='draft/glpipm.c' object='libglpk_la-glpipm.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(LIBTOOL)  --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libglpk_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libglpk_la-glpipm.lo `test -f 'draft/glpipm.c' || echo '$(srcdir)/'`draft/glpipm.c
+
+libglpk_la-glpmat.lo: draft/glpmat.c
+@am__fastdepCC_TRUE@	$(LIBTOOL)  --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libglpk_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libglpk_la-glpmat.lo -MD -MP -MF $(DEPDIR)/libglpk_la-glpmat.Tpo -c -o libglpk_la-glpmat.lo `test -f 'draft/glpmat.c' || echo '$(srcdir)/'`draft/glpmat.c
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/libglpk_la-glpmat.Tpo $(DEPDIR)/libglpk_la-glpmat.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='draft/glpmat.c' object='libglpk_la-glpmat.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(LIBTOOL)  --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libglpk_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libglpk_la-glpmat.lo `test -f 'draft/glpmat.c' || echo '$(srcdir)/'`draft/glpmat.c
+
+libglpk_la-glpnpp01.lo: draft/glpnpp01.c
+@am__fastdepCC_TRUE@	$(LIBTOOL)  --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libglpk_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libglpk_la-glpnpp01.lo -MD -MP -MF $(DEPDIR)/libglpk_la-glpnpp01.Tpo -c -o libglpk_la-glpnpp01.lo `test -f 'draft/glpnpp01.c' || echo '$(srcdir)/'`draft/glpnpp01.c
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/libglpk_la-glpnpp01.Tpo $(DEPDIR)/libglpk_la-glpnpp01.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='draft/glpnpp01.c' object='libglpk_la-glpnpp01.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(LIBTOOL)  --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libglpk_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libglpk_la-glpnpp01.lo `test -f 'draft/glpnpp01.c' || echo '$(srcdir)/'`draft/glpnpp01.c
+
+libglpk_la-glpnpp02.lo: draft/glpnpp02.c
+@am__fastdepCC_TRUE@	$(LIBTOOL)  --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libglpk_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libglpk_la-glpnpp02.lo -MD -MP -MF $(DEPDIR)/libglpk_la-glpnpp02.Tpo -c -o libglpk_la-glpnpp02.lo `test -f 'draft/glpnpp02.c' || echo '$(srcdir)/'`draft/glpnpp02.c
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/libglpk_la-glpnpp02.Tpo $(DEPDIR)/libglpk_la-glpnpp02.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='draft/glpnpp02.c' object='libglpk_la-glpnpp02.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(LIBTOOL)  --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libglpk_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libglpk_la-glpnpp02.lo `test -f 'draft/glpnpp02.c' || echo '$(srcdir)/'`draft/glpnpp02.c
+
+libglpk_la-glpnpp03.lo: draft/glpnpp03.c
+@am__fastdepCC_TRUE@	$(LIBTOOL)  --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libglpk_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libglpk_la-glpnpp03.lo -MD -MP -MF $(DEPDIR)/libglpk_la-glpnpp03.Tpo -c -o libglpk_la-glpnpp03.lo `test -f 'draft/glpnpp03.c' || echo '$(srcdir)/'`draft/glpnpp03.c
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/libglpk_la-glpnpp03.Tpo $(DEPDIR)/libglpk_la-glpnpp03.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='draft/glpnpp03.c' object='libglpk_la-glpnpp03.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(LIBTOOL)  --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libglpk_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libglpk_la-glpnpp03.lo `test -f 'draft/glpnpp03.c' || echo '$(srcdir)/'`draft/glpnpp03.c
+
+libglpk_la-glpnpp04.lo: draft/glpnpp04.c
+@am__fastdepCC_TRUE@	$(LIBTOOL)  --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libglpk_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libglpk_la-glpnpp04.lo -MD -MP -MF $(DEPDIR)/libglpk_la-glpnpp04.Tpo -c -o libglpk_la-glpnpp04.lo `test -f 'draft/glpnpp04.c' || echo '$(srcdir)/'`draft/glpnpp04.c
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/libglpk_la-glpnpp04.Tpo $(DEPDIR)/libglpk_la-glpnpp04.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='draft/glpnpp04.c' object='libglpk_la-glpnpp04.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(LIBTOOL)  --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libglpk_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libglpk_la-glpnpp04.lo `test -f 'draft/glpnpp04.c' || echo '$(srcdir)/'`draft/glpnpp04.c
+
+libglpk_la-glpnpp05.lo: draft/glpnpp05.c
+@am__fastdepCC_TRUE@	$(LIBTOOL)  --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libglpk_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libglpk_la-glpnpp05.lo -MD -MP -MF $(DEPDIR)/libglpk_la-glpnpp05.Tpo -c -o libglpk_la-glpnpp05.lo `test -f 'draft/glpnpp05.c' || echo '$(srcdir)/'`draft/glpnpp05.c
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/libglpk_la-glpnpp05.Tpo $(DEPDIR)/libglpk_la-glpnpp05.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='draft/glpnpp05.c' object='libglpk_la-glpnpp05.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(LIBTOOL)  --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libglpk_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libglpk_la-glpnpp05.lo `test -f 'draft/glpnpp05.c' || echo '$(srcdir)/'`draft/glpnpp05.c
+
+libglpk_la-glpnpp06.lo: draft/glpnpp06.c
+@am__fastdepCC_TRUE@	$(LIBTOOL)  --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libglpk_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libglpk_la-glpnpp06.lo -MD -MP -MF $(DEPDIR)/libglpk_la-glpnpp06.Tpo -c -o libglpk_la-glpnpp06.lo `test -f 'draft/glpnpp06.c' || echo '$(srcdir)/'`draft/glpnpp06.c
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/libglpk_la-glpnpp06.Tpo $(DEPDIR)/libglpk_la-glpnpp06.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='draft/glpnpp06.c' object='libglpk_la-glpnpp06.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(LIBTOOL)  --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libglpk_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libglpk_la-glpnpp06.lo `test -f 'draft/glpnpp06.c' || echo '$(srcdir)/'`draft/glpnpp06.c
+
+libglpk_la-glprgr.lo: draft/glprgr.c
+@am__fastdepCC_TRUE@	$(LIBTOOL)  --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libglpk_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libglpk_la-glprgr.lo -MD -MP -MF $(DEPDIR)/libglpk_la-glprgr.Tpo -c -o libglpk_la-glprgr.lo `test -f 'draft/glprgr.c' || echo '$(srcdir)/'`draft/glprgr.c
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/libglpk_la-glprgr.Tpo $(DEPDIR)/libglpk_la-glprgr.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='draft/glprgr.c' object='libglpk_la-glprgr.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(LIBTOOL)  --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libglpk_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libglpk_la-glprgr.lo `test -f 'draft/glprgr.c' || echo '$(srcdir)/'`draft/glprgr.c
+
+libglpk_la-glpscl.lo: draft/glpscl.c
+@am__fastdepCC_TRUE@	$(LIBTOOL)  --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libglpk_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libglpk_la-glpscl.lo -MD -MP -MF $(DEPDIR)/libglpk_la-glpscl.Tpo -c -o libglpk_la-glpscl.lo `test -f 'draft/glpscl.c' || echo '$(srcdir)/'`draft/glpscl.c
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/libglpk_la-glpscl.Tpo $(DEPDIR)/libglpk_la-glpscl.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='draft/glpscl.c' object='libglpk_la-glpscl.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(LIBTOOL)  --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libglpk_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libglpk_la-glpscl.lo `test -f 'draft/glpscl.c' || echo '$(srcdir)/'`draft/glpscl.c
+
+libglpk_la-glpspm.lo: draft/glpspm.c
+@am__fastdepCC_TRUE@	$(LIBTOOL)  --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libglpk_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libglpk_la-glpspm.lo -MD -MP -MF $(DEPDIR)/libglpk_la-glpspm.Tpo -c -o libglpk_la-glpspm.lo `test -f 'draft/glpspm.c' || echo '$(srcdir)/'`draft/glpspm.c
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/libglpk_la-glpspm.Tpo $(DEPDIR)/libglpk_la-glpspm.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='draft/glpspm.c' object='libglpk_la-glpspm.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(LIBTOOL)  --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libglpk_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libglpk_la-glpspm.lo `test -f 'draft/glpspm.c' || echo '$(srcdir)/'`draft/glpspm.c
+
+libglpk_la-glpssx01.lo: draft/glpssx01.c
+@am__fastdepCC_TRUE@	$(LIBTOOL)  --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libglpk_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libglpk_la-glpssx01.lo -MD -MP -MF $(DEPDIR)/libglpk_la-glpssx01.Tpo -c -o libglpk_la-glpssx01.lo `test -f 'draft/glpssx01.c' || echo '$(srcdir)/'`draft/glpssx01.c
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/libglpk_la-glpssx01.Tpo $(DEPDIR)/libglpk_la-glpssx01.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='draft/glpssx01.c' object='libglpk_la-glpssx01.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(LIBTOOL)  --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libglpk_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libglpk_la-glpssx01.lo `test -f 'draft/glpssx01.c' || echo '$(srcdir)/'`draft/glpssx01.c
+
+libglpk_la-glpssx02.lo: draft/glpssx02.c
+@am__fastdepCC_TRUE@	$(LIBTOOL)  --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libglpk_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libglpk_la-glpssx02.lo -MD -MP -MF $(DEPDIR)/libglpk_la-glpssx02.Tpo -c -o libglpk_la-glpssx02.lo `test -f 'draft/glpssx02.c' || echo '$(srcdir)/'`draft/glpssx02.c
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/libglpk_la-glpssx02.Tpo $(DEPDIR)/libglpk_la-glpssx02.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='draft/glpssx02.c' object='libglpk_la-glpssx02.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(LIBTOOL)  --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libglpk_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libglpk_la-glpssx02.lo `test -f 'draft/glpssx02.c' || echo '$(srcdir)/'`draft/glpssx02.c
+
+libglpk_la-lux.lo: draft/lux.c
+@am__fastdepCC_TRUE@	$(LIBTOOL)  --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libglpk_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libglpk_la-lux.lo -MD -MP -MF $(DEPDIR)/libglpk_la-lux.Tpo -c -o libglpk_la-lux.lo `test -f 'draft/lux.c' || echo '$(srcdir)/'`draft/lux.c
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/libglpk_la-lux.Tpo $(DEPDIR)/libglpk_la-lux.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='draft/lux.c' object='libglpk_la-lux.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(LIBTOOL)  --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libglpk_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libglpk_la-lux.lo `test -f 'draft/lux.c' || echo '$(srcdir)/'`draft/lux.c
 
 libglpk_la-alloc.lo: env/alloc.c
 @am__fastdepCC_TRUE@	$(LIBTOOL)  --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libglpk_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libglpk_la-alloc.lo -MD -MP -MF $(DEPDIR)/libglpk_la-alloc.Tpo -c -o libglpk_la-alloc.lo `test -f 'env/alloc.c' || echo '$(srcdir)/'`env/alloc.c
