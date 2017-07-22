@@ -31,10 +31,12 @@ int glp_minisat1(glp_prob *P)
       GLPAIJ *aij;
       int i, j, len, ret, *ind;
       double sum;
+#if 0 /* 04/IV-2016 */
       /* check problem object */
       if (P == NULL || P->magic != GLP_PROB_MAGIC)
          xerror("glp_minisat1: P = %p; invalid problem object\n",
             P);
+#endif
       if (P->tree != NULL)
          xerror("glp_minisat1: operation not allowed\n");
       /* integer solution is currently undefined */

@@ -50,8 +50,10 @@ int glp_read_mip(glp_prob *P, const char *fname)
       int i, j, k, m, n, sst, ret = 1;
       char *stat = NULL;
       double obj, *prim = NULL;
+#if 0 /* 04/IV-2016 */
       if (P == NULL || P->magic != GLP_PROB_MAGIC)
          xerror("glp_read_mip: P = %p; invalid problem object\n", P);
+#endif
       if (fname == NULL)
          xerror("glp_read_mip: fname = %d; invalid parameter\n", fname);
       if (setjmp(dmx->jump))

@@ -49,9 +49,11 @@ int glp_write_prob(glp_prob *P, int flags, const char *fname)
       GLPCOL *col;
       GLPAIJ *aij;
       int mip, i, j, count, ret;
+#if 0 /* 04/IV-2016 */
       if (P == NULL || P->magic != GLP_PROB_MAGIC)
          xerror("glp_write_prob: P = %p; invalid problem object\n",
             P);
+#endif
       if (flags != 0)
          xerror("glp_write_prob: flags = %d; invalid parameter\n",
             flags);

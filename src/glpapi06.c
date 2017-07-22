@@ -369,8 +369,10 @@ int glp_simplex(glp_prob *P, const glp_smcp *parm)
       glp_smcp _parm;
       int i, j, ret;
       /* check problem object */
+#if 0 /* 04/IV-2016 */
       if (P == NULL || P->magic != GLP_PROB_MAGIC)
          xerror("glp_simplex: P = %p; invalid problem object\n", P);
+#endif
       if (P->tree != NULL && P->tree->reason != 0)
          xerror("glp_simplex: operation not allowed\n");
       /* check control parameters */

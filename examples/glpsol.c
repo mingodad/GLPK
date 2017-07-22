@@ -3,7 +3,7 @@
 /***********************************************************************
 *  This code is part of GLPK (GNU Linear Programming Kit).
 *
-*  Copyright (C) 2000-2016 Andrew Makhorin, Department for Applied
+*  Copyright (C) 2000-2017 Andrew Makhorin, Department for Applied
 *  Informatics, Moscow Aviation Institute, Moscow, Russia. All rights
 *  reserved. E-mail: <mao@gnu.org>.
 *
@@ -20,6 +20,10 @@
 *  You should have received a copy of the GNU General Public License
 *  along with GLPK. If not, see <http://www.gnu.org/licenses/>.
 ***********************************************************************/
+
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 
 #include <ctype.h>
 #include <float.h>
@@ -417,8 +421,7 @@ static void print_version(int briefly)
 {     /* print version information */
       xprintf("GLPSOL: GLPK LP/MIP Solver, v%s\n", glp_version());
       if (briefly) goto done;
-      xprintf("\n");
-      xprintf("Copyright (C) 2000-2015 Andrew Makhorin, Department for "
+      xprintf("Copyright (C) 2000-2017 Andrew Makhorin, Department for "
          "Applied\n");
       xprintf("Informatics, Moscow Aviation Institute, Moscow, Russia. "
          "All rights\n");
@@ -928,7 +931,11 @@ static int parse_cmdline(struct csa *csa, int argc, char *argv[])
 typedef struct { double rhs, pi; } v_data;
 typedef struct { double low, cap, cost, x; } a_data;
 
+#ifndef __WOE__
 int main(int argc, char *argv[])
+#else
+int __cdecl main(int argc, char *argv[])
+#endif
 {     /* stand-alone LP/MIP solver */
       struct csa _csa, *csa = &_csa;
       int ret;
@@ -1368,6 +1375,12 @@ err2:    {  xprintf("MathProg model processing error\n");
 #if 0
          csa->iocp.msg_lev = GLP_MSG_DBG;
          csa->iocp.pp_tech = GLP_PP_NONE;
+#endif
+#ifdef GLP_CB_FUNC /* 05/IV-2016 */
+         {  extern void GLP_CB_FUNC(glp_tree *, void *);
+            csa->iocp.cb_func = GLP_CB_FUNC;
+            csa->iocp.cb_info = NULL;
+         }
 #endif
          glp_intopt(csa->prob, &csa->iocp);
       }

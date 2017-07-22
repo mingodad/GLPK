@@ -4,7 +4,7 @@
 *  This code is part of GLPK (GNU Linear Programming Kit).
 *
 *  Copyright (C) 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008,
-*  2009, 2010, 2011, 2013 Andrew Makhorin, Department for Applied
+*  2009, 2010, 2011, 2013, 2017 Andrew Makhorin, Department for Applied
 *  Informatics, Moscow Aviation Institute, Moscow, Russia. All rights
 *  reserved. E-mail: <mao@gnu.org>.
 *
@@ -21,6 +21,10 @@
 *  You should have received a copy of the GNU General Public License
 *  along with GLPK. If not, see <http://www.gnu.org/licenses/>.
 ***********************************************************************/
+
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 
 #include "env.h"
 #include "glpios.h"
@@ -56,7 +60,11 @@ struct VAR
       /* sorting key */
 };
 
+#ifndef __WOE__
 static int fcmp(const void *x, const void *y)
+#else
+static int __cdecl fcmp(const void *x, const void *y)
+#endif
 {     /* comparison routine */
       const struct VAR *vx = x, *vy = y;
       if (vx->d > vy->d)

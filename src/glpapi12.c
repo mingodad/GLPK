@@ -1799,10 +1799,12 @@ void glp_analyze_bound(glp_prob *P, int k, double *value1, int *var1,
       GLPCOL *col;
       int m, n, stat, kase, p, len, piv, *ind;
       double x, new_x, ll, uu, xx, delta, *val;
+#if 0 /* 04/IV-2016 */
       /* sanity checks */
       if (P == NULL || P->magic != GLP_PROB_MAGIC)
          xerror("glp_analyze_bound: P = %p; invalid problem object\n",
             P);
+#endif
       m = P->m, n = P->n;
       if (!(P->pbs_stat == GLP_FEAS && P->dbs_stat == GLP_FEAS))
          xerror("glp_analyze_bound: optimal basic solution required\n");
@@ -1964,10 +1966,12 @@ void glp_analyze_coef(glp_prob *P, int k, double *coef1, int *var1,
          *cind, *rind;
       double lb, ub, coef, x, lim_coef, new_x, d, delta, ll, uu, xx,
          *rval, *cval;
+#if 0 /* 04/IV-2016 */
       /* sanity checks */
       if (P == NULL || P->magic != GLP_PROB_MAGIC)
          xerror("glp_analyze_coef: P = %p; invalid problem object\n",
             P);
+#endif
       m = P->m, n = P->n;
       if (!(P->pbs_stat == GLP_FEAS && P->dbs_stat == GLP_FEAS))
          xerror("glp_analyze_coef: optimal basic solution required\n");

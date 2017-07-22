@@ -1,3 +1,52 @@
+Sun Jan 22 12:00:00 2017 Andrew Makhorin <mao@gnu.org>
+
+        * GLPK 4.61 (42:0:2) has been released.
+
+        The following modules were renamed to simplify maintenance.
+        * src/prob.h     RENAMED            -> src/api/prob.h
+        * src/glpapi01.c RENAMED            -> src/api/prob1.c
+        * src/glpapi02.c RENAMED            -> src/api/prob2.c
+        * src/glpapi03.c RENAMED            -> src/api/prob3.c
+        * src/glpapi04.c RENAMED            -> src/api/prob4.c
+        * src/glpapi05.c RENAMED            -> src/api/prob5.c
+
+        * src/env/tls.c
+        TLS (thread local storage class specifier) option was added;
+        see comments in tls.c for details.
+
+        * configure.ac, config.h.in
+        Test for TLS was added.
+        Thanks to David Monniaux <david.monniaux@imag.fr> for
+        suggestion and Chris Matrakidis <cmatraki@gmail.com> for patch.
+
+        * src/env/tls.c
+        Dll support was added.
+        Thanks to Heinrich Schuchardt <xypron.glpk@gmx.de> for
+        contribution.
+
+        The following modules were changed to add __cdecl specifier
+        for functions passed to qsort (this is needed only on compiling
+        GLPK with MSVC to run under MS Windows).
+        * src/api/cpxbas.c
+        * src/cglib/cfg1.c
+        * src/cglib/gmigen.c
+        * src/cglib/mirgen.c
+        * src/misc/wclique1.c
+        * src/simplex/spychuzc.c
+        * src/glpios10.c
+        * src/glpios11.c
+        * examples/glpsol.c
+
+        * src/glpk.h, src/env/env.c
+        The API routine glp_version was changed to avoid initialization
+        of the GLPK environment. The new API routine glp_config was
+        added (but not documented yet). Thanks to Heinrich Schuchardt
+        <xypron.glpk@gmx.de> for suggestion.
+
+        * INSTALL
+        Description of the configure option '--with-zlib' was removed.
+        Thanks to Balaco Baco <balacobaco@imap.cc> for bug report.
+
 Fri Apr 01 12:00:00 2016 Andrew Makhorin <mao@gnu.org>
 
         * GLPK 4.60 (41:0:1) has been released.

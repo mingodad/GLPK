@@ -40,9 +40,11 @@ int glp_read_cnfsat(glp_prob *P, const char *fname)
       int m, n, i, j, len, neg, rhs, ret = 0, *ind = NULL;
       double *val = NULL;
       char *map = NULL;
+#if 0 /* 04/IV-2016 */
       if (P == NULL || P->magic != GLP_PROB_MAGIC)
          xerror("glp_read_cnfsat: P = %p; invalid problem object\n",
             P);
+#endif
       if (fname == NULL)
          xerror("glp_read_cnfsat: fname = %p; invalid parameter\n",
             fname);

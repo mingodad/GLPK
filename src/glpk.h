@@ -4,9 +4,9 @@
 *  This code is part of GLPK (GNU Linear Programming Kit).
 *
 *  Copyright (C) 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008,
-*  2009, 2010, 2011, 2013, 2014, 2015, 2016 Andrew Makhorin, Department
-*  for Applied Informatics, Moscow Aviation Institute, Moscow, Russia.
-*  All rights reserved. E-mail: <mao@gnu.org>.
+*  2009, 2010, 2011, 2013, 2014, 2015, 2016, 2017 Andrew Makhorin,
+*  Department for Applied Informatics, Moscow Aviation Institute,
+*  Moscow, Russia. All rights reserved. E-mail: <mao@gnu.org>.
 *
 *  GLPK is free software: you can redistribute it and/or modify it
 *  under the terms of the GNU General Public License as published by
@@ -34,7 +34,7 @@ extern "C" {
 
 /* library version numbers: */
 #define GLP_MAJOR_VERSION  4
-#define GLP_MINOR_VERSION  60
+#define GLP_MINOR_VERSION  61
 
 typedef struct glp_prob glp_prob;
 /* LP/MIP problem object */
@@ -849,6 +849,9 @@ int glp_init_env(void);
 
 const char *glp_version(void);
 /* determine library version */
+
+const char *glp_config(const char *option);
+/* determine library configuration */
 
 int glp_free_env(void);
 /* free GLPK environment */

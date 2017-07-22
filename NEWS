@@ -1,3 +1,29 @@
+GLPK 4.61 (release date: Jan 22, 2017)
+
+        An option was added to build a re-entrant version of the
+        package suitable for running in a multi-threaded environment.
+        This option is enabled by default on configuring the package
+        if the compiler used supports the thread local storage class
+        specifier (e.g. _Thread_local or __thread). Thanks to
+        David Monniaux <david.monniaux@imag.fr> for suggestion and
+        Chris Matrakidis <cmatraki@gmail.com> for configure.ac patch.
+
+        A re-entrant version of the package allows running multiple
+        independent instances of glpk in different threads of a multi-
+        threaded application. Note that glpk is not thread-safe by
+        design, so if the application calls glpk routines from multiple
+        threads, no thread may access glpk program objects (glp_prob,
+        glp_tree, etc.) created by other threads; besides, each thread
+        before termination should call the API routine glp_free_env to
+        prevent memory leak.
+
+        A DLL support was added. Thanks to Heinrich Schuchardt
+        <xypron.glpk@gmx.de> for contribution.
+
+        Some changes were made to allow compiling the package using
+        stdcall calling convention (this is needed only on compiling
+        GLPK with MSVC to run under MS Windows).
+
 GLPK 4.60 (release date: Apr 01, 2016)
 
         Some improvements were made in the primal and dual simplex

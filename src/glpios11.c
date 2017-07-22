@@ -4,7 +4,7 @@
 *  This code is part of GLPK (GNU Linear Programming Kit).
 *
 *  Copyright (C) 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008,
-*  2009, 2010, 2011, 2013 Andrew Makhorin, Department for Applied
+*  2009, 2010, 2011, 2013, 2017 Andrew Makhorin, Department for Applied
 *  Informatics, Moscow Aviation Institute, Moscow, Russia. All rights
 *  reserved. E-mail: <mao@gnu.org>.
 *
@@ -21,6 +21,10 @@
 *  You should have received a copy of the GNU General Public License
 *  along with GLPK. If not, see <http://www.gnu.org/licenses/>.
 ***********************************************************************/
+
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 
 #include "draft.h"
 #include "env.h"
@@ -66,7 +70,11 @@ struct info
       /* lower bound to objective degradation */
 };
 
+#ifndef __WOE__
 static int fcmp(const void *arg1, const void *arg2)
+#else
+static int __cdecl fcmp(const void *arg1, const void *arg2)
+#endif
 {     const struct info *info1 = arg1, *info2 = arg2;
       if (info1->deg == 0.0 && info2->deg == 0.0)
       {  if (info1->eff > info2->eff) return -1;

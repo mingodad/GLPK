@@ -3,8 +3,7 @@
 /***********************************************************************
 *  This code is part of GLPK (GNU Linear Programming Kit).
 *
-*  Copyright (C) 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008,
-*  2009, 2010, 2011, 2013 Andrew Makhorin, Department for Applied
+*  Copyright (C) 2000-2013 Andrew Makhorin, Department for Applied
 *  Informatics, Moscow Aviation Institute, Moscow, Russia. All rights
 *  reserved. E-mail: <mao@gnu.org>.
 *
@@ -37,12 +36,16 @@ typedef struct GLPROW GLPROW;
 typedef struct GLPCOL GLPCOL;
 typedef struct GLPAIJ GLPAIJ;
 
+#if 0 /* 04/IV-2016 */
 #define GLP_PROB_MAGIC 0xD7D9D6C2
+#endif
 
 struct glp_prob
 {     /* LP/MIP problem object */
+#if 0 /* 04/IV-2016 */
       unsigned magic;
       /* magic value used for debugging */
+#endif
       DMP *pool;
       /* memory pool to store problem object components */
       glp_tree *tree;

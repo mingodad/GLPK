@@ -3,7 +3,7 @@
 /***********************************************************************
 *  This code is part of GLPK (GNU Linear Programming Kit).
 *
-*  Copyright (C) 2008-2016 Andrew Makhorin, Department for Applied
+*  Copyright (C) 2008-2017 Andrew Makhorin, Department for Applied
 *  Informatics, Moscow Aviation Institute, Moscow, Russia. All rights
 *  reserved. E-mail: <mao@gnu.org>.
 *
@@ -21,6 +21,10 @@
 *  along with GLPK. If not, see <http://www.gnu.org/licenses/>.
 ***********************************************************************/
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #include "env.h"
 #include "prob.h"
 
@@ -32,7 +36,11 @@ struct var
       /* penalty value */
 };
 
+#ifndef __WOE__
 static int fcmp(const void *ptr1, const void *ptr2)
+#else
+static int __cdecl fcmp(const void *ptr1, const void *ptr2)
+#endif
 {     /* this routine is passed to the qsort() function */
       struct var *col1 = (void *)ptr1, *col2 = (void *)ptr2;
       if (col1->q < col2->q) return -1;

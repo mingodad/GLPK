@@ -25,11 +25,6 @@ CFLAGS = \
 OBJSET = \
 ..\src\bfd.obj \
 ..\src\bfx.obj \
-..\src\glpapi01.obj \
-..\src\glpapi02.obj \
-..\src\glpapi03.obj \
-..\src\glpapi04.obj \
-..\src\glpapi05.obj \
 ..\src\glpapi06.obj \
 ..\src\glpapi07.obj \
 ..\src\glpapi08.obj \
@@ -96,6 +91,11 @@ OBJSET = \
 ..\src\api\netgen.obj \
 ..\src\api\pript.obj \
 ..\src\api\prmip.obj \
+..\src\api\prob1.obj \
+..\src\api\prob2.obj \
+..\src\api\prob3.obj \
+..\src\api\prob4.obj \
+..\src\api\prob5.obj \
 ..\src\api\prrngs.obj \
 ..\src\api\prsol.obj \
 ..\src\api\rdasn.obj \

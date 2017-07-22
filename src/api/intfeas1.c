@@ -32,10 +32,12 @@ int glp_intfeas1(glp_prob *P, int use_bound, int obj_bound)
       double *obj_val = NULL;
       int obj_row = 0;
       int i, j, k, obj_len, temp, ret;
+#if 0 /* 04/IV-2016 */
       /* check the problem object */
       if (P == NULL || P->magic != GLP_PROB_MAGIC)
          xerror("glp_intfeas1: P = %p; invalid problem object\n",
             P);
+#endif
       if (P->tree != NULL)
          xerror("glp_intfeas1: operation not allowed\n");
       /* integer solution is currently undefined */

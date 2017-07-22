@@ -20,18 +20,13 @@ libglpk_la_CPPFLAGS = \
 -I$(srcdir)/zlib
 
 libglpk_la_LDFLAGS = \
--version-info 41:0:1 \
+-version-info 42:0:2 \
 -export-symbols-regex '^glp_*' \
 ${NOUNDEFINED}
 
 libglpk_la_SOURCES = \
 bfd.c \
 bfx.c \
-glpapi01.c \
-glpapi02.c \
-glpapi03.c \
-glpapi04.c \
-glpapi05.c \
 glpapi06.c \
 glpapi07.c \
 glpapi08.c \
@@ -98,6 +93,11 @@ api/mps.c \
 api/netgen.c \
 api/pript.c \
 api/prmip.c \
+api/prob1.c \
+api/prob2.c \
+api/prob3.c \
+api/prob4.c \
+api/prob5.c \
 api/prrngs.c \
 api/prsol.c \
 api/rdasn.c \

@@ -81,6 +81,7 @@ void spx_nt_prod(SPXLP *lp, SPXNT *nt, double y[/*1+n-m*/], int ign,
 /* compute product y := y + s * N'* x */
 
 #if 1 /* 31/III-2016 */
+#define spx_nt_prod_s _glp_spx_nt_prod_s
 void spx_nt_prod_s(SPXLP *lp, SPXNT *nt, FVS *y, int ign, double s,
       const FVS *x, double eps);
 /* sparse version of spx_nt_prod */

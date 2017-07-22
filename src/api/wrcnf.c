@@ -32,9 +32,11 @@ int glp_write_cnfsat(glp_prob *P, const char *fname)
       GLPAIJ *aij;
       int i, j, len, count = 0, ret;
       char s[50];
+#if 0 /* 04/IV-2016 */
       if (P == NULL || P->magic != GLP_PROB_MAGIC)
          xerror("glp_write_cnfsat: P = %p; invalid problem object\n",
             P);
+#endif
       if (glp_check_cnfsat(P) != 0)
       {  xprintf("glp_write_cnfsat: problem object does not encode CNF-"
             "SAT instance\n");

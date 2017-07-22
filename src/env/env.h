@@ -3,7 +3,7 @@
 /***********************************************************************
 *  This code is part of GLPK (GNU Linear Programming Kit).
 *
-*  Copyright (C) 2000-2015 Andrew Makhorin, Department for Applied
+*  Copyright (C) 2000-2017 Andrew Makhorin, Department for Applied
 *  Informatics, Moscow Aviation Institute, Moscow, Russia. All rights
 *  reserved. E-mail: <mao@gnu.org>.
 *
@@ -44,8 +44,10 @@ typedef struct MBD MBD;
 
 struct ENV
 {     /* GLPK environment block */
+#if 0 /* 14/I-2007 */
       char version[7+1];
       /* version string returned by the routine glp_version */
+#endif
       ENV *self;
       /* pointer to this block to check its validity */
       /*--------------------------------------------------------------*/

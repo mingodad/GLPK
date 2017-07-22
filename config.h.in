@@ -24,4 +24,7 @@
 #undef MYSQL_DLNAME
 /* MySQL shared library name if this feature is enabled */
 
+#undef TLS
+/* thread local storage-class specifier for re-entrancy (if any) */
+
 /* eof */

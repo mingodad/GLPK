@@ -74,17 +74,6 @@ option should be passed to the configure script.
    For details about the GNU MP bignum library see its web page at
    <http://gmplib.org/>.
 
---with-zlib          Enable using the zlib data compression library
-
-   This feature allows GLPK API routines and the stand-alone solver to
-   read and write compressed data files performing compression and
-   decompression "on the fly" (compressed data files are recognized by
-   suffix `.gz' in the file name). It may be useful in case of large
-   MPS files to save the disk space.
-
-   For details about the zlib compression library see its web page at
-   <http://www.zlib.net/>.
-
 --enable-dl          The same as --enable-dl=ltdl
 --enable-dl=ltdl     Enable shared library support (GNU)
 --enable-dl=dlfcn    Enable shared library support (POSIX)

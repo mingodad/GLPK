@@ -1,10 +1,9 @@
-/* glpapi01.c (problem creating and modifying routines) */
+/* prob1.c (problem creating and modifying routines) */
 
 /***********************************************************************
 *  This code is part of GLPK (GNU Linear Programming Kit).
 *
-*  Copyright (C) 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008,
-*  2009, 2010, 2011, 2013 Andrew Makhorin, Department for Applied
+*  Copyright (C) 2000-2013 Andrew Makhorin, Department for Applied
 *  Informatics, Moscow Aviation Institute, Moscow, Russia. All rights
 *  reserved. E-mail: <mao@gnu.org>.
 *
@@ -56,7 +55,11 @@
 *  used in any subsequent operations on this object. */
 
 static void create_prob(glp_prob *lp)
+#if 0 /* 04/IV-2016 */
 {     lp->magic = GLP_PROB_MAGIC;
+#else
+{
+#endif
       lp->pool = dmp_create_pool();
 #if 0 /* 08/III-2014 */
 #if 0 /* 17/XI-2009 */
@@ -1203,9 +1206,11 @@ done: return ret;
 void glp_sort_matrix(glp_prob *P)
 {     GLPAIJ *aij;
       int i, j;
+#if 0 /* 04/IV-2016 */
       if (P == NULL || P->magic != GLP_PROB_MAGIC)
          xerror("glp_sort_matrix: P = %p; invalid problem object\n",
             P);
+#endif
       /* rebuild row linked lists */
       for (i = P->m; i >= 1; i--)
          P->row[i]->ptr = NULL;
@@ -1542,7 +1547,11 @@ void glp_erase_prob(glp_prob *lp)
 *  frees all the memory allocated to it. */
 
 static void delete_prob(glp_prob *lp)
+#if 0 /* 04/IV-2016 */
 {     lp->magic = 0x3F3F3F3F;
+#else
+{
+#endif
       dmp_delete_pool(lp->pool);
 #if 0 /* 08/III-2014 */
 #if 0 /* 17/XI-2009 */

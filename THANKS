@@ -15,6 +15,8 @@ Anton Voropaev <anton.n.voropaev@gmail.com> for bug and typo report.
 
 Axel Simon <Axel.Simon@ens.fr> for bug report.
 
+Balaco Baco <balacobaco@imap.cc> for bug report.
+
 Bernhard Schmidt <schmidt@math.uni-augsburg.de> for bug report.
 
 Boris Wirtz <Boris.Wirtz@uni-oldenburg.de> for bug report.
@@ -38,10 +40,15 @@ Charles Brixko <charles.brixko@voo.be> for bug report.
 Chris Matrakidis <cmatraki@gmail.com> for contribution of a patch that
 implements the tan function in MathProg.
 
+Chris Matrakidis <cmatraki@gmail.com> for numerous useful suggestions,
+contributions, and patches.
+
 Chris Rosebrugh <cpr@pobox.com> for contribution of a new version of
 GLPK JNI (Java Native Interface).
 
 Christophe Caron <caron@diamant.jouy.inra.fr> for bug report.
+
+David Monniaux <david.monniaux@imag.fr> for some suggestions.
 
 David T. Price <dtprice@speakeasy.net> for bug report.
 

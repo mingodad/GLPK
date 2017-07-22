@@ -1,6 +1,6 @@
 dnl Process this file with autoconf to produce a configure script
 
-AC_INIT([GLPK], [4.60], [bug-glpk@gnu.org])
+AC_INIT([GLPK], [4.61], [bug-glpk@gnu.org])
 
 AC_CONFIG_SRCDIR([src/glpk.h])
 
@@ -45,6 +45,16 @@ AC_HELP_STRING([--enable-mysql],
       *) AC_MSG_ERROR([invalid value `$enableval' for --enable-mysql]);;
       esac],
    [enable_mysql=no])
+
+AC_ARG_ENABLE(reentrant,
+AC_HELP_STRING([--enable-reentrant],
+   [enable reentrancy support [[default=yes]]]),
+   [case $enableval in
+      yes | no) ;;
+      *) AC_MSG_ERROR(
+         [invalid value `$enableval' for --enable-reentrant]);;
+      esac],
+   [enable_reentrant=yes])
 
 dnl Disable unnecessary libtool tests
 define([AC_LIBTOOL_LANG_CXX_CONFIG], [:])
@@ -137,6 +147,30 @@ if test "$enable_mysql" = "yes"; then
    AC_MSG_RESULT([yes])
    CPPFLAGS="-I/usr/include/mysql $CPPFLAGS"
    AC_DEFINE_UNQUOTED([MYSQL_DLNAME], ["$LIBMYSQL"], [N/A])
+else
+   AC_MSG_RESULT([no])
+fi
+
+AC_MSG_CHECKING([whether to enable reentrancy support])
+if test "$enable_reentrant" = "yes"; then
+   AC_MSG_RESULT([yes])
+   AC_MSG_CHECKING([for thread local storage (TLS) class specifier])
+   keywords="_Thread_local __thread __declspec(thread)"
+   tls=none
+   for tls_keyword in $keywords; do
+      AC_COMPILE_IFELSE([AC_LANG_SOURCE([
+         #include <stdlib.h>
+         static void foo(void)
+         {  static ] $tls_keyword [ int bar;
+            exit(1);
+         }])], [tls=$tls_keyword; break], [])
+   done
+   AC_MSG_RESULT($tls)
+   if test "$tls" != "none"; then
+      AC_DEFINE_UNQUOTED([TLS], $tls, [N/A])
+   else
+      AC_MSG_ERROR([Reentrancy needs complier support for TLS])
+   fi
 else
    AC_MSG_RESULT([no])
 fi

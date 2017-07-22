@@ -49,8 +49,10 @@ int glp_write_ipt(glp_prob *P, const char *fname)
       GLPCOL *col;
       int i, j, count, ret = 1;
       char *s;
+#if 0 /* 04/IV-2016 */
       if (P == NULL || P->magic != GLP_PROB_MAGIC)
          xerror("glp_write_ipt: P = %p; invalid problem object\n", P);
+#endif
       if (fname == NULL)
          xerror("glp_write_ipt: fname = %d; invalid parameter\n", fname)
             ;

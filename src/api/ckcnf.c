@@ -32,9 +32,11 @@ int glp_check_cnfsat(glp_prob *P)
       GLPCOL *col;
       GLPAIJ *aij;
       int i, j, neg;
+#if 0 /* 04/IV-2016 */
       if (P == NULL || P->magic != GLP_PROB_MAGIC)
          xerror("glp_check_cnfsat: P = %p; invalid problem object\n",
             P);
+#endif
       /* check columns */
       for (j = 1; j <= n; j++)
       {  col = P->col[j];

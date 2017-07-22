@@ -62,9 +62,11 @@ int glp_print_ranges(glp_prob *P, int len, const int list[],
       const char *name, *limit;
       char buf[13+1];
       /* sanity checks */
+#if 0 /* 04/IV-2016 */
       if (P == NULL || P->magic != GLP_PROB_MAGIC)
          xerror("glp_print_ranges: P = %p; invalid problem object\n",
             P);
+#endif
       m = P->m, n = P->n;
       if (len < 0)
          xerror("glp_print_ranges: len = %d; invalid list length\n",

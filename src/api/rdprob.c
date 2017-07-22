@@ -57,9 +57,11 @@ int glp_read_prob(glp_prob *P, int flags, const char *fname)
          *ia = NULL, *ja = NULL;
       double lb, ub, temp, *ar = NULL;
       char *rf = NULL, *cf = NULL;
+#if 0 /* 04/IV-2016 */
       if (P == NULL || P->magic != GLP_PROB_MAGIC)
          xerror("glp_read_prob: P = %p; invalid problem object\n",
             P);
+#endif
       if (flags != 0)
          xerror("glp_read_prob: flags = %d; invalid parameter\n",
             flags);

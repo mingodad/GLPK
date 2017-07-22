@@ -446,9 +446,11 @@ int glp_intopt(glp_prob *P, const glp_iocp *parm)
 {     /* solve MIP problem with the branch-and-bound method */
       glp_iocp _parm;
       int i, j, ret;
+#if 0 /* 04/IV-2016 */
       /* check problem object */
       if (P == NULL || P->magic != GLP_PROB_MAGIC)
          xerror("glp_intopt: P = %p; invalid problem object\n", P);
+#endif
       if (P->tree != NULL)
          xerror("glp_intopt: operation not allowed\n");
       /* check control parameters */

@@ -34,9 +34,11 @@ murtagh.mps    Oil refinery model
 mvcp.mod       Minimum vertex cover problem
 numbrix.mod    Number placement puzzle
 pbn/*.*        Paint-by-numbers puzzle
+pentomino.mod  A geometric placement puzzle
 plan.lp        A simple LP problem (CPLEX LP format)
 plan.mod       A simple LP problem (MathProg format)
 plan.mps       A simple LP problem (MPS format)
+planarity.mod  Graph planarity testing
 prod.mod       A multiperiod production model
 qfit.mod       Quadratic curve fitting solution
 queens.mod     A classic combinatorial optimization problem

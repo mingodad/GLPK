@@ -25,11 +25,6 @@ CFLAGS = \
 OBJSET = \
 ..\src\bfd.obj \
 ..\src\bfx.obj \
-..\src\glpapi01.obj \
-..\src\glpapi02.obj \
-..\src\glpapi03.obj \
-..\src\glpapi04.obj \
-..\src\glpapi05.obj \
 ..\src\glpapi06.obj \
 ..\src\glpapi07.obj \
 ..\src\glpapi08.obj \
@@ -96,6 +91,11 @@ OBJSET = \
 ..\src\api\netgen.obj \
 ..\src\api\pript.obj \
 ..\src\api\prmip.obj \
+..\src\api\prob1.obj \
+..\src\api\prob2.obj \
+..\src\api\prob3.obj \
+..\src\api\prob4.obj \
+..\src\api\prob5.obj \
 ..\src\api\prrngs.obj \
 ..\src\api\prsol.obj \
 ..\src\api\rdasn.obj \
@@ -213,10 +213,10 @@ OBJSET = \
 .c.obj:
         cl.exe $(CFLAGS) /Fo$*.obj /c $*.c
 
-all: glpk_4_60.dll glpsol.exe
+all: glpk_4_61.dll glpsol.exe
 
-glpk_4_60.dll: $(OBJSET)
-        cl.exe $(CFLAGS) /LD /Feglpk_4_60.dll \
+glpk_4_61.dll: $(OBJSET)
+        cl.exe $(CFLAGS) /LD /Feglpk_4_61.dll \
                 ..\src\*.obj \
                 ..\src\amd\*.obj \
                 ..\src\api\*.obj \
@@ -230,11 +230,11 @@ glpk_4_60.dll: $(OBJSET)
                 ..\src\proxy\*.obj \
                 ..\src\simplex\*.obj \
                 ..\src\zlib\*.obj \
-                glpk_4_60.def
+                glpk_4_61.def
 
-glpsol.exe: ..\examples\glpsol.obj glpk_4_60.dll
+glpsol.exe: ..\examples\glpsol.obj glpk_4_61.dll
         cl.exe $(CFLAGS) /Feglpsol.exe \
-                ..\examples\glpsol.obj glpk_4_60.lib
+                ..\examples\glpsol.obj glpk_4_61.lib
 
 check: glpsol.exe
         .\glpsol.exe --version
