@@ -110,14 +110,13 @@ am_libglpk_la_OBJECTS = libglpk_la-bfd.lo libglpk_la-bfx.lo \
 	libglpk_la-glpnpp05.lo libglpk_la-glpnpp06.lo \
 	libglpk_la-glprgr.lo libglpk_la-glpscl.lo libglpk_la-glpspm.lo \
 	libglpk_la-glpssx01.lo libglpk_la-glpssx02.lo \
-	libglpk_la-lux.lo libglpk_la-spv.lo libglpk_la-amd_1.lo \
-	libglpk_la-amd_2.lo libglpk_la-amd_aat.lo \
-	libglpk_la-amd_control.lo libglpk_la-amd_defaults.lo \
-	libglpk_la-amd_dump.lo libglpk_la-amd_info.lo \
-	libglpk_la-amd_order.lo libglpk_la-amd_post_tree.lo \
-	libglpk_la-amd_postorder.lo libglpk_la-amd_preprocess.lo \
-	libglpk_la-amd_valid.lo libglpk_la-advbas.lo \
-	libglpk_la-asnhall.lo libglpk_la-asnlp.lo \
+	libglpk_la-lux.lo libglpk_la-amd_1.lo libglpk_la-amd_2.lo \
+	libglpk_la-amd_aat.lo libglpk_la-amd_control.lo \
+	libglpk_la-amd_defaults.lo libglpk_la-amd_dump.lo \
+	libglpk_la-amd_info.lo libglpk_la-amd_order.lo \
+	libglpk_la-amd_post_tree.lo libglpk_la-amd_postorder.lo \
+	libglpk_la-amd_preprocess.lo libglpk_la-amd_valid.lo \
+	libglpk_la-advbas.lo libglpk_la-asnhall.lo libglpk_la-asnlp.lo \
 	libglpk_la-asnokalg.lo libglpk_la-ckasn.lo libglpk_la-ckcnf.lo \
 	libglpk_la-cplex.lo libglpk_la-cpp.lo libglpk_la-cpxbas.lo \
 	libglpk_la-graph.lo libglpk_la-gridgen.lo \
@@ -142,34 +141,34 @@ am_libglpk_la_OBJECTS = libglpk_la-bfd.lo libglpk_la-bfx.lo \
 	libglpk_la-scfint.lo libglpk_la-sgf.lo libglpk_la-sva.lo \
 	libglpk_la-cfg.lo libglpk_la-cfg1.lo libglpk_la-cfg2.lo \
 	libglpk_la-clqcut.lo libglpk_la-gmicut.lo libglpk_la-gmigen.lo \
-	libglpk_la-mirgen.lo libglpk_la-colamd.lo libglpk_la-alloc.lo \
-	libglpk_la-dlsup.lo libglpk_la-env.lo libglpk_la-error.lo \
-	libglpk_la-stdc.lo libglpk_la-stdout.lo libglpk_la-stream.lo \
-	libglpk_la-time.lo libglpk_la-tls.lo libglpk_la-minisat.lo \
-	libglpk_la-avl.lo libglpk_la-bignum.lo libglpk_la-dimacs.lo \
-	libglpk_la-dmp.lo libglpk_la-ffalg.lo libglpk_la-fp2rat.lo \
-	libglpk_la-gcd.lo libglpk_la-jd.lo libglpk_la-keller.lo \
-	libglpk_la-mc13d.lo libglpk_la-mc21a.lo libglpk_la-mygmp.lo \
-	libglpk_la-okalg.lo libglpk_la-qmd.lo libglpk_la-relax4.lo \
-	libglpk_la-rng.lo libglpk_la-rng1.lo libglpk_la-round2n.lo \
-	libglpk_la-str2int.lo libglpk_la-str2num.lo \
-	libglpk_la-strspx.lo libglpk_la-strtrim.lo \
-	libglpk_la-triang.lo libglpk_la-wclique.lo \
-	libglpk_la-wclique1.lo libglpk_la-mpl1.lo libglpk_la-mpl2.lo \
-	libglpk_la-mpl3.lo libglpk_la-mpl4.lo libglpk_la-mpl5.lo \
-	libglpk_la-mpl6.lo libglpk_la-mplsql.lo libglpk_la-proxy.lo \
-	libglpk_la-proxy1.lo libglpk_la-spxat.lo \
-	libglpk_la-spxchuzc.lo libglpk_la-spxchuzr.lo \
-	libglpk_la-spxlp.lo libglpk_la-spxnt.lo libglpk_la-spxprim.lo \
-	libglpk_la-spxprob.lo libglpk_la-spychuzc.lo \
-	libglpk_la-spychuzr.lo libglpk_la-spydual.lo \
-	libglpk_la-adler32.lo libglpk_la-compress.lo \
-	libglpk_la-crc32.lo libglpk_la-deflate.lo \
-	libglpk_la-gzclose.lo libglpk_la-gzlib.lo libglpk_la-gzread.lo \
-	libglpk_la-gzwrite.lo libglpk_la-inffast.lo \
-	libglpk_la-inflate.lo libglpk_la-inftrees.lo \
-	libglpk_la-trees.lo libglpk_la-uncompr.lo libglpk_la-zio.lo \
-	libglpk_la-zutil.lo
+	libglpk_la-mirgen.lo libglpk_la-spv.lo libglpk_la-colamd.lo \
+	libglpk_la-alloc.lo libglpk_la-dlsup.lo libglpk_la-env.lo \
+	libglpk_la-error.lo libglpk_la-stdc.lo libglpk_la-stdout.lo \
+	libglpk_la-stream.lo libglpk_la-time.lo libglpk_la-tls.lo \
+	libglpk_la-minisat.lo libglpk_la-avl.lo libglpk_la-bignum.lo \
+	libglpk_la-dimacs.lo libglpk_la-dmp.lo libglpk_la-ffalg.lo \
+	libglpk_la-fp2rat.lo libglpk_la-gcd.lo libglpk_la-jd.lo \
+	libglpk_la-keller.lo libglpk_la-mc13d.lo libglpk_la-mc21a.lo \
+	libglpk_la-mygmp.lo libglpk_la-okalg.lo libglpk_la-qmd.lo \
+	libglpk_la-relax4.lo libglpk_la-rng.lo libglpk_la-rng1.lo \
+	libglpk_la-round2n.lo libglpk_la-str2int.lo \
+	libglpk_la-str2num.lo libglpk_la-strspx.lo \
+	libglpk_la-strtrim.lo libglpk_la-triang.lo \
+	libglpk_la-wclique.lo libglpk_la-wclique1.lo \
+	libglpk_la-mpl1.lo libglpk_la-mpl2.lo libglpk_la-mpl3.lo \
+	libglpk_la-mpl4.lo libglpk_la-mpl5.lo libglpk_la-mpl6.lo \
+	libglpk_la-mplsql.lo libglpk_la-proxy.lo libglpk_la-proxy1.lo \
+	libglpk_la-spxat.lo libglpk_la-spxchuzc.lo \
+	libglpk_la-spxchuzr.lo libglpk_la-spxlp.lo libglpk_la-spxnt.lo \
+	libglpk_la-spxprim.lo libglpk_la-spxprob.lo \
+	libglpk_la-spychuzc.lo libglpk_la-spychuzr.lo \
+	libglpk_la-spydual.lo libglpk_la-adler32.lo \
+	libglpk_la-compress.lo libglpk_la-crc32.lo \
+	libglpk_la-deflate.lo libglpk_la-gzclose.lo \
+	libglpk_la-gzlib.lo libglpk_la-gzread.lo libglpk_la-gzwrite.lo \
+	libglpk_la-inffast.lo libglpk_la-inflate.lo \
+	libglpk_la-inftrees.lo libglpk_la-trees.lo \
+	libglpk_la-uncompr.lo libglpk_la-zio.lo libglpk_la-zutil.lo
 libglpk_la_OBJECTS = $(am_libglpk_la_OBJECTS)
 libglpk_la_LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) \
 	$(LIBTOOLFLAGS) --mode=link $(CCLD) $(AM_CFLAGS) $(CFLAGS) \
@@ -330,7 +329,7 @@ libglpk_la_CPPFLAGS = \
 -I$(srcdir)/zlib
 
 libglpk_la_LDFLAGS = \
--version-info 42:1:2 \
+-version-info 42:2:2 \
 -export-symbols-regex '^glp_*' \
 ${NOUNDEFINED}
 
@@ -367,7 +366,6 @@ glpspm.c \
 glpssx01.c \
 glpssx02.c \
 lux.c \
-spv.c \
 amd/amd_1.c \
 amd/amd_2.c \
 amd/amd_aat.c \
@@ -452,6 +450,7 @@ cglib/clqcut.c \
 cglib/gmicut.c \
 cglib/gmigen.c \
 cglib/mirgen.c \
+cglib/spv.c \
 colamd/colamd.c \
 env/alloc.c \
 env/dlsup.c \
@@ -1032,13 +1031,6 @@ libglpk_la-lux.lo: lux.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	source='lux.c' object='libglpk_la-lux.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(LIBTOOL)  --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libglpk_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libglpk_la-lux.lo `test -f 'lux.c' || echo '$(srcdir)/'`lux.c
-
-libglpk_la-spv.lo: spv.c
-@am__fastdepCC_TRUE@	$(LIBTOOL)  --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libglpk_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libglpk_la-spv.lo -MD -MP -MF $(DEPDIR)/libglpk_la-spv.Tpo -c -o libglpk_la-spv.lo `test -f 'spv.c' || echo '$(srcdir)/'`spv.c
-@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/libglpk_la-spv.Tpo $(DEPDIR)/libglpk_la-spv.Plo
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='spv.c' object='libglpk_la-spv.lo' libtool=yes @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(LIBTOOL)  --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libglpk_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libglpk_la-spv.lo `test -f 'spv.c' || echo '$(srcdir)/'`spv.c
 
 libglpk_la-amd_1.lo: amd/amd_1.c
 @am__fastdepCC_TRUE@	$(LIBTOOL)  --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libglpk_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libglpk_la-amd_1.lo -MD -MP -MF $(DEPDIR)/libglpk_la-amd_1.Tpo -c -o libglpk_la-amd_1.lo `test -f 'amd/amd_1.c' || echo '$(srcdir)/'`amd/amd_1.c
@@ -1627,6 +1619,13 @@ libglpk_la-mirgen.lo: cglib/mirgen.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	source='cglib/mirgen.c' object='libglpk_la-mirgen.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(LIBTOOL)  --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libglpk_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libglpk_la-mirgen.lo `test -f 'cglib/mirgen.c' || echo '$(srcdir)/'`cglib/mirgen.c
+
+libglpk_la-spv.lo: cglib/spv.c
+@am__fastdepCC_TRUE@	$(LIBTOOL)  --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libglpk_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libglpk_la-spv.lo -MD -MP -MF $(DEPDIR)/libglpk_la-spv.Tpo -c -o libglpk_la-spv.lo `test -f 'cglib/spv.c' || echo '$(srcdir)/'`cglib/spv.c
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/libglpk_la-spv.Tpo $(DEPDIR)/libglpk_la-spv.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='cglib/spv.c' object='libglpk_la-spv.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(LIBTOOL)  --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libglpk_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libglpk_la-spv.lo `test -f 'cglib/spv.c' || echo '$(srcdir)/'`cglib/spv.c
 
 libglpk_la-colamd.lo: colamd/colamd.c
 @am__fastdepCC_TRUE@	$(LIBTOOL)  --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libglpk_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libglpk_la-colamd.lo -MD -MP -MF $(DEPDIR)/libglpk_la-colamd.Tpo -c -o libglpk_la-colamd.lo `test -f 'colamd/colamd.c' || echo '$(srcdir)/'`colamd/colamd.c

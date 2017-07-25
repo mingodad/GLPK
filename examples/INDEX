@@ -22,6 +22,7 @@ hashi.mod      A solver for the Japanese number-puzzle Hashiwokakero
 huge.mod       Arithmetic mean of a large number of integers
 icecream.mps   Ice cream blending
 jssp.mod       Job-shop scheduling problem
+life_goe.mod   Conway's Game of Life garden of eden checker
 magic.mod      Magic square
 maxcut.mod     Maximum cut problem
 maxflow.mod    Maximum flow problem
@@ -50,7 +51,10 @@ spp.mod        Shortest path problem
 stigler.mod    Original Stigler's 1939 diet problem
 sudoku.mod     Number placement puzzle
 tas.mod        Tail assignment problem
+tiling.mod     Rectifiable polyomino tilings generator
 todd.mod       A class of hard instances of 0-1 knapsack problems
+toto.mod       Covering code generator, especially for football pool
+               systems
 train.mod      A model of railroad passenger car allocation
 transp.mod     A transportation problem
 trick.mod      A transportation design problem

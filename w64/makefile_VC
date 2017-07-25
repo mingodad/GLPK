@@ -55,7 +55,6 @@ OBJSET = \
 ..\src\glpssx01.obj \
 ..\src\glpssx02.obj \
 ..\src\lux.obj \
-..\src\spv.obj \
 ..\src\amd\amd_1.obj \
 ..\src\amd\amd_2.obj \
 ..\src\amd\amd_aat.obj \
@@ -140,6 +139,7 @@ OBJSET = \
 ..\src\cglib\gmicut.obj \
 ..\src\cglib\gmigen.obj \
 ..\src\cglib\mirgen.obj \
+..\src\cglib\spv.obj \
 ..\src\colamd\colamd.obj \
 ..\src\env\alloc.obj \
 ..\src\env\dlsup.obj \

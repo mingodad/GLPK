@@ -1,3 +1,39 @@
+GLPK 4.63 (release date: Jul 25, 2017)
+
+        A "smart" LP perturbation was implemented in the primal and
+        dual simplex solvers. Now LP is perturbed only if it is
+        necessary, and by default perturbation is not activated.
+        The sum of primal infeasibilites that appears in the terminal
+        output of the primal simplex solver (as "inf = ...") now
+        corresponds to the original bounds of variables. This allows to
+        see how much perturbed solution violates the original bounds.
+
+        The long-step technique was implemented for phase I of the
+        primal simplex solver. This feature can be enabled by
+        specifying --flip option for glpsol or by specifying
+        glp_smcp.r_test = GLP_RT_FLIP on api level. For many LP
+        instances the long-step technique allows reducing the number
+        of simplex iterations to 30-70%. Please note that unlike the
+        dual simplex, where this technique can be used on both phase I
+        and II, for the primal simplex it can be used only on phase I,
+        where the sum of primal infeasibilities (which is a convex
+        piecewise linear function) is minimized.
+
+        An internal objective scaling was included in both primal and
+        dual simplex solvers. For many LP/MIP instances this feature
+        improves numerical stability (for the dual solver) and prevents
+        cycling near the optimum (for the primal solver).
+
+        The Posix version of glp_time (glpk/src/env/time.c) was changed
+        to resolve time_t issue on msys2. Thanks to Rob Schroeder
+        <Rob.Schroeder@graphicpkg.com> for bug report.
+
+        Three new example models in MathProg were added:
+        life_goe.mod (Conway's Game of Life garden of eden checker);
+        tiling.mod (Rectifiable polyomino tilings generator);
+        toto.mod (Covering code generator).
+        Thanks to Peter Naszvadi <vuk@cs.elte.hu> for contribution.
+
 GLPK 4.62 (release date: Jun 14, 2017)
 
         The bound perturbation technique was included in the primal

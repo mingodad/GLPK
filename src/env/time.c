@@ -5,7 +5,7 @@
 *
 *  Copyright (C) 2000-2017 Andrew Makhorin, Department for Applied
 *  Informatics, Moscow Aviation Institute, Moscow, Russia. All rights
-*  reserved. E-mail: <mao@gnu.org>.
+*  reserved. E-mail: <address@hidden>.
 *
 *  GLPK is free software: you can redistribute it and/or modify it
 *  under the terms of the GNU General Public License as published by
@@ -42,12 +42,13 @@
 *  The routine glp_time returns the current universal time (UTC), in
 *  milliseconds, elapsed since 00:00:00 GMT January 1, 1970. */
 
-#define EPOCH 2440588 /* jday(1, 1, 1970) */
+#define EPOCH 2440588 /* = jday(1, 1, 1970) */
 
 /* POSIX version ******************************************************/
 
 #if defined(HAVE_SYS_TIME_H) && defined(HAVE_GETTIMEOFDAY)
 
+#if 0 /* 29/VI-2017 */
 #include <sys/time.h>
 #include <time.h>
 
@@ -69,6 +70,18 @@ double glp_time(void)
          (double)(tv.tv_usec / 1000);
       return t;
 }
+#else
+#include <sys/time.h>
+
+double glp_time(void)
+{     struct timeval tv;
+      double t;
+      gettimeofday(&tv, NULL);
+      t = (double)tv.tv_sec + (double)(tv.tv_usec) / 1e6;
+      xassert(0.0 <= t && t < 4294967296.0);
+      return 1000.0 * t;
+}
+#endif
 
 /* MS Windows version *************************************************/
 
@@ -133,35 +146,5 @@ double glp_difftime(double t1, double t0)
 {     return
          (t1 - t0) / 1000.0;
 }
-
-/**********************************************************************/
-
-#ifdef GLP_TEST
-#include <assert.h>
-
-int main(void)
-{     int ttt, ss, mm, hh, day, month, year;
-      double t;
-      t = glp_time();
-      xprintf("t = %.f\n", t);
-      assert(floor(t) == t);
-      ttt = (int)fmod(t, 1000.0);
-      t = (t - (double)ttt) / 1000.0;
-      assert(floor(t) == t);
-      ss = (int)fmod(t, 60.0);
-      t = (t - (double)ss) / 60.0;
-      assert(floor(t) == t);
-      mm = (int)fmod(t, 60.0);
-      t = (t - (double)mm) / 60.0;
-      assert(floor(t) == t);
-      hh = (int)fmod(t, 24.0);
-      t = (t - (double)hh) / 24.0;
-      assert(floor(t) == t);
-      assert(jdate((int)t + EPOCH, &day, &month, &year) == 0);
-      printf("%04d-%02d-%02d %02d:%02d:%02d.%03d\n",
-         year, month, day, hh, mm, ss, ttt);
-      return 0;
-}
-#endif
 
 /* eof */

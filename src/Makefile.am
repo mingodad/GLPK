@@ -20,7 +20,7 @@ libglpk_la_CPPFLAGS = \
 -I$(srcdir)/zlib
 
 libglpk_la_LDFLAGS = \
--version-info 42:1:2 \
+-version-info 42:2:2 \
 -export-symbols-regex '^glp_*' \
 ${NOUNDEFINED}
 
@@ -57,7 +57,6 @@ glpspm.c \
 glpssx01.c \
 glpssx02.c \
 lux.c \
-spv.c \
 amd/amd_1.c \
 amd/amd_2.c \
 amd/amd_aat.c \
@@ -142,6 +141,7 @@ cglib/clqcut.c \
 cglib/gmicut.c \
 cglib/gmigen.c \
 cglib/mirgen.c \
+cglib/spv.c \
 colamd/colamd.c \
 env/alloc.c \
 env/dlsup.c \

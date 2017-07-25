@@ -1,4 +1,4 @@
-/* fvs.h (sparse vector in full vector storage format) */
+/* fvs.h (sparse vector in FVS format) */
 
 /***********************************************************************
 *  This code is part of GLPK (GNU Linear Programming Kit).
@@ -27,7 +27,7 @@
 typedef struct FVS FVS;
 
 struct FVS
-{     /* sparse vector in full vector storage format */
+{     /* sparse vector in FVS (Full Vector Storage) format */
       int n;
       /* vector dimension (total number of elements) */
       int nnz;

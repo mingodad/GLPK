@@ -325,9 +325,14 @@ static void print_help(const char *my_name)
          "fault)\n");
       xprintf("   --norelax         use standard \"textbook\" ratio tes"
          "t\n");
+#if 0 /* 23/VI-2017 */
 #if 1 /* 28/III-2016 */
       xprintf("   --flip            use flip-flop ratio test (assumes -"
          "-dual)\n");
+#endif
+#else
+      /* now this option is implemented in both primal and dual */
+      xprintf("   --flip            use long-step ratio test\n");
 #endif
       xprintf("   --presol          use presolver (default; assumes --s"
          "cale and --adv)\n");
@@ -777,7 +782,12 @@ static int parse_cmdline(struct csa *csa, int argc, char *argv[])
             csa->smcp.r_test = GLP_RT_STD;
 #if 1 /* 28/III-2016 */
          else if (p("--flip"))
+#if 0 /* 23/VI-2017 */
          {  csa->smcp.meth = GLP_DUAL;
+#else
+         /* now this option is implemented in both primal and dual */
+         {
+#endif
             csa->smcp.r_test = GLP_RT_FLIP;
             csa->iocp.flip = GLP_ON;
          }

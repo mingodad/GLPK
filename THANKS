@@ -177,6 +177,8 @@ Peter Ingerfeld <peter.ingerfeld@mops-optimizer.com> for bug report.
 
 Peter Lee <plee@kinggee.com.au> for example LP model and bug report.
 
+Peter Naszvadi <vuk@cs.elte.hu> for example models in MathProg.
+
 Pietro Scionti <pietro.scionti@archinet.it> for report typos found in
 the reference manual.
 
@@ -186,6 +188,8 @@ shared library support under GNU/Linux.
 Raniere Gaia Costa da Silva for bug report.
 
 Remy Roy <remyroyster@gmail.com> for bug report.
+
+Rob Schroeder <Rob.Schroeder@graphicpkg.com> for bug report.
 
 Robbie Morrison <robbie@actrix.co.nz> for correcting the glpk manual.
 

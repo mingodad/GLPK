@@ -82,7 +82,7 @@ struct LUF
       /*--------------------------------------------------------------*/
       /* matrix F in column-wise format */
       /* during the factorization process this object is constructed
-         by columns */
+       * by columns */
       int fc_ref;
       /* reference number of sparse vector in SVA, which is the first
        * column of matrix F */

@@ -3,7 +3,7 @@
 /***********************************************************************
 *  This code is part of GLPK (GNU Linear Programming Kit).
 *
-*  Copyright (C) 2015 Andrew Makhorin, Department for Applied
+*  Copyright (C) 2015-2017 Andrew Makhorin, Department for Applied
 *  Informatics, Moscow Aviation Institute, Moscow, Russia. All rights
 *  reserved. E-mail: <mao@gnu.org>.
 *
@@ -37,6 +37,40 @@ int spx_chuzr_harris(SPXLP *lp, int phase, const double beta[/*1+m*/],
       int q, double s, const double tcol[/*1+m*/], int *p_flag,
       double tol_piv, double tol, double tol1);
 /* choose basic variable (Harris' ratio test) */
+
+#if 1 /* 22/VI-2017 */
+typedef struct SPXBP SPXBP;
+
+struct SPXBP
+{     /* penalty function (sum of infeasibilities) break point */
+      int i;
+      /* basic variable xB[i], 1 <= i <= m, that intersects its bound
+       * at this break point
+       * i > 0 if xB[i] intersects its lower bound (or fixed value)
+       * i < 0 if xB[i] intersects its upper bound
+       * i = 0 if xN[q] intersects its opposite bound */
+      double teta;
+      /* ray parameter value, teta >= 0, at this break point */
+      double dc;
+      /* increment of the penalty function coefficient cB[i] at this
+       * break point */
+      double dz;
+      /* increment, z[t] - z[0], of the penalty function at this break
+       * point */
+};
+
+#define spx_ls_eval_bp _glp_spx_ls_eval_bp
+int spx_ls_eval_bp(SPXLP *lp, const double beta[/*1+m*/],
+      int q, double dq, const double tcol[/*1+m*/], double tol_piv,
+      SPXBP bp[/*1+2*m+1*/]);
+/* determine penalty function break points */
+
+#define spx_ls_select_bp _glp_spx_ls_select_bp
+int spx_ls_select_bp(SPXLP *lp, const double tcol[/*1+m*/],
+      int nbp, SPXBP bp[/*1+m+m+1*/], int num, double *slope, double
+      teta_lim);
+/* select and process penalty function break points */
+#endif
 
 #endif
 

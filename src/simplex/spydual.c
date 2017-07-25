@@ -3,7 +3,7 @@
 /***********************************************************************
 *  This code is part of GLPK (GNU Linear Programming Kit).
 *
-*  Copyright (C) 2015-2016 Andrew Makhorin, Department for Applied
+*  Copyright (C) 2015-2017 Andrew Makhorin, Department for Applied
 *  Informatics, Moscow Aviation Institute, Moscow, Russia. All rights
 *  reserved. E-mail: <mao@gnu.org>.
 *
@@ -21,8 +21,8 @@
 *  along with GLPK. If not, see <http://www.gnu.org/licenses/>.
 ***********************************************************************/
 
-#if 1 /* 27/III-2016 */
-#define PERTURB 1
+#if 1 /* 18/VII-2017 */
+#define SCALE_Z 1
 #endif
 
 #include "env.h"
@@ -38,23 +38,6 @@
 #endif
 #endif
 
-#if 0 /* 23/III-2016 */
-#define USE_AT 1
-/* 1 - use A in row-wise format
- * 0 - use N in row-wise format */
-/* (Looks like using A' provide more accuracy for dual simplex.) */
-#else
-#define USE_AT 0
-#endif
-
-#define EXCL 1
-/* 1 - exclude fixed non-basic variables
- * 0 - don't exclude variables */
-
-#define SHIFT 1
-/* 1 - shift bounds of variables toward zero
- * 0 - don't shift bounds of variables */
-
 #define CHECK_ACCURACY 0
 /* (for debugging) */
 
@@ -67,12 +50,14 @@ struct csa
       /* original optimization direction:
        * +1 - minimization
        * -1 - maximization */
+#if SCALE_Z
+      double fz;
+      /* factor used to scale original objective */
+#endif
       double *orig_b; /* double orig_b[1+m]; */
       /* copy of original right-hand sides */
-#if PERTURB
       double *orig_c; /* double orig_c[1+n]; */
       /* copy of original objective coefficients */
-#endif
       double *orig_l; /* double orig_l[1+n]; */
       /* copy of original lower bounds */
       double *orig_u; /* double orig_u[1+n]; */
@@ -181,7 +166,11 @@ struct csa
       int tm_lim;
       /* time limit, milliseconds */
       int out_frq;
+#if 0 /* 15/VII-2017 */
       /* display output frequency, iterations */
+#else
+      /* display output frequency, milliseconds */
+#endif
       int out_dly;
       /* display output delay, milliseconds */
       /*--------------------------------------------------------------*/
@@ -195,13 +184,20 @@ struct csa
        * basis changes */
       int it_dpy;
       /* simplex iteration count at most recent display output */
+#if 1 /* 15/VII-2017 */
+      double tm_dpy;
+      /* time value at most recent display output */
+#endif
       int inv_cnt;
       /* basis factorization count since most recent display output */
+#if 1 /* 11/VII-2017 */
+      int degen;
+      /* count of successive degenerate iterations; this count is used
+       * to detect stalling */
+#endif
 #if 1 /* 23/III-2016 */
-      int ns_cnt;
-      /* normal iteration count */
-      int ls_cnt;
-      /* long-step iteration count */
+      int ns_cnt, ls_cnt;
+      /* normal and long-step iteration count */
 #endif
 };
 
@@ -890,7 +886,6 @@ done: /* the choice has been made */
 
 #endif
 
-#if PERTURB
 /***********************************************************************
 *  play_coef - play objective coefficients
 *
@@ -946,7 +941,11 @@ static void play_coef(struct csa *csa, int all)
             {  /* xN[j] has its lower bound active */
                /* strong feasibility means d[j] >= 0 */
                if (d[j] < 0.0)
+#if 1 /* 12/VII-2017 */
                   c[k] -= d[j], d[j] = 0.0;
+#else
+                  c[k] -= d[j] - 1e-9, d[j] = +1e-9;
+#endif
                else if (c[k] > orig_c[k])
                {  /* remove/reduce perturbation of cN[j] */
                   temp = c[k] - orig_c[k]; /* > 0 */
@@ -960,7 +959,11 @@ static void play_coef(struct csa *csa, int all)
             {  /* xN[j] has its upper bound active */
                /* strong feasibility means d[j] <= 0 */
                if (d[j] > 0.0)
+#if 1 /* 12/VII-2017 */
                   c[k] -= d[j], d[j] = 0.0;
+#else
+                  c[k] -= d[j] + 1e-9, d[j] = -1e-9;
+#endif
                else if (c[k] < orig_c[k])
                {  /* remove/reduce perturbation of cN[j] */
                   temp = c[k] - orig_c[k]; /* < 0 */
@@ -972,6 +975,24 @@ static void play_coef(struct csa *csa, int all)
             }
          }
       }
+      return;
+}
+
+#if 1 /* 11/VII-2017 */
+static void remove_perturb(struct csa *csa)
+{     /* remove perturbation */
+      SPXLP *lp = csa->lp;
+      int n = lp->n;
+      double *c = lp->c;
+      double *orig_c = csa->orig_c;
+      memcpy(c, orig_c, (1+n) * sizeof(double));
+      /* removing perturbation changes dual solution components */
+      csa->phase = csa->d_st = 0;
+#if 1
+      if (csa->msg_lev >= GLP_MSG_ALL)
+         xprintf("Removing LP perturbation [%d]...\n",
+            csa->it_cnt);
+#endif
       return;
 }
 #endif
@@ -1007,13 +1028,29 @@ static void display(struct csa *csa, int spec)
       double *d = csa->d;
       int j, k, nnn;
       double sum;
+#if 1 /* 15/VII-2017 */
+      double tm_cur;
+#endif
       /* check if the display output should be skipped */
       if (csa->msg_lev < GLP_MSG_ON) goto skip;
+#if 1 /* 15/VII-2017 */
+      tm_cur = xtime();
+#endif
       if (csa->out_dly > 0 &&
+#if 0 /* 15/VII-2017 */
          1000.0 * xdifftime(xtime(), csa->tm_beg) < csa->out_dly)
+#else
+         1000.0 * xdifftime(tm_cur, csa->tm_beg) < csa->out_dly)
+#endif
          goto skip;
       if (csa->it_cnt == csa->it_dpy) goto skip;
+#if 0 /* 15/VII-2017 */
       if (!spec && csa->it_cnt % csa->out_frq != 0) goto skip;
+#else
+      if (!spec &&
+         1000.0 * xdifftime(tm_cur, csa->tm_dpy) < csa->out_frq)
+         goto skip;
+#endif
       /* display search progress depending on search phase */
       switch (csa->phase)
       {  case 1:
@@ -1071,7 +1108,12 @@ static void display(struct csa *csa, int spec)
             nnn = spy_chuzr_sel(lp, beta, csa->tol_bnd, csa->tol_bnd1,
                NULL);
             xprintf("#%6d: obj = %17.9e inf = %11.3e (%d)",
+#if SCALE_Z
+               csa->it_cnt,
+               (double)csa->dir * csa->fz * spx_eval_obj(lp, beta),
+#else
                csa->it_cnt, (double)csa->dir * spx_eval_obj(lp, beta),
+#endif
                sum, nnn);
             break;
          default:
@@ -1084,12 +1126,18 @@ static void display(struct csa *csa, int spec)
       }
 #if 1 /* 23/III-2016 */
       if (csa->r_test == GLP_RT_FLIP)
-      {  xprintf("   %d,%d", csa->ns_cnt, csa->ls_cnt);
+      {  /*xprintf("   %d,%d", csa->ns_cnt, csa->ls_cnt);*/
+         if (csa->ns_cnt + csa->ls_cnt)
+            xprintf(" %d%%",
+               (100 * csa->ls_cnt) / (csa->ns_cnt + csa->ls_cnt));
          csa->ns_cnt = csa->ls_cnt = 0;
       }
 #endif
       xprintf("\n");
       csa->it_dpy = csa->it_cnt;
+#if 1 /* 15/VII-2017 */
+      csa->tm_dpy = tm_cur;
+#endif
 skip: return;
 }
 
@@ -1209,9 +1257,10 @@ static int dual_simplex(struct csa *csa)
       double tol_dj = csa->tol_dj;
       double tol_dj1 = csa->tol_dj1;
       int j, k, p_flag, refct, ret;
-#if PERTURB
-      int perturb = 1;
-#endif
+      int perturb = -1;
+      /* -1 = perturbation is not used, but enabled
+       *  0 = perturbation is not used and disabled
+       * +1 = perturbation is being used */
 #if 1 /* 27/III-2016 */
       int instab = 0; /* instability count */
 #endif
@@ -1292,57 +1341,49 @@ loop: /* main loop starts here */
             }
          }
          /* make sure that current basic solution is dual feasible */
-#if 0 /* 29/III-2016 */
-         j = check_feas(csa, tol_dj, tol_dj1, 0);
-#else
-         if (perturb)
-            j = check_feas(csa, 3.14 * tol_dj, 3.14 * tol_dj1, 0);
-         else
-            j = check_feas(csa, tol_dj, tol_dj1, 0);
-#endif
-         if (j)
-         {  /* dual feasibility is broken due to excessive round-off
-             * errors */
-            if (bfd_get_count(lp->bfd))
-            {  /* try to provide more accuracy */
-               lp->valid = 0;
-               goto loop;
-            }
-            if (msg_lev >= GLP_MSG_ERR)
-               xprintf("Warning: numerical instability (dual simplex, p"
-                  "hase %s)\n", csa->phase == 1 ? "I" : "II");
-#if 0 /* 27/III-2016 */
-            if (csa->dualp)
-#else
-            instab++;
-            if (csa->dualp && instab >= 10)
-#endif
-            {  /* do not continue the search; report failure */
+#if 1 /* 11/VII-2017 */
+         if (perturb <= 0)
+         {  if (check_feas(csa, tol_dj, tol_dj1, 0))
+            {  /* dual feasibility is broken due to excessive round-off
+                * errors */
+               if (perturb < 0)
+               {  if (msg_lev >= GLP_MSG_ALL)
+                     xprintf("Perturbing LP to avoid instability [%d].."
+                        ".\n", csa->it_cnt);
+                  perturb = 1;
+                  goto loop;
+               }
                if (msg_lev >= GLP_MSG_ERR)
-                  xprintf("Warning: dual simplex failed due to excessiv"
-                     "e numerical instability\n");
-               csa->p_stat = csa->d_stat = GLP_UNDEF;
-               ret = -1; /* special case of GLP_EFAIL */
-               goto fini;
-            }
-            /* try to recover dual feasibility */
-            j = check_feas(csa, 0.97 * tol_dj, 0.97 * tol_dj1, 1);
-            if (j > 0)
-            {  /* dual feasibility cannot be recovered (this may happen
-                * only on phase II) */
-               xassert(csa->phase == 2);
-               /* restart to search for dual feasible solution */
-               set_art_bounds(csa);
-               csa->phase = 1;
+                  xprintf("Warning: numerical instability (dual simplex"
+                     ", phase %s)\n", csa->phase == 1 ? "I" : "II");
+               instab++;
+               if (csa->dualp && instab >= 10)
+               {  /* do not continue the search; report failure */
+                  if (msg_lev >= GLP_MSG_ERR)
+                     xprintf("Warning: dual simplex failed due to exces"
+                        "sive numerical instability\n");
+                  csa->p_stat = csa->d_stat = GLP_UNDEF;
+                  ret = -1; /* special case of GLP_EFAIL */
+                  goto fini;
+               }
+               /* try to recover dual feasibility */
+               j = check_feas(csa, 0.97 * tol_dj, 0.97 * tol_dj1, 1);
+               if (j > 0)
+               {  /* dual feasibility cannot be recovered (this may
+                   * happen only on phase II) */
+                  xassert(csa->phase == 2);
+                  /* restart to search for dual feasible solution */
+                  set_art_bounds(csa);
+                  csa->phase = 1;
+               }
             }
          }
-#if PERTURB
-         /* check_feas guarantees that all d[j] are feasible within
-          * a tolerance */
-         if (perturb)
+         else
+         {  /* FIXME */
             play_coef(csa, 1);
-#endif
+         }
       }
+#endif
       /* at this point the search phase is determined */
       xassert(csa->phase == 1 || csa->phase == 2);
       /* compute values of basic variables beta = (beta[i]) */
@@ -1382,16 +1423,15 @@ loop: /* main loop starts here */
          && spx_eval_obj(lp, beta) >= csa->obj_lim)
       {
 #if 1 /* 26/V-2017 by mao */
-         if (perturb)
+         if (perturb > 0)
          {  /* remove perturbation */
             /* [Should note that perturbing of objective coefficients
              * implemented in play_coef is equivalent to *relaxing* of
              * (zero) bounds of dual variables, so the perturbed
              * objective is always better (*greater*) that the original
              * one at the same basic point.] */
+            remove_perturb(csa);
             perturb = 0;
-            memcpy(csa->lp->c, csa->orig_c, (1+n) * sizeof(double));
-            csa->phase = csa->d_st = 0;
          }
 #endif
          if (csa->beta_st != 1)
@@ -1417,15 +1457,11 @@ loop: /* main loop starts here */
       }
       /* check if the iteration limit has been exhausted */
       if (csa->it_cnt - csa->it_beg >= csa->it_lim)
-      {
-#if PERTURB
-         if (perturb)
+      {  if (perturb > 0)
          {  /* remove perturbation */
+            remove_perturb(csa);
             perturb = 0;
-            memcpy(csa->lp->c, csa->orig_c, (1+n) * sizeof(double));
-            csa->phase = csa->d_st = 0;
          }
-#endif
          if (csa->beta_st != 1)
             csa->beta_st = 0;
          if (csa->d_st != 1)
@@ -1453,15 +1489,11 @@ loop: /* main loop starts here */
       }
       /* check if the time limit has been exhausted */
       if (1000.0 * xdifftime(xtime(), csa->tm_beg) >= csa->tm_lim)
-      {
-#if PERTURB
-         if (perturb)
+      {  if (perturb > 0)
          {  /* remove perturbation */
+            remove_perturb(csa);
             perturb = 0;
-            memcpy(csa->lp->c, csa->orig_c, (1+n) * sizeof(double));
-            csa->phase = csa->d_st = 0;
          }
-#endif
          if (csa->beta_st != 1)
             csa->beta_st = 0;
          if (csa->d_st != 1)
@@ -1516,15 +1548,11 @@ loop: /* main loop starts here */
 #else
       if (csa->r.nnz == 0)
 #endif
-      {
-#if PERTURB
-         if (perturb && csa->phase == 2)
+      {  if (perturb > 0 && csa->phase == 2)
          {  /* remove perturbation */
+            remove_perturb(csa);
             perturb = 0;
-            memcpy(csa->lp->c, csa->orig_c, (1+n) * sizeof(double));
-            csa->phase = csa->d_st = 0;
          }
-#endif
          if (csa->beta_st != 1)
             csa->beta_st = 0;
          if (csa->d_st != 1)
@@ -1545,15 +1573,12 @@ loop: /* main loop starts here */
                   goto loop;
                }
 #if 1 /* 26/V-2017 by cmatraki */
-#if PERTURB
-               if (perturb)
+               if (perturb > 0)
                {  /* remove perturbation */
+                  remove_perturb(csa);
                   perturb = 0;
-               memcpy(csa->lp->c, csa->orig_c, (1+n) * sizeof(double));
-                  csa->phase = csa->d_st = 0;
                   goto loop;
                }
-#endif
 #endif
                /* no dual feasible solution exists */
                if (msg_lev >= GLP_MSG_ALL)
@@ -1605,15 +1630,11 @@ loop: /* main loop starts here */
 #endif
       /* check for dual unboundedness */
       if (csa->q == 0)
-      {
-#if PERTURB
-         if (perturb)
+      {  if (perturb > 0)
          {  /* remove perturbation */
+            remove_perturb(csa);
             perturb = 0;
-            memcpy(csa->lp->c, csa->orig_c, (1+n) * sizeof(double));
-            csa->phase = csa->d_st = 0;
          }
-#endif
          if (csa->beta_st != 1)
             csa->beta_st = 0;
          if (csa->d_st != 1)
@@ -1705,6 +1726,30 @@ loop: /* main loop starts here */
       t_upd1 += timer() - t_start;
 #endif
 #endif
+#if 1 /* 11/VII-2017 */
+      /* check for stalling */
+      {  int k;
+         xassert(1 <= csa->p && csa->p <= m);
+         xassert(1 <= csa->q && csa->q <= n-m);
+         /* FIXME: recompute d[q]; see spx_update_d */
+         k = head[m+csa->q]; /* x[k] = xN[q] */
+         if (!(lp->l[k] == -DBL_MAX && lp->u[k] == +DBL_MAX))
+         {  if (fabs(d[csa->q]) >= 1e-6)
+            {  csa->degen = 0;
+               goto skip1;
+            }
+            /* degenerate iteration has been detected */
+            csa->degen++;
+            if (perturb < 0 && csa->degen >= 200)
+            {  if (msg_lev >= GLP_MSG_ALL)
+                  xprintf("Perturbing LP to avoid stalling [%d]...\n",
+                     csa->it_cnt);
+               perturb = 1;
+            }
+skip1:      ;
+         }
+      }
+#endif
       /* update reduced costs of non-basic variables for adjacent
        * basis */
 #if 1 /* 28/III-2016 */
@@ -1780,10 +1825,8 @@ loop: /* main loop starts here */
 #ifdef TIMING
       t_upd5 += timer() - t_start;
 #endif
-#if PERTURB
-      if (perturb && csa->d_st)
+      if (perturb > 0 && csa->d_st)
          play_coef(csa, 0);
-#endif
       /* dual simplex iteration complete */
       csa->it_cnt++;
       goto loop;
@@ -1807,20 +1850,20 @@ int spy_dual(glp_prob *P, const glp_smcp *parm)
 {     /* driver to the dual simplex method */
       struct csa csa_, *csa = &csa_;
       SPXLP lp;
-#if USE_AT
       SPXAT at;
-#else
       SPXNT nt;
-#endif
       SPYSE se;
       int ret, *map, *daeh;
+#if SCALE_Z
+      int i, j, k;
+#endif
       /* build working LP and its initial basis */
       memset(csa, 0, sizeof(struct csa));
       csa->lp = &lp;
-      spx_init_lp(csa->lp, P, EXCL);
+      spx_init_lp(csa->lp, P, parm->excl);
       spx_alloc_lp(csa->lp);
       map = talloc(1+P->m+P->n, int);
-      spx_build_lp(csa->lp, P, EXCL, SHIFT, map);
+      spx_build_lp(csa->lp, P, parm->excl, parm->shift, map);
       spx_build_basis(csa->lp, P, map);
       switch (P->dir)
       {  case GLP_MIN:
@@ -1832,30 +1875,48 @@ int spy_dual(glp_prob *P, const glp_smcp *parm)
          default:
             xassert(P != P);
       }
+#if SCALE_Z
+      csa->fz = 0.0;
+      for (k = 1; k <= csa->lp->n; k++)
+      {  double t = fabs(csa->lp->c[k]);
+         if (csa->fz < t)
+            csa->fz = t;
+      }
+      if (csa->fz <= 1000.0)
+         csa->fz = 1.0;
+      else
+         csa->fz /= 1000.0;
+      /*xprintf("csa->fz = %g\n", csa->fz);*/
+      for (k = 0; k <= csa->lp->n; k++)
+         csa->lp->c[k] /= csa->fz;
+#endif
       csa->orig_b = talloc(1+csa->lp->m, double);
       memcpy(csa->orig_b, csa->lp->b, (1+csa->lp->m) * sizeof(double));
-#if PERTURB
       csa->orig_c = talloc(1+csa->lp->n, double);
       memcpy(csa->orig_c, csa->lp->c, (1+csa->lp->n) * sizeof(double));
-#endif
       csa->orig_l = talloc(1+csa->lp->n, double);
       memcpy(csa->orig_l, csa->lp->l, (1+csa->lp->n) * sizeof(double));
       csa->orig_u = talloc(1+csa->lp->n, double);
       memcpy(csa->orig_u, csa->lp->u, (1+csa->lp->n) * sizeof(double));
-#if USE_AT
-      /* build matrix A in row-wise format */
-      csa->at = &at;
-      csa->nt = NULL;
-      spx_alloc_at(csa->lp, csa->at);
-      spx_build_at(csa->lp, csa->at);
-#else
-      /* build matrix N in row-wise format for initial basis */
-      csa->at = NULL;
-      csa->nt = &nt;
-      spx_alloc_nt(csa->lp, csa->nt);
-      spx_init_nt(csa->lp, csa->nt);
-      spx_build_nt(csa->lp, csa->nt);
-#endif
+      switch (parm->aorn)
+      {  case GLP_USE_AT:
+            /* build matrix A in row-wise format */
+            csa->at = &at;
+            csa->nt = NULL;
+            spx_alloc_at(csa->lp, csa->at);
+            spx_build_at(csa->lp, csa->at);
+            break;
+         case GLP_USE_NT:
+            /* build matrix N in row-wise format for initial basis */
+            csa->at = NULL;
+            csa->nt = &nt;
+            spx_alloc_nt(csa->lp, csa->nt);
+            spx_init_nt(csa->lp, csa->nt);
+            spx_build_nt(csa->lp, csa->nt);
+            break;
+         default:
+            xassert(parm != parm);
+      }
       /* allocate and initialize working components */
       csa->phase = 0;
       csa->beta = talloc(1+csa->lp->m, double);
@@ -1938,6 +1999,10 @@ int spy_dual(glp_prob *P, const glp_smcp *parm)
          default:
             xassert(parm != parm);
       }
+#if SCALE_Z
+      if (csa->obj_lim != DBL_MAX)
+         csa->obj_lim /= csa->fz;
+#endif
       csa->it_lim = parm->it_lim;
       csa->tm_lim = parm->tm_lim;
       csa->out_frq = parm->out_frq;
@@ -1946,7 +2011,13 @@ int spy_dual(glp_prob *P, const glp_smcp *parm)
       csa->tm_beg = xtime();
       csa->it_beg = csa->it_cnt = P->it_cnt;
       csa->it_dpy = -1;
+#if 1 /* 15/VII-2017 */
+      csa->tm_dpy = 0.0;
+#endif
       csa->inv_cnt = 0;
+#if 1 /* 11/VII-2017 */
+      csa->degen = 0;
+#endif
 #if 1 /* 23/III-2016 */
       csa->ns_cnt = csa->ls_cnt = 0;
 #endif
@@ -1971,8 +2042,14 @@ int spy_dual(glp_prob *P, const glp_smcp *parm)
       spx_eval_pi(csa->lp, csa->work);
       /* convert working LP solution to original LP solution and store
        * it to problem object */
-      spx_store_sol(csa->lp, P, SHIFT, map, daeh, csa->beta, csa->work,
-         csa->d);
+#if SCALE_Z
+      for (i = 1; i <= csa->lp->m; i++)
+         csa->work[i] *= csa->fz;
+      for (j = 1; j <= csa->lp->n-csa->lp->m; j++)
+         csa->d[j] *= csa->fz;
+#endif
+      spx_store_sol(csa->lp, P, parm->shift, map, daeh, csa->beta,
+         csa->work, csa->d);
       tfree(daeh);
       /* save simplex iteration count */
       P->it_cnt = csa->it_cnt;
@@ -1997,9 +2074,7 @@ skip: /* deallocate working objects and arrays */
       spx_free_lp(csa->lp);
       tfree(map);
       tfree(csa->orig_b);
-#if PERTURB
       tfree(csa->orig_c);
-#endif
       tfree(csa->orig_l);
       tfree(csa->orig_u);
       if (csa->at != NULL)

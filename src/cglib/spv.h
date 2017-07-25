@@ -1,6 +1,25 @@
 /* spv.h (operations on sparse vectors) */
 
-/* (reserved for copyright notice) */
+/***********************************************************************
+*  This code is part of GLPK (GNU Linear Programming Kit).
+*
+*  Copyright (C) 2007-2017 Andrew Makhorin, Department for Applied
+*  Informatics, Moscow Aviation Institute, Moscow, Russia. All rights
+*  reserved. E-mail: <mao@gnu.org>.
+*
+*  GLPK is free software: you can redistribute it and/or modify it
+*  under the terms of the GNU General Public License as published by
+*  the Free Software Foundation, either version 3 of the License, or
+*  (at your option) any later version.
+*
+*  GLPK is distributed in the hope that it will be useful, but WITHOUT
+*  ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+*  or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public
+*  License for more details.
+*
+*  You should have received a copy of the GNU General Public License
+*  along with GLPK. If not, see <http://www.gnu.org/licenses/>.
+***********************************************************************/
 
 #ifndef SPV_H
 #define SPV_H
@@ -15,8 +34,8 @@ struct SPV
       /* number of non-zero components, 0 <= nnz <= n */
       int *pos; /* int pos[1+n]; */
       /* pos[j] = k, 1 <= j <= n, is position of (non-zero) v[j] in the
-         arrays ind and val, where 1 <= k <= nnz; pos[j] = 0 means that
-         v[j] is structural zero */
+       * arrays ind and val, where 1 <= k <= nnz; pos[j] = 0 means that
+       * v[j] is structural zero */
       int *ind; /* int ind[1+n]; */
       /* ind[k] = j, 1 <= k <= nnz, is index of v[j] */
       double *val; /* double val[1+n]; */

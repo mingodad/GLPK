@@ -55,7 +55,6 @@ OBJSET = \
 ..\src\glpssx01.obj \
 ..\src\glpssx02.obj \
 ..\src\lux.obj \
-..\src\spv.obj \
 ..\src\amd\amd_1.obj \
 ..\src\amd\amd_2.obj \
 ..\src\amd\amd_aat.obj \
@@ -140,6 +139,7 @@ OBJSET = \
 ..\src\cglib\gmicut.obj \
 ..\src\cglib\gmigen.obj \
 ..\src\cglib\mirgen.obj \
+..\src\cglib\spv.obj \
 ..\src\colamd\colamd.obj \
 ..\src\env\alloc.obj \
 ..\src\env\dlsup.obj \
@@ -214,10 +214,10 @@ OBJSET = \
 .c.obj:
         cl.exe $(CFLAGS) /Fo$*.obj /c $*.c
 
-all: glpk_4_62.dll glpsol.exe
+all: glpk_4_63.dll glpsol.exe
 
-glpk_4_62.dll: $(OBJSET)
-        cl.exe $(CFLAGS) /LD /Feglpk_4_62.dll \
+glpk_4_63.dll: $(OBJSET)
+        cl.exe $(CFLAGS) /LD /Feglpk_4_63.dll \
                 ..\src\*.obj \
                 ..\src\amd\*.obj \
                 ..\src\api\*.obj \
@@ -231,11 +231,11 @@ glpk_4_62.dll: $(OBJSET)
                 ..\src\proxy\*.obj \
                 ..\src\simplex\*.obj \
                 ..\src\zlib\*.obj \
-                glpk_4_62.def
+                glpk_4_63.def
 
-glpsol.exe: ..\examples\glpsol.obj glpk_4_62.dll
+glpsol.exe: ..\examples\glpsol.obj glpk_4_63.dll
         cl.exe $(CFLAGS) /Feglpsol.exe \
-                ..\examples\glpsol.obj glpk_4_62.lib
+                ..\examples\glpsol.obj glpk_4_63.lib
 
 check: glpsol.exe
         .\glpsol.exe --version

@@ -1,4 +1,4 @@
-/* fvs.c (sparse vector in full vector storage format) */
+/* fvs.c (sparse vector in FVS format) */
 
 /***********************************************************************
 *  This code is part of GLPK (GNU Linear Programming Kit).

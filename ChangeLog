@@ -1,3 +1,49 @@
+Tue Jul 25 12:00:00 2017 Andrew Makhorin <mao@gnu.org>
+
+        * GLPK 4.63 (42:2:2) has been released.
+
+        * src/simplex/spxchuzr.h, src/simplex/spxchuzr.c
+        An experimental feature (phase I long-step ratio test) was
+        included in the primal simplex solver.
+
+        * src/simplex/spxprim.c, src/simplex/spydual.c
+        An internal scaling of the objective coefficients was added to
+        the primal and dual simplex solvers.
+
+        * src/simplex/spxprim.c
+        A minor bug was fixed (correction of flags of fixed non-basic
+        variables after removing the perturbation).
+
+        * src/glpk.h, src/glpapi06.c
+        New smcp parameters were added (not documented yet):
+        int excl (default: GLP_ON)
+        Internal simplex solver option:
+        GLP_ON  - exclude fixed non-basic variables from the working LP;
+        GLP_OFF - keep original variables in the working LP.
+        int shift (default: GLP_ON)
+        Internal simplex solver option:
+        GLP_ON  - shift bounds of variables in the working LP tow. zero;
+        GLP_OFF - keep original bounds of variables in the working LP.
+        int aorn (default: GLP_USE_NT)
+        Internal simplex solver option:
+        GLP_USE_AT - use A matrix in sparse row-wise format;
+        GLP_USE_NT - use N matrix in sparse row-wise format.
+        Parameter out_frq was changed to specify the output frequency
+        in milliseconds rather than in simplex iterations.
+
+        src/env/time.c
+        The Posix version of glp_time was replaced by new one, which
+        doesn't use gmtime functions to improve portability. Thanks to
+        Rob Schroeder <Rob.Schroeder@graphicpkg.com> for bug report.
+
+        src/spv.c, src/spv.h
+        These files were moved to src/cglib/, since they are used only
+        in the MIR cuts generator.
+
+        examples/life_goe.mod, examples/tiling.mod, examples/toto.mod
+        Three new example models in MathProg were added. Thanks to
+        Peter Naszvadi <vuk@cs.elte.hu> for contribution.
+
 Wed Jun 14 12:00:00 2017 Andrew Makhorin <mao@gnu.org>
 
         * GLPK 4.62 (42:1:2) has been released.
