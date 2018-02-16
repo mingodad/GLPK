@@ -1,3 +1,79 @@
+Thu Feb 16 10:00:00 2018 Andrew Makhorin <mao@gnu.org>
+
+        * GLPK 4.65 (43:0:3) has been released.
+
+        * src/glpk.h, src/api/npp.c
+        New API routines for LP/MIP preprocessing were added:
+        glp_npp_alloc_wksp    allocate the preprocessor workspace
+        glp_npp_load_prob     load original problem instance
+        glp_npp_preprocess1   perform basic LP/MIP preprocessing
+        glp_npp_build_prob    build resultant problem instance
+        glp_npp_postprocess   postprocess solution to resultant problem
+        glp_npp_obtain_sol    obtain solution to original problem
+        glp_npp_free_wksp     free the preprocessor workspace
+        See doc/npp.txt for detailed description of these API routines.
+
+        * examples/nppsamp.c
+        An example program to demonstrate using of LP/MIP preprocessor
+        was added.
+
+        The following modules were renamed to simplify maintenance.
+        * src/draft/glpnpp.h   RENAMED -> src/npp/npp.h
+        * src/draft/glpnpp01.c RENAMED -> src/npp/npp1.c
+        * src/draft/glpnpp02.c RENAMED -> src/npp/npp2.c
+        * src/draft/glpnpp03.c RENAMED -> src/npp/npp3.c
+        * src/draft/glpnpp04.c RENAMED -> src/npp/npp4.c
+        * src/draft/glpnpp05.c RENAMED -> src/npp/npp5.c
+        * src/draft/glpnpp06.c RENAMED -> src/npp/npp6.c
+        * src/bflib/fvs.h      RENAMED -> src/misc/fvs.h
+        * src/bflib/fvs.c      RENAMED -> src/misc/fvs.c
+        * src/draft/glpios.h   RENAMED -> src/draft/ios.h
+        * src/cglib/           RENAMED -> src/intopt/
+        * src/draft/glpios10.c RENAMED -> src/intopt/fpump.c
+
+        * src/glpk.h, src/intopt/covgen.c
+        A new, more robust implementation of locally valid simple cover
+        cuts was included in the MIP solver.
+
+        * src/draft/ios.h, src/draft/glpios01.c, src/draft/glpios03.c
+        These modules were changed to use the new cover cut generator.
+
+        * src/misc/ks.c, src/misc/ks.h
+        Routines to solve 0-1 knapsack problem (used by the new cover
+        cut generator) were added.
+
+        * src/misc/mt1.c, src/misc/mt1.h, src/misc/mt1.f
+        Routines to solve 0-1 knapsack problem with Martello & Toth
+        algorithm (used by the new cover cut generator) were added.
+        (The original Fortran 77 code mt1.f is included for reference
+        purposes only.)
+
+        * src/draft/glpapi09.c
+        The API routine glp_init_iocp was changed to enable long-step
+        dual simplex by default.
+
+        * src/api/cplex.c
+        The internal routine col_name routine was changed to construct
+        a fake column name depending on the column's attributes.
+
+        * examples/glpsol.c
+        A new option --hide was added. This option removes all symbolic
+        names from the model being processed.
+
+        * src/env/stdc.h
+        CDECL macro was added. (This macro is defined by config.h only
+        on building the GLPK DLL with MSVC.)
+        The following modules affected by this change were changed:
+        * src/api/cpxbas.c
+        * src/draft/glpios11.c
+        * src/intopt/cfg1.c
+        * src/intopt/fpump.c
+        * src/intopt/gmigen.c
+        * src/intopt/mirgen.c
+        * src/misc/wclique1.c
+        * src/simplex/spxchuzr.c
+        * src/simplex/spychuzc.c
+
 Sat Dec 02 12:00:00 2017 Andrew Makhorin <mao@gnu.org>
 
         * GLPK 4.64 (42:3:2) has been released.

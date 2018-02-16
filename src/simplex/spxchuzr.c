@@ -3,7 +3,7 @@
 /***********************************************************************
 *  This code is part of GLPK (GNU Linear Programming Kit).
 *
-*  Copyright (C) 2015-2017 Andrew Makhorin, Department for Applied
+*  Copyright (C) 2015-2018 Andrew Makhorin, Department for Applied
 *  Informatics, Moscow Aviation Institute, Moscow, Russia. All rights
 *  reserved. E-mail: <mao@gnu.org>.
 *
@@ -20,10 +20,6 @@
 *  You should have received a copy of the GNU General Public License
 *  along with GLPK. If not, see <http://www.gnu.org/licenses/>.
 ***********************************************************************/
-
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
 
 #include "env.h"
 #include "spxchuzr.h"
@@ -540,11 +536,7 @@ int spx_ls_eval_bp(SPXLP *lp, const double beta[/*1+m*/],
 *  On exit the routine also replaces the parameter slope with a new
 *  value that corresponds to the new last break-point bp[num1]. */
 
-#ifndef __WOE__
-static int fcmp(const void *v1, const void *v2)
-#else
-static int __cdecl fcmp(const void *v1, const void *v2)
-#endif
+static int CDECL fcmp(const void *v1, const void *v2)
 {     const SPXBP *p1 = v1, *p2 = v2;
       if (p1->teta < p2->teta)
          return -1;

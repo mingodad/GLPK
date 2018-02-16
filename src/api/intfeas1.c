@@ -22,7 +22,7 @@
 ***********************************************************************/
 
 #include "env.h"
-#include "glpnpp.h"
+#include "npp.h"
 
 int glp_intfeas1(glp_prob *P, int use_bound, int obj_bound)
 {     /* solve integer feasibility problem */

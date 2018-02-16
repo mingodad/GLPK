@@ -3,7 +3,7 @@
 /***********************************************************************
 *  This code is part of GLPK (GNU Linear Programming Kit).
 *
-*  Copyright (C) 2009-2016 Andrew Makhorin, Department for Applied
+*  Copyright (C) 2009-2018 Andrew Makhorin, Department for Applied
 *  Informatics, Moscow Aviation Institute, Moscow, Russia. All rights
 *  reserved. E-mail: <mao@gnu.org>.
 *
@@ -1066,7 +1066,29 @@ static char *col_name(struct csa *csa, int j, char cname[255+1])
       adjust_name(cname);
       if (check_name(cname)) goto fake;
       return cname;
+#if 0 /* 18/I-2018 */
 fake: sprintf(cname, "x_%d", j);
+#else
+fake: /* construct fake name depending on column's attributes */
+      {  GLPCOL *col = csa->P->col[j];
+         if (col->type == GLP_FX)
+         {  /* fixed column */
+            sprintf(cname, "s_%d", j);
+         }
+         else if (col->kind == GLP_CV)
+         {  /* continuous variable */
+            sprintf(cname, "x_%d", j);
+         }
+         else if (!(col->lb == 0 && col->ub == 1))
+         {  /* general (non-binary) integer variable */
+            sprintf(cname, "y_%d", j);
+         }
+         else
+         {  /* binary variable */
+            sprintf(cname, "z_%d", j);
+         }
+      }
+#endif
       return cname;
 }
 

@@ -1,5 +1,5 @@
-LIBRARY glpk_4_64
-VERSION 4.64
+LIBRARY glpk_4_65
+VERSION 4.65
 DESCRIPTION "GNU Linear Programming Kit"
 EXPORTS
 glp_create_prob
@@ -119,6 +119,13 @@ glp_prim_rtest
 glp_dual_rtest
 glp_analyze_bound
 glp_analyze_coef
+glp_npp_alloc_wksp
+glp_npp_load_prob
+glp_npp_preprocess1
+glp_npp_build_prob
+glp_npp_postprocess
+glp_npp_obtain_sol
+glp_npp_free_wksp
 glp_ios_reason
 glp_ios_get_prob
 glp_ios_tree_size

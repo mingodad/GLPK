@@ -105,6 +105,10 @@ struct csa
       /* input data checking flag; no solution is performed */
       const char *new_name;
       /* new name to be assigned to the problem */
+#if 1 /* 18/I-2018 */
+      int hide;
+      /* clear all symbolic names in the problem object */
+#endif
       const char *out_mps;
       /* name of output problem file in fixed MPS format */
       const char *out_freemps;
@@ -257,6 +261,10 @@ static void print_help(const char *my_name)
       xprintf("   --check           do not solve problem, check input d"
          "ata only\n");
       xprintf("   --name probname   change problem name to probname\n");
+#if 1 /* 18/I-2018 */
+      xprintf("   --hide            remove all symbolic names from prob"
+         "lem object\n");
+#endif
       xprintf("   --wmps filename   write problem to filename in fixed "
          "MPS format\n");
       xprintf("   --wfreemps filename\n");
@@ -611,6 +619,10 @@ static int parse_cmdline(struct csa *csa, int argc, char *argv[])
             }
             csa->new_name = argv[k];
          }
+#if 1 /* 18/I-2018 */
+         else if (p("--hide"))
+            csa->hide = 1;
+#endif
          else if (p("--wmps"))
          {  k++;
             if (k == argc || argv[k][0] == '\0' || argv[k][0] == '-')
@@ -978,6 +990,9 @@ int __cdecl main(int argc, char *argv[])
       csa->out_ranges = NULL;
       csa->check = 0;
       csa->new_name = NULL;
+#if 1 /* 18/I-2018 */
+      csa->hide = 0;
+#endif
       csa->out_mps = NULL;
       csa->out_freemps = NULL;
       csa->out_cpxlp = NULL;
@@ -1175,6 +1190,19 @@ err2:    {  xprintf("MathProg model processing error\n");
          glp_set_obj_dir(csa->prob, csa->dir);
       /* sort elements of the constraint matrix */
       glp_sort_matrix(csa->prob);
+#if 1 /* 18/I-2018 */
+      /*--------------------------------------------------------------*/
+      /* remove all symbolic names from problem object, if required */
+      if (csa->hide)
+      {  int i, j;
+         glp_set_obj_name(csa->prob, NULL);
+         glp_delete_index(csa->prob);
+         for (i = glp_get_num_rows(csa->prob); i >= 1; i--)
+            glp_set_row_name(csa->prob, i, NULL);
+         for (j = glp_get_num_cols(csa->prob); j >= 1; j--)
+            glp_set_col_name(csa->prob, j, NULL);
+      }
+#endif
       /*--------------------------------------------------------------*/
       /* write problem data in fixed MPS format, if required */
       if (csa->out_mps != NULL)

@@ -9,19 +9,20 @@ libglpk_la_CPPFLAGS = \
 -I$(srcdir)/amd \
 -I$(srcdir)/api \
 -I$(srcdir)/bflib \
--I$(srcdir)/cglib \
 -I$(srcdir)/colamd \
 -I$(srcdir)/draft \
 -I$(srcdir)/env \
+-I$(srcdir)/intopt \
 -I$(srcdir)/minisat \
 -I$(srcdir)/misc \
 -I$(srcdir)/mpl \
+-I$(srcdir)/npp \
 -I$(srcdir)/proxy \
 -I$(srcdir)/simplex \
 -I$(srcdir)/zlib
 
 libglpk_la_LDFLAGS = \
--version-info 42:3:2 \
+-version-info 43:0:3 \
 -export-symbols-regex '^glp_*' \
 ${NOUNDEFINED}
 
@@ -59,6 +60,7 @@ api/minisat1.c \
 api/mpl.c \
 api/mps.c \
 api/netgen.c \
+api/npp.c \
 api/pript.c \
 api/prmip.c \
 api/prob1.c \
@@ -95,7 +97,6 @@ bflib/btf.c \
 bflib/btfint.c \
 bflib/fhv.c \
 bflib/fhvint.c \
-bflib/fvs.c \
 bflib/ifu.c \
 bflib/luf.c \
 bflib/lufint.c \
@@ -103,14 +104,6 @@ bflib/scf.c \
 bflib/scfint.c \
 bflib/sgf.c \
 bflib/sva.c \
-cglib/cfg.c \
-cglib/cfg1.c \
-cglib/cfg2.c \
-cglib/clqcut.c \
-cglib/gmicut.c \
-cglib/gmigen.c \
-cglib/mirgen.c \
-cglib/spv.c \
 colamd/colamd.c \
 draft/bfd.c \
 draft/bfx.c \
@@ -127,17 +120,10 @@ draft/glpios02.c \
 draft/glpios03.c \
 draft/glpios07.c \
 draft/glpios09.c \
-draft/glpios10.c \
 draft/glpios11.c \
 draft/glpios12.c \
 draft/glpipm.c \
 draft/glpmat.c \
-draft/glpnpp01.c \
-draft/glpnpp02.c \
-draft/glpnpp03.c \
-draft/glpnpp04.c \
-draft/glpnpp05.c \
-draft/glpnpp06.c \
 draft/glprgr.c \
 draft/glpscl.c \
 draft/glpspm.c \
@@ -153,6 +139,16 @@ env/stdout.c \
 env/stream.c \
 env/time.c \
 env/tls.c \
+intopt/cfg.c \
+intopt/cfg1.c \
+intopt/cfg2.c \
+intopt/clqcut.c \
+intopt/covgen.c \
+intopt/fpump.c \
+intopt/gmicut.c \
+intopt/gmigen.c \
+intopt/mirgen.c \
+intopt/spv.c \
 minisat/minisat.c \
 misc/avl.c \
 misc/bignum.c \
@@ -160,11 +156,14 @@ misc/dimacs.c \
 misc/dmp.c \
 misc/ffalg.c \
 misc/fp2rat.c \
+misc/fvs.c \
 misc/gcd.c \
 misc/jd.c \
 misc/keller.c \
+misc/ks.c \
 misc/mc13d.c \
 misc/mc21a.c \
+misc/mt1.c \
 misc/mygmp.c \
 misc/okalg.c \
 misc/qmd.c \
@@ -186,6 +185,12 @@ mpl/mpl4.c \
 mpl/mpl5.c \
 mpl/mpl6.c \
 mpl/mplsql.c \
+npp/npp1.c \
+npp/npp2.c \
+npp/npp3.c \
+npp/npp4.c \
+npp/npp5.c \
+npp/npp6.c \
 proxy/proxy.c \
 proxy/proxy1.c \
 simplex/spxat.c \

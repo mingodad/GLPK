@@ -24,7 +24,7 @@
 
 #include "env.h"
 #include "glpipm.h"
-#include "glpnpp.h"
+#include "npp.h"
 
 /***********************************************************************
 *  NAME

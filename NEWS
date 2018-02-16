@@ -1,3 +1,24 @@
+GLPK 4.65 (release date: Feb 16, 2018)
+
+        The following new API routines for LP/MIP preprocessing were
+        added:
+
+        glp_npp_alloc_wksp    allocate the preprocessor workspace
+        glp_npp_load_prob     load original problem instance
+        glp_npp_preprocess1   perform basic LP/MIP preprocessing
+        glp_npp_build_prob    build resultant problem instance
+        glp_npp_postprocess   postprocess solution to resultant problem
+        glp_npp_obtain_sol    obtain solution to original problem
+        glp_npp_free_wksp     free the preprocessor workspace
+
+        See doc/npp.txt for detailed description of these API routines.
+
+        A new, more robust implementation of locally valid simple cover
+        cuts was included in the MIP solver.
+
+        The API routine glp_init_iocp was changed to enable long-step
+        option of the dual simplex by default.
+
 GLPK 4.64 (release date: Dec 02, 2017)
 
         The dual simplex solver routine was changed to perform more

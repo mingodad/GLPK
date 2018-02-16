@@ -6,13 +6,14 @@ CFLAGS = \
 /I..\src\amd \
 /I..\src\api \
 /I..\src\bflib \
-/I..\src\cglib \
 /I..\src\colamd \
 /I..\src\draft \
 /I..\src\env \
+/I..\src\intopt \
 /I..\src\minisat \
 /I..\src\misc \
 /I..\src\mpl \
+/I..\src\npp \
 /I..\src\proxy \
 /I..\src\simplex \
 /I..\src\zlib \
@@ -57,6 +58,7 @@ OBJSET = \
 ..\src\api\mpl.obj \
 ..\src\api\mps.obj \
 ..\src\api\netgen.obj \
+..\src\api\npp.obj \
 ..\src\api\pript.obj \
 ..\src\api\prmip.obj \
 ..\src\api\prob1.obj \
@@ -93,7 +95,6 @@ OBJSET = \
 ..\src\bflib\btfint.obj \
 ..\src\bflib\fhv.obj \
 ..\src\bflib\fhvint.obj \
-..\src\bflib\fvs.obj \
 ..\src\bflib\ifu.obj \
 ..\src\bflib\luf.obj \
 ..\src\bflib\lufint.obj \
@@ -101,14 +102,6 @@ OBJSET = \
 ..\src\bflib\scfint.obj \
 ..\src\bflib\sgf.obj \
 ..\src\bflib\sva.obj \
-..\src\cglib\cfg.obj \
-..\src\cglib\cfg1.obj \
-..\src\cglib\cfg2.obj \
-..\src\cglib\clqcut.obj \
-..\src\cglib\gmicut.obj \
-..\src\cglib\gmigen.obj \
-..\src\cglib\mirgen.obj \
-..\src\cglib\spv.obj \
 ..\src\colamd\colamd.obj \
 ..\src\draft\bfd.obj \
 ..\src\draft\bfx.obj \
@@ -125,17 +118,10 @@ OBJSET = \
 ..\src\draft\glpios03.obj \
 ..\src\draft\glpios07.obj \
 ..\src\draft\glpios09.obj \
-..\src\draft\glpios10.obj \
 ..\src\draft\glpios11.obj \
 ..\src\draft\glpios12.obj \
 ..\src\draft\glpipm.obj \
 ..\src\draft\glpmat.obj \
-..\src\draft\glpnpp01.obj \
-..\src\draft\glpnpp02.obj \
-..\src\draft\glpnpp03.obj \
-..\src\draft\glpnpp04.obj \
-..\src\draft\glpnpp05.obj \
-..\src\draft\glpnpp06.obj \
 ..\src\draft\glprgr.obj \
 ..\src\draft\glpscl.obj \
 ..\src\draft\glpspm.obj \
@@ -151,6 +137,16 @@ OBJSET = \
 ..\src\env\stream.obj \
 ..\src\env\time.obj \
 ..\src\env\tls.obj \
+..\src\intopt\cfg.obj \
+..\src\intopt\cfg1.obj \
+..\src\intopt\cfg2.obj \
+..\src\intopt\clqcut.obj \
+..\src\intopt\covgen.obj \
+..\src\intopt\fpump.obj \
+..\src\intopt\gmicut.obj \
+..\src\intopt\gmigen.obj \
+..\src\intopt\mirgen.obj \
+..\src\intopt\spv.obj \
 ..\src\minisat\minisat.obj \
 ..\src\misc\avl.obj \
 ..\src\misc\bignum.obj \
@@ -158,11 +154,14 @@ OBJSET = \
 ..\src\misc\dmp.obj \
 ..\src\misc\ffalg.obj \
 ..\src\misc\fp2rat.obj \
+..\src\misc\fvs.obj \
 ..\src\misc\gcd.obj \
 ..\src\misc\jd.obj \
 ..\src\misc\keller.obj \
+..\src\misc\ks.obj \
 ..\src\misc\mc13d.obj \
 ..\src\misc\mc21a.obj \
+..\src\misc\mt1.obj \
 ..\src\misc\mygmp.obj \
 ..\src\misc\okalg.obj \
 ..\src\misc\qmd.obj \
@@ -184,6 +183,12 @@ OBJSET = \
 ..\src\mpl\mpl5.obj \
 ..\src\mpl\mpl6.obj \
 ..\src\mpl\mplsql.obj \
+..\src\npp\npp1.obj \
+..\src\npp\npp2.obj \
+..\src\npp\npp3.obj \
+..\src\npp\npp4.obj \
+..\src\npp\npp5.obj \
+..\src\npp\npp6.obj \
 ..\src\proxy\proxy.obj \
 ..\src\proxy\proxy1.obj \
 ..\src\simplex\spxat.obj \
@@ -223,13 +228,14 @@ glpk.lib: $(OBJSET)
                 ..\src\amd\*.obj \
                 ..\src\api\*.obj \
                 ..\src\bflib\*.obj \
-                ..\src\cglib\*.obj \
                 ..\src\colamd\*.obj \
                 ..\src\draft\*.obj \
                 ..\src\env\*.obj \
+                ..\src\intopt\*.obj \
                 ..\src\minisat\*.obj \
                 ..\src\misc\*.obj \
                 ..\src\mpl\*.obj \
+                ..\src\npp\*.obj \
                 ..\src\proxy\*.obj \
                 ..\src\simplex\*.obj \
                 ..\src\zlib\*.obj
