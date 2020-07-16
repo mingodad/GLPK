@@ -1382,7 +1382,11 @@ void mpl_terminate(MPL *mpl)
                search trees, which may be created for some arrays */
             {  ARRAY *a;
                for (a = mpl->a_list; a != NULL; a = a->next)
+#ifdef WITH_SPLAYTREE
+                  if (a->tree != NULL) SplayTree_Free(a->tree);
+#else
                   if (a->tree != NULL) avl_delete_tree(a->tree);
+#endif
             }
 #if 1 /* 11/II-2008 */
             free_dca(mpl);

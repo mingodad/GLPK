@@ -25,6 +25,7 @@
 #define MPL_H
 
 #include "avl.h"
+#include "splaytree.h"
 #include "dmp.h"
 #include "env.h"
 #include "misc.h"
@@ -1368,7 +1369,11 @@ struct ARRAY
       /* the first array member; NULL means the array is empty */
       MEMBER *tail;
       /* the last array member; NULL means the array is empty */
+#ifdef WITH_SPLAYTREE
+      SplayTree_t *tree;
+#else
       AVL *tree;
+#endif
       /* the search tree intended to find array members for logarithmic
          time; NULL means the search tree doesn't exist */
       ARRAY *prev;

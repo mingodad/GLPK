@@ -1671,10 +1671,16 @@ MEMBER *find_member
       /* if the array is large enough, create the search tree and index
          all existing members of the array */
       if (array->size > 30 && array->tree == NULL)
+#ifdef WITH_SPLAYTREE
+      {  array->tree = SplayTree_New(compare_member_tuples, mpl);
+         for (memb = array->head; memb != NULL; memb = memb->next)
+            SplayTree_insert(array->tree, (void *)memb->tuple, (void *)memb);
+#else
       {  array->tree = avl_create_tree(compare_member_tuples, mpl);
          for (memb = array->head; memb != NULL; memb = memb->next)
-avl_set_node_link(avl_insert_node(array->tree, memb->tuple),
+            avl_set_node_link(avl_insert_node(array->tree, memb->tuple),
                (void *)memb);
+#endif
       }
       /* find a member, which has the given tuple */
       if (array->tree == NULL)
@@ -1684,9 +1690,13 @@ avl_set_node_link(avl_insert_node(array->tree, memb->tuple),
       }
       else
       {  /* the search tree exists; use the binary search */
+#ifdef WITH_SPLAYTREE
+         memb = (MEMBER *)SplayTree_find(array->tree, tuple);
+#else
          AVLNODE *node;
          node = avl_find_node(array->tree, tuple);
-memb = (MEMBER *)(node == NULL ? NULL : avl_get_node_link(node));
+         memb = (MEMBER *)(node == NULL ? NULL : avl_get_node_link(node));
+#endif
       }
       return memb;
 }
@@ -1729,8 +1739,12 @@ MEMBER *add_member
       array->tail = memb;
       /* if the search tree exists, index the new member */
       if (array->tree != NULL)
-avl_set_node_link(avl_insert_node(array->tree, memb->tuple),
+#ifdef WITH_SPLAYTREE
+        SplayTree_insert(array->tree, (void *)memb->tuple, (void *)memb);
+#else
+        avl_set_node_link(avl_insert_node(array->tree, memb->tuple),
             (void *)memb);
+#endif
       return memb;
 }
 
@@ -1758,7 +1772,11 @@ void delete_array
          dmp_free_atom(mpl->members, memb, sizeof(MEMBER));
       }
       /* if the search tree exists, also delete it */
+#ifdef WITH_SPLAYTREE
+      if (array->tree != NULL) SplayTree_Free(array->tree);
+#else
       if (array->tree != NULL) avl_delete_tree(array->tree);
+#endif
       /* remove the array from the global array list */
       if (array->prev == NULL)
          mpl->a_list = array->next;

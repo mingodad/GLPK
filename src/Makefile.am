@@ -151,6 +151,7 @@ intopt/mirgen.c \
 intopt/spv.c \
 minisat/minisat.c \
 misc/avl.c \
+misc/splaytree.c \
 misc/bignum.c \
 misc/dimacs.c \
 misc/dmp.c \

@@ -142,7 +142,8 @@ am_libglpk_la_OBJECTS = libglpk_la-amd_1.lo libglpk_la-amd_2.lo \
 	libglpk_la-cfg1.lo libglpk_la-cfg2.lo libglpk_la-clqcut.lo \
 	libglpk_la-covgen.lo libglpk_la-fpump.lo libglpk_la-gmicut.lo \
 	libglpk_la-gmigen.lo libglpk_la-mirgen.lo libglpk_la-spv.lo \
-	libglpk_la-minisat.lo libglpk_la-avl.lo libglpk_la-bignum.lo \
+	libglpk_la-minisat.lo libglpk_la-avl.lo \
+	libglpk_la-splaytree.lo libglpk_la-bignum.lo \
 	libglpk_la-dimacs.lo libglpk_la-dmp.lo libglpk_la-ffalg.lo \
 	libglpk_la-fp2rat.lo libglpk_la-fvs.lo libglpk_la-gcd.lo \
 	libglpk_la-jd.lo libglpk_la-keller.lo libglpk_la-ks.lo \
@@ -460,6 +461,7 @@ intopt/mirgen.c \
 intopt/spv.c \
 minisat/minisat.c \
 misc/avl.c \
+misc/splaytree.c \
 misc/bignum.c \
 misc/dimacs.c \
 misc/dmp.c \
@@ -755,6 +757,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libglpk_la-scf.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libglpk_la-scfint.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libglpk_la-sgf.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libglpk_la-splaytree.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libglpk_la-spv.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libglpk_la-spxat.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libglpk_la-spxchuzc.Plo@am__quote@
@@ -1685,6 +1688,13 @@ libglpk_la-avl.lo: misc/avl.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	source='misc/avl.c' object='libglpk_la-avl.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(LIBTOOL)  --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libglpk_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libglpk_la-avl.lo `test -f 'misc/avl.c' || echo '$(srcdir)/'`misc/avl.c
+
+libglpk_la-splaytree.lo: misc/splaytree.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libglpk_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libglpk_la-splaytree.lo -MD -MP -MF $(DEPDIR)/libglpk_la-splaytree.Tpo -c -o libglpk_la-splaytree.lo `test -f 'misc/splaytree.c' || echo '$(srcdir)/'`misc/splaytree.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libglpk_la-splaytree.Tpo $(DEPDIR)/libglpk_la-splaytree.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='misc/splaytree.c' object='libglpk_la-splaytree.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libglpk_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libglpk_la-splaytree.lo `test -f 'misc/splaytree.c' || echo '$(srcdir)/'`misc/splaytree.c
 
 libglpk_la-bignum.lo: misc/bignum.c
 @am__fastdepCC_TRUE@	$(LIBTOOL)  --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libglpk_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libglpk_la-bignum.lo -MD -MP -MF $(DEPDIR)/libglpk_la-bignum.Tpo -c -o libglpk_la-bignum.lo `test -f 'misc/bignum.c' || echo '$(srcdir)/'`misc/bignum.c
