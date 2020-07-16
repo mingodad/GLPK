@@ -124,7 +124,7 @@ struct SSX
       /* number of rows (auxiliary variables), m > 0 */
       int n;
       /* number of columns (structural variables), n > 0 */
-      int *type; /* int type[1+m+n]; */
+      char *type; /* char type[1+m+n]; */
       /* type[0] is not used;
          type[k], 1 <= k <= m+n, is the type of variable x[k]: */
 #define SSX_FR          0     /* free (unbounded) variable */
@@ -214,7 +214,7 @@ struct SSX
 // where N' is a matrix transposed to N, cN is a vector of objective
 // coefficients at non-basic variables xN.
 ----------------------------------------------------------------------*/
-      int *stat; /* int stat[1+m+n]; */
+      char *stat; /* char stat[1+m+n]; */
       /* stat[0] is not used;
          stat[k], 1 <= k <= m+n, is the status of variable x[k]: */
 #define SSX_BS          0     /* basic variable */

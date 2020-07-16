@@ -93,12 +93,12 @@ typedef struct
 #define GLP_BF_BG       0x02  /* Schur compl. + Bartels-Golub */
 #define GLP_BF_GR       0x03  /* Schur compl. + Givens rotation */
       int lu_size;            /* (not used) */
+      int nfs_max;            /* fhvint.nfs_max */
       double piv_tol;         /* sgf_piv_tol */
       int piv_lim;            /* sgf_piv_lim */
       int suhl;               /* sgf_suhl */
       double eps_tol;         /* sgf_eps_tol */
       double max_gro;         /* (not used) */
-      int nfs_max;            /* fhvint.nfs_max */
       double upd_tol;         /* (not used) */
       int nrs_max;            /* scfint.nn_max */
       int rs_size;            /* (not used) */
@@ -174,9 +174,9 @@ typedef struct
 #define GLP_BT_BFS         2  /* breadth first search */
 #define GLP_BT_BLB         3  /* best local bound */
 #define GLP_BT_BPH         4  /* best projection heuristic */
+      int tm_lim;             /* mip.tm_lim (milliseconds) */
       double tol_int;         /* mip.tol_int */
       double tol_obj;         /* mip.tol_obj */
-      int tm_lim;             /* mip.tm_lim (milliseconds) */
       int out_frq;            /* mip.out_frq (milliseconds) */
       int out_dly;            /* mip.out_dly (milliseconds) */
       void (*cb_func)(glp_tree *T, void *info);
@@ -200,8 +200,8 @@ typedef struct
       int sr_heur;            /* simple rounding heuristic */
 #if 1 /* 24/X-2015; not documented--should not be used */
       int use_sol;            /* use existing solution */
-      const char *save_sol;   /* filename to save every new solution */
       int alien;              /* use alien solver */
+      const char *save_sol;   /* filename to save every new solution */
 #endif
 #if 1 /* 16/III-2016; not documented--should not be used */
       int flip;               /* use long-step dual simplex */

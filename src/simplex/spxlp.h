@@ -93,6 +93,8 @@ typedef struct SPXLP SPXLP;
 
 struct SPXLP
 {     /* LP problem data and its (current) basis */
+      int valid;
+      /* factorization validity flag */
       int m;
       /* number of equality constraints, m > 0 */
       int n;
@@ -148,8 +150,6 @@ struct SPXLP
        * xN[j] is non-fixed and has its upper bound active */
       /*--------------------------------------------------------------*/
       /* basis matrix B of order m stored in factorized form */
-      int valid;
-      /* factorization validity flag */
       BFD *bfd;
       /* driver to factorization of the basis matrix */
 };

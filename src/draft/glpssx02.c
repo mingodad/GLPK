@@ -58,7 +58,7 @@ static void show_progress(SSX *ssx, int phase)
 int ssx_phase_I(SSX *ssx)
 {     int m = ssx->m;
       int n = ssx->n;
-      int *type = ssx->type;
+      char *type = ssx->type;
       mpq_t *lb = ssx->lb;
       mpq_t *ub = ssx->ub;
       mpq_t *coef = ssx->coef;
@@ -390,7 +390,7 @@ int ssx_phase_II(SSX *ssx)
 
 int ssx_driver(SSX *ssx)
 {     int m = ssx->m;
-      int *type = ssx->type;
+      char *type = ssx->type;
       mpq_t *lb = ssx->lb;
       mpq_t *ub = ssx->ub;
       int *Q_col = ssx->Q_col;

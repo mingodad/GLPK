@@ -201,8 +201,8 @@ static int load_basis(SSX *ssx, glp_prob *lp)
 {     /* load current LP basis into simplex solver workspace */
       int m = ssx->m;
       int n = ssx->n;
-      int *type = ssx->type;
-      int *stat = ssx->stat;
+      char *type = ssx->type;
+      char *stat = ssx->stat;
       int *Q_row = ssx->Q_row;
       int *Q_col = ssx->Q_col;
       int i, j, k;

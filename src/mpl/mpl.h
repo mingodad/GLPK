@@ -1184,6 +1184,9 @@ struct ELEMVAR
          members of model variables (like numbers and symbols, which
          are values assigned to members of model parameters) */
       int j;
+#if 1 /* 15/V-2010 */
+      int stat;
+#endif
       /* LP column number assigned to this elemental variable */
       VARIABLE *var;
       /* model variable, which contains this elemental variable */
@@ -1197,7 +1200,6 @@ struct ELEMVAR
       /* working quantity used in operations on linear forms; normally
          it contains floating-point zero */
 #if 1 /* 15/V-2010 */
-      int stat;
       double prim, dual;
       /* solution components provided by the solver */
 #endif
@@ -1277,6 +1279,9 @@ struct ELEMCON
          members of model constraints (like numbers or symbols, which
          are values assigned to members of model parameters) */
       int i;
+#if 1 /* 15/V-2010 */
+      int stat;
+#endif
       /* LP row number assigned to this elemental constraint */
       CONSTRAINT *con;
       /* model constraint, which contains this elemental constraint */
@@ -1289,7 +1294,6 @@ struct ELEMCON
       double ubnd;
       /* upper bound */
 #if 1 /* 15/V-2010 */
-      int stat;
       double prim, dual;
       /* solution components provided by the solver */
 #endif
@@ -1546,13 +1550,13 @@ struct SET
       int dim; /* aka arity */
       /* dimension (number of subscripts); dim = 0 means 0-dimensional
          (unsubscripted) set, dim > 0 means set of sets */
-      DOMAIN *domain;
-      /* subscript domain; NULL for 0-dimensional set */
       int dimen;
       /* dimension of n-tuples, which members of this set consist of
          (note that the model set itself is an array of elemental sets,
          which are its members; so, don't confuse this dimension with
          dimension of the model set); always non-zero */
+      DOMAIN *domain;
+      /* subscript domain; NULL for 0-dimensional set */
       WITHIN *within;
       /* list of supersets, which restrict each member of the set to be
          in every superset from this list; this list can be empty */
@@ -1633,14 +1637,14 @@ struct PARAMETER
       int dim; /* aka arity */
       /* dimension (number of subscripts); dim = 0 means 0-dimensional
          (unsubscripted) parameter */
-      DOMAIN *domain;
-      /* subscript domain; NULL for 0-dimensional parameter */
       int type;
       /* parameter type:
          A_NUMERIC  - numeric
          A_INTEGER  - integer
          A_BINARY   - binary
          A_SYMBOLIC - symbolic */
+      DOMAIN *domain;
+      /* subscript domain; NULL for 0-dimensional parameter */
       CONDITION *cond;
       /* list of conditions, which restrict each parameter member to
          satisfy to every condition from this list; this list is used
@@ -1751,13 +1755,13 @@ struct VARIABLE
       int dim; /* aka arity */
       /* dimension (number of subscripts); dim = 0 means 0-dimensional
          (unsubscripted) variable */
-      DOMAIN *domain;
-      /* subscript domain; NULL for 0-dimensional variable */
       int type;
       /* variable type:
          A_NUMERIC - continuous
          A_INTEGER - integer
          A_BINARY  - binary */
+      DOMAIN *domain;
+      /* subscript domain; NULL for 0-dimensional variable */
       CODE *lbnd;
       /* pseudo-code for computing lower bound; NULL means lower bound
          is not specified */
@@ -1807,13 +1811,13 @@ struct CONSTRAINT
       int dim; /* aka arity */
       /* dimension (number of subscripts); dim = 0 means 0-dimensional
          (unsubscripted) constraint */
-      DOMAIN *domain;
-      /* subscript domain; NULL for 0-dimensional constraint */
       int type;
       /* constraint type:
          A_CONSTRAINT - constraint
          A_MINIMIZE   - objective (minimization)
          A_MAXIMIZE   - objective (maximization) */
+      DOMAIN *domain;
+      /* subscript domain; NULL for 0-dimensional constraint */
       CODE *code;
       /* pseudo-code for computing main linear form; cannot be NULL */
       CODE *lbnd;
@@ -1926,21 +1930,21 @@ struct TABDCA
 {     /* table driver communication area */
       int id;
       /* driver identifier (set by mpl_tab_drv_open) */
-      void *link;
-      /* driver link pointer (set by mpl_tab_drv_open) */
-      int na;
-      /* number of arguments */
-      char **arg; /* char *arg[1+ns]; */
-      /* arg[k], 1 <= k <= ns, is pointer to k-th argument */
-      int nf;
-      /* number of fields */
-      char **name; /* char *name[1+nc]; */
-      /* name[k], 1 <= k <= nc, is name of k-th field */
       int *type; /* int type[1+nc]; */
       /* type[k], 1 <= k <= nc, is type of k-th field:
          '?' - value not assigned
          'N' - number
          'S' - character string */
+      void *link;
+      /* driver link pointer (set by mpl_tab_drv_open) */
+      char **arg; /* char *arg[1+ns]; */
+      /* arg[k], 1 <= k <= ns, is pointer to k-th argument */
+      int na;
+      /* number of arguments */
+      int nf;
+      /* number of fields */
+      char **name; /* char *name[1+nc]; */
+      /* name[k], 1 <= k <= nc, is name of k-th field */
       double *num; /* double num[1+nc]; */
       /* num[k], 1 <= k <= nc, is numeric value of k-th field */
       char **str;

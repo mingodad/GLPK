@@ -51,7 +51,7 @@ SSX *ssx_create(int m, int n, int nnz)
       ssx = xmalloc(sizeof(SSX));
       ssx->m = m;
       ssx->n = n;
-      ssx->type = xcalloc(1+m+n, sizeof(int));
+      ssx->type = xcalloc(1+m+n, sizeof(*ssx->type));
       ssx->lb = xcalloc(1+m+n, sizeof(mpq_t));
       for (k = 1; k <= m+n; k++) mpq_init(ssx->lb[k]);
       ssx->ub = xcalloc(1+m+n, sizeof(mpq_t));
@@ -63,7 +63,7 @@ SSX *ssx_create(int m, int n, int nnz)
       ssx->A_ind = xcalloc(1+nnz, sizeof(int));
       ssx->A_val = xcalloc(1+nnz, sizeof(mpq_t));
       for (k = 1; k <= nnz; k++) mpq_init(ssx->A_val[k]);
-      ssx->stat = xcalloc(1+m+n, sizeof(int));
+      ssx->stat = xcalloc(1+m+n, sizeof(*ssx->stat));
       ssx->Q_row = xcalloc(1+m+n, sizeof(int));
       ssx->Q_col = xcalloc(1+m+n, sizeof(int));
       ssx->binv = bfx_create_binv();
@@ -146,7 +146,7 @@ void ssx_get_xNj(SSX *ssx, int j, mpq_t x)
       int n = ssx->n;
       mpq_t *lb = ssx->lb;
       mpq_t *ub = ssx->ub;
-      int *stat = ssx->stat;
+      char *stat = ssx->stat;
       int *Q_col = ssx->Q_col;
       int k;
       xassert(1 <= j && j <= n);
@@ -459,7 +459,7 @@ void ssx_chuzc(SSX *ssx)
       int n = ssx->n;
       int dir = (ssx->dir == SSX_MIN ? +1 : -1);
       int *Q_col = ssx->Q_col;
-      int *stat = ssx->stat;
+      char *stat = ssx->stat;
       mpq_t *cbar = ssx->cbar;
       int j, k, s, q, q_dir;
       double best, temp;
@@ -516,7 +516,7 @@ void ssx_chuzc(SSX *ssx)
 void ssx_chuzr(SSX *ssx)
 {     int m = ssx->m;
       int n = ssx->n;
-      int *type = ssx->type;
+      char *type = ssx->type;
       mpq_t *lb = ssx->lb;
       mpq_t *ub = ssx->ub;
       int *Q_col = ssx->Q_col;
@@ -741,8 +741,8 @@ void ssx_update_cbar(SSX *ssx)
 void ssx_change_basis(SSX *ssx)
 {     int m = ssx->m;
       int n = ssx->n;
-      int *type = ssx->type;
-      int *stat = ssx->stat;
+      char *type = ssx->type;
+      char *stat = ssx->stat;
       int *Q_row = ssx->Q_row;
       int *Q_col = ssx->Q_col;
       int p = ssx->p;

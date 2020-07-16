@@ -168,6 +168,8 @@ struct NPPROW
 {     /* row (constraint) */
       int i;
       /* reference number assigned to the row, 1 <= i <= nrows */
+      int temp;
+      /* working field used by preprocessor routines */
       char *name;
       /* row name (1 to 255 chars); NULL means no name is assigned to
          the row */
@@ -177,8 +179,6 @@ struct NPPROW
       /* upper bound; +DBL_MAX means the row has no upper bound */
       NPPAIJ *ptr;
       /* pointer to the linked list of constraint coefficients */
-      int temp;
-      /* working field used by preprocessor routines */
       NPPROW *prev;
       /* pointer to previous row in the row list */
       NPPROW *next;
@@ -189,11 +189,13 @@ struct NPPCOL
 {     /* column (variable) */
       int j;
       /* reference number assigned to the column, 1 <= j <= ncols */
+      int temp;
+      /* working field used by preprocessor routines */
+      char is_int;
+      /* 0 means continuous variable; 1 means integer variable */
       char *name;
       /* column name (1 to 255 chars); NULL means no name is assigned
          to the column */
-      char is_int;
-      /* 0 means continuous variable; 1 means integer variable */
       double lb;
       /* lower bound; -DBL_MAX means the column has no lower bound */
       double ub;
@@ -202,8 +204,6 @@ struct NPPCOL
       /* objective coefficient */
       NPPAIJ *ptr;
       /* pointer to the linked list of constraint coefficients */
-      int temp;
-      /* working field used by preprocessor routines */
 #if 1 /* 28/XII-2009 */
       union
       {  double ll;

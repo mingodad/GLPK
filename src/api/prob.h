@@ -152,6 +152,10 @@ struct GLPROW
 {     /* LP/MIP row (auxiliary variable) */
       int i;
       /* ordinal number (1 to m) assigned to this row */
+      int bind;
+      /* if the auxiliary variable is basic, head[bind] refers to this
+         row, otherwise, bind is 0; this attribute is valid only if the
+         basis factorization is valid */
       char *name;
       /* row name (1 to 255 chars); NULL means no name is assigned to
          this row */
@@ -164,13 +168,20 @@ struct GLPROW
       unsigned char origin;
       unsigned char klass;
 #endif
-      int type;
+      char type;
       /* type of the auxiliary variable:
          GLP_FR - free variable
          GLP_LO - variable with lower bound
          GLP_UP - variable with upper bound
          GLP_DB - double-bounded variable
          GLP_FX - fixed variable */
+      char stat;
+      /* status of the auxiliary variable:
+         GLP_BS - basic variable
+         GLP_NL - non-basic variable on lower bound
+         GLP_NU - non-basic variable on upper bound
+         GLP_NF - non-basic free variable
+         GLP_NS - non-basic fixed variable */
       double lb; /* non-scaled */
       /* lower bound; if the row has no lower bound, lb is zero */
       double ub; /* non-scaled */
@@ -182,17 +193,6 @@ struct GLPROW
       double rii;
       /* diagonal element r[i,i] of scaling matrix R for this row;
          if the scaling is not used, r[i,i] is 1 */
-      int stat;
-      /* status of the auxiliary variable:
-         GLP_BS - basic variable
-         GLP_NL - non-basic variable on lower bound
-         GLP_NU - non-basic variable on upper bound
-         GLP_NF - non-basic free variable
-         GLP_NS - non-basic fixed variable */
-      int bind;
-      /* if the auxiliary variable is basic, head[bind] refers to this
-         row, otherwise, bind is 0; this attribute is valid only if the
-         basis factorization is valid */
       double prim; /* non-scaled */
       /* primal value of the auxiliary variable in basic solution */
       double dual; /* non-scaled */
@@ -209,6 +209,10 @@ struct GLPCOL
 {     /* LP/MIP column (structural variable) */
       int j;
       /* ordinal number (1 to n) assigned to this column */
+      int bind;
+      /* if the structural variable is basic, head[bind] refers to
+         this column; otherwise, bind is 0; this attribute is valid only
+         if the basis factorization is valid */
       char *name;
       /* column name (1 to 255 chars); NULL means no name is assigned
          to this column */
@@ -216,17 +220,24 @@ struct GLPCOL
       /* pointer to corresponding node in the column index; NULL means
          that either the column index does not exist or the column has
          no name assigned */
-      int kind;
+      char kind;
       /* kind of the structural variable:
          GLP_CV - continuous variable
          GLP_IV - integer or binary variable */
-      int type;
+      char type;
       /* type of the structural variable:
          GLP_FR - free variable
          GLP_LO - variable with lower bound
          GLP_UP - variable with upper bound
          GLP_DB - double-bounded variable
          GLP_FX - fixed variable */
+      char stat;
+      /* status of the structural variable:
+         GLP_BS - basic variable
+         GLP_NL - non-basic variable on lower bound
+         GLP_NU - non-basic variable on upper bound
+         GLP_NF - non-basic free variable
+         GLP_NS - non-basic fixed variable */
       double lb; /* non-scaled */
       /* lower bound; if the column has no lower bound, lb is zero */
       double ub; /* non-scaled */
@@ -240,17 +251,6 @@ struct GLPCOL
       double sjj;
       /* diagonal element s[j,j] of scaling matrix S for this column;
          if the scaling is not used, s[j,j] is 1 */
-      int stat;
-      /* status of the structural variable:
-         GLP_BS - basic variable
-         GLP_NL - non-basic variable on lower bound
-         GLP_NU - non-basic variable on upper bound
-         GLP_NF - non-basic free variable
-         GLP_NS - non-basic fixed variable */
-      int bind;
-      /* if the structural variable is basic, head[bind] refers to
-         this column; otherwise, bind is 0; this attribute is valid only
-         if the basis factorization is valid */
       double prim; /* non-scaled */
       /* primal value of the structural variable in basic solution */
       double dual; /* non-scaled */
