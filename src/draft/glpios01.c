@@ -1392,6 +1392,9 @@ IOSPOOL *ios_create_pool(glp_tree *tree)
 {     /* create cut pool */
       IOSPOOL *pool;
       pool = glp_create_prob();
+#if 1 /* 14/VII-2020 */
+      if (tree->mip->n)
+#endif
       glp_add_cols(pool, tree->mip->n);
       return pool;
 }
