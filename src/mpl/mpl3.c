@@ -1002,6 +1002,7 @@ MEMBER *add_tuple
       xassert(set != NULL);
       xassert(set->type == A_NONE);
       xassert(set->dim == tuple_dimen(mpl, tuple));
+      xassert(set->refcount == 1);
       memb = add_member(mpl, set, tuple);
       memb->value.none = NULL;
       return memb;
@@ -1038,6 +1039,10 @@ ELEMSET *copy_elemset
       xassert(set != NULL);
       xassert(set->type == A_NONE);
       xassert(set->dim > 0);
+      if(set->size) {
+          ++set->refcount;
+          return set;
+      }
       copy = create_elemset(mpl, set->dim);
       for (memb = set->head; memb != NULL; memb = memb->next)
          add_tuple(mpl, copy, copy_tuple(mpl, memb->tuple));
@@ -1170,6 +1175,7 @@ ELEMSET *set_union
       xassert(X != NULL);
       xassert(X->type == A_NONE);
       xassert(X->dim > 0);
+      xassert(X->refcount == 1); /* only add to recently/owned created sets */
       xassert(Y != NULL);
       xassert(Y->type == A_NONE);
       xassert(Y->dim > 0);
@@ -1626,6 +1632,7 @@ ARRAY *create_array(MPL *mpl, int type, int dim)
       array->type = type;
       array->dim = dim;
       array->size = 0;
+      array->refcount = 1;
       array->head = NULL;
       array->tail = NULL;
       array->tree = NULL;
@@ -1742,6 +1749,7 @@ void delete_array
 )
 {     MEMBER *memb;
       xassert(array != NULL);
+      if(--array->refcount) return; /* someone is still using this array */
       /* delete all existing array members */
       while (array->head != NULL)
       {  memb = array->head;

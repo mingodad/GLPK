@@ -1358,6 +1358,8 @@ struct ARRAY
          the array is 0-dimensional */
       int size;
       /* size of the array, i.e. number of its members */
+      int refcount;
+      /* reference counting to allow reuse without copy */
       MEMBER *head;
       /* the first array member; NULL means the array is empty */
       MEMBER *tail;
