@@ -1,5 +1,5 @@
 #ifndef SPLAYTREE_H
-#define SPLAY_TREE_H
+#define SPLAYTREE_H
 
 #ifndef WITH_SPLAYTREE
 #define WITH_SPLAYTREE
@@ -26,4 +26,4 @@ const void *SplayTree_findGreatestLessThan(SplayTree_t *t, const void *key);
 const void *SplayTree_peek(SplayTree_t *t);
 int SplayTree_strcmp(void *info, const void *key1, const void *key2);
 
-#endif //SPLAY_TREE_H
+#endif //SPLAYTREE_H
