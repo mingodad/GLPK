@@ -2256,15 +2256,10 @@ int eval_logical(MPL *mpl, CODE *code);
 TUPLE *eval_tuple(MPL *mpl, CODE *code);
 /* evaluate pseudo-code to construct n-tuple */
 
-#define eval_elemset_copy_opt _glp_mpl_eval_elemset_copy_opt
-ELEMSET *eval_elemset_copy_opt(MPL *mpl, CODE *code, int fullcopy);
-/* evaluate pseudo-code to construct elemental set
-   with an extra option to return a full/fake copy*/
-
 #define eval_elemset _glp_mpl_eval_elemset
 ELEMSET *eval_elemset(MPL *mpl, CODE *code);
 /* evaluate pseudo-code to construct elemental set
-   returning a fake copy */
+   returning a fake copy (refcount incremented)*/
 
 #define is_member _glp_mpl_is_member
 int is_member(MPL *mpl, CODE *code, TUPLE *tuple);
