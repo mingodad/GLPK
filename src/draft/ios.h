@@ -241,6 +241,11 @@ struct IOSNPD
       int p;
       /* subproblem reference number (it is the index to corresponding
          slot, i.e. slot[p] points to this descriptor) */
+      int solved;
+      /* how many times LP relaxation of this subproblem was solved;
+         for inactive subproblem this count is always non-zero;
+         for active subproblem, which is not current, this count may be
+         non-zero, if the subproblem was temporarily suspended */
       IOSNPD *up;
       /* pointer to the parent subproblem; NULL means this node is the
          root of the tree, in which case p = 1 */
@@ -260,11 +265,6 @@ struct IOSNPD
          statuses were changed */
       IOSROW *r_ptr;
       /* linked list of rows (cuts) added to the parent subproblem */
-      int solved;
-      /* how many times LP relaxation of this subproblem was solved;
-         for inactive subproblem this count is always non-zero;
-         for active subproblem, which is not current, this count may be
-         non-zero, if the subproblem was temporarily suspended */
       double lp_obj;
       /* optimal objective value to LP relaxation of this subproblem;
          on creating a subproblem this value is inherited from its
@@ -349,6 +349,8 @@ struct IOSROW
       /* row class descriptor (see glp_attr.klass) */
       unsigned char type;
       /* row type (GLP_LO, GLP_UP, etc.) */
+      unsigned char stat;
+      /* row status (GLP_BS, GLP_NL, etc.) */
       double lb;
       /* row lower bound */
       double ub;
@@ -357,8 +359,6 @@ struct IOSROW
       /* pointer to the row coefficient list */
       double rii;
       /* row scale factor */
-      unsigned char stat;
-      /* row status (GLP_BS, GLP_NL, etc.) */
       IOSROW *next;
       /* pointer to next entry for the same subproblem */
 };
