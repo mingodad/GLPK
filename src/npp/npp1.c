@@ -693,7 +693,8 @@ void npp_postprocess(NPP *npp, glp_prob *prob)
          problem */
       for (tse = npp->top; tse != NULL; tse = tse->link)
       {  xassert(tse->func != NULL);
-         xassert(tse->func(npp, tse->info) == 0);
+         int rc = tse->func(npp, tse->info);
+         xassert(rc == 0);
       }
       return;
 }

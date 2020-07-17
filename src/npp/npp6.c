@@ -1410,7 +1410,8 @@ int npp_sat_encode_prob(NPP *npp)
             /* since it already encodes a clause, just transform it to
                canonical form */
             if (ret == 2)
-            {  xassert(npp_sat_reverse_row(npp, row) == 0);
+            {  ret = npp_sat_reverse_row(npp, row);
+               xassert(ret == 0);
                ret = npp_sat_is_cover_ineq(npp, row);
             }
             xassert(ret == 1);
@@ -1424,7 +1425,8 @@ int npp_sat_encode_prob(NPP *npp)
             partn++;
             /* transform it to canonical form */
             if (ret == 2)
-            {  xassert(npp_sat_reverse_row(npp, row) == 0);
+            {  ret = npp_sat_reverse_row(npp, row);
+               xassert(ret == 0);
                ret = npp_sat_is_partn_eq(npp, row);
             }
             xassert(ret == 1);
@@ -1450,7 +1452,8 @@ int npp_sat_encode_prob(NPP *npp)
             pack++;
             /* transform it to canonical form */
             if (ret == 2)
-            {  xassert(npp_sat_reverse_row(npp, row) == 0);
+            {  ret = npp_sat_reverse_row(npp, row);
+               xassert(ret == 0);
                ret = npp_sat_is_pack_ineq(npp, row);
             }
             xassert(ret == 1);

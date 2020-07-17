@@ -3385,10 +3385,12 @@ ELEMCON *take_member_con      /* returns reference */
             double temp, temp1, temp2;
             xassert(con->type == A_CONSTRAINT);
             refer->form = remove_constant(mpl, refer->form, &temp);
-            xassert(remove_constant(mpl, eval_formula(mpl, con->lbnd),
-               &temp1) == NULL);
-            xassert(remove_constant(mpl, eval_formula(mpl, con->ubnd),
-               &temp2) == NULL);
+            FORMULA *ftmp = remove_constant(mpl, eval_formula(mpl, con->lbnd),
+               &temp1);
+            xassert(ftmp == NULL);
+            ftmp = remove_constant(mpl, eval_formula(mpl, con->ubnd),
+               &temp2);
+            xassert(ftmp == NULL);
             refer->lbnd = fp_sub(mpl, temp1, temp);
             refer->ubnd = fp_sub(mpl, temp2, temp);
          }

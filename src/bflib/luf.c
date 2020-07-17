@@ -399,7 +399,8 @@ void luf_check_f_rc(LUF *luf)
       for (j = 1; j <= n; j++)
       {  for (j_end = (j_ptr = fc_ptr[j]) + fc_len[j];
             j_ptr < j_end; j_ptr++)
-         {  xassert((i = sv_ind[j_ptr]) < 0);
+         {  i = sv_ind[j_ptr];
+            xassert(i < 0);
             /* unmark element f[i,j] */
             sv_ind[j_ptr] = -i;
          }
@@ -447,7 +448,8 @@ void luf_check_v_rc(LUF *luf)
       for (j = 1; j <= n; j++)
       {  for (j_end = (j_ptr = vc_ptr[j]) + vc_len[j];
             j_ptr < j_end; j_ptr++)
-         {  xassert((i = sv_ind[j_ptr]) < 0);
+         {  i = sv_ind[j_ptr];
+            xassert(i < 0);
             /* unmark element v[i,j] */
             sv_ind[j_ptr] = -i;
          }

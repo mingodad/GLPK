@@ -98,7 +98,8 @@ int glp_minisat1(glp_prob *P)
          }
          xassert(len > 0);
 #if 0 /* 08/I-2017 by cmatraki */
-         xassert(solver_addclause(s, &ind[1], &ind[1+len]));
+         int rc = solver_addclause(s, &ind[1], &ind[1+len]);
+         xassert(rc);
 #else
          if (!solver_addclause(s, &ind[1], &ind[1+len]))
          {  /* found trivial conflict */

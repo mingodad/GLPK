@@ -324,7 +324,7 @@ static int firstday(int year)
 
 void fn_time2str(MPL *mpl, char *str, double t, const char *fmt)
 {     /* convert the calendar time to character string */
-      int j, year, month, day, hh, mm, ss, len;
+      int j, year, month, day, hh, mm, ss, len, rc;
       double temp;
       const char *f;
       char buf[MAX_LENGTH+1];
@@ -340,7 +340,8 @@ void fn_time2str(MPL *mpl, char *str, double t, const char *fmt)
          else
             j = - (j + 1);
       }
-      xassert(jdate(j + jday(1, 1, 1970), &day, &month, &year) == 0);
+      rc = jdate(j + jday(1, 1, 1970), &day, &month, &year);
+      xassert(rc == 0);
       ss = (int)(t - 86400.0 * (double)j);
       xassert(0 <= ss && ss < 86400);
       mm = ss / 60, ss %= 60;

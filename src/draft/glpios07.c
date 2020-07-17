@@ -262,14 +262,18 @@ static int cover(int n, double a[], double b, double u, double x[],
       int j;
       /* perform some sanity checks */
       xassert(n >= 2);
+#ifndef XASSERT_DISABLED
       for (j = 1; j <= n; j++) xassert(a[j] > 0.0);
+#endif
 #if 1 /* ??? */
       xassert(b > -1e-5);
 #else
       xassert(b > 0.0);
 #endif
       xassert(u >= 0.0);
+#ifndef XASSERT_DISABLED
       for (j = 1; j <= n; j++) xassert(0.0 <= x[j] && x[j] <= 1.0);
+#endif
       xassert(0.0 <= y && y <= u);
       /* try to generate mixed cover cut */
       if (cover2(n, a, b, u, x, y, cov, alfa, beta)) return 2;

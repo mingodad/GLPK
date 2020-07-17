@@ -169,9 +169,16 @@ typedef void (*glp_errfunc)(const char *fmt, ...);
 glp_errfunc glp_error_(const char *file, int line);
 /* display fatal error message and terminate execution */
 
-#define xassert(expr) \
+#define xx_assert(expr) \
       ((void)((expr) || (glp_assert_(#expr, __FILE__, __LINE__), 1)))
 void glp_assert_(const char *expr, const char *file, int line);
+
+#if defined(NDEBUG) || defined(NO_XASSERT)
+#define XASSERT_DISABLED
+#define xassert(expr) ((void)0)
+#else
+#define xassert(expr) xx_assert(expr)
+#endif
 /* check for logical condition */
 
 void glp_error_hook(void (*func)(void *info), void *info);

@@ -1227,7 +1227,8 @@ more: /* minor loop starts here */
          {  /* no rows were added, however, some inactive rows were
                removed */
             T->reinv = 0;
-            xassert(glp_factorize(T->mip) == 0);
+            int rc = glp_factorize(T->mip);
+            xassert(rc == 0);
          }
       }
       /* check if the basic solution is integer feasible */

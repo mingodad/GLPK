@@ -353,7 +353,8 @@ static int csv_read_record(TABDCA *dca, struct csv *csv)
          {  /* floating-point number */
             if (csv->ref[k] > 0)
             {  double num;
-               xassert(str2num(csv->field, &num) == 0);
+               int rc = str2num(csv->field, &num);
+               xassert(rc == 0);
                mpl_tab_set_num(dca, csv->ref[k], num);
             }
          }
@@ -810,7 +811,8 @@ static int dbf_read_record(TABDCA *dca, struct dbf *dbf)
             if (dbf->ref[k] > 0)
             {  double num;
                strspx(buf);
-               xassert(str2num(buf, &num) == 0);
+               int rc = str2num(buf, &num);
+               xassert(rc == 0);
                mpl_tab_set_num(dca, dbf->ref[k], num);
             }
          }
