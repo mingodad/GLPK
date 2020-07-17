@@ -1030,6 +1030,26 @@ MEMBER *check_then_add
 --
 -- This routine makes an exact copy of elemental set. */
 
+ELEMSET *copy_elemset_full
+(     MPL *mpl,
+      ELEMSET *set            /* not changed */
+)
+{     ELEMSET *copy;
+      MEMBER *memb;
+      xassert(set != NULL);
+      xassert(set->type == A_NONE);
+      xassert(set->dim > 0);
+      copy = create_elemset(mpl, set->dim);
+      for (memb = set->head; memb != NULL; memb = memb->next)
+         add_tuple(mpl, copy, copy_tuple(mpl, memb->tuple));
+      return copy;
+}
+
+/*----------------------------------------------------------------------
+-- copy_elemset - make copy of elemental set.
+--
+-- This routine makes an exact copy of elemental set. */
+
 ELEMSET *copy_elemset
 (     MPL *mpl,
       ELEMSET *set            /* not changed */
@@ -1043,10 +1063,7 @@ ELEMSET *copy_elemset
           ++set->refcount;
           return set;
       }
-      copy = create_elemset(mpl, set->dim);
-      for (memb = set->head; memb != NULL; memb = memb->next)
-         add_tuple(mpl, copy, copy_tuple(mpl, memb->tuple));
-      return copy;
+      return copy_elemset_full(mpl, set);
 }
 
 /*----------------------------------------------------------------------
@@ -1171,21 +1188,23 @@ ELEMSET *set_union
       ELEMSET *X,             /* destroyed */
       ELEMSET *Y              /* destroyed */
 )
-{     MEMBER *memb;
+{     ELEMSET *Z;
+      MEMBER *memb;
       xassert(X != NULL);
       xassert(X->type == A_NONE);
       xassert(X->dim > 0);
-      xassert(X->refcount == 1); /* only add to recently/owned created sets */
       xassert(Y != NULL);
       xassert(Y->type == A_NONE);
       xassert(Y->dim > 0);
       xassert(X->dim == Y->dim);
+      Z = copy_elemset_full(mpl, X);
       for (memb = Y->head; memb != NULL; memb = memb->next)
-      {  if (find_tuple(mpl, X, memb->tuple) == NULL)
-            add_tuple(mpl, X, copy_tuple(mpl, memb->tuple));
+      {  if (find_tuple(mpl, Z, memb->tuple) == NULL)
+            add_tuple(mpl, Z, copy_tuple(mpl, memb->tuple));
       }
+      delete_elemset(mpl, X);
       delete_elemset(mpl, Y);
-      return X;
+      return Z;
 }
 
 /*----------------------------------------------------------------------

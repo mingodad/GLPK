@@ -1110,12 +1110,19 @@ MEMBER *check_then_add
 );
 /* check and add new n-tuple to elemental set */
 
+#define copy_elemset_full _glp_mpl_copy_elemset_full
+ELEMSET *copy_elemset_full
+(     MPL *mpl,
+      ELEMSET *set            /* not changed */
+);
+/* make full copy of elemental set */
+
 #define copy_elemset _glp_mpl_copy_elemset
 ELEMSET *copy_elemset
 (     MPL *mpl,
       ELEMSET *set            /* not changed */
 );
-/* make copy of elemental set */
+/* make a fake copy of elemental set (by incrementing the refcount field)*/
 
 #define delete_elemset _glp_mpl_delete_elemset
 void delete_elemset
@@ -2249,9 +2256,15 @@ int eval_logical(MPL *mpl, CODE *code);
 TUPLE *eval_tuple(MPL *mpl, CODE *code);
 /* evaluate pseudo-code to construct n-tuple */
 
+#define eval_elemset_copy_opt _glp_mpl_eval_elemset_copy_opt
+ELEMSET *eval_elemset_copy_opt(MPL *mpl, CODE *code, int fullcopy);
+/* evaluate pseudo-code to construct elemental set
+   with an extra option to return a full/fake copy*/
+
 #define eval_elemset _glp_mpl_eval_elemset
 ELEMSET *eval_elemset(MPL *mpl, CODE *code);
-/* evaluate pseudo-code to construct elemental set */
+/* evaluate pseudo-code to construct elemental set
+   returning a fake copy */
 
 #define is_member _glp_mpl_is_member
 int is_member(MPL *mpl, CODE *code, TUPLE *tuple);
