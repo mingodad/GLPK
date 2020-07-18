@@ -30,6 +30,8 @@
 #include "env.h"
 #include "misc.h"
 #include "rng.h"
+#include "nanbox.h"
+#define GMPL_INLINE inline
 
 #if 0 /* 22/I-2013 */
 typedef struct MPL MPL;
@@ -635,21 +637,21 @@ SLICE *create_slice(MPL *mpl);
 SLICE *expand_slice
 (     MPL *mpl,
       SLICE *slice,           /* destroyed */
-      SYMBOL *sym             /* destroyed */
+      SYMBOL sym             /* destroyed */
 );
 /* append new component to slice */
 
 #define slice_dimen _glp_mpl_slice_dimen
 int slice_dimen
 (     MPL *mpl,
-      SLICE *slice            /* not changed */
+      const SLICE *slice            /* not changed */
 );
 /* determine dimension of slice */
 
 #define slice_arity _glp_mpl_slice_arity
 int slice_arity
 (     MPL *mpl,
-      SLICE *slice            /* not changed */
+      const SLICE *slice            /* not changed */
 );
 /* determine arity of slice */
 
@@ -681,13 +683,13 @@ double read_number(MPL *mpl);
 /* read number */
 
 #define read_symbol _glp_mpl_read_symbol
-SYMBOL *read_symbol(MPL *mpl);
+SYMBOL read_symbol(MPL *mpl);
 /* read symbol */
 
 #define read_slice _glp_mpl_read_slice
 SLICE *read_slice
 (     MPL *mpl,
-      char *name,             /* not changed */
+      const char *name,             /* not changed */
       int dim
 );
 /* read slice */
@@ -695,25 +697,25 @@ SLICE *read_slice
 #define select_set _glp_mpl_select_set
 SET *select_set
 (     MPL *mpl,
-      char *name              /* not changed */
+      const char *name              /* not changed */
 );
 /* select set to saturate it with elemental sets */
 
 #define simple_format _glp_mpl_simple_format
 void simple_format
 (     MPL *mpl,
-      SET *set,               /* not changed */
+      const SET *set,               /* not changed */
       MEMBER *memb,           /* modified */
-      SLICE *slice            /* not changed */
+      const SLICE *slice            /* not changed */
 );
 /* read set data block in simple format */
 
 #define matrix_format _glp_mpl_matrix_format
 void matrix_format
 (     MPL *mpl,
-      SET *set,               /* not changed */
+      const SET *set,               /* not changed */
       MEMBER *memb,           /* modified */
-      SLICE *slice,           /* not changed */
+      const SLICE *slice,           /* not changed */
       int tr
 );
 /* read set data block in matrix format */
@@ -725,22 +727,22 @@ void set_data(MPL *mpl);
 #define select_parameter _glp_mpl_select_parameter
 PARAMETER *select_parameter
 (     MPL *mpl,
-      char *name              /* not changed */
+      const char *name              /* not changed */
 );
 /* select parameter to saturate it with data */
 
 #define set_default _glp_mpl_set_default
 void set_default
 (     MPL *mpl,
-      PARAMETER *par,         /* not changed */
-      SYMBOL *altval          /* destroyed */
+      PARAMETER *par,         /* modified */
+      SYMBOL altval          /* destroyed */
 );
 /* set default parameter value */
 
 #define read_value _glp_mpl_read_value
 MEMBER *read_value
 (     MPL *mpl,
-      PARAMETER *par,         /* not changed */
+      const PARAMETER *par,         /* not changed */
       TUPLE *tuple            /* destroyed */
 );
 /* read value and assign it to parameter member */
@@ -748,16 +750,16 @@ MEMBER *read_value
 #define plain_format _glp_mpl_plain_format
 void plain_format
 (     MPL *mpl,
-      PARAMETER *par,         /* not changed */
-      SLICE *slice            /* not changed */
+      const PARAMETER *par,         /* not changed */
+      const SLICE *slice            /* not changed */
 );
 /* read parameter data block in plain format */
 
 #define tabular_format _glp_mpl_tabular_format
 void tabular_format
 (     MPL *mpl,
-      PARAMETER *par,         /* not changed */
-      SLICE *slice,           /* not changed */
+      const PARAMETER *par,         /* not changed */
+      const SLICE *slice,           /* not changed */
       int tr
 );
 /* read parameter data block in tabular format */
@@ -765,7 +767,7 @@ void tabular_format
 #define tabbing_format _glp_mpl_tabbing_format
 void tabbing_format
 (     MPL *mpl,
-      SYMBOL *altval          /* not changed */
+      const SYMBOL altval          /* not changed */
 );
 /* read parameter data block in tabbing format */
 
@@ -904,29 +906,29 @@ void fn_time2str(MPL *mpl, char *str, double t, const char *fmt);
 #define create_string _glp_mpl_create_string
 STRING *create_string
 (     MPL *mpl,
-      char buf[MAX_LENGTH+1]  /* not changed */
+      const char buf[MAX_LENGTH+1]  /* not changed */
 );
 /* create character string */
 
 #define copy_string _glp_mpl_copy_string
 STRING *copy_string
 (     MPL *mpl,
-      STRING *str             /* not changed */
+      const STRING *str             /* not changed */
 );
 /* make copy of character string */
 
 #define compare_strings _glp_mpl_compare_strings
 int compare_strings
 (     MPL *mpl,
-      STRING *str1,           /* not changed */
-      STRING *str2            /* not changed */
+      const STRING *str1,           /* not changed */
+      const STRING *str2            /* not changed */
 );
 /* compare one character string with another */
 
 #define fetch_string _glp_mpl_fetch_string
 char *fetch_string
 (     MPL *mpl,
-      STRING *str,            /* not changed */
+      const STRING *str,            /* not changed */
       char buf[MAX_LENGTH+1]  /* modified */
 );
 /* extract content of character string */
@@ -944,57 +946,68 @@ void delete_string
 
 struct SYMBOL
 {     /* symbol (numeric or abstract quantity) */
-      double num;
+      //double num;
       /* numeric value of symbol (used only if str == NULL) */
-      STRING *str;
+      //STRING *str;
       /* abstract value of symbol (used only if str != NULL) */
+      nanbox_t sym;
 };
 
+static GMPL_INLINE SYMBOL symbol_null() {
+    SYMBOL sym;
+    sym.sym = nanbox_null();
+    return sym;
+}
+
+static GMPL_INLINE bool symbol_is_null(SYMBOL sym) {
+    return nanbox_is_undefined_or_null(sym.sym);
+}
+
 #define create_symbol_num _glp_mpl_create_symbol_num
-SYMBOL *create_symbol_num(MPL *mpl, double num);
+SYMBOL create_symbol_num(MPL *mpl, double num);
 /* create symbol of numeric type */
 
 #define create_symbol_str _glp_mpl_create_symbol_str
-SYMBOL *create_symbol_str
+SYMBOL create_symbol_str
 (     MPL *mpl,
       STRING *str             /* destroyed */
 );
 /* create symbol of abstract type */
 
 #define copy_symbol _glp_mpl_copy_symbol
-SYMBOL *copy_symbol
+SYMBOL copy_symbol
 (     MPL *mpl,
-      SYMBOL *sym             /* not changed */
+      const SYMBOL sym             /* not changed */
 );
 /* make copy of symbol */
 
 #define compare_symbols _glp_mpl_compare_symbols
 int compare_symbols
 (     MPL *mpl,
-      SYMBOL *sym1,           /* not changed */
-      SYMBOL *sym2            /* not changed */
+      const SYMBOL sym1,           /* not changed */
+      const SYMBOL sym2            /* not changed */
 );
 /* compare one symbol with another */
 
 #define delete_symbol _glp_mpl_delete_symbol
 void delete_symbol
 (     MPL *mpl,
-      SYMBOL *sym             /* destroyed */
+      SYMBOL sym             /* destroyed */
 );
 /* delete symbol */
 
 #define format_symbol _glp_mpl_format_symbol
 char *format_symbol
 (     MPL *mpl,
-      SYMBOL *sym             /* not changed */
+      const SYMBOL sym             /* not changed */
 );
 /* format symbol for displaying or printing */
 
 #define concat_symbols _glp_mpl_concat_symbols
-SYMBOL *concat_symbols
+SYMBOL concat_symbols
 (     MPL *mpl,
-      SYMBOL *sym1,           /* destroyed */
-      SYMBOL *sym2            /* destroyed */
+      SYMBOL sym1,           /* destroyed */
+      SYMBOL sym2            /* destroyed */
 );
 /* concatenate one symbol with another */
 
@@ -1005,7 +1018,7 @@ SYMBOL *concat_symbols
 struct TUPLE
 {     /* component of n-tuple; the n-tuple itself is associated with
          its first component; (note that 0-tuple has no components) */
-      SYMBOL *sym;
+      SYMBOL sym;
       /* symbol, which the component refers to; cannot be NULL */
       TUPLE *next;
       /* the next component of n-tuple */
@@ -1018,37 +1031,37 @@ TUPLE *create_tuple(MPL *mpl);
 #define expand_tuple _glp_mpl_expand_tuple
 TUPLE *expand_tuple
 (     MPL *mpl,
-      TUPLE *tuple,           /* destroyed */
-      SYMBOL *sym             /* destroyed */
+      TUPLE *tuple,           /* modified */
+      SYMBOL sym             /* not changed */
 );
 /* append symbol to n-tuple */
 
 #define tuple_dimen _glp_mpl_tuple_dimen
 int tuple_dimen
 (     MPL *mpl,
-      TUPLE *tuple            /* not changed */
+      const TUPLE *tuple            /* not changed */
 );
 /* determine dimension of n-tuple */
 
 #define copy_tuple _glp_mpl_copy_tuple
 TUPLE *copy_tuple
 (     MPL *mpl,
-      TUPLE *tuple            /* not changed */
+      const TUPLE *tuple            /* not changed */
 );
 /* make copy of n-tuple */
 
 #define compare_tuples _glp_mpl_compare_tuples
 int compare_tuples
 (     MPL *mpl,
-      TUPLE *tuple1,          /* not changed */
-      TUPLE *tuple2           /* not changed */
+      const TUPLE *tuple1,          /* not changed */
+      const TUPLE *tuple2           /* not changed */
 );
 /* compare one n-tuple with another */
 
 #define build_subtuple _glp_mpl_build_subtuple
 TUPLE *build_subtuple
 (     MPL *mpl,
-      TUPLE *tuple,           /* not changed */
+      const TUPLE *tuple,           /* not changed */
       int dim
 );
 /* build subtuple of given n-tuple */
@@ -1064,7 +1077,7 @@ void delete_tuple
 char *format_tuple
 (     MPL *mpl,
       int c,
-      TUPLE *tuple            /* not changed */
+      const TUPLE *tuple            /* not changed */
 );
 /* format n-tuple for displaying or printing */
 
@@ -1089,8 +1102,8 @@ ELEMSET *create_elemset(MPL *mpl, int dim);
 #define find_tuple _glp_mpl_find_tuple
 MEMBER *find_tuple
 (     MPL *mpl,
-      ELEMSET *set,           /* not changed */
-      TUPLE *tuple            /* not changed */
+      ELEMSET *set,           /* modified */
+      const TUPLE *tuple      /* not changed */
 );
 /* check if elemental set contains given n-tuple */
 
@@ -1244,7 +1257,7 @@ FORMULA *single_variable
 #define copy_formula _glp_mpl_copy_formula
 FORMULA *copy_formula
 (     MPL *mpl,
-      FORMULA *form           /* not changed */
+      const FORMULA *form           /* not changed */
 );
 /* make copy of linear form */
 
@@ -1328,7 +1341,7 @@ union VALUE
          A_ELEMCON  - elemental constraint */
       void *none;    /* null */
       double num;    /* value */
-      SYMBOL *sym;   /* value */
+      SYMBOL sym;   /* value */
       int bit;       /* value */
       TUPLE *tuple;  /* value */
       ELEMSET *set;  /* value */
@@ -1408,8 +1421,8 @@ ARRAY *create_array(MPL *mpl, int type, int dim);
 #define find_member _glp_mpl_find_member
 MEMBER *find_member
 (     MPL *mpl,
-      ARRAY *array,           /* not changed */
-      TUPLE *tuple            /* not changed */
+      ARRAY *array,           /* modified */
+      const TUPLE *tuple      /* not changed */
 );
 /* find array member with given n-tuple */
 
@@ -1478,7 +1491,7 @@ struct DOMAIN_SLOT
       /* pseudo-code for computing symbolic value, at which the dummy
          index is bound; NULL means the dummy index is free within the
          domain scope */
-      SYMBOL *value;
+      SYMBOL value;
       /* current value assigned to the dummy index; NULL means no value
          is assigned at the moment */
       CODE *list;
@@ -1493,14 +1506,14 @@ struct DOMAIN_SLOT
 void assign_dummy_index
 (     MPL *mpl,
       DOMAIN_SLOT *slot,      /* modified */
-      SYMBOL *value           /* not changed */
+      const SYMBOL value           /* not changed */
 );
 /* assign new value to dummy index */
 
 #define update_dummy_indices _glp_mpl_update_dummy_indices
 void update_dummy_indices
 (     MPL *mpl,
-      DOMAIN_BLOCK *block     /* not changed */
+      const DOMAIN_BLOCK *block     /* not changed */
 );
 /* update current values of dummy indices */
 
@@ -1533,15 +1546,15 @@ void loop_within_domain
 #define out_of_domain _glp_mpl_out_of_domain
 void out_of_domain
 (     MPL *mpl,
-      char *name,             /* not changed */
-      TUPLE *tuple            /* not changed */
+      const char *name,             /* not changed */
+      const TUPLE *tuple            /* not changed */
 );
 /* raise domain exception */
 
 #define get_domain_tuple _glp_mpl_get_domain_tuple
 TUPLE *get_domain_tuple
 (     MPL *mpl,
-      DOMAIN *domain          /* not changed */
+      const DOMAIN *domain          /* not changed */
 );
 /* obtain current n-tuple from domain */
 
@@ -1606,24 +1619,24 @@ struct GADGET
 #define check_elem_set _glp_mpl_check_elem_set
 void check_elem_set
 (     MPL *mpl,
-      SET *set,               /* not changed */
-      TUPLE *tuple,           /* not changed */
-      ELEMSET *refer          /* not changed */
+      const SET *set,               /* not changed */
+      const TUPLE *tuple,           /* not changed */
+      const ELEMSET *refer          /* not changed */
 );
 /* check elemental set assigned to set member */
 
 #define take_member_set _glp_mpl_take_member_set
 ELEMSET *take_member_set      /* returns reference, not value */
 (     MPL *mpl,
-      SET *set,               /* not changed */
-      TUPLE *tuple            /* not changed */
+      const SET *set,               /* not changed */
+      const TUPLE *tuple            /* not changed */
 );
 /* obtain elemental set assigned to set member */
 
 #define eval_member_set _glp_mpl_eval_member_set
 ELEMSET *eval_member_set      /* returns reference, not value */
 (     MPL *mpl,
-      SET *set,               /* not changed */
+      SET *set,               /* modifiedd */
       TUPLE *tuple            /* not changed */
 );
 /* evaluate elemental set assigned to set member */
@@ -1674,7 +1687,7 @@ struct PARAMETER
          0 - no data are provided in the data section
          1 - data are provided, but not checked yet
          2 - data are provided and have been checked */
-      SYMBOL *defval;
+      SYMBOL defval;
       /* default value provided in the data section; can be NULL */
       ARRAY *array;
       /* array of members, which are assigned numbers or symbols */
@@ -1699,8 +1712,8 @@ struct CONDITION
 #define check_value_num _glp_mpl_check_value_num
 void check_value_num
 (     MPL *mpl,
-      PARAMETER *par,         /* not changed */
-      TUPLE *tuple,           /* not changed */
+      const PARAMETER *par,         /* not changed */
+      const TUPLE *tuple,           /* not changed */
       double value
 );
 /* check numeric value assigned to parameter member */
@@ -1708,8 +1721,8 @@ void check_value_num
 #define take_member_num _glp_mpl_take_member_num
 double take_member_num
 (     MPL *mpl,
-      PARAMETER *par,         /* not changed */
-      TUPLE *tuple            /* not changed */
+      const PARAMETER *par,         /* not changed */
+      const TUPLE *tuple            /* not changed */
 );
 /* obtain numeric value assigned to parameter member */
 
@@ -1724,22 +1737,22 @@ double eval_member_num
 #define check_value_sym _glp_mpl_check_value_sym
 void check_value_sym
 (     MPL *mpl,
-      PARAMETER *par,         /* not changed */
-      TUPLE *tuple,           /* not changed */
-      SYMBOL *value           /* not changed */
+      const PARAMETER *par,         /* not changed */
+      const TUPLE *tuple,           /* not changed */
+      const SYMBOL value           /* not changed */
 );
 /* check symbolic value assigned to parameter member */
 
 #define take_member_sym _glp_mpl_take_member_sym
-SYMBOL *take_member_sym       /* returns value, not reference */
+SYMBOL take_member_sym       /* returns value, not reference */
 (     MPL *mpl,
-      PARAMETER *par,         /* not changed */
-      TUPLE *tuple            /* not changed */
+      const PARAMETER *par,         /* not changed */
+      const TUPLE *tuple            /* not changed */
 );
 /* obtain symbolic value assigned to parameter member */
 
 #define eval_member_sym _glp_mpl_eval_member_sym
-SYMBOL *eval_member_sym       /* returns value, not reference */
+SYMBOL eval_member_sym       /* returns value, not reference */
 (     MPL *mpl,
       PARAMETER *par,         /* not changed */
       TUPLE *tuple            /* not changed */
@@ -1790,7 +1803,7 @@ struct VARIABLE
 ELEMVAR *take_member_var      /* returns reference */
 (     MPL *mpl,
       VARIABLE *var,          /* not changed */
-      TUPLE *tuple            /* not changed */
+      const TUPLE *tuple            /* not changed */
 );
 /* obtain reference to elemental variable */
 
@@ -1848,7 +1861,7 @@ struct CONSTRAINT
 ELEMCON *take_member_con      /* returns reference */
 (     MPL *mpl,
       CONSTRAINT *con,        /* not changed */
-      TUPLE *tuple            /* not changed */
+      const TUPLE *tuple            /* not changed */
 );
 /* obtain reference to elemental constraint */
 
@@ -2195,6 +2208,10 @@ struct CODE
 #define O_EXISTS        383   /* disjunction (E-quantification) */
 #define O_SETOF         384   /* compute elemental set */
 #define O_BUILD         385   /* build elemental set */
+
+#define O_VERSION       386   /* version */
+#define GMPL_VERSION_STR "GLPK/GMPL 4.65"
+      
       OPERANDS arg;
       /* operands that participate in the operation */
       int type;
@@ -2245,7 +2262,7 @@ double eval_numeric(MPL *mpl, CODE *code);
 /* evaluate pseudo-code to determine numeric value */
 
 #define eval_symbolic _glp_mpl_eval_symbolic
-SYMBOL *eval_symbolic(MPL *mpl, CODE *code);
+SYMBOL eval_symbolic(MPL *mpl, CODE *code);
 /* evaluate pseudo-code to determine symbolic value */
 
 #define eval_logical _glp_mpl_eval_logical
@@ -2262,7 +2279,7 @@ ELEMSET *eval_elemset(MPL *mpl, CODE *code);
    returning a fake copy (refcount incremented)*/
 
 #define is_member _glp_mpl_is_member
-int is_member(MPL *mpl, CODE *code, TUPLE *tuple);
+int is_member(MPL *mpl, CODE *code, const TUPLE *tuple);
 /* check if n-tuple is in set specified by pseudo-code */
 
 #define eval_formula _glp_mpl_eval_formula

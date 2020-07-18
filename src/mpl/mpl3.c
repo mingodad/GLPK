@@ -410,7 +410,7 @@ double fp_normal(MPL *mpl, double mu, double sigma)
 
 STRING *create_string
 (     MPL *mpl,
-      char buf[MAX_LENGTH+1]  /* not changed */
+      const char buf[MAX_LENGTH+1]  /* not changed */
 )
 #if 0
 {     STRING *head, *tail;
@@ -442,7 +442,7 @@ tail = (tail->next = dmp_get_atom(mpl->strings, sizeof(STRING))), j = 0;
 
 STRING *copy_string
 (     MPL *mpl,
-      STRING *str             /* not changed */
+      const STRING *str             /* not changed */
 )
 #if 0
 {     STRING *head, *tail;
@@ -474,8 +474,8 @@ tail = (tail->next = dmp_get_atom(mpl->strings, sizeof(STRING)));
 
 int compare_strings
 (     MPL *mpl,
-      STRING *str1,           /* not changed */
-      STRING *str2            /* not changed */
+      const STRING *str1,           /* not changed */
+      const STRING *str2            /* not changed */
 )
 #if 0
 {     int j, c1, c2;
@@ -507,7 +507,7 @@ done: return 0;
 
 char *fetch_string
 (     MPL *mpl,
-      STRING *str,            /* not changed */
+      const STRING *str,            /* not changed */
       char buf[MAX_LENGTH+1]  /* modified */
 )
 #if 0
@@ -563,11 +563,9 @@ void delete_string
 -- This routine creates a symbol, which has a numeric value specified
 -- as floating-point number. */
 
-SYMBOL *create_symbol_num(MPL *mpl, double num)
-{     SYMBOL *sym;
-      sym = dmp_get_atom(mpl->symbols, sizeof(SYMBOL));
-      sym->num = num;
-      sym->str = NULL;
+SYMBOL create_symbol_num(MPL *mpl, double num)
+{     SYMBOL sym;
+      sym.sym = nanbox_from_double(num);
       return sym;
 }
 
@@ -577,15 +575,13 @@ SYMBOL *create_symbol_num(MPL *mpl, double num)
 -- This routine creates a symbol, which has an abstract value specified
 -- as segmented character string. */
 
-SYMBOL *create_symbol_str
+SYMBOL create_symbol_str
 (     MPL *mpl,
       STRING *str             /* destroyed */
 )
-{     SYMBOL *sym;
+{     SYMBOL sym;
       xassert(str != NULL);
-      sym = dmp_get_atom(mpl->symbols, sizeof(SYMBOL));
-      sym->num = 0.0;
-      sym->str = str;
+      sym.sym = nanbox_from_pointer(str);
       return sym;
 }
 
@@ -594,20 +590,19 @@ SYMBOL *create_symbol_str
 --
 -- This routine returns an exact copy of symbol. */
 
-SYMBOL *copy_symbol
+SYMBOL copy_symbol
 (     MPL *mpl,
-      SYMBOL *sym             /* not changed */
+      const SYMBOL sym             /* not changed */
 )
-{     SYMBOL *copy;
-      xassert(sym != NULL);
-      copy = dmp_get_atom(mpl->symbols, sizeof(SYMBOL));
-      if (sym->str == NULL)
-      {  copy->num = sym->num;
-         copy->str = NULL;
+{     SYMBOL copy;
+      xassert(!symbol_is_null(sym));
+      if (nanbox_is_double(sym.sym))
+      {
+          copy.sym = sym.sym;
       }
       else
-      {  copy->num = 0.0;
-         copy->str = copy_string(mpl, sym->str);
+      {
+          copy.sym = nanbox_from_pointer(copy_string(mpl, nanbox_to_pointer(sym.sym)));
       }
       return copy;
 }
@@ -627,20 +622,24 @@ SYMBOL *copy_symbol
 
 int compare_symbols
 (     MPL *mpl,
-      SYMBOL *sym1,           /* not changed */
-      SYMBOL *sym2            /* not changed */
+      const SYMBOL sym1,           /* not changed */
+      const SYMBOL sym2            /* not changed */
 )
-{     xassert(sym1 != NULL);
-      xassert(sym2 != NULL);
+{     xassert(!symbol_is_null(sym1));
+      xassert(!symbol_is_null(sym2));
+      if (sym1.sym.as_int64 == sym2.sym.as_int64) return 0;
+      int isNum1 = nanbox_is_double(sym1.sym);
+      int isNum2 = nanbox_is_double(sym2.sym);
       /* let all numeric quantities precede all symbolic quantities */
-      if (sym1->str == NULL && sym2->str == NULL)
-      {  if (sym1->num < sym2->num) return -1;
-         if (sym1->num > sym2->num) return +1;
+      if (isNum1 && isNum2)
+      {  double res = nanbox_to_double(sym1.sym) - nanbox_to_double(sym2.sym);
+         if (res < 0.0) return -1;
+         if (res > 0.0) return +1;
          return 0;
       }
-      if (sym1->str == NULL) return -1;
-      if (sym2->str == NULL) return +1;
-      return compare_strings(mpl, sym1->str, sym2->str);
+      if (isNum1) return -1;
+      if (isNum2) return +1;
+      return compare_strings(mpl, nanbox_to_pointer(sym1.sym), nanbox_to_pointer(sym2.sym));
 }
 
 /*----------------------------------------------------------------------
@@ -650,11 +649,10 @@ int compare_symbols
 
 void delete_symbol
 (     MPL *mpl,
-      SYMBOL *sym             /* destroyed */
+      SYMBOL sym             /* destroyed */
 )
-{     xassert(sym != NULL);
-      if (sym->str != NULL) delete_string(mpl, sym->str);
-      dmp_free_atom(mpl->symbols, sym, sizeof(SYMBOL));
+{     xassert(!symbol_is_null(sym));
+      if (nanbox_is_pointer(sym.sym)) delete_string(mpl, nanbox_to_pointer(sym.sym));
       return;
 }
 
@@ -669,16 +667,16 @@ void delete_symbol
 
 char *format_symbol
 (     MPL *mpl,
-      SYMBOL *sym             /* not changed */
+      const SYMBOL sym             /* not changed */
 )
 {     char *buf = mpl->sym_buf;
-      xassert(sym != NULL);
-      if (sym->str == NULL)
-         sprintf(buf, "%.*g", DBL_DIG, sym->num);
+      xassert(!symbol_is_null(sym));
+      if (nanbox_is_double(sym.sym))
+         sprintf(buf, "%.*g", DBL_DIG, nanbox_to_double(sym.sym));
       else
       {  char str[MAX_LENGTH+1];
          int quoted, j, len;
-         fetch_string(mpl, sym->str, str);
+         fetch_string(mpl, nanbox_to_pointer(sym.sym), str);
          if (!(isalpha((unsigned char)str[0]) || str[0] == '_'))
             quoted = 1;
          else
@@ -715,21 +713,21 @@ char *format_symbol
 -- the resultant character string to a new symbol, which is returned on
 -- exit. Both original symbols are destroyed. */
 
-SYMBOL *concat_symbols
+SYMBOL concat_symbols
 (     MPL *mpl,
-      SYMBOL *sym1,           /* destroyed */
-      SYMBOL *sym2            /* destroyed */
+      SYMBOL sym1,           /* destroyed */
+      SYMBOL sym2            /* destroyed */
 )
 {     char str1[MAX_LENGTH+1], str2[MAX_LENGTH+1];
       xassert(MAX_LENGTH >= DBL_DIG + DBL_DIG);
-      if (sym1->str == NULL)
-         sprintf(str1, "%.*g", DBL_DIG, sym1->num);
+      if (nanbox_is_double(sym1.sym))
+         sprintf(str1, "%.*g", DBL_DIG, nanbox_to_double(sym1.sym));
       else
-         fetch_string(mpl, sym1->str, str1);
-      if (sym2->str == NULL)
-         sprintf(str2, "%.*g", DBL_DIG, sym2->num);
+         fetch_string(mpl, nanbox_to_pointer(sym1.sym), str1);
+      if (nanbox_is_double(sym2.sym))
+         sprintf(str2, "%.*g", DBL_DIG, nanbox_to_double(sym2.sym));
       else
-         fetch_string(mpl, sym2->str, str2);
+         fetch_string(mpl, nanbox_to_pointer(sym2.sym), str2);
       if (strlen(str1) + strlen(str2) > MAX_LENGTH)
       {  char buf[255+1];
          strcpy(buf, format_symbol(mpl, sym1));
@@ -768,11 +766,11 @@ TUPLE *create_tuple(MPL *mpl)
 
 TUPLE *expand_tuple
 (     MPL *mpl,
-      TUPLE *tuple,           /* destroyed */
-      SYMBOL *sym             /* destroyed */
+      TUPLE *tuple,           /* modified */
+      SYMBOL sym             /* not changed */
 )
 {     TUPLE *tail, *temp;
-      xassert(sym != NULL);
+      xassert(!symbol_is_null(sym));
       /* create a new component */
       tail = dmp_get_atom(mpl->tuples, sizeof(TUPLE));
       tail->sym = sym;
@@ -795,9 +793,9 @@ TUPLE *expand_tuple
 
 int tuple_dimen
 (     MPL *mpl,
-      TUPLE *tuple            /* not changed */
+      const TUPLE *tuple            /* not changed */
 )
-{     TUPLE *temp;
+{     const TUPLE *temp;
       int dim = 0;
       xassert(mpl == mpl);
       for (temp = tuple; temp != NULL; temp = temp->next) dim++;
@@ -811,7 +809,7 @@ int tuple_dimen
 
 TUPLE *copy_tuple
 (     MPL *mpl,
-      TUPLE *tuple            /* not changed */
+      const TUPLE *tuple            /* not changed */
 )
 {     TUPLE *head, *tail;
       if (tuple == NULL)
@@ -819,10 +817,10 @@ TUPLE *copy_tuple
       else
       {  head = tail = dmp_get_atom(mpl->tuples, sizeof(TUPLE));
          for (; tuple != NULL; tuple = tuple->next)
-         {  xassert(tuple->sym != NULL);
+         {  xassert(!symbol_is_null(tuple->sym));
             tail->sym = copy_symbol(mpl, tuple->sym);
             if (tuple->next != NULL)
-tail = (tail->next = dmp_get_atom(mpl->tuples, sizeof(TUPLE)));
+                tail = (tail->next = dmp_get_atom(mpl->tuples, sizeof(TUPLE)));
          }
          tail->next = NULL;
       }
@@ -845,18 +843,19 @@ tail = (tail->next = dmp_get_atom(mpl->tuples, sizeof(TUPLE)));
 
 int compare_tuples
 (     MPL *mpl,
-      TUPLE *tuple1,          /* not changed */
-      TUPLE *tuple2           /* not changed */
+      const TUPLE *tuple1,          /* not changed */
+      const TUPLE *tuple2           /* not changed */
 )
-{     TUPLE *item1, *item2;
+{     const TUPLE *item1, *item2;
       int ret;
       xassert(mpl == mpl);
       for (item1 = tuple1, item2 = tuple2; item1 != NULL;
            item1 = item1->next, item2 = item2->next)
       {  xassert(item2 != NULL);
-         xassert(item1->sym != NULL);
-         xassert(item2->sym != NULL);
-         ret = compare_symbols(mpl, item1->sym, item2->sym);
+         xassert(!symbol_is_null(item1->sym));
+         xassert(!symbol_is_null(item2->sym));
+         //ret = (item1->sym->sym.as_int64 == item2->sym->sym.as_int64) ? 0 : 1;
+         /*if(ret) */ret = compare_symbols(mpl, item1->sym, item2->sym);
          if (ret != 0) return ret;
       }
       xassert(item2 == NULL);
@@ -871,10 +870,11 @@ int compare_tuples
 
 TUPLE *build_subtuple
 (     MPL *mpl,
-      TUPLE *tuple,           /* not changed */
+      const TUPLE *tuple,           /* not changed */
       int dim
 )
-{     TUPLE *head, *temp;
+{     const TUPLE *temp;
+      TUPLE *head;
       int j;
       head = create_tuple(mpl);
       for (j = 1, temp = tuple; j <= dim; j++, temp = temp->next)
@@ -897,7 +897,7 @@ void delete_tuple
       while (tuple != NULL)
       {  temp = tuple;
          tuple = temp->next;
-         xassert(temp->sym != NULL);
+         xassert(!symbol_is_null(temp->sym));
          delete_symbol(mpl, temp->sym);
          dmp_free_atom(mpl->tuples, temp, sizeof(TUPLE));
       }
@@ -916,9 +916,9 @@ void delete_tuple
 char *format_tuple
 (     MPL *mpl,
       int c,
-      TUPLE *tuple            /* not changed */
+      const TUPLE *tuple            /* not changed */
 )
-{     TUPLE *temp;
+{     const TUPLE *temp;
       int dim, j, len;
       char *buf = mpl->tup_buf, str[255+1], *save;
 #     define safe_append(c) \
@@ -929,7 +929,7 @@ char *format_tuple
       if (c == '(' && dim > 1) safe_append('(');
       for (temp = tuple; temp != NULL; temp = temp->next)
       {  if (temp != tuple) safe_append(',');
-         xassert(temp->sym != NULL);
+         xassert(!symbol_is_null(temp->sym));
          save = mpl->sym_buf;
          mpl->sym_buf = str;
          format_symbol(mpl, temp->sym);
@@ -973,8 +973,8 @@ ELEMSET *create_elemset(MPL *mpl, int dim)
 
 MEMBER *find_tuple
 (     MPL *mpl,
-      ELEMSET *set,           /* not changed */
-      TUPLE *tuple            /* not changed */
+      ELEMSET *set,           /* modified */
+      const TUPLE *tuple      /* not changed */
 )
 {     xassert(set != NULL);
       xassert(set->type == A_NONE);
@@ -1404,7 +1404,7 @@ FORMULA *single_variable
 
 FORMULA *copy_formula
 (     MPL *mpl,
-      FORMULA *form           /* not changed */
+      const FORMULA *form           /* not changed */
 )
 {     FORMULA *head, *tail;
       if (form == NULL)
@@ -1415,7 +1415,7 @@ FORMULA *copy_formula
          {  tail->coef = form->coef;
             tail->var = form->var;
             if (form->next != NULL)
-tail = (tail->next = dmp_get_atom(mpl->formulae, sizeof(FORMULA)));
+                tail = (tail->next = dmp_get_atom(mpl->formulae, sizeof(FORMULA)));
          }
          tail->next = NULL;
       }
@@ -1592,7 +1592,7 @@ void delete_value
             value->num = 0.0;
             break;
          case A_SYMBOLIC:
-            delete_symbol(mpl, value->sym), value->sym = NULL;
+            delete_symbol(mpl, value->sym), value->sym.sym = nanbox_null();
             break;
          case A_LOGICAL:
             value->bit = 0;
@@ -1680,8 +1680,8 @@ static int compare_member_tuples(void *info, const void *key1,
 
 MEMBER *find_member
 (     MPL *mpl,
-      ARRAY *array,           /* not changed */
-      TUPLE *tuple            /* not changed */
+      ARRAY *array,           /* modified */
+      const TUPLE *tuple      /* not changed */
 )
 {     MEMBER *memb;
       xassert(array != NULL);
@@ -1824,18 +1824,18 @@ void delete_array
 void assign_dummy_index
 (     MPL *mpl,
       DOMAIN_SLOT *slot,      /* modified */
-      SYMBOL *value           /* not changed */
+      const SYMBOL value           /* not changed */
 )
 {     CODE *leaf, *code;
       xassert(slot != NULL);
-      xassert(value != NULL);
+      xassert(!symbol_is_null(value));
       /* delete the current value assigned to the dummy index */
-      if (slot->value != NULL)
+      if (!symbol_is_null(slot->value))
       {  /* if the current value and the new one are identical, actual
             assignment is not needed */
          if (compare_symbols(mpl, slot->value, value) == 0) goto done;
          /* delete a symbol, which is the current value */
-         delete_symbol(mpl, slot->value), slot->value = NULL;
+         delete_symbol(mpl, slot->value), slot->value.sym = nanbox_null();
       }
       /* now walk through all the pseudo-codes with op = O_INDEX, which
          refer to the dummy index to be changed (these pseudo-codes are
@@ -1868,7 +1868,7 @@ done: return;
 
 void update_dummy_indices
 (     MPL *mpl,
-      DOMAIN_BLOCK *block     /* not changed */
+      const DOMAIN_BLOCK *block     /* not changed */
 )
 {     DOMAIN_SLOT *slot;
       TUPLE *temp;
@@ -1876,7 +1876,7 @@ void update_dummy_indices
       {  for (slot = block->list, temp = block->backup; slot != NULL;
             slot = slot->next, temp = temp->next)
          {  xassert(temp != NULL);
-            xassert(temp->sym != NULL);
+            xassert(!symbol_is_null(temp->sym));
             assign_dummy_index(mpl, slot, temp->sym);
          }
       }
@@ -2026,14 +2026,14 @@ static void eval_domain_func(MPL *mpl, void *_my_info)
             if (tuple == NULL)
                tuple = temp = dmp_get_atom(mpl->tuples, sizeof(TUPLE));
             else
-temp = (temp->next = dmp_get_atom(mpl->tuples, sizeof(TUPLE)));
+                temp = (temp->next = dmp_get_atom(mpl->tuples, sizeof(TUPLE)));
             if (slot->code == NULL)
             {  /* dummy index is free; take reference to symbol, which
                   is specified in the corresponding component of given
                   n-tuple */
                xassert(my_info->tuple != NULL);
                temp->sym = my_info->tuple->sym;
-               xassert(temp->sym != NULL);
+               xassert(!symbol_is_null(temp->sym));
                my_info->tuple = my_info->tuple->next;
             }
             else
@@ -2187,7 +2187,7 @@ static void loop_domain_func(MPL *mpl, void *_my_info)
             /* walk through 1-tuples of the basic set */
             for (j = 1; j <= n && my_info->looping; j++)
             {  /* construct dummy 1-tuple for the current member */
-               tuple->sym->num = arelset_member(mpl, t0, tf, dt, j);
+               tuple->sym.sym = nanbox_from_double(arelset_member(mpl, t0, tf, dt, j));
                /* enter the current domain block */
                enter_domain_block(mpl, block, tuple, my_info,
                   loop_domain_func);
@@ -2286,8 +2286,8 @@ void loop_within_domain
 
 void out_of_domain
 (     MPL *mpl,
-      char *name,             /* not changed */
-      TUPLE *tuple            /* not changed */
+      const char *name,             /* not changed */
+      const TUPLE *tuple            /* not changed */
 )
 {     xassert(name != NULL);
       xassert(tuple != NULL);
@@ -2309,7 +2309,7 @@ void out_of_domain
 
 TUPLE *get_domain_tuple
 (     MPL *mpl,
-      DOMAIN *domain          /* not changed */
+      const DOMAIN *domain          /* not changed */
 )
 {     DOMAIN_BLOCK *block;
       DOMAIN_SLOT *slot;
@@ -2319,7 +2319,7 @@ TUPLE *get_domain_tuple
       {  for (block = domain->list; block != NULL; block = block->next)
          {  for (slot = block->list; slot != NULL; slot = slot->next)
             {  if (slot->code == NULL)
-               {  xassert(slot->value != NULL);
+               {  xassert(!symbol_is_null(slot->value));
                   tuple = expand_tuple(mpl, tuple, copy_symbol(mpl,
                      slot->value));
                }
@@ -2347,8 +2347,8 @@ void clean_domain(MPL *mpl, DOMAIN *domain)
          {  /* clean pseudo-code for computing bound value */
             clean_code(mpl, slot->code);
             /* delete symbolic value assigned to dummy index */
-            if (slot->value != NULL)
-               delete_symbol(mpl, slot->value), slot->value = NULL;
+            if (!symbol_is_null(slot->value))
+               delete_symbol(mpl, slot->value), slot->value.sym = nanbox_null();
          }
          /* clean pseudo-code for computing basic set */
          clean_code(mpl, block->code);
@@ -2372,9 +2372,9 @@ done: return;
 
 void check_elem_set
 (     MPL *mpl,
-      SET *set,               /* not changed */
-      TUPLE *tuple,           /* not changed */
-      ELEMSET *refer          /* not changed */
+      const SET *set,               /* not changed */
+      const TUPLE *tuple,           /* not changed */
+      const ELEMSET *refer          /* not changed */
 )
 {     WITHIN *within;
       MEMBER *memb;
@@ -2407,8 +2407,8 @@ void check_elem_set
 
 ELEMSET *take_member_set      /* returns reference, not value */
 (     MPL *mpl,
-      SET *set,               /* not changed */
-      TUPLE *tuple            /* not changed */
+      const SET *set,               /* not changed */
+      const TUPLE *tuple            /* not changed */
 )
 {     MEMBER *memb;
       ELEMSET *refer;
@@ -2540,8 +2540,8 @@ static void saturate_set(MPL *mpl, SET *set)
 
 ELEMSET *eval_member_set      /* returns reference, not value */
 (     MPL *mpl,
-      SET *set,               /* not changed */
-      TUPLE *tuple            /* not changed */
+      SET *set,               /* modified */
+      TUPLE *tuple      /* not changed */
 )
 {     /* this routine evaluates set member */
       struct eval_set_info _info, *info = &_info;
@@ -2648,8 +2648,8 @@ void clean_set(MPL *mpl, SET *set)
 
 void check_value_num
 (     MPL *mpl,
-      PARAMETER *par,         /* not changed */
-      TUPLE *tuple,           /* not changed */
+      const PARAMETER *par,         /* not changed */
+      const TUPLE *tuple,           /* not changed */
       double value
 )
 {     CONDITION *cond;
@@ -2733,8 +2733,8 @@ err:              error(mpl, "%s%s = %.*g not %s %.*g; see (%d)",
 
 double take_member_num
 (     MPL *mpl,
-      PARAMETER *par,         /* not changed */
-      TUPLE *tuple            /* not changed */
+      const PARAMETER *par,         /* not changed */
+      const TUPLE *tuple            /* not changed */
 )
 {     MEMBER *memb;
       double value;
@@ -2758,12 +2758,12 @@ add:     /* check that the value satisfies to all restrictions, assign
          value = eval_numeric(mpl, par->option);
          goto add;
       }
-      else if (par->defval != NULL)
+      else if (!symbol_is_null(par->defval))
       {  /* take default value provided in the data section */
-         if (par->defval->str != NULL)
+         if (nanbox_is_pointer(par->defval.sym))
             error(mpl, "cannot convert %s to floating-point number",
                format_symbol(mpl, par->defval));
-         value = par->defval->num;
+         value = nanbox_to_double(par->defval.sym);
          goto add;
       }
       else
@@ -2866,9 +2866,9 @@ double eval_member_num
 
 void check_value_sym
 (     MPL *mpl,
-      PARAMETER *par,         /* not changed */
-      TUPLE *tuple,           /* not changed */
-      SYMBOL *value           /* not changed */
+      const PARAMETER *par,         /* not changed */
+      const TUPLE *tuple,           /* not changed */
+      const SYMBOL value           /* not changed */
 )
 {     CONDITION *cond;
       WITHIN *in;
@@ -2876,7 +2876,7 @@ void check_value_sym
       /* the value must satisfy to all specified conditions */
       for (cond = par->cond, eqno = 1; cond != NULL; cond = cond->next,
          eqno++)
-      {  SYMBOL *bound;
+      {  SYMBOL bound;
          char buf[255+1];
          xassert(cond->code != NULL);
          bound = eval_symbolic(mpl, cond->code);
@@ -2969,13 +2969,13 @@ void check_value_sym
 --
 -- NOTE: This routine must not be called out of domain scope. */
 
-SYMBOL *take_member_sym       /* returns value, not reference */
+SYMBOL take_member_sym       /* returns value, not reference */
 (     MPL *mpl,
-      PARAMETER *par,         /* not changed */
-      TUPLE *tuple            /* not changed */
+      const PARAMETER *par,         /* not changed */
+      const TUPLE *tuple            /* not changed */
 )
 {     MEMBER *memb;
-      SYMBOL *value;
+      SYMBOL value;
       /* find member in the parameter array */
       memb = find_member(mpl, par->array, tuple);
       if (memb != NULL)
@@ -2996,7 +2996,7 @@ add:     /* check that the value satisfies to all restrictions, assign
          value = eval_symbolic(mpl, par->option);
          goto add;
       }
-      else if (par->defval != NULL)
+      else if (!symbol_is_null(par->defval))
       {  /* take default value provided in the data section */
          value = copy_symbol(mpl, par->defval);
          goto add;
@@ -3027,7 +3027,7 @@ struct eval_sym_info
          points to a member currently checked; this check is performed
          automatically only once when a reference to any member occurs
          for the first time */
-      SYMBOL *value;
+      SYMBOL value;
       /* evaluated symbolic value */
 };
 
@@ -3046,7 +3046,7 @@ static void eval_sym_func(MPL *mpl, void *_info)
       return;
 }
 
-SYMBOL *eval_member_sym       /* returns value, not reference */
+SYMBOL eval_member_sym       /* returns value, not reference */
 (     MPL *mpl,
       PARAMETER *par,         /* not changed */
       TUPLE *tuple            /* not changed */
@@ -3146,8 +3146,8 @@ void clean_parameter(MPL *mpl, PARAMETER *par)
       /* reset data status flag */
       par->data = 0;
       /* delete default symbolic value */
-      if (par->defval != NULL)
-         delete_symbol(mpl, par->defval), par->defval = NULL;
+      if (!symbol_is_null(par->defval))
+         delete_symbol(mpl, par->defval), par->defval.sym = nanbox_null();
       /* delete content array */
       for (memb = par->array->head; memb != NULL; memb = memb->next)
          delete_value(mpl, par->array->type, &memb->value);
@@ -3171,7 +3171,7 @@ void clean_parameter(MPL *mpl, PARAMETER *par)
 ELEMVAR *take_member_var      /* returns reference */
 (     MPL *mpl,
       VARIABLE *var,          /* not changed */
-      TUPLE *tuple            /* not changed */
+      const TUPLE *tuple            /* not changed */
 )
 {     MEMBER *memb;
       ELEMVAR *refer;
@@ -3312,7 +3312,7 @@ void clean_variable(MPL *mpl, VARIABLE *var)
 ELEMCON *take_member_con      /* returns reference */
 (     MPL *mpl,
       CONSTRAINT *con,        /* not changed */
-      TUPLE *tuple            /* not changed */
+      const TUPLE *tuple            /* not changed */
 )
 {     MEMBER *memb;
       ELEMCON *refer;
@@ -3673,7 +3673,7 @@ double eval_numeric(MPL *mpl, CODE *code)
             break;
          case O_CVTNUM:
             /* conversion to numeric */
-            {  SYMBOL *sym;
+            {  SYMBOL sym;
                sym = eval_symbolic(mpl, code->arg.arg.x);
 #if 0 /* 23/XI-2008 */
                if (sym->str != NULL)
@@ -3681,10 +3681,10 @@ double eval_numeric(MPL *mpl, CODE *code)
                      "r", format_symbol(mpl, sym));
                value = sym->num;
 #else
-               if (sym->str == NULL)
-                  value = sym->num;
+               if (nanbox_is_double(sym.sym))
+                  value = nanbox_to_double(sym.sym);
                else
-               {  if (str2num(sym->str, &value))
+               {  if (str2num(nanbox_to_pointer(sym.sym), &value))
                      error(mpl, "cannot convert %s to floating-point nu"
                         "mber", format_symbol(mpl, sym));
                }
@@ -3840,31 +3840,31 @@ double eval_numeric(MPL *mpl, CODE *code)
             }
             break;
          case O_LENGTH:
-            {  SYMBOL *sym;
+            {  SYMBOL sym;
                char str[MAX_LENGTH+1];
                sym = eval_symbolic(mpl, code->arg.arg.x);
-               if (sym->str == NULL)
-                  sprintf(str, "%.*g", DBL_DIG, sym->num);
+               if (nanbox_is_double(sym.sym))
+                  sprintf(str, "%.*g", DBL_DIG, nanbox_to_double(sym.sym));
                else
-                  fetch_string(mpl, sym->str, str);
+                  fetch_string(mpl, nanbox_to_pointer(sym.sym), str);
                delete_symbol(mpl, sym);
                value = strlen(str);
             }
             break;
          case O_STR2TIME:
-            {  SYMBOL *sym;
+            {  SYMBOL sym;
                char str[MAX_LENGTH+1], fmt[MAX_LENGTH+1];
                sym = eval_symbolic(mpl, code->arg.arg.x);
-               if (sym->str == NULL)
-                  sprintf(str, "%.*g", DBL_DIG, sym->num);
+               if (nanbox_is_double(sym.sym))
+                  sprintf(str, "%.*g", DBL_DIG, nanbox_to_double(sym.sym));
                else
-                  fetch_string(mpl, sym->str, str);
+                  fetch_string(mpl, nanbox_to_pointer(sym.sym), str);
                delete_symbol(mpl, sym);
                sym = eval_symbolic(mpl, code->arg.arg.y);
-               if (sym->str == NULL)
-                  sprintf(fmt, "%.*g", DBL_DIG, sym->num);
+               if (nanbox_is_double(sym.sym))
+                  sprintf(fmt, "%.*g", DBL_DIG, nanbox_to_double(sym.sym));
                else
-                  fetch_string(mpl, sym->str, fmt);
+                  fetch_string(mpl, nanbox_to_pointer(sym.sym), fmt);
                delete_symbol(mpl, sym);
                value = fn_str2time(mpl, str, fmt);
             }
@@ -3960,8 +3960,8 @@ done: return value;
 -- This routine evaluates specified pseudo-code to determine resultant
 -- symbolic value, which is returned on exit. */
 
-SYMBOL *eval_symbolic(MPL *mpl, CODE *code)
-{     SYMBOL *value;
+SYMBOL eval_symbolic(MPL *mpl, CODE *code)
+{     SYMBOL value;
       xassert(code != NULL);
       xassert(code->type == A_SYMBOLIC);
       xassert(code->dim == 0);
@@ -3985,7 +3985,7 @@ SYMBOL *eval_symbolic(MPL *mpl, CODE *code)
             break;
          case O_INDEX:
             /* take dummy index */
-            xassert(code->arg.index.slot->value != NULL);
+            xassert(!symbol_is_null(code->arg.index.slot->value));
             value = copy_symbol(mpl, code->arg.index.slot->value);
             break;
          case O_MEMSYM:
@@ -4025,10 +4025,10 @@ SYMBOL *eval_symbolic(MPL *mpl, CODE *code)
             {  double pos, len;
                char str[MAX_LENGTH+1];
                value = eval_symbolic(mpl, code->arg.arg.x);
-               if (value->str == NULL)
-                  sprintf(str, "%.*g", DBL_DIG, value->num);
+               if (nanbox_is_double(value.sym))
+                  sprintf(str, "%.*g", DBL_DIG, nanbox_to_double(value.sym));
                else
-                  fetch_string(mpl, value->str, str);
+                  fetch_string(mpl, nanbox_to_pointer(value.sym), str);
                delete_symbol(mpl, value);
                if (code->op == O_SUBSTR)
                {  pos = eval_numeric(mpl, code->arg.arg.y);
@@ -4057,17 +4057,22 @@ SYMBOL *eval_symbolic(MPL *mpl, CODE *code)
             break;
          case O_TIME2STR:
             {  double num;
-               SYMBOL *sym;
+               SYMBOL sym;
                char str[MAX_LENGTH+1], fmt[MAX_LENGTH+1];
                num = eval_numeric(mpl, code->arg.arg.x);
                sym = eval_symbolic(mpl, code->arg.arg.y);
-               if (sym->str == NULL)
-                  sprintf(fmt, "%.*g", DBL_DIG, sym->num);
+               if (nanbox_is_double(sym.sym))
+                  sprintf(fmt, "%.*g", DBL_DIG, nanbox_to_double(sym.sym));
                else
-                  fetch_string(mpl, sym->str, fmt);
+                  fetch_string(mpl, nanbox_to_pointer(sym.sym), fmt);
                delete_symbol(mpl, sym);
                fn_time2str(mpl, str, num, fmt);
                value = create_symbol_str(mpl, create_string(mpl, str));
+            }
+            break;
+         case O_VERSION:
+            {
+                value = create_symbol_str(mpl, create_string(mpl, GMPL_VERSION_STR));
             }
             break;
          default:
@@ -4152,8 +4157,8 @@ int eval_logical(MPL *mpl, CODE *code)
                value = (eval_numeric(mpl, code->arg.arg.x) <
                         eval_numeric(mpl, code->arg.arg.y));
             else
-            {  SYMBOL *sym1 = eval_symbolic(mpl, code->arg.arg.x);
-               SYMBOL *sym2 = eval_symbolic(mpl, code->arg.arg.y);
+            {  SYMBOL sym1 = eval_symbolic(mpl, code->arg.arg.x);
+               SYMBOL sym2 = eval_symbolic(mpl, code->arg.arg.y);
                value = (compare_symbols(mpl, sym1, sym2) < 0);
                delete_symbol(mpl, sym1);
                delete_symbol(mpl, sym2);
@@ -4171,8 +4176,8 @@ int eval_logical(MPL *mpl, CODE *code)
                value = (eval_numeric(mpl, code->arg.arg.x) <=
                         eval_numeric(mpl, code->arg.arg.y));
             else
-            {  SYMBOL *sym1 = eval_symbolic(mpl, code->arg.arg.x);
-               SYMBOL *sym2 = eval_symbolic(mpl, code->arg.arg.y);
+            {  SYMBOL sym1 = eval_symbolic(mpl, code->arg.arg.x);
+               SYMBOL sym2 = eval_symbolic(mpl, code->arg.arg.y);
                value = (compare_symbols(mpl, sym1, sym2) <= 0);
                delete_symbol(mpl, sym1);
                delete_symbol(mpl, sym2);
@@ -4186,8 +4191,8 @@ int eval_logical(MPL *mpl, CODE *code)
                value = (eval_numeric(mpl, code->arg.arg.x) ==
                         eval_numeric(mpl, code->arg.arg.y));
             else
-            {  SYMBOL *sym1 = eval_symbolic(mpl, code->arg.arg.x);
-               SYMBOL *sym2 = eval_symbolic(mpl, code->arg.arg.y);
+            {  SYMBOL sym1 = eval_symbolic(mpl, code->arg.arg.x);
+               SYMBOL sym2 = eval_symbolic(mpl, code->arg.arg.y);
                value = (compare_symbols(mpl, sym1, sym2) == 0);
                delete_symbol(mpl, sym1);
                delete_symbol(mpl, sym2);
@@ -4204,8 +4209,8 @@ int eval_logical(MPL *mpl, CODE *code)
                value = (eval_numeric(mpl, code->arg.arg.x) >=
                         eval_numeric(mpl, code->arg.arg.y));
             else
-            {  SYMBOL *sym1 = eval_symbolic(mpl, code->arg.arg.x);
-               SYMBOL *sym2 = eval_symbolic(mpl, code->arg.arg.y);
+            {  SYMBOL sym1 = eval_symbolic(mpl, code->arg.arg.x);
+               SYMBOL sym2 = eval_symbolic(mpl, code->arg.arg.y);
                value = (compare_symbols(mpl, sym1, sym2) >= 0);
                delete_symbol(mpl, sym1);
                delete_symbol(mpl, sym2);
@@ -4223,8 +4228,8 @@ int eval_logical(MPL *mpl, CODE *code)
                value = (eval_numeric(mpl, code->arg.arg.x) >
                         eval_numeric(mpl, code->arg.arg.y));
             else
-            {  SYMBOL *sym1 = eval_symbolic(mpl, code->arg.arg.x);
-               SYMBOL *sym2 = eval_symbolic(mpl, code->arg.arg.y);
+            {  SYMBOL sym1 = eval_symbolic(mpl, code->arg.arg.x);
+               SYMBOL sym2 = eval_symbolic(mpl, code->arg.arg.y);
                value = (compare_symbols(mpl, sym1, sym2) > 0);
                delete_symbol(mpl, sym1);
                delete_symbol(mpl, sym2);
@@ -4238,8 +4243,8 @@ int eval_logical(MPL *mpl, CODE *code)
                value = (eval_numeric(mpl, code->arg.arg.x) !=
                         eval_numeric(mpl, code->arg.arg.y));
             else
-            {  SYMBOL *sym1 = eval_symbolic(mpl, code->arg.arg.x);
-               SYMBOL *sym2 = eval_symbolic(mpl, code->arg.arg.y);
+            {  SYMBOL sym1 = eval_symbolic(mpl, code->arg.arg.x);
+               SYMBOL sym2 = eval_symbolic(mpl, code->arg.arg.y);
                value = (compare_symbols(mpl, sym1, sym2) != 0);
                delete_symbol(mpl, sym1);
                delete_symbol(mpl, sym2);
@@ -4551,7 +4556,7 @@ static void null_func(MPL *mpl, void *info)
       return;
 }
 
-int is_member(MPL *mpl, CODE *code, TUPLE *tuple)
+int is_member(MPL *mpl, CODE *code, const TUPLE *tuple)
 {     int value;
       xassert(code != NULL);
       xassert(code->type == A_ELEMSET);
@@ -4638,13 +4643,13 @@ int is_member(MPL *mpl, CODE *code, TUPLE *tuple)
                arelset_size(mpl, t0, tf, dt);
                /* if component of 1-tuple is symbolic, not numeric, the
                   1-tuple cannot be member of "arithmetic" set */
-               xassert(tuple->sym != NULL);
-               if (tuple->sym->str != NULL)
+               xassert(!symbol_is_null(tuple->sym));
+               if (nanbox_is_pointer(tuple->sym.sym))
                {  value = 0;
                   break;
                }
                /* determine numeric value of the component */
-               x = tuple->sym->num;
+               x = nanbox_to_double(tuple->sym.sym);
                /* if the component value is out of the set range, the
                   1-tuple is not in the set */
                if (dt > 0.0 && !(t0 <= x && x <= tf) ||
@@ -4917,6 +4922,7 @@ void clean_code(MPL *mpl, CODE *code)
          case O_UNIFORM01:
          case O_NORMAL01:
          case O_GMTIME:
+         case O_VERSION:
             break;
          case O_CVTNUM:
          case O_CVTSYM:
@@ -5087,7 +5093,7 @@ static int write_func(MPL *mpl, void *info)
       TABLE *tab = info;
       TABDCA *dca = mpl->dca;
       TABOUT *out;
-      SYMBOL *sym;
+      SYMBOL sym;
       int k;
       char buf[MAX_LENGTH+1];
       /* evaluate field values */
@@ -5102,15 +5108,15 @@ static int write_func(MPL *mpl, void *info)
                break;
             case A_SYMBOLIC:
                sym = eval_symbolic(mpl, out->code);
-               if (sym->str == NULL)
+               if (nanbox_is_double(sym.sym))
                {  dca->type[k] = 'N';
-                  dca->num[k] = sym->num;
+                  dca->num[k] = nanbox_to_double(sym.sym);
                   dca->str[k][0] = '\0';
                }
                else
                {  dca->type[k] = 'S';
                   dca->num[k] = 0.0;
-                  fetch_string(mpl, sym->str, buf);
+                  fetch_string(mpl, nanbox_to_pointer(sym.sym), buf);
                   strcpy(dca->str[k], buf);
                }
                delete_symbol(mpl, sym);
@@ -5157,14 +5163,14 @@ void execute_table(MPL *mpl, TABLE *tab)
       /* evaluate argument values */
       k = 0;
       for (arg = tab->arg; arg != NULL; arg = arg->next)
-      {  SYMBOL *sym;
+      {  SYMBOL sym;
          k++;
          xassert(arg->code->type == A_SYMBOLIC);
          sym = eval_symbolic(mpl, arg->code);
-         if (sym->str == NULL)
-            sprintf(buf, "%.*g", DBL_DIG, sym->num);
+         if (nanbox_is_double(sym.sym))
+            sprintf(buf, "%.*g", DBL_DIG, nanbox_to_double(sym.sym));
          else
-            fetch_string(mpl, sym->str, buf);
+            fetch_string(mpl, nanbox_to_pointer(sym.sym), buf);
          delete_symbol(mpl, sym);
          dca->arg[k] = xmalloc(strlen(buf)+1);
          strcpy(dca->arg[k], buf);
@@ -5586,7 +5592,7 @@ static void display_code(MPL *mpl, CODE *code)
             break;
          case A_SYMBOLIC:
             /* symbolic value */
-            {  SYMBOL *sym;
+            {  SYMBOL sym;
                sym = eval_symbolic(mpl, code);
                write_text(mpl, "%s\n", format_symbol(mpl, sym));
                delete_symbol(mpl, sym);
@@ -5816,14 +5822,14 @@ static int printf_func(MPL *mpl, void *info)
 {     /* this is auxiliary routine to work within domain scope */
       PRINTF *prt = (PRINTF *)info;
       PRINTF1 *entry;
-      SYMBOL *sym;
+      SYMBOL sym;
       char fmt[MAX_LENGTH+1], *c, *from, save;
       /* evaluate format control string */
       sym = eval_symbolic(mpl, prt->fmt);
-      if (sym->str == NULL)
-         sprintf(fmt, "%.*g", DBL_DIG, sym->num);
+      if (nanbox_is_double(sym.sym))
+         sprintf(fmt, "%.*g", DBL_DIG, nanbox_to_double(sym.sym));
       else
-         fetch_string(mpl, sym->str, fmt);
+         fetch_string(mpl, nanbox_to_pointer(sym.sym), fmt);
       delete_symbol(mpl, sym);
       /* scan format control string and perform formatting output */
       entry = prt->list;
@@ -5859,10 +5865,10 @@ static int printf_func(MPL *mpl, void *info)
                      break;
                   case A_SYMBOLIC:
                      sym = eval_symbolic(mpl, entry->code);
-                     if (sym->str != NULL)
+                     if (nanbox_is_pointer(sym.sym))
                         error(mpl, "cannot convert %s to floating-point"
                            " number", format_symbol(mpl, sym));
-                     value = sym->num;
+                     value = nanbox_to_double(sym.sym);
                      delete_symbol(mpl, sym);
                      break;
                   case A_LOGICAL:
@@ -5900,10 +5906,10 @@ static int printf_func(MPL *mpl, void *info)
                      break;
                   case A_SYMBOLIC:
                      sym = eval_symbolic(mpl, entry->code);
-                     if (sym->str == NULL)
-                        sprintf(value, "%.*g", DBL_DIG, sym->num);
+                     if (nanbox_is_double(sym.sym))
+                        sprintf(value, "%.*g", DBL_DIG, nanbox_to_double(sym.sym));
                      else
-                        fetch_string(mpl, sym->str, value);
+                        fetch_string(mpl, nanbox_to_pointer(sym.sym), value);
                      delete_symbol(mpl, sym);
                      break;
                   default:
@@ -5957,13 +5963,13 @@ void execute_printf(MPL *mpl, PRINTF *prt)
       }
       else
       {  /* evaluate file name string */
-         SYMBOL *sym;
+         SYMBOL sym;
          char fname[MAX_LENGTH+1];
          sym = eval_symbolic(mpl, prt->fname);
-         if (sym->str == NULL)
-            sprintf(fname, "%.*g", DBL_DIG, sym->num);
+         if (nanbox_is_double(sym.sym))
+            sprintf(fname, "%.*g", DBL_DIG, nanbox_to_double(sym.sym));
          else
-            fetch_string(mpl, sym->str, fname);
+            fetch_string(mpl, nanbox_to_pointer(sym.sym), fname);
          delete_symbol(mpl, sym);
          /* close the current print file, if necessary */
          if (mpl->prt_fp != NULL &&

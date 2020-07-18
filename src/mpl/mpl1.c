@@ -725,6 +725,8 @@ CODE *make_code(MPL *mpl, int op, OPERANDS *arg, int type, int dim)
             code->arg.loop.domain = arg->loop.domain;
             code->arg.loop.x = arg->loop.x;
             break;
+         case O_VERSION: /* nothing to do */
+             break;
          default:
             xassert(op != op);
       }
@@ -1229,6 +1231,8 @@ CODE *function_reference(MPL *mpl)
          op = O_TIME2STR;
       else if (strcmp(mpl->image, "gmtime") == 0)
          op = O_GMTIME;
+      else if (strcmp(mpl->image, "version") == 0)
+         op = O_VERSION;
       else
          error(mpl, "function %s unknown", mpl->image);
       /* save symbolic name of the function */
@@ -1257,7 +1261,7 @@ CODE *function_reference(MPL *mpl)
          }
       }
       else if (op == O_IRAND224 || op == O_UNIFORM01 || op ==
-         O_NORMAL01 || op == O_GMTIME)
+         O_NORMAL01 || op == O_GMTIME || op == O_VERSION)
       {  /* Irand224, Uniform01, Normal01, gmtime need no arguments */
          if (mpl->token != T_RIGHT)
             error(mpl, "%s needs no arguments", func);
@@ -1396,7 +1400,7 @@ CODE *function_reference(MPL *mpl)
             error(mpl, "syntax error in argument for %s", func);
       }
       /* make pseudo-code to call the built-in function */
-      if (op == O_SUBSTR || op == O_SUBSTR3 || op == O_TIME2STR)
+      if (op == O_SUBSTR || op == O_SUBSTR3 || op == O_TIME2STR || op == O_VERSION)
          code = make_code(mpl, op, &arg, A_SYMBOLIC, 0);
       else
          code = make_code(mpl, op, &arg, A_NUMERIC, 0);
@@ -1479,7 +1483,7 @@ DOMAIN_SLOT *append_slot(MPL *mpl, DOMAIN_BLOCK *block, char *name,
       slot = alloc(DOMAIN_SLOT);
       slot->name = name;
       slot->code = code;
-      slot->value = NULL;
+      slot->value.sym = nanbox_null();
       slot->list = NULL;
       slot->next = NULL;
       if (block->list == NULL)
@@ -3225,7 +3229,7 @@ PARAMETER *parameter_statement(MPL *mpl)
       par->assign = NULL;
       par->option = NULL;
       par->data = 0;
-      par->defval = NULL;
+      par->defval.sym = nanbox_null();
       par->array = NULL;
       get_token(mpl /* <symbolic name> */);
       /* parse optional alias */

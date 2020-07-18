@@ -48,7 +48,7 @@ SLICE *create_slice(MPL *mpl)
 SLICE *expand_slice
 (     MPL *mpl,
       SLICE *slice,           /* destroyed */
-      SYMBOL *sym             /* destroyed */
+      SYMBOL sym             /* destroyed */
 )
 {     SLICE *tail, *temp;
       /* create a new component */
@@ -73,9 +73,9 @@ SLICE *expand_slice
 
 int slice_dimen
 (     MPL *mpl,
-      SLICE *slice            /* not changed */
+      const SLICE *slice            /* not changed */
 )
-{     SLICE *temp;
+{     const SLICE *temp;
       int dim;
       xassert(mpl == mpl);
       dim = 0;
@@ -91,14 +91,14 @@ int slice_dimen
 
 int slice_arity
 (     MPL *mpl,
-      SLICE *slice            /* not changed */
+      const SLICE *slice            /* not changed */
 )
-{     SLICE *temp;
+{     const SLICE *temp;
       int arity;
       xassert(mpl == mpl);
       arity = 0;
       for (temp = slice; temp != NULL; temp = temp->next)
-         if (temp->sym == NULL) arity++;
+         if (symbol_is_null(temp->sym)) arity++;
       return arity;
 }
 
@@ -111,7 +111,7 @@ int slice_arity
 SLICE *fake_slice(MPL *mpl, int dim)
 {     SLICE *slice;
       slice = create_slice(mpl);
-      while (dim-- > 0) slice = expand_slice(mpl, slice, NULL);
+      while (dim-- > 0) slice = expand_slice(mpl, slice, symbol_null());
       return slice;
 }
 
@@ -128,8 +128,8 @@ void delete_slice
       while (slice != NULL)
       {  temp = slice;
          slice = temp->next;
-         if (temp->sym != NULL) delete_symbol(mpl, temp->sym);
-xassert(sizeof(SLICE) == sizeof(TUPLE));
+         if (!symbol_is_null(temp->sym)) delete_symbol(mpl, temp->sym);
+         xassert(sizeof(SLICE) == sizeof(TUPLE));
          dmp_free_atom(mpl->tuples, temp, sizeof(TUPLE));
       }
       return;
@@ -193,8 +193,8 @@ double read_number(MPL *mpl)
 -- This routine reads the current token, which must be a symbol, and
 -- returns its symbolic value. */
 
-SYMBOL *read_symbol(MPL *mpl)
-{     SYMBOL *sym;
+SYMBOL read_symbol(MPL *mpl)
+{     SYMBOL sym;
       xassert(is_symbol(mpl));
       if (is_number(mpl))
          sym = create_symbol_num(mpl, mpl->value);
@@ -221,7 +221,7 @@ SYMBOL *read_symbol(MPL *mpl)
 
 SLICE *read_slice
 (     MPL *mpl,
-      char *name,             /* not changed */
+      const char *name,             /* not changed */
       int dim
 )
 {     SLICE *slice;
@@ -248,7 +248,7 @@ SLICE *read_slice
          if (is_symbol(mpl))
             slice = expand_slice(mpl, slice, read_symbol(mpl));
          else if (mpl->token == T_ASTERISK)
-         {  slice = expand_slice(mpl, slice, NULL);
+         {  slice = expand_slice(mpl, slice, symbol_null());
             get_token(mpl /* * */);
          }
          else
@@ -290,7 +290,7 @@ SLICE *read_slice
 
 SET *select_set
 (     MPL *mpl,
-      char *name              /* not changed */
+      const char *name              /* not changed */
 )
 {     SET *set;
       AVLNODE *node;
@@ -327,13 +327,14 @@ SET *select_set
 
 void simple_format
 (     MPL *mpl,
-      SET *set,               /* not changed */
+      const SET *set,               /* not changed */
       MEMBER *memb,           /* modified */
-      SLICE *slice            /* not changed */
+      const SLICE *slice            /* not changed */
 )
 {     TUPLE *tuple;
-      SLICE *temp;
-      SYMBOL *sym, *with = NULL;
+      const SLICE *temp;
+      SYMBOL sym, with;
+      with.sym = nanbox_null();
       xassert(set != NULL);
       xassert(memb != NULL);
       xassert(slice != NULL);
@@ -343,12 +344,12 @@ void simple_format
       /* read symbols and construct complete n-tuple */
       tuple = create_tuple(mpl);
       for (temp = slice; temp != NULL; temp = temp->next)
-      {  if (temp->sym == NULL)
+      {  if (symbol_is_null(temp->sym))
          {  /* substitution is needed; read symbol */
             if (!is_symbol(mpl))
             {  int lack = slice_arity(mpl, temp);
                /* with cannot be null due to assertion above */
-               xassert(with != NULL);
+               xassert(!symbol_is_null(with));
                if (lack == 1)
                   error(mpl, "one item missing in data group beginning "
                      "with %s", format_symbol(mpl, with));
@@ -357,7 +358,7 @@ void simple_format
                      "with %s", lack, format_symbol(mpl, with));
             }
             sym = read_symbol(mpl);
-            if (with == NULL) with = sym;
+            if (symbol_is_null(with)) with = sym;
          }
          else
          {  /* copy symbol from the slice */
@@ -399,14 +400,15 @@ void simple_format
 
 void matrix_format
 (     MPL *mpl,
-      SET *set,               /* not changed */
+      const SET *set,               /* not changed */
       MEMBER *memb,           /* modified */
-      SLICE *slice,           /* not changed */
+      const SLICE *slice,           /* not changed */
       int tr
 )
-{     SLICE *list, *col, *temp;
+{     const SLICE *temp;
+      SLICE *list, *col;
       TUPLE *tuple;
-      SYMBOL *row;
+      SYMBOL row;
       xassert(set != NULL);
       xassert(memb != NULL);
       xassert(slice != NULL);
@@ -450,7 +452,7 @@ void matrix_format
             /* construct complete n-tuple */
             tuple = create_tuple(mpl);
             for (temp = slice; temp != NULL; temp = temp->next)
-            {  if (temp->sym == NULL)
+            {  if (symbol_is_null(temp->sym))
                {  /* substitution is needed */
                   switch (++which)
                   {  case 1:
@@ -636,7 +638,7 @@ err2:          error(mpl, "transpose indicator (tr) incomplete");
 
 PARAMETER *select_parameter
 (     MPL *mpl,
-      char *name              /* not changed */
+      const char *name              /* not changed */
 )
 {     PARAMETER *par;
       AVLNODE *node;
@@ -660,15 +662,15 @@ PARAMETER *select_parameter
 
 void set_default
 (     MPL *mpl,
-      PARAMETER *par,         /* not changed */
-      SYMBOL *altval          /* destroyed */
+      PARAMETER *par,         /* modified */
+      SYMBOL altval          /* destroyed */
 )
 {     xassert(par != NULL);
-      xassert(altval != NULL);
+      xassert(!symbol_is_null(altval));
       if (par->option != NULL)
          error(mpl, "default value for %s already specified in model se"
             "ction", par->name);
-      xassert(par->defval == NULL);
+      xassert(symbol_is_null(par->defval));
       par->defval = altval;
       return;
 }
@@ -682,7 +684,7 @@ void set_default
 
 MEMBER *read_value
 (     MPL *mpl,
-      PARAMETER *par,         /* not changed */
+      const PARAMETER *par,         /* not changed */
       TUPLE *tuple            /* destroyed */
 )
 {     MEMBER *memb;
@@ -730,29 +732,30 @@ MEMBER *read_value
 
 void plain_format
 (     MPL *mpl,
-      PARAMETER *par,         /* not changed */
-      SLICE *slice            /* not changed */
+      const PARAMETER *par,         /* not changed */
+      const SLICE *slice            /* not changed */
 )
 {     TUPLE *tuple;
-      SLICE *temp;
-      SYMBOL *sym, *with = NULL;
+      const SLICE *temp;
+      SYMBOL sym, with;
+      with.sym = nanbox_null();
       xassert(par != NULL);
       xassert(par->dim == slice_dimen(mpl, slice));
       xassert(is_symbol(mpl));
       /* read symbols and construct complete subscript list */
       tuple = create_tuple(mpl);
       for (temp = slice; temp != NULL; temp = temp->next)
-      {  if (temp->sym == NULL)
+      {  if (symbol_is_null(temp->sym))
          {  /* substitution is needed; read symbol */
             if (!is_symbol(mpl))
             {  int lack = slice_arity(mpl, temp) + 1;
-               xassert(with != NULL);
+               xassert(!symbol_is_null(with));
                xassert(lack > 1);
                error(mpl, "%d items missing in data group beginning wit"
                   "h %s", lack, format_symbol(mpl, with));
             }
             sym = read_symbol(mpl);
-            if (with == NULL) with = sym;
+            if (symbol_is_null(with)) with = sym;
          }
          else
          {  /* copy symbol from the slice */
@@ -765,7 +768,7 @@ void plain_format
       }
       /* read value and assign it to new parameter member */
       if (!is_symbol(mpl))
-      {  xassert(with != NULL);
+      {  xassert(!symbol_is_null(with));
          error(mpl, "one item missing in data group beginning with %s",
             format_symbol(mpl, with));
       }
@@ -798,13 +801,14 @@ void plain_format
 
 void tabular_format
 (     MPL *mpl,
-      PARAMETER *par,         /* not changed */
-      SLICE *slice,           /* not changed */
+      const PARAMETER *par,         /* not changed */
+      const SLICE *slice,           /* not changed */
       int tr
 )
-{     SLICE *list, *col, *temp;
+{     const SLICE *temp;
+      SLICE *list, *col;
       TUPLE *tuple;
-      SYMBOL *row;
+      SYMBOL row;
       xassert(par != NULL);
       xassert(par->dim == slice_dimen(mpl, slice));
       xassert(slice_arity(mpl, slice) == 2);
@@ -834,7 +838,7 @@ void tabular_format
             /* construct complete subscript list */
             tuple = create_tuple(mpl);
             for (temp = slice; temp != NULL; temp = temp->next)
-            {  if (temp->sym == NULL)
+            {  if (symbol_is_null(temp->sym))
                {  /* substitution is needed */
                   switch (++which)
                   {  case 1:
@@ -905,7 +909,7 @@ void tabular_format
 
 void tabbing_format
 (     MPL *mpl,
-      SYMBOL *altval          /* not changed */
+      const SYMBOL altval          /* not changed */
 )
 {     SET *set = NULL;
       PARAMETER *par;
@@ -956,10 +960,12 @@ void tabbing_format
                last_name, dim, par->name, par->dim);
          }
          /* set default value for the parameter (if specified) */
-         if (altval != NULL)
+         if (!symbol_is_null(altval))
             set_default(mpl, par, copy_symbol(mpl, altval));
          /* append the parameter to the column list */
-         list = expand_slice(mpl, list, (SYMBOL *)par);
+         SYMBOL tmp;
+         tmp.sym = nanbox_from_pointer(par);
+         list = expand_slice(mpl, list, tmp);
          last_name = par->name, dim = par->dim;
          get_token(mpl /* <symbol> */);
          /* skip optional comma */
@@ -1014,7 +1020,7 @@ void tabbing_format
                   error(mpl, "%d items missing in data group beginning "
                      "with %s", lack, format_symbol(mpl, tuple->sym));
             }
-            read_value(mpl, (PARAMETER *)col->sym, copy_tuple(mpl,
+            read_value(mpl, (PARAMETER *)nanbox_to_pointer(col->sym.sym), copy_tuple(mpl,
                tuple));
             /* skip optional comma preceding the next value */
             if (col->next != NULL && mpl->token == T_COMMA)
@@ -1030,7 +1036,7 @@ void tabbing_format
       }
       /* delete the column list (it contains parameters, not symbols,
          so nullify it before) */
-      for (col = list; col != NULL; col = col->next) col->sym = NULL;
+      for (col = list; col != NULL; col = col->next) col->sym.sym = nanbox_null();
       delete_slice(mpl, list);
       return;
 }
@@ -1058,7 +1064,8 @@ void tabbing_format
 
 void parameter_data(MPL *mpl)
 {     PARAMETER *par;
-      SYMBOL *altval = NULL;
+      SYMBOL altval;
+      altval.sym = nanbox_null();
       SLICE *slice;
       int tr = 0;
       xassert(is_literal(mpl, "param"));
@@ -1084,7 +1091,7 @@ void parameter_data(MPL *mpl)
          tabbing_format(mpl, altval);
          /* on reading data in the tabbing format the default value is
             always copied, so delete the original symbol */
-         if (altval != NULL) delete_symbol(mpl, altval);
+         if (!symbol_is_null(altval)) delete_symbol(mpl, altval);
          /* the next token must be only semicolon */
          if (mpl->token != T_SEMICOLON)
             error(mpl, "symbol, number, or semicolon missing where expe"
