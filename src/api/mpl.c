@@ -89,7 +89,11 @@ void glp_mpl_build_prob(glp_tran *tran, glp_prob *prob)
       if (tran->phase != 3)
          xerror("glp_mpl_build_prob: invalid call sequence\n");
       /* erase the problem object */
+      i = glp_get_use_col_row_names(prob);
+      /* save use_col_row_names */
       glp_erase_prob(prob);
+      glp_set_use_col_row_names(prob, i);
+      /* restore use_col_row_names */
       /* set problem name */
       glp_set_prob_name(prob, mpl_get_prob_name(tran));
       /* build rows (constraints) */
@@ -98,7 +102,8 @@ void glp_mpl_build_prob(glp_tran *tran, glp_prob *prob)
          glp_add_rows(prob, m);
       for (i = 1; i <= m; i++)
       {  /* set row name */
-         glp_set_row_name(prob, i, mpl_get_row_name(tran, i));
+         if(prob->use_col_row_names)
+             glp_set_row_name(prob, i, mpl_get_row_name(tran, i));
          /* set row bounds */
          type = mpl_get_row_bnds(tran, i, &lb, &ub);
          switch (type)
@@ -126,7 +131,8 @@ void glp_mpl_build_prob(glp_tran *tran, glp_prob *prob)
          glp_add_cols(prob, n);
       for (j = 1; j <= n; j++)
       {  /* set column name */
-         glp_set_col_name(prob, j, mpl_get_col_name(tran, j));
+         if(prob->use_col_row_names)
+            glp_set_col_name(prob, j, mpl_get_col_name(tran, j));
          /* set column kind */
          kind = mpl_get_col_kind(tran, j);
          switch (kind)

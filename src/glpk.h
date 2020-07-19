@@ -322,6 +322,12 @@ int glp_add_rows(glp_prob *P, int nrs);
 int glp_add_cols(glp_prob *P, int ncs);
 /* add new columns to problem object */
 
+int glp_get_use_col_row_names(glp_prob *P);
+/* get the parameter for using cols/rows names in the problem */
+
+void glp_set_use_col_row_names(glp_prob *P, int use_col_row_names);
+/* set the parameter for using cols/rows names in the problem */
+
 void glp_set_row_name(glp_prob *P, int i, const char *name);
 /* assign (change) row name */
 

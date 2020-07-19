@@ -103,12 +103,16 @@ struct csa
       /* name of output file to write sensitivity analysis report */
       int check;
       /* input data checking flag; no solution is performed */
+      int genonly;
+      /* input data checking flag; only generate the model */
       const char *new_name;
       /* new name to be assigned to the problem */
 #if 1 /* 18/I-2018 */
       int hide;
       /* clear all symbolic names in the problem object */
 #endif
+      int nonames;
+      /* do not set symbolic names in the problem object */
       const char *out_mps;
       /* name of output problem file in fixed MPS format */
       const char *out_freemps;
@@ -260,11 +264,14 @@ static void print_help(const char *my_name)
          "ytes\n");
       xprintf("   --check           do not solve problem, check input d"
          "ata only\n");
+      xprintf("   --genonly         only generate the model\n");
       xprintf("   --name probname   change problem name to probname\n");
 #if 1 /* 18/I-2018 */
       xprintf("   --hide            remove all symbolic names from prob"
          "lem object\n");
 #endif
+      xprintf("   --nonames         do not copy/set cols/rows names in the prob"
+         "lem object\n");
       xprintf("   --wmps filename   write problem to filename in fixed "
          "MPS format\n");
       xprintf("   --wfreemps filename\n");
@@ -607,6 +614,8 @@ static int parse_cmdline(struct csa *csa, int argc, char *argv[])
          }
          else if (p("--check"))
             csa->check = 1;
+         else if (p("--genonly"))
+            csa->genonly = 1;
          else if (p("--name"))
          {  k++;
             if (k == argc || argv[k][0] == '\0' || argv[k][0] == '-')
@@ -623,6 +632,11 @@ static int parse_cmdline(struct csa *csa, int argc, char *argv[])
          else if (p("--hide"))
             csa->hide = 1;
 #endif
+         else if (p("--nonames"))
+         {
+            csa->nonames = 1;
+            glp_set_use_col_row_names(csa->prob, 0);
+         }
          else if (p("--wmps"))
          {  k++;
             if (k == argc || argv[k][0] == '\0' || argv[k][0] == '-')
@@ -1136,6 +1150,7 @@ err2:    {  xprintf("MathProg model processing error\n");
          }
          /* generate the model */
          if (glp_mpl_generate(csa->tran, csa->out_dpy)) goto err2;
+         if (csa->genonly) goto done;
          /* build the problem instance from the model */
          glp_mpl_build_prob(csa->tran, csa->prob);
       }

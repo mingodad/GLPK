@@ -146,6 +146,8 @@ struct glp_prob
          GLP_NOFEAS - no integer solution exists */
       double mip_obj;
       /* objective function value */
+      int use_col_row_names;
+      /* when building the problem do not copy col/row names */
 };
 
 struct GLPROW

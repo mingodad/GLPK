@@ -104,6 +104,7 @@ static void create_prob(glp_prob *lp)
       /* integer solution (MIP) */
       lp->mip_stat = GLP_UNDEF;
       lp->mip_obj = 0.0;
+      lp->use_col_row_names = 1;
       return;
 }
 
@@ -112,6 +113,16 @@ glp_prob *glp_create_prob(void)
       lp = xmalloc(sizeof(glp_prob));
       create_prob(lp);
       return lp;
+}
+
+/* get the parameter for using cols/rows names in the problem */
+int glp_get_use_col_row_names(glp_prob *P) {
+    return P->use_col_row_names;
+}
+
+/* set the parameter for using cols/rows names in the problem */
+void glp_set_use_col_row_names(glp_prob *P, int use_col_row_names) {
+    P->use_col_row_names = use_col_row_names;
 }
 
 /***********************************************************************
