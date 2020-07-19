@@ -132,6 +132,7 @@ void build_problem(MPL *mpl)
       xassert(mpl->n == 0);
       xassert(mpl->row == NULL);
       xassert(mpl->col == NULL);
+#ifndef XASSERT_DISABLED
       /* check that all elemental variables has zero column numbers */
       for (stmt = mpl->model; stmt != NULL; stmt = stmt->next)
       {  if (stmt->type == A_VARIABLE)
@@ -140,6 +141,7 @@ void build_problem(MPL *mpl)
                xassert(memb->value.var->j == 0);
          }
       }
+#endif
       /* assign row numbers to elemental constraints and objectives */
       for (stmt = mpl->model; stmt != NULL; stmt = stmt->next)
       {  if (stmt->type == A_CONSTRAINT)
@@ -179,7 +181,9 @@ void build_problem(MPL *mpl)
             }
          }
       }
+#ifndef XASSERT_DISABLED
       for (i = 1; i <= mpl->m; i++) xassert(mpl->row[i] != NULL);
+#endif
       /* build list of columns */
       mpl->col = xcalloc(1+mpl->n, sizeof(ELEMVAR *));
       for (j = 1; j <= mpl->n; j++) mpl->col[j] = NULL;
@@ -195,7 +199,9 @@ void build_problem(MPL *mpl)
             }
          }
       }
+#ifndef XASSERT_DISABLED
       for (j = 1; j <= mpl->n; j++) xassert(mpl->col[j] != NULL);
+#endif
       return;
 }
 
