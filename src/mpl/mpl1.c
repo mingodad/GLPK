@@ -3165,6 +3165,10 @@ err3:             error(mpl, "component number must be integer between "
             get_token(mpl /* ) */);
          }
 #endif
+         else if (is_keyword(mpl, "ordered")) {
+             warning(mpl, "ordered keyword ignored");
+             get_token(mpl /* ordered */);
+         }
          else
             error(mpl, "syntax error in set statement");
       }
