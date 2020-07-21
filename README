@@ -9,6 +9,16 @@ Here is a brief of changes made to GLPK 4.65 distribution:
 * Reorder several struct members to allow better memory usage
 * Add a splaytree to replace the avltree on ARRAY structure to reduce memory usage
 * Fix assertions with side effects to allow compilation with NDEBUG defined
+* Replace SYMBOL structure fields by an unique nanbox field
+	see https://github.com/zuiderkwast/nanbox
+
+To get the best performance configure like:
+
+CFLAGS="-g -O3 -march=native -ffp-contract=off -DWITH_SPLAYTREE -DNDEBUG -flto" ./configure
+
+Or a less aggressive configuration:
+
+CFLAGS="-g -O2 -DWITH_SPLAYTREE -DNDEBUG -flto" ./configure
 
 
 Olga K. gewidmet
