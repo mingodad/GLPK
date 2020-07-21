@@ -1003,6 +1003,8 @@ int __cdecl main(int argc, char *argv[])
       csa->out_res = NULL;
       csa->out_ranges = NULL;
       csa->check = 0;
+      csa->nonames = 0;
+      csa->genonly = 0;
       csa->new_name = NULL;
 #if 1 /* 18/I-2018 */
       csa->hide = 0;
