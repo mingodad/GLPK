@@ -591,7 +591,7 @@ SYMBOL create_symbol_str
 --
 -- This routine returns an exact copy of symbol. */
 
-SYMBOL copy_symbol
+SYMBOL copy_symbol_not_used
 (     MPL *mpl,
       const SYMBOL sym             /* not changed */
 )
@@ -648,7 +648,7 @@ int compare_symbols
 --
 -- This routine deletes specified symbol. */
 
-void delete_symbol
+void delete_symbol_not_used
 (     MPL *mpl,
       SYMBOL sym             /* destroyed */
 )
@@ -1593,7 +1593,7 @@ void delete_value
             value->num = 0.0;
             break;
          case A_SYMBOLIC:
-            delete_symbol(mpl, value->sym), value->sym.sym = nanbox_null();
+            delete_symbol(mpl, value->sym); value->sym.sym = nanbox_null();
             break;
          case A_LOGICAL:
             value->bit = 0;
@@ -1836,7 +1836,7 @@ void assign_dummy_index
             assignment is not needed */
          if (compare_symbols(mpl, slot->value, value) == 0) goto done;
          /* delete a symbol, which is the current value */
-         delete_symbol(mpl, slot->value), slot->value.sym = nanbox_null();
+         delete_symbol(mpl, slot->value); slot->value.sym = nanbox_null();
       }
       /* now walk through all the pseudo-codes with op = O_INDEX, which
          refer to the dummy index to be changed (these pseudo-codes are
@@ -2349,7 +2349,7 @@ void clean_domain(MPL *mpl, DOMAIN *domain)
             clean_code(mpl, slot->code);
             /* delete symbolic value assigned to dummy index */
             if (!symbol_is_null(slot->value))
-               delete_symbol(mpl, slot->value), slot->value.sym = nanbox_null();
+               delete_symbol(mpl, slot->value); slot->value.sym = nanbox_null();
          }
          /* clean pseudo-code for computing basic set */
          clean_code(mpl, block->code);
@@ -2873,76 +2873,51 @@ void check_value_sym
 )
 {     CONDITION *cond;
       WITHIN *in;
+      const char *str_cmp_err;
       int eqno;
       /* the value must satisfy to all specified conditions */
+      str_cmp_err = NULL;
       for (cond = par->cond, eqno = 1; cond != NULL; cond = cond->next,
          eqno++)
       {  SYMBOL bound;
          char buf[255+1];
+         int rc_cmp;
          xassert(cond->code != NULL);
          bound = eval_symbolic(mpl, cond->code);
+         rc_cmp = compare_symbols(mpl, value, bound);
          switch (cond->rho)
          {
 #if 1 /* 13/VIII-2008 */
             case O_LT:
-               if (!(compare_symbols(mpl, value, bound) < 0))
-               {  strcpy(buf, format_symbol(mpl, bound));
-                  xassert(strlen(buf) < sizeof(buf));
-                  error(mpl, "%s%s = %s not < %s",
-                     par->name, format_tuple(mpl, '[', tuple),
-                     format_symbol(mpl, value), buf, eqno);
-               }
+               if (!(rc_cmp < 0)) str_cmp_err = "<";
                break;
             case O_LE:
-               if (!(compare_symbols(mpl, value, bound) <= 0))
-               {  strcpy(buf, format_symbol(mpl, bound));
-                  xassert(strlen(buf) < sizeof(buf));
-                  error(mpl, "%s%s = %s not <= %s",
-                     par->name, format_tuple(mpl, '[', tuple),
-                     format_symbol(mpl, value), buf, eqno);
-               }
+               if (!(rc_cmp <= 0)) str_cmp_err = "<=";
                break;
 #endif
             case O_EQ:
-               if (!(compare_symbols(mpl, value, bound) == 0))
-               {  strcpy(buf, format_symbol(mpl, bound));
-                  xassert(strlen(buf) < sizeof(buf));
-                  error(mpl, "%s%s = %s not = %s",
-                     par->name, format_tuple(mpl, '[', tuple),
-                     format_symbol(mpl, value), buf, eqno);
-               }
+               if (!(rc_cmp == 0)) str_cmp_err = "=";
                break;
 #if 1 /* 13/VIII-2008 */
             case O_GE:
-               if (!(compare_symbols(mpl, value, bound) >= 0))
-               {  strcpy(buf, format_symbol(mpl, bound));
-                  xassert(strlen(buf) < sizeof(buf));
-                  error(mpl, "%s%s = %s not >= %s",
-                     par->name, format_tuple(mpl, '[', tuple),
-                     format_symbol(mpl, value), buf, eqno);
-               }
+               if (!(rc_cmp >= 0)) str_cmp_err = ">=";
                break;
             case O_GT:
-               if (!(compare_symbols(mpl, value, bound) > 0))
-               {  strcpy(buf, format_symbol(mpl, bound));
-                  xassert(strlen(buf) < sizeof(buf));
-                  error(mpl, "%s%s = %s not > %s",
-                     par->name, format_tuple(mpl, '[', tuple),
-                     format_symbol(mpl, value), buf, eqno);
-               }
+               if (!(rc_cmp > 0)) str_cmp_err = ">";
                break;
 #endif
             case O_NE:
-               if (!(compare_symbols(mpl, value, bound) != 0))
-               {  strcpy(buf, format_symbol(mpl, bound));
-                  xassert(strlen(buf) < sizeof(buf));
-                  error(mpl, "%s%s = %s not <> %s",
-                     par->name, format_tuple(mpl, '[', tuple),
-                     format_symbol(mpl, value), buf, eqno);
-               }
+               if (!(rc_cmp != 0)) str_cmp_err = "<>";
                break;
             default:
                xassert(cond != cond);
+         }
+         if(str_cmp_err) {
+             strcpy(buf, format_symbol(mpl, bound));
+             xassert(strlen(buf) < sizeof(buf));
+             error(mpl, "%s%s = %s not %s %s",
+                 par->name, format_tuple(mpl, '[', tuple),
+                 format_symbol(mpl, value), buf, str_cmp_err, eqno);
          }
          delete_symbol(mpl, bound);
       }
@@ -3148,7 +3123,7 @@ void clean_parameter(MPL *mpl, PARAMETER *par)
       par->data = 0;
       /* delete default symbolic value */
       if (!symbol_is_null(par->defval))
-         delete_symbol(mpl, par->defval), par->defval.sym = nanbox_null();
+         delete_symbol(mpl, par->defval); par->defval.sym = nanbox_null();
       /* delete content array */
       for (memb = par->array->head; memb != NULL; memb = memb->next)
          delete_value(mpl, par->array->type, &memb->value);

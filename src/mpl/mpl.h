@@ -980,11 +980,7 @@ SYMBOL create_symbol_str
 );
 /* create symbol of abstract type */
 
-#define copy_symbol _glp_mpl_copy_symbol
-SYMBOL copy_symbol
-(     MPL *mpl,
-      const SYMBOL sym             /* not changed */
-);
+#define copy_symbol(a, x) (x)
 /* make copy of symbol */
 
 #define compare_symbols _glp_mpl_compare_symbols
@@ -995,11 +991,7 @@ int compare_symbols
 );
 /* compare one symbol with another */
 
-#define delete_symbol _glp_mpl_delete_symbol
-void delete_symbol
-(     MPL *mpl,
-      SYMBOL sym             /* destroyed */
-);
+#define delete_symbol(a, b)
 /* delete symbol */
 
 #define format_symbol _glp_mpl_format_symbol
