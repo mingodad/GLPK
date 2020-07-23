@@ -11,6 +11,7 @@ Here is a brief of changes made to GLPK 4.65 distribution:
 * Fix assertions with side effects to allow compilation with NDEBUG defined
 * Replace SYMBOL structure fields by an unique nanbox field
 	see https://github.com/zuiderkwast/nanbox
+* Add a hash table for string interning
 
 To get the best performance configure like:
 
