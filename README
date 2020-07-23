@@ -33,7 +33,7 @@ Comparison:
 
 #CFLAGS="-g -O3 -march=native -ffp-contract=off -DWITH_SPLAYTREE -DNDEBUG -flto" ./configure
 /usr/bin/time ./glpsol-this-master --check -m osemosys.mod -d atlantis.dat
-1.42user 0.04system 0:01.46elapsed 100%CPU (0avgtext+0avgdata 228952maxresident)k
+1.20user 0.04system 0:01.25elapsed 100%CPU (0avgtext+0avgdata 228972maxresident)k
 
 
 Olga K. gewidmet
