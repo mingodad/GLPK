@@ -20,6 +20,20 @@ Or a less aggressive configuration:
 
 CFLAGS="-g -O2 -DWITH_SPLAYTREE -DNDEBUG -flto" ./configure
 
+Comparison:
+
+#ubuntu package glpsol 4.65
+/usr/bin/time glpsol --check -m osemosys.mod -d atlantis.dat
+3.30user 0.07system 0:03.37elapsed 100%CPU (0avgtext+0avgdata 309988maxresident)k
+
+#CFLAGS="-g -O3 -march=native -ffp-contract=off -flto" ./configure
+/usr/bin/time ./glpsol-4.65-std --check -m osemosys.mod -d atlantis.dat
+2.61user 0.13system 0:02.75elapsed 99%CPU (0avgtext+0avgdata 309612maxresident)k
+
+#CFLAGS="-g -O3 -march=native -ffp-contract=off -DWITH_SPLAYTREE -DNDEBUG -flto" ./configure
+/usr/bin/time ./glpsol-this-master --check -m osemosys.mod -d atlantis.dat
+1.42user 0.04system 0:01.46elapsed 100%CPU (0avgtext+0avgdata 228952maxresident)k
+
 
 Olga K. gewidmet
 
