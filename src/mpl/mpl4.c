@@ -22,10 +22,42 @@
 ***********************************************************************/
 
 #include "mpl.h"
+#include "khash.h"
+
+KHASH_SET_INIT_STR(kh_str)
 
 #define xfault xerror
 #define xfprintf glp_format
 #define dmp_create_poolx(size) dmp_create_pool()
+
+STRING *create_string_interned
+(     MPL *mpl,
+      const char *src  /* not changed */
+)
+{     STRING *str;
+      khint_t k;
+      int absent;
+      khash_t(kh_str) *h = (khash_t(kh_str)*)mpl->str_intern;
+      xassert(strlen(src) <= MAX_LENGTH);
+      k = kh_put(kh_str, h, src, &absent);
+      if (absent) {
+          str = dmp_get_atom(mpl->strings, strlen(src)+1);
+          strcpy(str, src);
+          kh_key(h, k) = str;
+      }
+      else str = (STRING *)kh_key(h, k);
+      return str;
+}
+
+static void clean_string_interned(MPL *mpl) {
+      khint_t k;
+      for (k = 0; k < kh_end((khash_t(kh_str)*)mpl->str_intern); ++k) {
+        if (kh_exist((khash_t(kh_str)*)mpl->str_intern, k)) {
+            STRING *str = (STRING *)kh_key((khash_t(kh_str)*)mpl->str_intern, k);
+            dmp_free_atom(mpl->strings, str, strlen(str)+1);
+        }
+      }
+}
 
 /**********************************************************************/
 /* * *              GENERATING AND POSTSOLVING MODEL              * * */
@@ -239,6 +271,7 @@ void clean_model(MPL *mpl)
       for (stmt = mpl->model; stmt != NULL; stmt = stmt->next)
          clean_statement(mpl, stmt);
       /* check that all atoms have been returned to their pools */
+      clean_string_interned(mpl);
       if (dmp_in_use(mpl->strings) != 0)
          error(mpl, "internal logic error: %d string segment(s) were lo"
             "st", dmp_in_use(mpl->strings));
@@ -537,6 +570,7 @@ MPL *mpl_initialize(void)
       mpl->as_binary = 0;
       mpl->flag_s = 0;
       /* common segment */
+      mpl->str_intern = kh_init(kh_str);
       mpl->strings = dmp_create_poolx(sizeof(STRING));
       mpl->symbols = dmp_create_poolx(sizeof(SYMBOL));
       mpl->tuples = dmp_create_poolx(sizeof(TUPLE));
@@ -1408,6 +1442,8 @@ void mpl_terminate(MPL *mpl)
       xfree(mpl->context);
       dmp_delete_pool(mpl->pool);
       avl_delete_tree(mpl->tree);
+      clean_string_interned(mpl);
+      kh_destroy(kh_str, mpl->str_intern);
       dmp_delete_pool(mpl->strings);
       dmp_delete_pool(mpl->symbols);
       dmp_delete_pool(mpl->tuples);

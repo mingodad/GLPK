@@ -254,6 +254,8 @@ struct glp_tran
       /* common segment */
       DMP *strings;
       /* memory pool to allocate STRING data structures */
+      void *str_intern;
+      /* interning strings hash table */
       DMP *symbols;
       /* memory pool to allocate SYMBOL data structures */
       DMP *tuples;
@@ -907,6 +909,10 @@ void fn_time2str(MPL *mpl, char *str, double t, const char *fmt);
 STRING *create_string
 (     MPL *mpl,
       const char buf[MAX_LENGTH+1]  /* not changed */
+);
+STRING *create_string_interned
+(     MPL *mpl,
+      const char *src  /* not changed */
 );
 /* create character string */
 

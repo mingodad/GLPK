@@ -427,11 +427,12 @@ tail = (tail->next = dmp_get_atom(mpl->strings, sizeof(STRING))), j = 0;
       return head;
 }
 #else
-{     STRING *str;
-      xassert(strlen(buf) <= MAX_LENGTH);
-      str = dmp_get_atom(mpl->strings, strlen(buf)+1);
-      strcpy(str, buf);
-      return str;
+{     //STRING *str;
+      //xassert(strlen(buf) <= MAX_LENGTH);
+      //str = dmp_get_atom(mpl->strings, strlen(buf)+1);
+      //strcpy(str, buf);
+      //return str;
+    return create_string_interned(mpl, buf);
 }
 #endif
 
@@ -548,7 +549,7 @@ void delete_string
       return;
 }
 #else
-{     dmp_free_atom(mpl->strings, str, strlen(str)+1);
+{     //dmp_free_atom(mpl->strings, str, strlen(str)+1);
       return;
 }
 #endif
