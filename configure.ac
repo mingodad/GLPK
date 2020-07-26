@@ -2,6 +2,8 @@ dnl Process this file with autoconf to produce a configure script
 
 AC_INIT([GLPK], [4.65], [bug-glpk@gnu.org])
 
+: ${CFLAGS="-g -O3 -flto -DWITH_SPLAYTREE -DNDEBUG"}
+
 AC_CONFIG_SRCDIR([src/glpk.h])
 
 AC_CONFIG_MACRO_DIR([m4])
