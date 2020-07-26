@@ -2,7 +2,7 @@
 #define SPLAYTREE_H
 
 #ifndef WITH_SPLAYTREE
-#define WITH_SPLAYTREE
+/*#define WITH_SPLAYTREE*/
 #endif
 
 #include "dmp.h"
