@@ -23,6 +23,13 @@
 
 #include "mpl.h"
 
+#if defined(WITH_KBTREE)
+#include "kbtree.h"
+#elif defined(WITH_KHASH)
+#include "khash.h"
+KHASH_MAP_INIT_STR(kh_str_map, MEMBER*)
+#endif
+
 /**********************************************************************/
 /* * *                   FLOATING-POINT NUMBERS                   * * */
 /**********************************************************************/
@@ -1679,22 +1686,140 @@ static int compare_member_tuples(void *info, const void *key1,
       return compare_tuples((MPL *)info, (TUPLE *)key1, (TUPLE *)key2);
 }
 
+#if defined(WITH_SPLAYTREE)
+#elif defined(WITH_KBTREE)
+typedef struct {
+    MEMBER *memb;
+} kbtree_elem_t;
+
+static int compare_kbtree_members(void *info, const kbtree_elem_t key1,
+      const kbtree_elem_t key2)
+{     /* this is an auxiliary routine used to compare keys, which are
+         n-tuples assigned to array members */
+      return compare_tuples((MPL *)info, key1.memb->tuple,
+              key2.memb->tuple);
+}
+
+KBTREE_INIT(memb, kbtree_elem_t, compare_kbtree_members)
+
+void kbtree_memb_DESTROY(void *btree) {
+    if(btree != NULL) kb_destroy(memb, ((kbtree_t(memb) *)btree));
+}
+#elif defined(WITH_KHASH)
+
+#define KHASH_MAX_KEY_LENHGTH 1024
+
+static STRING *tuple_to_hash_key(MPL *mpl, const TUPLE *tuple)
+{
+    TUPLE *temp;
+    STRING *key;
+    char *buf_ptr, buf[KHASH_MAX_KEY_LENHGTH];
+    int size = 0;
+    int remaining_size = KHASH_MAX_KEY_LENHGTH;
+    buf_ptr = buf;
+    for (temp = tuple; temp != NULL; temp = temp->next) {
+        xassert(!symbol_is_null(temp->sym));
+        if (nanbox_is_double(temp->sym.sym)) {
+            size = snprintf(buf_ptr, remaining_size, "|N%.*g", DBL_DIG, nanbox_to_double(temp->sym.sym));
+        }
+        else
+        {
+            size = snprintf(buf_ptr, remaining_size, "|S%s", (const char*)nanbox_to_pointer(temp->sym.sym));
+        }
+        remaining_size -= size;
+        buf_ptr += size;
+        if(remaining_size <= 0) {
+            error(mpl, "tuple_to_hash_key key too big");
+        }
+    }
+    size = KHASH_MAX_KEY_LENHGTH-remaining_size;
+    key = dmp_get_atom(mpl->strings, size+1);
+    memcpy(key, buf, size);
+    key[size] = '\0';
+    return key;
+}
+
+static MEMBER *hashmap_find_member(MPL *mpl, ARRAY *array, const TUPLE *tuple){
+    if(tuple) {
+        khint_t kh_k;
+        khash_t(kh_str_map) *kh = (khash_t(kh_str_map)*)array->tree;
+        STRING *key = tuple_to_hash_key(mpl, tuple);
+        kh_k = kh_get(kh_str_map, kh, key);
+        dmp_free_atom(mpl->strings, key, strlen((STRING*)key)+1);
+        if(kh_k != kh_end(kh))
+            return kh_value(kh, kh_k);
+    }
+    return NULL;
+}
+
+static void khash_map_insert_member(MPL *mpl, ARRAY *array, MEMBER *memb) {
+    khint_t kh_k;
+    int kh_absent;
+    khash_t(kh_str_map) *kh = (khash_t(kh_str_map)*)array->tree;
+    STRING *key = tuple_to_hash_key(mpl, memb->tuple);
+    kh_k = kh_put(kh_str_map, kh, key, &kh_absent);
+    if (kh_absent) {
+        kh_key(kh, kh_k) = key;
+        kh_value(kh, kh_k) = memb;
+    }
+    else
+    {
+        error(mpl, "duplicated symbol in set");
+    }
+}
+
+void destroy_khash_map_member(MPL *mpl, ARRAY *array) {
+    if (array->tree != NULL) {
+        khint_t kh_k;
+        khash_t(kh_str_map) *kh = (khash_t(kh_str_map)*)array->tree;
+        for (kh_k = 0; kh_k < kh_end(kh); ++kh_k)
+        if (kh_exist(kh, kh_k)) {
+            STRING *key = kh_key(kh, kh_k);
+            dmp_free_atom(mpl->strings, key, strlen(key)+1);
+        }
+        kh_destroy(kh_str_map, kh);
+    }
+}
+
+#endif
+
+
 MEMBER *find_member
 (     MPL *mpl,
       ARRAY *array,           /* modified */
       const TUPLE *tuple      /* not changed */
 )
 {     MEMBER *memb;
+#if defined(WITH_KBTREE)
+      kbtree_elem_t *kbt_p, kbt_t;
+#endif
       xassert(array != NULL);
       /* the n-tuple must have the same dimension as the array */
       xassert(tuple_dimen(mpl, tuple) == array->dim);
       /* if the array is large enough, create the search tree and index
          all existing members of the array */
       if (array->size > 30 && array->tree == NULL)
-#ifdef WITH_SPLAYTREE
+#if defined(WITH_SPLAYTREE)
       {  array->tree = SplayTree_New(compare_member_tuples, mpl);
          for (memb = array->head; memb != NULL; memb = memb->next)
-            SplayTree_insert(array->tree, (void *)memb->tuple, (void *)memb);
+            SplayTree_insert(array->tree, memb->tuple, memb);
+#elif defined(WITH_KBTREE)
+      {
+         array->tree = kb_init(memb, KB_DEFAULT_SIZE);
+         ((kbtree_t(memb)*)array->tree)->udata = mpl;
+         for (memb = array->head; memb != NULL; memb = memb->next) {
+            kbt_t.memb = memb;
+            kbt_p = kb_getp(memb, array->tree, &kbt_t); // kb_get() also works
+            // IMPORTANT: put() only works if key is absent
+            if (!kbt_p) kb_putp(memb, array->tree, &kbt_t);
+         }
+#elif defined(WITH_KHASH)
+      {
+         array->tree = kh_init(kh_str_map);
+         kh_resize(kh_str_map, array->tree, array->size);
+         for (memb = array->head; memb != NULL; memb = memb->next) {
+             khash_map_insert_member(mpl, array, memb);
+         }
 #else
       {  array->tree = avl_create_tree(compare_member_tuples, mpl);
          for (memb = array->head; memb != NULL; memb = memb->next)
@@ -1710,8 +1835,16 @@ MEMBER *find_member
       }
       else
       {  /* the search tree exists; use the binary search */
-#ifdef WITH_SPLAYTREE
+#if defined(WITH_SPLAYTREE)
          memb = (MEMBER *)SplayTree_find(array->tree, tuple);
+#elif defined(WITH_KHASH)
+         memb = hashmap_find_member(mpl, array, tuple);
+#elif defined(WITH_KBTREE)
+         MEMBER mf;
+         mf.tuple = tuple;
+         kbt_t.memb = &mf;
+         kbt_p = kb_getp(memb, array->tree, &kbt_t);
+         memb = kbt_p ? kbt_p->memb : NULL;
 #else
          AVLNODE *node;
          node = avl_find_node(array->tree, tuple);
@@ -1759,8 +1892,19 @@ MEMBER *add_member
       array->tail = memb;
       /* if the search tree exists, index the new member */
       if (array->tree != NULL)
-#ifdef WITH_SPLAYTREE
-        SplayTree_insert(array->tree, (void *)memb->tuple, (void *)memb);
+#if defined(WITH_SPLAYTREE)
+        SplayTree_insert(array->tree, memb->tuple, memb);
+#elif defined(WITH_KHASH)
+      khash_map_insert_member(mpl, array, memb);
+#elif defined(WITH_KBTREE)
+      {
+        kbtree_elem_t *kbt_p, kbt_t;
+        MEMBER mf;
+        mf.tuple = tuple;
+        kbt_t.memb = &mf;
+        kbt_p = kb_getp(memb, array->tree, &kbt_t);
+        if (!kbt_p) kb_putp(memb, array->tree, &kbt_t);
+      }
 #else
         avl_set_node_link(avl_insert_node(array->tree, memb->tuple),
             (void *)memb);
@@ -1792,8 +1936,12 @@ void delete_array
          dmp_free_atom(mpl->members, memb, sizeof(MEMBER));
       }
       /* if the search tree exists, also delete it */
-#ifdef WITH_SPLAYTREE
+#if defined(WITH_SPLAYTREE)
       if (array->tree != NULL) SplayTree_Free(array->tree);
+#elif defined(WITH_KHASH)
+      destroy_khash_map_member(mpl, array);
+#elif defined(WITH_KBTREE)
+      kbtree_memb_DESTROY(array->tree);
 #else
       if (array->tree != NULL) avl_delete_tree(array->tree);
 #endif
@@ -2483,7 +2631,7 @@ static void saturate_set(MPL *mpl, SET *set)
 {     GADGET *gadget = set->gadget;
       ELEMSET *data;
       MEMBER *elem, *memb;
-      TUPLE *tuple, *work[20];
+      TUPLE *tuple, *work[MAX_TUPLE_DIM];
       int i;
       xprintf("Generating %s...\n", set->name);
       eval_whole_set(mpl, gadget->set);

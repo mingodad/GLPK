@@ -118,6 +118,8 @@ typedef struct TUPLE SLICE;
    numeric and string literals, and all symbolic values that may appear
    during the evaluation phase) */
 
+#define MAX_TUPLE_DIM 20
+
 #define CONTEXT_SIZE 60
 /* size of the context queue, in characters */
 
@@ -1387,8 +1389,12 @@ struct ARRAY
       /* the first array member; NULL means the array is empty */
       MEMBER *tail;
       /* the last array member; NULL means the array is empty */
-#ifdef WITH_SPLAYTREE
+#if defined(WITH_SPLAYTREE)
       SplayTree_t *tree;
+#elif defined(WITH_KHASH)
+      void *tree;
+#elif defined(WITH_KBTREE)
+      void *tree;
 #else
       AVL *tree;
 #endif
@@ -1610,7 +1616,7 @@ struct GADGET
 {     /* plain set used to initialize the array of sets with data */
       SET *set;
       /* pointer to plain set; cannot be NULL */
-      int ind[20]; /* ind[dim+dimen]; */
+      int ind[MAX_TUPLE_DIM]; /* ind[dim+dimen]; */
       /* permutation of integers 1, 2, ..., dim+dimen */
 };
 

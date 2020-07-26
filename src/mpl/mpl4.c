@@ -39,24 +39,34 @@ STRING *create_string_interned
       int absent;
       khash_t(kh_str) *h = (khash_t(kh_str)*)mpl->str_intern;
       xassert(strlen(src) <= MAX_LENGTH);
-      k = kh_put(kh_str, h, src, &absent);
-      if (absent) {
-          str = dmp_get_atom(mpl->strings, strlen(src)+1);
-          strcpy(str, src);
-          kh_key(h, k) = str;
+      k = kh_get(kh_str, h, src);
+      if (k != kh_end(h)) {
+          str = (STRING *)kh_key(h, k);
       }
-      else str = (STRING *)kh_key(h, k);
+      else
+      {
+        k = kh_put(kh_str, h, src, &absent);
+        if (absent) {
+            str = dmp_get_atom(mpl->strings, strlen(src)+1);
+            strcpy(str, src);
+            kh_key(h, k) = str;
+        }
+      }
       return str;
 }
 
 static void clean_string_interned(MPL *mpl) {
+      if(!mpl->str_intern) return;
       khint_t k;
-      for (k = 0; k < kh_end((khash_t(kh_str)*)mpl->str_intern); ++k) {
-        if (kh_exist((khash_t(kh_str)*)mpl->str_intern, k)) {
-            STRING *str = (STRING *)kh_key((khash_t(kh_str)*)mpl->str_intern, k);
+      khash_t(kh_str)* h = (khash_t(kh_str)*)mpl->str_intern;
+      for (k = 0; k < kh_end(h); ++k) {
+        if (kh_exist(h, k)) {
+            STRING *str = (STRING *)kh_key(h, k);
             dmp_free_atom(mpl->strings, str, strlen(str)+1);
         }
       }
+      kh_destroy(kh_str, mpl->str_intern);
+      mpl->str_intern = NULL;
 }
 
 /**********************************************************************/
@@ -1403,6 +1413,12 @@ done: /* return to the calling program */
 -- The routine mpl_terminate frees all the resources used by the GNU
 -- MathProg translator. */
 
+#if defined(WITH_KBTREE)
+extern void kbtree_memb_DESTROY(void *btree);
+#elif defined(WITH_KHASH)
+extern void destroy_khash_map_member(MPL *mpl, ARRAY *array);
+#endif
+
 void mpl_terminate(MPL *mpl)
 {     if (setjmp(mpl->jump)) xassert(mpl != mpl);
       switch (mpl->phase)
@@ -1422,8 +1438,12 @@ void mpl_terminate(MPL *mpl)
                search trees, which may be created for some arrays */
             {  ARRAY *a;
                for (a = mpl->a_list; a != NULL; a = a->next)
-#ifdef WITH_SPLAYTREE
+#if defined(WITH_SPLAYTREE)
                   if (a->tree != NULL) SplayTree_Free(a->tree);
+#elif defined(WITH_KHASH)
+                  destroy_khash_map_member(mpl, a);
+#elif defined(WITH_KBTREE)
+                  kbtree_memb_DESTROY(a->tree);
 #else
                   if (a->tree != NULL) avl_delete_tree(a->tree);
 #endif
@@ -1443,7 +1463,6 @@ void mpl_terminate(MPL *mpl)
       dmp_delete_pool(mpl->pool);
       avl_delete_tree(mpl->tree);
       clean_string_interned(mpl);
-      kh_destroy(kh_str, mpl->str_intern);
       dmp_delete_pool(mpl->strings);
       dmp_delete_pool(mpl->symbols);
       dmp_delete_pool(mpl->tuples);
