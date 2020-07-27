@@ -227,7 +227,11 @@ static void check_flags(struct csa *csa)
             xassert(!flag[j]);
          else if (l[k] == -DBL_MAX && u[k] != +DBL_MAX)
             xassert(flag[j]);
-         else if (l[k] == u[k])
+#ifdef CSL_MULTI_OBJECTIVE
+       else if (l[k] == u[k])
+          xassert(!flag[j]);
+#endif
+       else if (l[k] == u[k])
             xassert(!flag[j]);
       }
       return;
@@ -1192,6 +1196,60 @@ void spy_update_r(SPXLP *lp, int p, int q, const double beta[/*1+m*/],
 }
 #endif
 
+#ifdef CSL_MULTI_OBJECTIVE
+/***********************************************************************
+*  next_objective - set up the next objective
+*
+*  After restriciting the free variables to the solution space,
+*  the next objective is computed into the array lp->c */
+
+static void next_objective(glp_prob *P, struct csa *csa, int objno, 
+      int map[/*1+m+n */])
+{     SPXLP *lp = csa->lp;
+      int n = lp->n;
+      int m = lp->m;
+      double *c = lp->c;
+      double *d = csa->d;
+      double *l = lp->l;
+      double *u = lp->u;
+      double tol = csa->tol_dj;
+      double tol1 = csa->tol_dj1;
+      int *head = lp->head;
+      double dir, eps;
+      int objidx,j,k;
+      /* change the bounds where the variable is fixed */
+      for (j = 1; j <= n-m; j++)
+      {  k = head[m+j]; /* x[k] = xN[j] */
+         if (l[k] == u[k]) /* skip it */
+            continue;
+         eps = tol + tol1 * (c[k]>=0.0 ? +c[k] : -c[k]);
+         if (d[j] > +0.5*eps) /* lower bound is active */
+         {  u[k] = l[k]; xassert(!lp->flag[j]); }
+         else if (d[j] < -0.5*eps) /* upper bound is active */
+         {  l[k] = u[k]; xassert(lp->flag[j]); }
+      }
+      /* set up the next objective to lp->c */
+      dir = P->dir == GLP_MIN ? +1.0 : -1.0; /* get direction */
+      memset(c,0,(n+1)*sizeof(double)); /* set c[] to zero */
+      for (objidx=P->cobj_idx[objno-1]; P->cobj_idx[objidx]>0; objidx++)
+      {  j = P->cobj_idx[objidx];
+         k=map[m+j];
+         if (k == 0)
+            continue;
+         /* xassert(1 <= k && k <= lp->n); */
+         c[k] = dir * P->cobj_val[objidx] * P->col[j]->sjj;
+      }
+      /* save lover and upper bounds */
+#if SCALE_Z
+      for (k = 0; k <= n; k++)
+         c[k] /= csa->fz;
+#endif
+      memcpy(csa->orig_l, l, (1+n) * sizeof(double));
+      memcpy(csa->orig_u, u, (1+n) * sizeof(double));
+      memcpy(csa->orig_c, c, (1+n) * sizeof(double));
+}
+#endif
+
 /***********************************************************************
 *  spy_dual - driver to the dual simplex method
 *
@@ -1842,6 +1900,9 @@ int spy_dual(glp_prob *P, const glp_smcp *parm)
 #if SCALE_Z
       int i, j, k;
 #endif
+#ifdef CSL_MULTI_OBJECTIVE
+      int objs;
+#endif
       /* build working LP and its initial basis */
       memset(csa, 0, sizeof(struct csa));
       csa->lp = &lp;
@@ -2008,6 +2069,21 @@ int spy_dual(glp_prob *P, const glp_smcp *parm)
 #endif
       /* try to solve working LP */
       ret = dual_simplex(csa);
+#ifdef CSL_MULTI_OBJECTIVE
+      /* go over further objectives; restrict the solution space and
+         compute the next objective */
+      if (parm->mobj == GLP_ON)
+         for (objs = 1; csa->p_stat == GLP_FEAS &&
+            csa->d_stat == GLP_FEAS && objs <= P->cobj_num; objs++)
+         {  /* restrict search to the solution space */
+            next_objective(P,csa,objs,map);
+            csa->d_st = 0;
+            csa->phase = 0;
+            if(parm->pricing == GLP_PT_PSE)
+               csa->se->valid = 0;
+            ret = dual_simplex(csa);
+         }
+#endif
       /* return basis factorization back to problem object */
       P->valid = csa->lp->valid;
       P->bfd = csa->lp->bfd;

@@ -387,6 +387,42 @@ double glp_get_obj_coef(glp_prob *lp, int j)
       return j == 0 ? lp->c0 : lp->col[j]->coef;
 }
 
+#ifdef CSL_MULTI_OBJECTIVE
+/***********************************************************************
+*  NAME
+*
+*  glp_get_multiobj_coef - retrieve obj. coefficient or constant term
+*
+*  SYNOPSIS
+*
+*  double glp_get_obj_coef(glp_prob *lp, int objno, int j);
+*
+*  RETURNS
+*
+*  The routine glp_get_multiobj_coef returns the objective coefficient at
+*  j-th structural variable (column) of the specified problem object.
+*
+*  If the parameter j is zero, the routine returns the constant term
+*  ("shift") of the objective function. */
+
+double glp_get_multiobj_coef(glp_prob *lp, int objno, int j)
+{     int idx;
+      if (!(0 <= j && j <= lp->n))
+         xerror("glp_get_multiobj_coef: j = %d; column number out of range\n"
+            , j);
+      if (!(0 < objno && objno <= lp->cobj_num))
+         xerror("glp_get_multiobj_coef: objno = %d; object number out of range\n"
+            , objno);
+      if (j == 0)
+         return lp->cobj_val[objno-1];
+      for (idx=lp->cobj_idx[objno-1]; lp->cobj_idx[idx]>=0; idx++)
+      {  if (lp->cobj_idx[idx] == j)
+            return lp->cobj_val[idx];
+      }
+      return 0.0;
+}
+#endif
+
 /***********************************************************************
 *  NAME
 *

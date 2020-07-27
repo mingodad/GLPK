@@ -1105,6 +1105,72 @@ static void display(struct csa *csa, int spec)
 skip: return;
 }
 
+#ifdef CSL_MULTI_OBJECTIVE
+/***********************************************************************
+*  next_objective - set up the next objective
+*
+*  After restriciting the free variables to the solution space,
+*  the next objective is computed into the array lp->c */
+
+static void next_objective(glp_prob *P, struct csa *csa, int objno,
+      int map[/*1+m+n */])
+{     /* set up next next objective into lp->c */
+      SPXLP *lp = csa->lp;
+      int n = lp->n;
+      int m = lp->m;
+      double *c = lp->c;
+      double *d = csa->d;
+      double *l = lp->l;
+      double *u = lp->u;
+      int *head = lp->head;
+      char *flag = lp->flag;
+      double tol = csa->tol_dj, tol1 = csa->tol_dj1;
+      double eps,dir;
+      int objidx,j,k;
+      /* walk thu the list of non-basic variables */
+      for (j = 1; j <= n-m; j++)
+      {  k = head[m+j]; /* x[k] = xN[j] */
+         if (l[k] == u[k]) /* xN[j] is fixed, skip it */
+            continue;
+         /* determine absolute tolerance eps[j] */
+         eps = tol + tol1 *(c[k] >= 0.0 ? +c[k] : -c[k]);
+         /* check if xN[j] will be fixed */
+         if (d[j] < -0.5*eps)
+         {  /* xN[j] should be able to increase */
+            if (flag[j]) /* but its upper bound is active */
+               l[k] = u[k];
+         }
+         else if (d[j] > +0.5*eps)
+         { /* xN[j] should be able to decrease */
+            if (!flag[j] && l[k] != -DBL_MAX)
+               /* but its lower bound is active */
+               u[k] = l[k];
+         }
+      }
+      /* set up the new objective to lp->c */
+      memset(c,0,(n+1)*sizeof(double)); /* set c[] to zero */
+      dir = P->dir == GLP_MIN ? +1.0 : -1.0; /* get direction */
+      for (objidx=P->cobj_idx[objno-1]; P->cobj_idx[objidx]>0; objidx++)
+      {  j = P->cobj_idx[objidx];
+         k=map[m+j];
+         if (k == 0)
+            continue;
+         if (k < 0)
+            k = -k;
+         /* xassert(1 <= k && k <= lp->n); */
+         c[k] = dir * P->cobj_val[objidx] * P->col[j]->sjj;
+      }
+      /* and save the objective in csa->c */
+#if SCALE_Z
+      for (k = 1; k <= n; k++)
+         c[k] /= csa->fz;
+#endif
+      memcpy(csa->orig_c, c, (1+n)*sizeof(double));
+      memcpy(csa->orig_l, l, (1+n)*sizeof(double));
+      memcpy(csa->orig_u, u, (1+n)*sizeof(double));
+}
+#endif
+
 /***********************************************************************
 *  spx_primal - driver to the primal simplex method
 *
@@ -1608,6 +1674,9 @@ int spx_primal(glp_prob *P, const glp_smcp *parm)
       SPXAT at;
       SPXNT nt;
       SPXSE se;
+#ifdef CSL_MULTI_OBJECTIVE
+      int objs;
+#endif
       int ret, *map, *daeh;
 #if SCALE_Z
       int i, j, k;
@@ -1764,6 +1833,20 @@ int spx_primal(glp_prob *P, const glp_smcp *parm)
 #endif
       /* try to solve working LP */
       ret = primal_simplex(csa);
+#ifdef CSL_MULTI_OBJECTIVE
+      /* go over further objectives; restrict the solution space and
+         compute the next objective */
+      if (parm->mobj == GLP_ON)
+         for (objs = 1; csa->p_stat == GLP_FEAS &&
+            csa->d_stat == GLP_FEAS && objs <= P->cobj_num; objs++)
+         {  /* restrict search to the solution space and set up the new goal */
+            next_objective(P,csa,objs,map);
+            /* reduced costs are invalid */
+            csa->d_st = 0;
+            /* if (csa->se) csa->se->valid=0; */
+            ret = primal_simplex(csa);
+         }
+#endif
       /* return basis factorization back to problem object */
       P->valid = csa->lp->valid;
       P->bfd = csa->lp->bfd;

@@ -89,6 +89,20 @@ struct glp_prob
       AVL *c_tree;
       /* column index to find columns by their names; NULL means this
          index does not exist */
+#ifdef CSL_MULTI_OBJECTIVE
+      int cobj_num;
+      /* actual number of extra objectives. Objectives are stored in an
+         index and value list. IDX[i] points to the start of the i'th
+         extra objective, VAL[i] is the shift (constant tag). Starting at
+         IDX[i] the column indices and objective values are stored; the
+         last item has value -1 */
+      int cobj_max, cobj_end;
+      /* allocated and used number of objective storage */
+      int *cobj_idx;
+      /* index of objective coefficients */
+      double *cobj_val;
+      /* value of the objectives */
+#endif
       /*--------------------------------------------------------------*/
       /* basis factorization (LP) */
       int valid;

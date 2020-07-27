@@ -86,6 +86,13 @@ static void create_prob(glp_prob *lp)
       lp->row = xcalloc(1+lp->m_max, sizeof(GLPROW *));
       lp->col = xcalloc(1+lp->n_max, sizeof(GLPCOL *));
       lp->r_tree = lp->c_tree = NULL;
+#ifdef CSL_MULTI_OBJECTIVE
+       /* multi objective part */
+       lp->cobj_num = 0;
+       lp->cobj_max = lp->cobj_end = 0;
+       lp->cobj_idx = NULL;
+       lp->cobj_val = NULL;
+#endif
       /* basis factorization */
       lp->valid = 0;
       lp->head = xcalloc(1+lp->m_max, sizeof(int));
@@ -234,6 +241,49 @@ void glp_set_obj_dir(glp_prob *lp, int dir)
       lp->dir = dir;
       return;
 }
+
+#ifdef CSL_MULTI_OBJECTIVE
+/***********************************************************************
+*  NAME
+*
+*  glp_set_multiobj_number - set (change) number of additional objectives
+*
+*  SYNOPSIS
+*
+*  void glp_set_multiobj_number(glp_prob *lp, int nobjs);
+*
+*  DESCRIPTION
+*
+*  The routine glp_set_obj_number sets (changes) the number of additional
+*  objectives. When set to zero, no extra objectives are used, or the
+*  previously set objectives are deleted. New objectives are initially have
+*  all zero coefficients. */
+
+void glp_set_multiobj_number(glp_prob *lp, int nobjs)
+{     glp_tree *tree = lp->tree;
+      int idx;
+      if (tree != NULL && tree->reason != 0)
+         xerror("glp_set_multiobj_number: operation not allowed\n");
+      if (nobjs < 0 )
+         xerror("glp_set_multiobj_number: nobjs=%d; invalid number\n", nobjs);
+      if (nobjs > M_MAX)
+         xerror("glp_set_multiobj_number: nobjs=%d; too many objectives\n",nobjs);
+      if (nobjs == 0) /* delete all */
+      {  lp->cobj_num = 0;
+         lp->cobj_end = 0;
+      }
+      else if (nobjs < lp->cobj_num) /* shrink */
+      {  lp->cobj_num = nobjs;
+         for (idx=lp->cobj_idx[nobjs-1];lp->cobj_idx[idx]>=0;idx++);
+         lp->cobj_end = idx+1;
+      }
+      else if (nobjs > lp->cobj_num) /* expand */
+      {  for (idx=lp->cobj_num+1;idx<=nobjs;idx++)
+            glp_set_multiobj_coef(lp,idx,0,0.0);
+      }
+      return;
+}
+#endif
 
 /***********************************************************************
 *  NAME
@@ -704,6 +754,116 @@ void glp_set_obj_coef(glp_prob *lp, int j, double coef)
          lp->col[j]->coef = coef;
       return;
 }
+
+#ifdef CSL_MULTI_OBJECTIVE
+/***********************************************************************
+*  NAME
+*
+*  glp_set_multiobj_coef - set (change) obj. coefficient or constant term
+*
+*  SYNOPSIS
+*
+*  void glp_set_multiobj_coef(glp_prob *lp, int objn, int j, double coef);
+*
+*  DESCRIPTION
+*
+*  The routine glp_set_multiobj_coef sets (changes) the objn'th objective
+*  coefficient at j-th column (structural variable) of the specified problem
+*  object.
+*
+*  If the parameter j is 0, the routine sets (changes) the constant term
+*  ("shift") of the objective function. */
+
+
+/* Non-zero coefficients of additional objectives are stored in
+*  cobj_idx[0:cobj_max-1] and cobj_val[0:cobj_max-1]. Objectives are indexed
+*  from 1 to obj_num. Coefficients for objective objno is stored as follows.
+*      cobj_val[objno-1]  contains the "shift" (not used)
+*      cobj_idx[objno-1]  contains a forward index "idx"
+*      starting from "idx" cobj_idx[idx] is the column number
+*                          cobj_val[idx] is the objective value
+*      until cobj_idx[idx]==-1
+*
+*  Alternative: cobj_val[objno-1] contains the objective value; the
+*  "shift" is stored at cobj_val[idx] where cobj_idx[idx]==-1.
+*
+*  The routine mk_multiobjs_space(lp,idx) adds an empty slot at index idx
+*  by shifting cobj_idx and cobj_val by one to the right, and adjusting
+*  the pointers at 0:cobj_num-1. */
+static void mk_multiobj_space(glp_prob *lp, int idx)
+{     int cend =  lp->cobj_end;  /* index of first free slot */
+      int i;
+      xassert(idx <= lp->cobj_end);
+      xassert(lp->cobj_num <= idx);
+      ++ lp-> cobj_end; /* now we have one more used elements */
+      if (cend >= lp->cobj_max)
+      /* no more space, expand both cobj_idx and cobj_val */
+      {  lp->cobj_max += 200;
+         if (lp->cobj_max == 200)
+         {  lp->cobj_idx = talloc(lp->cobj_max, int);
+            lp->cobj_val = talloc(lp->cobj_max, double);
+         }
+         else
+         {  lp->cobj_idx = trealloc(lp->cobj_idx, lp->cobj_max, int);
+            lp->cobj_val = trealloc(lp->cobj_val, lp->cobj_max, double);
+         }
+      }
+      /* shift idx .. cend to the right  by one */
+      for (i=cend;i>idx;i--)
+      {  lp->cobj_idx[i]=lp->cobj_idx[i-1];
+         lp->cobj_val[i]=lp->cobj_val[i-1];
+      }
+      /* adjust pointers at the beginning */
+      for (i=0;i<lp->cobj_num;i++)
+      {  if (lp->cobj_idx[i] >= idx)
+            lp->cobj_idx[i] ++;
+      }
+}
+
+void glp_set_multiobj_coef(glp_prob *lp, int objn, int j, double coef)
+{     glp_tree *tree = lp->tree;
+      int idx;
+      if (tree != NULL && tree->reason != 0)
+         xerror("glp_set_multiobj_coef: operation not allowed\n");
+      if (!(0 <= j && j <= lp->n))
+         xerror("glp_set_multiobj_coef: j = %d; column number out of range\n"
+            , j);
+      if (!(0< objn && objn <= lp->cobj_num+1))
+         xerror("glp_set_multiobj_coef: objn = %d; object number out of range\n"
+                "     use glp_set_multiobj_number() to set the number of objectives\n"
+            , objn);
+      objn--;
+      if(objn == lp->cobj_num)
+      /* next object number, not seen yet */
+      {  mk_multiobj_space(lp,objn); /* add space at the end */
+         lp->cobj_val[objn] = 0.0;
+         idx = lp->cobj_end;
+         lp->cobj_idx[objn] = idx;
+         mk_multiobj_space(lp,idx);
+         lp->cobj_idx[idx]=-1;
+         lp->cobj_num ++;
+      }
+      if (j == 0)
+      {  lp->cobj_val[objn] = coef;
+         return;
+      }
+      for (idx=lp->cobj_idx[objn]; lp->cobj_idx[idx]>=0; idx++)
+      {  if(lp->cobj_idx[idx] == j)
+         {  lp->cobj_val[idx] = coef;
+            return;
+         }
+      }
+      xassert(lp->cobj_idx[idx]==-1);
+      if (coef == 0.0) /* do not store zero coeffs */
+         return;
+      mk_multiobj_space(lp,idx+1);
+      lp->cobj_idx[idx+1]=-1;
+      lp->cobj_val[idx+1] = lp->cobj_val[idx];
+      lp->cobj_idx[idx] = j;
+      lp->cobj_val[idx] = coef;
+      return;
+}
+#endif
 
 /***********************************************************************
 *  NAME
@@ -1364,6 +1524,10 @@ void glp_del_cols(glp_prob *lp, int ncs, const int num[])
       if (!(1 <= ncs && ncs <= lp->n))
          xerror("glp_del_cols: ncs = %d; invalid number of columns\n",
             ncs);
+#ifdef CSL_MULTI_OBJECTIVE
+      if( lp->cobj_num > 0)
+         xerror("glp_del_cols: multiple objectives defined, cannot delete columns\n");
+#endif
       for (k = 1; k <= ncs; k++)
       {  /* take the number of column to be deleted */
          j = num[k];
@@ -1467,6 +1631,22 @@ void glp_copy_prob(glp_prob *dest, glp_prob *prob, int names)
       dest->pbs_stat = prob->pbs_stat;
       dest->dbs_stat = prob->dbs_stat;
       dest->obj_val = prob->obj_val;
+#ifdef CSL_MULTI_OBJECTIVE
+      if (prob->cobj_end > 0)
+      {  dest->cobj_num = prob->cobj_num;
+         dest->cobj_max = prob->cobj_max;
+         dest->cobj_end = prob->cobj_end;
+         dest->cobj_idx = talloc(prob->cobj_max,int);
+         dest->cobj_val = talloc(prob->cobj_max,double);
+         memcpy(dest->cobj_idx,prob->cobj_idx,prob->cobj_end*sizeof(int));
+         memcpy(dest->cobj_val,prob->cobj_val,prob->cobj_end*sizeof(double));
+      }
+      else
+      {  dest->cobj_end = 0;
+         dest->cobj_max = 0;
+         dest->cobj_num = 0;
+      }
+#endif
       dest->some = prob->some;
       dest->ipt_stat = prob->ipt_stat;
       dest->ipt_obj = prob->ipt_obj;
@@ -1582,6 +1762,10 @@ static void delete_prob(glp_prob *lp)
       xfree(lp->head);
 #if 0 /* 08/III-2014 */
       if (lp->bfcp != NULL) xfree(lp->bfcp);
+#endif
+#ifdef CSL_MULTI_OBJECTIVE
+      if(lp->cobj_idx != NULL) xfree(lp->cobj_idx);
+      if(lp->cobj_val != NULL) xfree(lp->cobj_val);
 #endif
       if (lp->bfd != NULL) bfd_delete_it(lp->bfd);
       return;

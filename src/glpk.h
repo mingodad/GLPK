@@ -35,6 +35,8 @@ extern "C" {
 #define GLP_MAJOR_VERSION  4
 #define GLP_MINOR_VERSION  65
 
+#define CSL_MULTI_OBJECTIVE
+
 typedef struct glp_prob glp_prob;
 /* LP/MIP problem object */
 
@@ -142,7 +144,12 @@ typedef struct
       int aorn;               /* option to use A or N: */
 #define GLP_USE_AT         1  /* use A matrix in row-wise format */
 #define GLP_USE_NT         2  /* use N matrix in row-wise format */
-      double foo_bar[33];     /* (reserved) */
+#ifdef CSL_MULTI_OBJECTIVE
+     int mobj;               /* flag enable/disable multiobjective */
+     double foo_bar[33];     /* reserved */
+#else
+     double foo_bar[33];     /* (reserved) */
+#endif
 #endif
 } glp_smcp;
 
@@ -316,6 +323,11 @@ void glp_set_obj_name(glp_prob *P, const char *name);
 void glp_set_obj_dir(glp_prob *P, int dir);
 /* set (change) optimization direction flag */
 
+#ifdef CSL_MULTI_OBJECTIVE
+void glp_set_multiobj_number(glp_prob *P, int nobjs);
+/* set the number of extra objectives to the problem object */
+#endif
+
 int glp_add_rows(glp_prob *P, int nrs);
 /* add new rows to problem object */
 
@@ -344,6 +356,11 @@ void glp_set_col_bnds(glp_prob *P, int j, int type, double lb,
 
 void glp_set_obj_coef(glp_prob *P, int j, double coef);
 /* set (change) obj. coefficient or constant term */
+
+#ifdef CSL_MULTI_OBJECTIVE
+void glp_set_multiobj_coef(glp_prob *P, int objno, int j, double coef);
+/* set (change) additional object coefficient or constant term */
+#endif
 
 void glp_set_mat_row(glp_prob *P, int i, int len, const int ind[],
       const double val[]);
@@ -419,6 +436,11 @@ double glp_get_col_ub(glp_prob *P, int j);
 
 double glp_get_obj_coef(glp_prob *P, int j);
 /* retrieve obj. coefficient or constant term */
+
+#ifdef CSL_MULTI_OBJECTIVE
+double glp_get_multiobj_coef(glp_prob *P, int objno, int j);
+/* retrieve extra obj coefficient of constant term */
+#endif
 
 int glp_get_num_nz(glp_prob *P);
 /* retrieve number of constraint coefficients */

@@ -12,6 +12,8 @@ Here is a brief of changes made to GLPK 4.65 distribution:
 * Replace SYMBOL structure fields by an unique nanbox field
 	see https://github.com/zuiderkwast/nanbox
 * Add a hash table for string interning
+* Added the patches from https://github.com/lcsirmaz/inner for
+	MultiObjective Linear Program (MOLP)
 
 To get the best performance configure like:
 

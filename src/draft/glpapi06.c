@@ -527,6 +527,9 @@ void glp_init_smcp(glp_smcp *parm)
       parm->shift = GLP_ON;
       parm->aorn = GLP_USE_NT;
 #endif
+#ifdef CSL_MULTI_OBJECTIVE
+      parm->mobj = GLP_OFF;
+#endif
       return;
 }
 
