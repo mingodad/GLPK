@@ -777,20 +777,24 @@ TUPLE *expand_tuple
       TUPLE *tuple,           /* modified */
       SYMBOL sym             /* not changed */
 )
-{     TUPLE *tail, *temp;
+{     TUPLE *temp;
       xassert(!symbol_is_null(sym));
-      /* create a new component */
-      tail = dmp_get_atom(mpl->tuples, sizeof(TUPLE));
-      tail->sym = sym;
-      tail->next = NULL;
       /* and append it to the component list */
-      if (tuple == NULL)
-         tuple = tail;
-      else
-      {  for (temp = tuple; temp->next != NULL; temp = temp->next);
-         temp->next = tail;
+      if (tuple == NULL) {
+         tuple = dmp_get_atom(mpl->tuples, sizeof(TUPLE));
+         tuple->size = 1;
+         tuple->refcount = 1;
+         tuple->sym[0] = sym;
+         return tuple;
       }
-      return tuple;
+      xassert(tuple->refcount == 1); /* only non copies can be extended */
+      size_t sz = sizeof(TUPLE)+((tuple->size)*sizeof(SYMBOL));
+      temp = dmp_get_atom(mpl->tuples, sz);
+      memcpy(temp, tuple, sz);
+      temp->sym[temp->size] = sym;
+      ++temp->size;
+      dmp_free_atom(mpl->tuples, tuple, sz - sizeof(SYMBOL));
+      return temp;
 }
 
 /*----------------------------------------------------------------------
@@ -803,11 +807,10 @@ int tuple_dimen
 (     MPL *mpl,
       const TUPLE *tuple            /* not changed */
 )
-{     const TUPLE *temp;
-      int dim = 0;
-      xassert(mpl == mpl);
-      for (temp = tuple; temp != NULL; temp = temp->next) dim++;
-      return dim;
+{
+      if (tuple == NULL)
+         return 0;
+      return tuple->size;
 }
 
 /*----------------------------------------------------------------------
@@ -815,24 +818,30 @@ int tuple_dimen
 --
 -- This routine returns an exact copy of n-tuple. */
 
+TUPLE *copy_tuple_full
+(     MPL *mpl,
+      TUPLE *tuple            /* not changed */
+)
+{
+      TUPLE *temp;
+      if (tuple == NULL)
+         return NULL;
+      size_t sz = sizeof(TUPLE)+((tuple->size-1)*sizeof(SYMBOL));
+      temp = dmp_get_atom(mpl->tuples, sz);
+      memcpy(temp, tuple, sz);
+      temp->refcount = 1;
+      return temp;
+}
+
 TUPLE *copy_tuple
 (     MPL *mpl,
-      const TUPLE *tuple            /* not changed */
+      TUPLE *tuple            /* not changed */
 )
-{     TUPLE *head, *tail;
+{
       if (tuple == NULL)
-         head = NULL;
-      else
-      {  head = tail = dmp_get_atom(mpl->tuples, sizeof(TUPLE));
-         for (; tuple != NULL; tuple = tuple->next)
-         {  xassert(!symbol_is_null(tuple->sym));
-            tail->sym = copy_symbol(mpl, tuple->sym);
-            if (tuple->next != NULL)
-                tail = (tail->next = dmp_get_atom(mpl->tuples, sizeof(TUPLE)));
-         }
-         tail->next = NULL;
-      }
-      return head;
+         return NULL;
+      ++tuple->refcount;
+      return tuple;
 }
 
 /*----------------------------------------------------------------------
@@ -854,19 +863,15 @@ int compare_tuples
       const TUPLE *tuple1,          /* not changed */
       const TUPLE *tuple2           /* not changed */
 )
-{     const TUPLE *item1, *item2;
+{
       int ret;
-      xassert(mpl == mpl);
-      for (item1 = tuple1, item2 = tuple2; item1 != NULL;
-           item1 = item1->next, item2 = item2->next)
-      {  xassert(item2 != NULL);
-         xassert(!symbol_is_null(item1->sym));
-         xassert(!symbol_is_null(item2->sym));
-         //ret = (item1->sym->sym.as_int64 == item2->sym->sym.as_int64) ? 0 : 1;
-         /*if(ret) */ret = compare_symbols(mpl, item1->sym, item2->sym);
-         if (ret != 0) return ret;
+      TUPLE_SIZE_T i;
+      if(!tuple1 || !tuple2) return 0;
+      xassert(tuple1->size == tuple2->size);
+      for(i=0; i < tuple1->size; ++i) {
+          ret = compare_symbols(mpl, tuple1->sym[i], tuple2->sym[i]);
+          if (ret != 0) return ret;
       }
-      xassert(item2 == NULL);
       return 0;
 }
 
@@ -881,15 +886,17 @@ TUPLE *build_subtuple
       const TUPLE *tuple,           /* not changed */
       int dim
 )
-{     const TUPLE *temp;
-      TUPLE *head;
-      int j;
-      head = create_tuple(mpl);
-      for (j = 1, temp = tuple; j <= dim; j++, temp = temp->next)
-      {  xassert(temp != NULL);
-         head = expand_tuple(mpl, head, copy_symbol(mpl, temp->sym));
-      }
-      return head;
+{     TUPLE *temp;
+      TUPLE_SIZE_T i;
+      if (tuple == NULL)
+         return NULL;
+      size_t sz = sizeof(TUPLE)+((dim-1)*sizeof(SYMBOL));
+      temp = dmp_get_atom(mpl->tuples, sz);
+      temp->refcount = 1;
+      temp->size = dim;
+      for(i=0; i < dim; ++i)
+          temp->sym[i] = copy_symbol(mpl, tuple->sym[i]);
+      return temp;
 }
 
 /*----------------------------------------------------------------------
@@ -901,13 +908,14 @@ void delete_tuple
 (     MPL *mpl,
       TUPLE *tuple            /* destroyed */
 )
-{     TUPLE *temp;
-      while (tuple != NULL)
-      {  temp = tuple;
-         tuple = temp->next;
-         xassert(!symbol_is_null(temp->sym));
-         delete_symbol(mpl, temp->sym);
-         dmp_free_atom(mpl->tuples, temp, sizeof(TUPLE));
+{     TUPLE_SIZE_T i;
+      if (tuple == NULL)
+         return;
+      if (--tuple->refcount == 0)
+      {
+         for(i=0; i < tuple->size; ++i)
+           if (!symbol_is_null(tuple->sym[i])) delete_symbol(mpl, tuple->sym[i]);
+         dmp_free_atom(mpl->tuples, tuple, sizeof(TUPLE)+((tuple->size-1)*sizeof(SYMBOL)));
       }
       return;
 }
@@ -928,6 +936,7 @@ char *format_tuple
 )
 {     const TUPLE *temp;
       int dim, j, len;
+      TUPLE_SIZE_T i;
       char *buf = mpl->tup_buf, str[255+1], *save;
 #     define safe_append(c) \
          (void)(len < 255 ? (buf[len++] = (char)(c)) : 0)
@@ -935,15 +944,17 @@ char *format_tuple
       dim = tuple_dimen(mpl, tuple);
       if (c == '[' && dim > 0) safe_append('[');
       if (c == '(' && dim > 1) safe_append('(');
-      for (temp = tuple; temp != NULL; temp = temp->next)
-      {  if (temp != tuple) safe_append(',');
-         xassert(!symbol_is_null(temp->sym));
-         save = mpl->sym_buf;
-         mpl->sym_buf = str;
-         format_symbol(mpl, temp->sym);
-         mpl->sym_buf = save;
-         xassert(strlen(str) < sizeof(str));
-         for (j = 0; str[j] != '\0'; j++) safe_append(str[j]);
+      if(tuple) {
+        for (i = 0; i < tuple->size; ++i)
+        {  if (i) safe_append(',');
+           xassert(!symbol_is_null(tuple->sym[i]));
+           save = mpl->sym_buf;
+           mpl->sym_buf = str;
+           format_symbol(mpl, tuple->sym[i]);
+           mpl->sym_buf = save;
+           xassert(strlen(str) < sizeof(str));
+           for (j = 0; str[j] != '\0'; j++) safe_append(str[j]);
+        }
       }
       if (c == '[' && dim > 0) safe_append(']');
       if (c == '(' && dim > 1) safe_append(')');
@@ -982,7 +993,7 @@ ELEMSET *create_elemset(MPL *mpl, int dim)
 MEMBER *find_tuple
 (     MPL *mpl,
       ELEMSET *set,           /* modified */
-      const TUPLE *tuple      /* not changed */
+      TUPLE *tuple      /* not changed */
 )
 {     xassert(set != NULL);
       xassert(set->type == A_NONE);
@@ -1337,6 +1348,7 @@ ELEMSET *set_cross
 {     ELEMSET *Z;
       MEMBER *memx, *memy;
       TUPLE *tuple, *temp;
+      TUPLE_SIZE_T i;
       xassert(X != NULL);
       xassert(X->type == A_NONE);
       xassert(X->dim > 0);
@@ -1346,10 +1358,10 @@ ELEMSET *set_cross
       Z = create_elemset(mpl, X->dim + Y->dim);
       for (memx = X->head; memx != NULL; memx = memx->next)
       {  for (memy = Y->head; memy != NULL; memy = memy->next)
-         {  tuple = copy_tuple(mpl, memx->tuple);
-            for (temp = memy->tuple; temp != NULL; temp = temp->next)
+         {  tuple = copy_tuple_full(mpl, memx->tuple);
+            for (i = 0; i < memy->tuple->size; ++i)
                tuple = expand_tuple(mpl, tuple, copy_symbol(mpl,
-                  temp->sym));
+                  memy->tuple->sym[i]));
             add_tuple(mpl, Z, tuple);
          }
       }
@@ -1687,6 +1699,13 @@ static int compare_member_tuples(void *info, const void *key1,
 }
 
 #if defined(WITH_SPLAYTREE)
+static int SplayTree_compare_member_tuples(void *info, const void *key1,
+      const void *key2)
+{     /* this is an auxiliary routine used to compare keys, which are
+         n-tuples assigned to array members */
+      return compare_tuples((MPL *)info, ((MEMBER*)key1)->tuple,
+              ((MEMBER*)key2)->tuple);
+}
 #elif defined(WITH_KBTREE)
 typedef struct {
     MEMBER *memb;
@@ -1787,7 +1806,7 @@ void destroy_khash_map_member(MPL *mpl, ARRAY *array) {
 MEMBER *find_member
 (     MPL *mpl,
       ARRAY *array,           /* modified */
-      const TUPLE *tuple      /* not changed */
+      TUPLE *tuple      /* not changed */
 )
 {     MEMBER *memb;
 #if defined(WITH_KBTREE)
@@ -1800,9 +1819,9 @@ MEMBER *find_member
          all existing members of the array */
       if (array->size > 30 && array->tree == NULL)
 #if defined(WITH_SPLAYTREE)
-      {  array->tree = SplayTree_New(compare_member_tuples, mpl);
+      {  array->tree = SplayTree_New(SplayTree_compare_member_tuples, mpl);
          for (memb = array->head; memb != NULL; memb = memb->next)
-            SplayTree_insert(array->tree, memb->tuple, memb);
+            SplayTree_insert(array->tree, (void *)memb);
 #elif defined(WITH_KBTREE)
       {
          array->tree = kb_init(memb, KB_DEFAULT_SIZE);
@@ -1835,19 +1854,19 @@ MEMBER *find_member
       }
       else
       {  /* the search tree exists; use the binary search */
+         MEMBER mf;
+         mf.tuple = tuple;
 #if defined(WITH_SPLAYTREE)
-         memb = (MEMBER *)SplayTree_find(array->tree, tuple);
+         memb = (MEMBER *)SplayTree_find(array->tree, &mf);
 #elif defined(WITH_KHASH)
          memb = hashmap_find_member(mpl, array, tuple);
 #elif defined(WITH_KBTREE)
-         MEMBER mf;
-         mf.tuple = tuple;
          kbt_t.memb = &mf;
          kbt_p = kb_getp(memb, array->tree, &kbt_t);
          memb = kbt_p ? kbt_p->memb : NULL;
 #else
          AVLNODE *node;
-         node = avl_find_node(array->tree, tuple);
+         node = avl_find_node(array->tree, &mf);
          memb = (MEMBER *)(node == NULL ? NULL : avl_get_node_link(node));
 #endif
       }
@@ -2020,13 +2039,13 @@ void update_dummy_indices
       const DOMAIN_BLOCK *block     /* not changed */
 )
 {     DOMAIN_SLOT *slot;
-      TUPLE *temp;
+      TUPLE_SIZE_T i;
       if (block->backup != NULL)
-      {  for (slot = block->list, temp = block->backup; slot != NULL;
-            slot = slot->next, temp = temp->next)
-         {  xassert(temp != NULL);
-            xassert(!symbol_is_null(temp->sym));
-            assign_dummy_index(mpl, slot, temp->sym);
+      {  for (slot = block->list, i = 0; slot != NULL;
+            slot = slot->next, ++i)
+         {  xassert(i < block->backup->size);
+            xassert(!symbol_is_null(block->backup->sym[i]));
+            assign_dummy_index(mpl, slot, block->backup->sym[i]);
          }
       }
       return;
@@ -2101,7 +2120,7 @@ int enter_domain_block
          assigned values of the dummy indices that involves keeping all
          dependent temporary results and thereby, if this domain block
          is not used recursively, allows improving efficiency */
-      update_dummy_indices(mpl, block);
+      if(block->backup) update_dummy_indices(mpl, block);
 done: return ret;
 }
 
@@ -2159,6 +2178,8 @@ static void eval_domain_func(MPL *mpl, void *_my_info)
          DOMAIN_BLOCK *block;
          DOMAIN_SLOT *slot;
          TUPLE *tuple = NULL, *temp = NULL;
+         SYMBOL sym = create_symbol_num(mpl, 0.0);
+         int i;
          /* save pointer to the current domain block */
          block = my_info->block;
          /* and get ready to enter the next block (if it exists) */
@@ -2170,44 +2191,41 @@ static void eval_domain_func(MPL *mpl, void *_my_info)
             in the corresponding components of the given n-tuple, while
             other components that correspond to non-free dummy indices
             are assigned symbolic values computed here */
-         for (slot = block->list; slot != NULL; slot = slot->next)
+         i = 0;
+         for (slot = block->list; slot != NULL; slot = slot->next, ++i)
          {  /* create component that corresponds to the current slot */
             if (tuple == NULL)
-               tuple = temp = dmp_get_atom(mpl->tuples, sizeof(TUPLE));
+               tuple = expand_tuple(mpl, create_tuple(mpl), sym);
             else
-                temp = (temp->next = dmp_get_atom(mpl->tuples, sizeof(TUPLE)));
+                tuple = expand_tuple(mpl, tuple, sym);
             if (slot->code == NULL)
             {  /* dummy index is free; take reference to symbol, which
                   is specified in the corresponding component of given
                   n-tuple */
                xassert(my_info->tuple != NULL);
-               temp->sym = my_info->tuple->sym;
-               xassert(!symbol_is_null(temp->sym));
-               my_info->tuple = my_info->tuple->next;
+               tuple->sym[i] = my_info->tuple->sym[i];
+               xassert(!symbol_is_null(tuple->sym[i]));
             }
             else
             {  /* dummy index is non-free; compute symbolic value to be
                   temporarily assigned to the dummy index */
-               temp->sym = eval_symbolic(mpl, slot->code);
+               tuple->sym[i] = eval_symbolic(mpl, slot->code);
             }
          }
-         temp->next = NULL;
          /* enter the current domain block */
          if (enter_domain_block(mpl, block, tuple, my_info,
                eval_domain_func)) my_info->failure = 1;
          /* delete temporary n-tuple as well as symbols that correspond
             to non-free dummy indices (they were computed here) */
-         for (slot = block->list; slot != NULL; slot = slot->next)
-         {  xassert(tuple != NULL);
-            temp = tuple;
-            tuple = tuple->next;
+         i = 0;
+         for (slot = block->list; slot != NULL; slot = slot->next, ++i)
+         {  xassert(!symbol_is_null(tuple->sym[i]));
             if (slot->code != NULL)
             {  /* dummy index is non-free; delete symbolic value */
-               delete_symbol(mpl, temp->sym);
+               delete_symbol(mpl, tuple->sym[i]);
             }
-            /* delete component that corresponds to the current slot */
-            dmp_free_atom(mpl->tuples, temp, sizeof(TUPLE));
          }
+         dmp_free_atom(mpl->tuples, tuple, sizeof(TUPLE)+((tuple->size-1)*sizeof(SYMBOL)));
       }
       else
       {  /* there are no more domain blocks, i.e. we have reached the
@@ -2336,7 +2354,7 @@ static void loop_domain_func(MPL *mpl, void *_my_info)
             /* walk through 1-tuples of the basic set */
             for (j = 1; j <= n && my_info->looping; j++)
             {  /* construct dummy 1-tuple for the current member */
-               tuple->sym.sym = nanbox_from_double(arelset_member(mpl, t0, tf, dt, j));
+               tuple->sym[0].sym = nanbox_from_double(arelset_member(mpl, t0, tf, dt, j));
                /* enter the current domain block */
                enter_domain_block(mpl, block, tuple, my_info,
                   loop_domain_func);
@@ -2349,7 +2367,7 @@ static void loop_domain_func(MPL *mpl, void *_my_info)
                to be explicitly computed */
             ELEMSET *set;
             MEMBER *memb;
-            TUPLE *temp1, *temp2;
+            int i, j;
             /* compute the basic set */
             set = eval_elemset(mpl, block->code);
             /* walk through all n-tuples of the basic set */
@@ -2358,24 +2376,21 @@ static void loop_domain_func(MPL *mpl, void *_my_info)
             {  /* all components of the current n-tuple that correspond
                   to non-free dummy indices must be feasible; otherwise
                   the n-tuple is not in the basic set */
-               temp1 = memb->tuple;
-               temp2 = bound;
-               for (slot = block->list; slot != NULL; slot = slot->next)
-               {  xassert(temp1 != NULL);
+               for (slot = block->list, i = j = 0; slot != NULL; slot = slot->next, ++i)
+               {  xassert(!symbol_is_null(memb->tuple->sym[i]));
                   if (slot->code != NULL)
                   {  /* non-free dummy index */
-                     xassert(temp2 != NULL);
-                     if (compare_symbols(mpl, temp1->sym, temp2->sym)
+                     xassert(!symbol_is_null(bound->sym[j]));
+                     if (compare_symbols(mpl, memb->tuple->sym[i], bound->sym[j])
                         != 0)
                      {  /* the n-tuple is not in the basic set */
                         goto skip;
                      }
-                     temp2 = temp2->next;
+                     ++j;
                   }
-                  temp1 = temp1->next;
                }
-               xassert(temp1 == NULL);
-               xassert(temp2 == NULL);
+               xassert(i == memb->tuple->size);
+               xassert(j == (bound ? bound->size : 0));
                /* enter the current domain block */
                enter_domain_block(mpl, block, memb->tuple, my_info,
                   loop_domain_func);
@@ -2557,7 +2572,7 @@ void check_elem_set
 ELEMSET *take_member_set      /* returns reference, not value */
 (     MPL *mpl,
       const SET *set,               /* not changed */
-      const TUPLE *tuple            /* not changed */
+      TUPLE *tuple            /* not changed */
 )
 {     MEMBER *memb;
       ELEMSET *refer;
@@ -2631,8 +2646,10 @@ static void saturate_set(MPL *mpl, SET *set)
 {     GADGET *gadget = set->gadget;
       ELEMSET *data;
       MEMBER *elem, *memb;
-      TUPLE *tuple, *work[MAX_TUPLE_DIM];
+      TUPLE *tuple;
+      SYMBOL work[MAX_TUPLE_DIM], sym;
       int i;
+      TUPLE_SIZE_T j;
       xprintf("Generating %s...\n", set->name);
       eval_whole_set(mpl, gadget->set);
       /* gadget set must have exactly one member */
@@ -2643,24 +2660,24 @@ static void saturate_set(MPL *mpl, SET *set)
       xassert(data->type == A_NONE);
       xassert(data->dim == gadget->set->dimen);
       /* walk thru all elements of the plain set */
+      sym.sym = nanbox_null(); 
       for (elem = data->head; elem != NULL; elem = elem->next)
       {  /* create a copy of n-tuple */
-         tuple = copy_tuple(mpl, elem->tuple);
+         tuple = create_tuple(mpl);
          /* rearrange component of the n-tuple */
          for (i = 0; i < gadget->set->dimen; i++)
-            work[i] = NULL;
-         for (i = 0; tuple != NULL; tuple = tuple->next)
-            work[gadget->ind[i++]-1] = tuple;
+            work[i] = sym;
+         for (i = 0, j = 0; j < elem->tuple->size; ++j)
+            work[gadget->ind[i++]-1] = elem->tuple->sym[j];
          xassert(i == gadget->set->dimen);
-         for (i = 0; i < gadget->set->dimen; i++)
-         {  xassert(work[i] != NULL);
-            work[i]->next = work[i+1];
-         }
          /* construct subscript list from first set->dim components */
          if (set->dim == 0)
             tuple = NULL;
          else
-            tuple = work[0], work[set->dim-1]->next = NULL;
+         {
+             for (i = 0; i < elem->tuple->size; ++i)
+                 tuple = expand_tuple(mpl, tuple, work[i]);
+         }
          /* find corresponding member of the set to be initialized */
          memb = find_member(mpl, set->array, tuple);
          if (memb == NULL)
@@ -2883,7 +2900,7 @@ err:              error(mpl, "%s%s = %.*g not %s %.*g; see (%d)",
 double take_member_num
 (     MPL *mpl,
       const PARAMETER *par,         /* not changed */
-      const TUPLE *tuple            /* not changed */
+      TUPLE *tuple            /* not changed */
 )
 {     MEMBER *memb;
       double value;
@@ -3096,7 +3113,7 @@ void check_value_sym
 SYMBOL take_member_sym       /* returns value, not reference */
 (     MPL *mpl,
       const PARAMETER *par,         /* not changed */
-      const TUPLE *tuple            /* not changed */
+      TUPLE *tuple            /* not changed */
 )
 {     MEMBER *memb;
       SYMBOL value;
@@ -3295,7 +3312,7 @@ void clean_parameter(MPL *mpl, PARAMETER *par)
 ELEMVAR *take_member_var      /* returns reference */
 (     MPL *mpl,
       VARIABLE *var,          /* not changed */
-      const TUPLE *tuple            /* not changed */
+      TUPLE *tuple            /* not changed */
 )
 {     MEMBER *memb;
       ELEMVAR *refer;
@@ -3436,7 +3453,7 @@ void clean_variable(MPL *mpl, VARIABLE *var)
 ELEMCON *take_member_con      /* returns reference */
 (     MPL *mpl,
       CONSTRAINT *con,        /* not changed */
-      const TUPLE *tuple            /* not changed */
+      TUPLE *tuple            /* not changed */
 )
 {     MEMBER *memb;
       ELEMCON *refer;
@@ -4680,7 +4697,7 @@ static void null_func(MPL *mpl, void *info)
       return;
 }
 
-int is_member(MPL *mpl, CODE *code, const TUPLE *tuple)
+int is_member(MPL *mpl, CODE *code, TUPLE *tuple)
 {     int value;
       xassert(code != NULL);
       xassert(code->type == A_ELEMSET);
@@ -4743,11 +4760,10 @@ int is_member(MPL *mpl, CODE *code, const TUPLE *tuple)
             {  int j;
                value = is_member(mpl, code->arg.arg.x, tuple);
                if (value)
-               {  for (j = 1; j <= code->arg.arg.x->dim; j++)
-                  {  xassert(tuple != NULL);
-                     tuple = tuple->next;
-                  }
+               {
+                  tuple = expand_tuple(mpl, create_tuple(mpl), tuple->sym[code->arg.arg.x->dim]);
                   value = is_member(mpl, code->arg.arg.y, tuple);
+                  delete_tuple(mpl, tuple);
                }
             }
             break;
@@ -4767,13 +4783,13 @@ int is_member(MPL *mpl, CODE *code, const TUPLE *tuple)
                arelset_size(mpl, t0, tf, dt);
                /* if component of 1-tuple is symbolic, not numeric, the
                   1-tuple cannot be member of "arithmetic" set */
-               xassert(!symbol_is_null(tuple->sym));
-               if (nanbox_is_pointer(tuple->sym.sym))
+               xassert(!symbol_is_null(tuple->sym[0]));
+               if (nanbox_is_pointer(tuple->sym[0].sym))
                {  value = 0;
                   break;
                }
                /* determine numeric value of the component */
-               x = nanbox_to_double(tuple->sym.sym);
+               x = nanbox_to_double(tuple->sym[0].sym);
                /* if the component value is out of the set range, the
                   1-tuple is not in the set */
                if (dt > 0.0 && !(t0 <= x && x <= tf) ||
@@ -4865,7 +4881,7 @@ static int iter_form_func(MPL *mpl, void *_info)
                   info->tail->next = form;
                }
                for (term = form; term != NULL; term = term->next)
-                  info->tail = term;
+                  if(!term->next) info->tail = term;
             }
 #endif
             break;

@@ -655,7 +655,8 @@ int slice_dimen
 #define slice_arity _glp_mpl_slice_arity
 int slice_arity
 (     MPL *mpl,
-      const SLICE *slice            /* not changed */
+      const SLICE *slice,            /* not changed */
+      int start_idx
 );
 /* determine arity of slice */
 
@@ -1014,14 +1015,15 @@ SYMBOL concat_symbols
 /**********************************************************************/
 /* * *                          N-TUPLES                          * * */
 /**********************************************************************/
-
+#ifndef TUPLE_SIZE_T
+#define TUPLE_SIZE_T int
+#endif
 struct TUPLE
-{     /* component of n-tuple; the n-tuple itself is associated with
-         its first component; (note that 0-tuple has no components) */
-      SYMBOL sym;
+{
+      TUPLE_SIZE_T size;
+      TUPLE_SIZE_T refcount;
+      SYMBOL sym[1];
       /* symbol, which the component refers to; cannot be NULL */
-      TUPLE *next;
-      /* the next component of n-tuple */
 };
 
 #define create_tuple _glp_mpl_create_tuple
@@ -1043,10 +1045,16 @@ int tuple_dimen
 );
 /* determine dimension of n-tuple */
 
+#define copy_tuple_full _glp_mpl_copy_tuple_full
+TUPLE *copy_tuple_full
+(     MPL *mpl,
+      TUPLE *tuple            /* not changed */
+);
+
 #define copy_tuple _glp_mpl_copy_tuple
 TUPLE *copy_tuple
 (     MPL *mpl,
-      const TUPLE *tuple            /* not changed */
+      TUPLE *tuple            /* not changed */
 );
 /* make copy of n-tuple */
 
@@ -1103,7 +1111,7 @@ ELEMSET *create_elemset(MPL *mpl, int dim);
 MEMBER *find_tuple
 (     MPL *mpl,
       ELEMSET *set,           /* modified */
-      const TUPLE *tuple      /* not changed */
+      TUPLE *tuple      /* not changed */
 );
 /* check if elemental set contains given n-tuple */
 
@@ -1426,7 +1434,7 @@ ARRAY *create_array(MPL *mpl, int type, int dim);
 MEMBER *find_member
 (     MPL *mpl,
       ARRAY *array,           /* modified */
-      const TUPLE *tuple      /* not changed */
+      TUPLE *tuple      /* not changed */
 );
 /* find array member with given n-tuple */
 
@@ -1633,7 +1641,7 @@ void check_elem_set
 ELEMSET *take_member_set      /* returns reference, not value */
 (     MPL *mpl,
       const SET *set,               /* not changed */
-      const TUPLE *tuple            /* not changed */
+      TUPLE *tuple            /* not changed */
 );
 /* obtain elemental set assigned to set member */
 
@@ -1726,7 +1734,7 @@ void check_value_num
 double take_member_num
 (     MPL *mpl,
       const PARAMETER *par,         /* not changed */
-      const TUPLE *tuple            /* not changed */
+      TUPLE *tuple            /* not changed */
 );
 /* obtain numeric value assigned to parameter member */
 
@@ -1751,7 +1759,7 @@ void check_value_sym
 SYMBOL take_member_sym       /* returns value, not reference */
 (     MPL *mpl,
       const PARAMETER *par,         /* not changed */
-      const TUPLE *tuple            /* not changed */
+      TUPLE *tuple            /* not changed */
 );
 /* obtain symbolic value assigned to parameter member */
 
@@ -1807,7 +1815,7 @@ struct VARIABLE
 ELEMVAR *take_member_var      /* returns reference */
 (     MPL *mpl,
       VARIABLE *var,          /* not changed */
-      const TUPLE *tuple            /* not changed */
+      TUPLE *tuple            /* not changed */
 );
 /* obtain reference to elemental variable */
 
@@ -1865,7 +1873,7 @@ struct CONSTRAINT
 ELEMCON *take_member_con      /* returns reference */
 (     MPL *mpl,
       CONSTRAINT *con,        /* not changed */
-      const TUPLE *tuple            /* not changed */
+      TUPLE *tuple            /* not changed */
 );
 /* obtain reference to elemental constraint */
 
@@ -2283,7 +2291,7 @@ ELEMSET *eval_elemset(MPL *mpl, CODE *code);
    returning a fake copy (refcount incremented)*/
 
 #define is_member _glp_mpl_is_member
-int is_member(MPL *mpl, CODE *code, const TUPLE *tuple);
+int is_member(MPL *mpl, CODE *code, TUPLE *tuple);
 /* check if n-tuple is in set specified by pseudo-code */
 
 #define eval_formula _glp_mpl_eval_formula
