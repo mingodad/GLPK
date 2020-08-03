@@ -1300,10 +1300,10 @@ struct ELEMCON
          members of model constraints (like numbers or symbols, which
          are values assigned to members of model parameters) */
       int i;
+      /* LP row number assigned to this elemental constraint */
 #if 1 /* 15/V-2010 */
       int stat;
 #endif
-      /* LP row number assigned to this elemental constraint */
       CONSTRAINT *con;
       /* model constraint, which contains this elemental constraint */
       MEMBER *memb;
