@@ -184,9 +184,11 @@ void build_problem(MPL *mpl)
          }
       }
 #endif
-      /* assign row numbers to elemental constraints and objectives */
+
       for (stmt = mpl->model; stmt != NULL; stmt = stmt->next)
-      {  if (stmt->type == A_CONSTRAINT)
+      {
+         /* assign row numbers to elemental constraints and objectives */
+         if (stmt->type == A_CONSTRAINT)
          {  c = stmt->u.con;
             for (memb = c->array->head; memb != NULL; memb = memb->next)
             {  xassert(memb->value.con->i == 0);
@@ -199,16 +201,17 @@ void build_problem(MPL *mpl)
                }
             }
          }
-      }
-      /* assign column numbers to marked elemental variables */
-      for (stmt = mpl->model; stmt != NULL; stmt = stmt->next)
-      {  if (stmt->type == A_VARIABLE)
-         {  v = stmt->u.var;
-            for (memb = v->array->head; memb != NULL; memb = memb->next)
-               if (memb->value.var->j != 0) memb->value.var->j =
-                  ++mpl->n;
+         /* assign column numbers to marked elemental variables */
+         else if (stmt->type == A_VARIABLE)
+         {
+            {  v = stmt->u.var;
+               for (memb = v->array->head; memb != NULL; memb = memb->next)
+                  if (memb->value.var->j != 0) memb->value.var->j =
+                     ++mpl->n;
+            }
          }
       }
+
       /* build list of rows */
       mpl->row = xcalloc(1+mpl->m, sizeof(ELEMCON *));
       for (i = 1; i <= mpl->m; i++) mpl->row[i] = NULL;
