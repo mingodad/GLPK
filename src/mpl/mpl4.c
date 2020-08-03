@@ -214,7 +214,6 @@ void build_problem(MPL *mpl)
 
       /* build list of rows */
       mpl->row = xcalloc(1+mpl->m, sizeof(ELEMCON *));
-      for (i = 1; i <= mpl->m; i++) mpl->row[i] = NULL;
       for (stmt = mpl->model; stmt != NULL; stmt = stmt->next)
       {  if (stmt->type == A_CONSTRAINT)
          {  c = stmt->u.con;
@@ -231,7 +230,6 @@ void build_problem(MPL *mpl)
 #endif
       /* build list of columns */
       mpl->col = xcalloc(1+mpl->n, sizeof(ELEMVAR *));
-      for (j = 1; j <= mpl->n; j++) mpl->col[j] = NULL;
       for (stmt = mpl->model; stmt != NULL; stmt = stmt->next)
       {  if (stmt->type == A_VARIABLE)
          {  v = stmt->u.var;
