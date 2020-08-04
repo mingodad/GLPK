@@ -91,8 +91,7 @@ int slice_dimen
 
 int slice_arity
 (     MPL *mpl,
-      const SLICE *slice,            /* not changed */
-      int start_idx 
+      const SLICE *slice            /* not changed */
 )
 {     const SLICE *temp;
       int arity;
@@ -335,21 +334,20 @@ void simple_format
 {     TUPLE *tuple;
       const SLICE *temp;
       SYMBOL sym, with;
-      TUPLE_SIZE_T i;
       with.sym = nanbox_null();
       xassert(set != NULL);
       xassert(memb != NULL);
       xassert(slice != NULL);
       xassert(set->dimen == slice_dimen(mpl, slice));
       xassert(memb->value.set->dim == set->dimen);
-      if (slice_arity(mpl, slice, 0) > 0) xassert(is_symbol(mpl));
+      if (slice_arity(mpl, slice) > 0) xassert(is_symbol(mpl));
       /* read symbols and construct complete n-tuple */
       tuple = create_tuple(mpl);
       for (temp = slice; temp != NULL; temp = temp->next)
       {  if (symbol_is_null(temp->sym))
          {  /* substitution is needed; read symbol */
             if (!is_symbol(mpl))
-            {  int lack = slice_arity(mpl, temp, 0);
+            {  int lack = slice_arity(mpl, temp);
                /* with cannot be null due to assertion above */
                xassert(!symbol_is_null(with));
                if (lack == 1)
@@ -418,7 +416,7 @@ void matrix_format
       xassert(slice != NULL);
       xassert(set->dimen == slice_dimen(mpl, slice));
       xassert(memb->value.set->dim == set->dimen);
-      xassert(slice_arity(mpl, slice, 0) == 2);
+      xassert(slice_arity(mpl, slice) == 2);
       /* read the matrix heading that contains column symbols (there
          may be no columns at all) */
       list = create_slice(mpl);
@@ -588,7 +586,7 @@ void set_data(MPL *mpl)
             tr = 0;
             /* if the new slice is 0-ary, formally there is one 0-tuple
                (in the simple format) that follows it */
-            if (slice_arity(mpl, slice, 0) == 0)
+            if (slice_arity(mpl, slice) == 0)
                simple_format(mpl, set, memb, slice);
          }
          else if (is_symbol(mpl))
@@ -597,9 +595,9 @@ void set_data(MPL *mpl)
          }
          else if (mpl->token == T_COLON)
          {  /* colon begins data in the matrix format */
-            if (slice_arity(mpl, slice, 0) != 2)
+            if (slice_arity(mpl, slice) != 2)
 err1:          error(mpl, "slice currently used must specify 2 asterisk"
-                  "s, not %d", slice_arity(mpl, slice, 0));
+                  "s, not %d", slice_arity(mpl, slice));
             get_token(mpl /* : */);
             /* read elemental set data in the matrix format */
             matrix_format(mpl, set, memb, slice, tr);
@@ -610,7 +608,7 @@ left:    {  /* left parenthesis begins the "transpose" indicator, which
             get_token(mpl /* ( */);
             if (!is_literal(mpl, "tr"))
 err2:          error(mpl, "transpose indicator (tr) incomplete");
-            if (slice_arity(mpl, slice, 0) != 2) goto err1;
+            if (slice_arity(mpl, slice) != 2) goto err1;
             get_token(mpl /* tr */);
             if (mpl->token != T_RIGHT) goto err2;
             get_token(mpl /* ) */);
@@ -754,7 +752,7 @@ void plain_format
         {  if (symbol_is_null(temp->sym))
            {  /* substitution is needed; read symbol */
               if (!is_symbol(mpl))
-              {  int lack = slice_arity(mpl, slice, i) + 1;
+              {  int lack = slice_arity(mpl, slice) + 1;
                  xassert(!symbol_is_null(with));
                  xassert(lack > 1);
                  error(mpl, "%d items missing in data group beginning wit"
@@ -819,7 +817,7 @@ void tabular_format
       SYMBOL row;
       xassert(par != NULL);
       xassert(par->dim == slice_dimen(mpl, slice));
-      xassert(slice_arity(mpl, slice, 0) == 2);
+      xassert(slice_arity(mpl, slice) == 2);
       /* read the table heading that contains column symbols (the table
          may have no columns) */
       list = create_slice(mpl);
@@ -924,7 +922,6 @@ void tabbing_format
       SLICE *list, *col;
       TUPLE *tuple;
       int next_token, j, dim = 0;
-      int sdimen;
       char *last_name = NULL;
       /* read the optional <prefix> */
       if (is_symbol(mpl))
@@ -1152,9 +1149,9 @@ void parameter_data(MPL *mpl)
             if (par->dim == 0)
 err1:          error(mpl, "%s not a subscripted parameter",
                   par->name);
-            if (slice_arity(mpl, slice, 0) != 2)
+            if (slice_arity(mpl, slice) != 2)
 err2:          error(mpl, "slice currently used must specify 2 asterisk"
-                  "s, not %d", slice_arity(mpl, slice, 0));
+                  "s, not %d", slice_arity(mpl, slice));
             get_token(mpl /* : */);
             /* read parameter data in the tabular format */
             tabular_format(mpl, par, slice, tr);
@@ -1166,7 +1163,7 @@ err2:          error(mpl, "slice currently used must specify 2 asterisk"
             if (!is_literal(mpl, "tr"))
 err3:          error(mpl, "transpose indicator (tr) incomplete");
             if (par->dim == 0) goto err1;
-            if (slice_arity(mpl, slice, 0) != 2) goto err2;
+            if (slice_arity(mpl, slice) != 2) goto err2;
             get_token(mpl /* tr */);
             if (mpl->token != T_RIGHT) goto err3;
             get_token(mpl /* ) */);

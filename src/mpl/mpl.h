@@ -673,8 +673,7 @@ int slice_dimen
 #define slice_arity _glp_mpl_slice_arity
 int slice_arity
 (     MPL *mpl,
-      const SLICE *slice,            /* not changed */
-      int start_idx
+      const SLICE *slice            /* not changed */
 );
 /* determine arity of slice */
 
