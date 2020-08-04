@@ -109,6 +109,7 @@ int glp_init_env(void)
       env->h_odbc = env->h_mysql = NULL;
       /* save pointer to the environment block */
       tls_set_ptr(env);
+      env->time_start = glp_time();
       /* initialization successful */
       return 0;
 }

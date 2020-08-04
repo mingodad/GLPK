@@ -1030,6 +1030,14 @@ struct TUPLE
 TUPLE *create_tuple(MPL *mpl);
 /* create n-tuple */
 
+#define expand_tuple_or_slice _glp_mpl_expand_tuple_or_slice
+TUPLE *expand_tuple_or_slice
+(     MPL *mpl,
+      TUPLE *tuple,           /* modified */
+      SYMBOL sym,             /* not changed */
+      int  isSlice
+);
+
 #define expand_tuple _glp_mpl_expand_tuple
 TUPLE *expand_tuple
 (     MPL *mpl,
@@ -1071,6 +1079,14 @@ TUPLE *build_subtuple
 (     MPL *mpl,
       const TUPLE *tuple,           /* not changed */
       int dim
+);
+/* build subtuple of given n-tuple */
+
+#define build_subtuple_starting_at _glp_mpl_build_subtuple_starting_at
+TUPLE *build_subtuple_starting_at
+(     MPL *mpl,
+      const TUPLE *tuple,           /* not changed */
+      int start_at
 );
 /* build subtuple of given n-tuple */
 
@@ -1308,10 +1324,10 @@ struct ELEMCON
          members of model constraints (like numbers or symbols, which
          are values assigned to members of model parameters) */
       int i;
+      /* LP row number assigned to this elemental constraint */
 #if 1 /* 15/V-2010 */
       int stat;
 #endif
-      /* LP row number assigned to this elemental constraint */
       CONSTRAINT *con;
       /* model constraint, which contains this elemental constraint */
       MEMBER *memb;

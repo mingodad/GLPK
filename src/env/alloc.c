@@ -249,4 +249,15 @@ void glp_mem_usage(int *count, int *cpeak, size_t *total,
       return;
 }
 
+void glp_show_mem_usage()
+{
+    ENV *env = get_env_ptr();
+    xprintf("Memory used(%d): %.1f Mb (%.0f bytes) : %d : %d : %lu\n",
+        ++env->show_mem_count,
+        (double)env->mem_tpeak / 1048576.0, (double)env->mem_tpeak,
+        env->mem_count, env->mem_cpeak, env->mem_total);
+    xprintf("Time used:   %.1f secs\n", glp_difftime(glp_time(),
+         env->time_start));
+}
+
 /* eof */

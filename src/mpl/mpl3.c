@@ -753,6 +753,8 @@ SYMBOL concat_symbols
 /* * *                          N-TUPLES                          * * */
 /**********************************************************************/
 
+#define CALC_TUPLE_SIZE(tuple) (sizeof(TUPLE)+((tuple->size-1)*sizeof(SYMBOL)))
+
 /*----------------------------------------------------------------------
 -- create_tuple - create n-tuple.
 --
@@ -772,13 +774,14 @@ TUPLE *create_tuple(MPL *mpl)
 -- This routine expands n-tuple appending to it a given symbol, which
 -- becomes its new last component. */
 
-TUPLE *expand_tuple
+TUPLE *expand_tuple_or_slice
 (     MPL *mpl,
       TUPLE *tuple,           /* modified */
-      SYMBOL sym             /* not changed */
+      SYMBOL sym,             /* not changed */
+      int  isSlice
 )
 {     TUPLE *temp;
-      xassert(!symbol_is_null(sym));
+      xassert(isSlice ? 1 : !symbol_is_null(sym));
       /* and append it to the component list */
       if (tuple == NULL) {
          tuple = dmp_get_atom(mpl->tuples, sizeof(TUPLE));
@@ -788,13 +791,23 @@ TUPLE *expand_tuple
          return tuple;
       }
       xassert(tuple->refcount == 1); /* only non copies can be extended */
-      size_t sz = sizeof(TUPLE)+((tuple->size)*sizeof(SYMBOL));
-      temp = dmp_get_atom(mpl->tuples, sz);
-      memcpy(temp, tuple, sz);
+      size_t old_sz = CALC_TUPLE_SIZE(tuple);
+      size_t new_sz = old_sz + sizeof(SYMBOL);
+      temp = dmp_get_atom(mpl->tuples, new_sz);
+      memcpy(temp, tuple, old_sz);
       temp->sym[temp->size] = sym;
       ++temp->size;
-      dmp_free_atom(mpl->tuples, tuple, sz - sizeof(SYMBOL));
+      dmp_free_atom(mpl->tuples, tuple, old_sz);
       return temp;
+}
+
+TUPLE *expand_tuple
+(     MPL *mpl,
+      TUPLE *tuple,           /* modified */
+      SYMBOL sym             /* not changed */
+)
+{
+    return expand_tuple_or_slice(mpl, tuple, sym, 0);
 }
 
 /*----------------------------------------------------------------------
@@ -900,6 +913,31 @@ TUPLE *build_subtuple
 }
 
 /*----------------------------------------------------------------------
+-- build_subtuple_starting_at - build subtuple of given n-tuple.
+--
+-- This routine builds subtuple, which consists of last components
+-- of given n-tuple starting at start_at. */
+
+TUPLE *build_subtuple_starting_at
+(     MPL *mpl,
+      const TUPLE *tuple,           /* not changed */
+      int start_at
+)
+{     TUPLE *temp;
+      TUPLE_SIZE_T i;
+      if (tuple == NULL)
+         return NULL;
+      xassert(start_at < tuple->size);
+      size_t sz = sizeof(TUPLE)+((tuple->size-start_at)*sizeof(SYMBOL));
+      temp = dmp_get_atom(mpl->tuples, sz);
+      temp->refcount = 1;
+      temp->size = tuple->size-start_at;
+      for(i=0; start_at < tuple->size; ++i, ++start_at)
+          temp->sym[i] = copy_symbol(mpl, tuple->sym[start_at]);
+      return temp;
+}
+
+/*----------------------------------------------------------------------
 -- delete_tuple - delete n-tuple.
 --
 -- This routine deletes specified n-tuple. */
@@ -915,7 +953,7 @@ void delete_tuple
       {
          for(i=0; i < tuple->size; ++i)
            if (!symbol_is_null(tuple->sym[i])) delete_symbol(mpl, tuple->sym[i]);
-         dmp_free_atom(mpl->tuples, tuple, sizeof(TUPLE)+((tuple->size-1)*sizeof(SYMBOL)));
+         dmp_free_atom(mpl->tuples, tuple, CALC_TUPLE_SIZE(tuple));
       }
       return;
 }
@@ -1866,7 +1904,7 @@ MEMBER *find_member
          memb = kbt_p ? kbt_p->memb : NULL;
 #else
          AVLNODE *node;
-         node = avl_find_node(array->tree, &mf);
+         node = avl_find_node(array->tree, tuple);
          memb = (MEMBER *)(node == NULL ? NULL : avl_get_node_link(node));
 #endif
       }
@@ -1912,7 +1950,7 @@ MEMBER *add_member
       /* if the search tree exists, index the new member */
       if (array->tree != NULL)
 #if defined(WITH_SPLAYTREE)
-        SplayTree_insert(array->tree, memb->tuple, memb);
+        SplayTree_insert(array->tree, memb);
 #elif defined(WITH_KHASH)
       khash_map_insert_member(mpl, array, memb);
 #elif defined(WITH_KBTREE)
@@ -2167,6 +2205,7 @@ struct eval_domain_info
       int failure;
       /* this flag indicates that given n-tuple is not a member of the
          domain set */
+      int tuple_sym_idx;
 };
 
 static void eval_domain_func(MPL *mpl, void *_my_info)
@@ -2203,8 +2242,10 @@ static void eval_domain_func(MPL *mpl, void *_my_info)
                   is specified in the corresponding component of given
                   n-tuple */
                xassert(my_info->tuple != NULL);
-               tuple->sym[i] = my_info->tuple->sym[i];
+               xassert(my_info->tuple_sym_idx < my_info->tuple->size);
+               tuple->sym[i] = my_info->tuple->sym[my_info->tuple_sym_idx];
                xassert(!symbol_is_null(tuple->sym[i]));
+               ++my_info->tuple_sym_idx;
             }
             else
             {  /* dummy index is non-free; compute symbolic value to be
@@ -2219,18 +2260,19 @@ static void eval_domain_func(MPL *mpl, void *_my_info)
             to non-free dummy indices (they were computed here) */
          i = 0;
          for (slot = block->list; slot != NULL; slot = slot->next, ++i)
-         {  xassert(!symbol_is_null(tuple->sym[i]));
+         {  xassert(tuple != NULL && i < tuple->size);
             if (slot->code != NULL)
             {  /* dummy index is non-free; delete symbolic value */
                delete_symbol(mpl, tuple->sym[i]);
             }
          }
-         dmp_free_atom(mpl->tuples, tuple, sizeof(TUPLE)+((tuple->size-1)*sizeof(SYMBOL)));
+         delete_tuple(mpl, tuple);
       }
       else
       {  /* there are no more domain blocks, i.e. we have reached the
             domain scope */
-         xassert(my_info->tuple == NULL);
+         //xassert(my_info->tuple == NULL);
+         xassert(my_info->tuple_sym_idx >= my_info->tuple->size);
          /* check optional predicate specified for the domain */
          if (my_info->domain->code != NULL && !eval_logical(mpl,
             my_info->domain->code))
@@ -2265,6 +2307,7 @@ int eval_within_domain
          my_info->tuple = tuple;
          my_info->info = info;
          my_info->func = func;
+         my_info->tuple_sym_idx = 0;
          my_info->failure = 0;
          /* enter the very first domain block */
          eval_domain_func(mpl, my_info);
@@ -2691,9 +2734,12 @@ static void saturate_set(MPL *mpl, SET *set)
             delete_tuple(mpl, tuple);
          }
          /* construct new n-tuple from rest set->dimen components */
+         xassert(tuple != NULL); /* temporary till fix code bellow */
+         /*
          tuple = work[set->dim];
          xassert(set->dim + set->dimen == gadget->set->dimen);
          work[gadget->set->dimen-1]->next = NULL;
+         */
          /* and add it to the elemental set assigned to the member
             (no check for duplicates is needed) */
          add_tuple(mpl, memb->value.set, tuple);

@@ -948,27 +948,51 @@ int glp_at_error(void);
 /* check for error state */
 #endif
 
+#ifndef NDEBUG
 #define glp_assert(expr) \
       ((void)((expr) || (glp_assert_(#expr, __FILE__, __LINE__), 1)))
+#else
+#define glp_assert(expr) ((void)0)
+#endif
 void glp_assert_(const char *expr, const char *file, int line);
 /* check for logical condition */
 
 void glp_error_hook(void (*func)(void *info), void *info);
 /* install hook to intercept abnormal termination */
 
+#ifdef GLP_NO_MEMORY_POOL
+#define glp_malloc(size) malloc(size)
+#else
 #define glp_malloc(size) glp_alloc(1, size)
+#endif
 /* allocate memory block (obsolete) */
 
+#ifdef GLP_NO_MEMORY_POOL
+#define glp_calloc(n, size) calloc(n, size)
+#else
 #define glp_calloc(n, size) glp_alloc(n, size)
+#endif
 /* allocate memory block (obsolete) */
 
+#ifdef GLP_NO_MEMORY_POOL
+#define glp_alloc(n, size) calloc(n, size)
+#else
 void *glp_alloc(int n, int size);
+#endif
 /* allocate memory block */
 
+#ifdef GLP_NO_MEMORY_POOL
+#define glp_realloc(ptr, n, size) realloc(ptr, (n)*(size))
+#else
 void *glp_realloc(void *ptr, int n, int size);
+#endif
 /* reallocate memory block */
 
+#ifdef GLP_NO_MEMORY_POOL
+#define glp_free(ptr) free(ptr)
+#else
 void glp_free(void *ptr);
+#endif
 /* free (deallocate) memory block */
 
 void glp_mem_limit(int limit);
@@ -977,6 +1001,9 @@ void glp_mem_limit(int limit);
 void glp_mem_usage(int *count, int *cpeak, size_t *total,
       size_t *tpeak);
 /* get memory usage information */
+
+void glp_show_mem_usage();
+/* show memory usage information */
 
 double glp_time(void);
 /* determine current universal time */

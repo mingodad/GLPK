@@ -51,7 +51,7 @@ SLICE *expand_slice
       SYMBOL sym             /* destroyed */
 )
 {
-      return expand_tuple(mpl, slice, sym);
+      return expand_tuple_or_slice(mpl, slice, sym, 1);
 }
 
 /*----------------------------------------------------------------------
@@ -86,7 +86,7 @@ int slice_arity
           return 0;
       arity = 0;
       for (i = start_idx; i < slice->size; ++i)
-         if (!symbol_is_null(slice->sym[i])) arity++;
+         if (symbol_is_null(slice->sym[i])) arity++;
       return arity;
 }
 
@@ -729,27 +729,29 @@ void plain_format
       xassert(is_symbol(mpl));
       /* read symbols and construct complete subscript list */
       tuple = create_tuple(mpl);
-      for (i = 0; i < slice->size; ++i)
-      {  if (symbol_is_null(slice->sym[i]))
-         {  /* substitution is needed; read symbol */
-            if (!is_symbol(mpl))
-            {  int lack = slice_arity(mpl, slice, i) + 1;
-               xassert(!symbol_is_null(with));
-               xassert(lack > 1);
-               error(mpl, "%d items missing in data group beginning wit"
-                  "h %s", lack, format_symbol(mpl, with));
-            }
-            sym = read_symbol(mpl);
-            if (symbol_is_null(with)) with = sym;
-         }
-         else
-         {  /* copy symbol from the slice */
-            sym = copy_symbol(mpl, slice->sym[i]);
-         }
-         /* append the symbol to the subscript list */
-         tuple = expand_tuple(mpl, tuple, sym);
-         /* skip optional comma */
-         if (mpl->token == T_COMMA) get_token(mpl /* , */);
+      if(slice) {
+        for (i = 0; i < slice->size; ++i)
+        {  if (symbol_is_null(slice->sym[i]))
+           {  /* substitution is needed; read symbol */
+              if (!is_symbol(mpl))
+              {  int lack = slice_arity(mpl, slice, i) + 1;
+                 xassert(!symbol_is_null(with));
+                 xassert(lack > 1);
+                 error(mpl, "%d items missing in data group beginning wit"
+                    "h %s", lack, format_symbol(mpl, with));
+              }
+              sym = read_symbol(mpl);
+              if (symbol_is_null(with)) with = sym;
+           }
+           else
+           {  /* copy symbol from the slice */
+              sym = copy_symbol(mpl, slice->sym[i]);
+           }
+           /* append the symbol to the subscript list */
+           tuple = expand_tuple(mpl, tuple, sym);
+           /* skip optional comma */
+           if (mpl->token == T_COMMA) get_token(mpl /* , */);
+        }
       }
       /* read value and assign it to new parameter member */
       if (!is_symbol(mpl))

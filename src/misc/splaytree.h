@@ -19,7 +19,7 @@ SplayTree_t *SplayTree_New(SplayTree_CmpFunc cmp, void *info);
 void SplayTree_Free(SplayTree_t *t);
 int  SplayTree_isEmpty(SplayTree_t *t);
 int  SplayTree_count(SplayTree_t *t);
-int  SplayTree_insert(SplayTree_t *t, const void *key, const void *value);
+int  SplayTree_insert(SplayTree_t *t, const void *key);
 const void *SplayTree_remove(SplayTree_t *t, const void *key);
 const void *SplayTree_find(SplayTree_t *t, const void *key);
 const void *SplayTree_findGreatestLessThan(SplayTree_t *t, const void *key);
