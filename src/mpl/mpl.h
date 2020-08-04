@@ -79,7 +79,7 @@ typedef struct PRINTF PRINTF;
 typedef struct PRINTF1 PRINTF1;
 typedef struct FOR FOR;
 typedef struct STATEMENT STATEMENT;
-typedef struct TUPLE SLICE;
+typedef struct SLICE SLICE;
 
 /**********************************************************************/
 /* * *                    TRANSLATOR DATABASE                     * * */
@@ -616,9 +616,27 @@ STATEMENT *simple_statement(MPL *mpl, int spec);
 void model_section(MPL *mpl);
 /* parse model section */
 
+struct SYMBOL
+{     /* symbol (numeric or abstract quantity) */
+      //double num;
+      /* numeric value of symbol (used only if str == NULL) */
+      //STRING *str;
+      /* abstract value of symbol (used only if str != NULL) */
+      nanbox_t sym;
+};
+
 /**********************************************************************/
 /* * *                  PROCESSING DATA SECTION                   * * */
 /**********************************************************************/
+
+struct SLICE
+{     /* component of n-SLICE; the n-SLICE itself is associated with
+         its first component; (note that 0-SLICE has no components) */
+      SYMBOL sym;
+      /* symbol, which the component refers to; cannot be NULL */
+      SLICE *next;
+      /* the next component of n-SLICE */
+};
 
 #if 2 + 2 == 5
 struct SLICE /* see TUPLE */
@@ -952,15 +970,6 @@ void delete_string
 /**********************************************************************/
 /* * *                          SYMBOLS                           * * */
 /**********************************************************************/
-
-struct SYMBOL
-{     /* symbol (numeric or abstract quantity) */
-      //double num;
-      /* numeric value of symbol (used only if str == NULL) */
-      //STRING *str;
-      /* abstract value of symbol (used only if str != NULL) */
-      nanbox_t sym;
-};
 
 static GMPL_INLINE SYMBOL symbol_null() {
     SYMBOL sym;
