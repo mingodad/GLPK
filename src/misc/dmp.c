@@ -24,19 +24,9 @@
 #include "env.h"
 #include "dmp.h"
 
-#define DMP_BLK_SIZE 8192 //4096
-/* size of memory blocks, in bytes, allocated for memory pools */
-
-#define DMP_MAX_ATOM_SIZE 256 //1024 //256
-/* max size of an atom in bytes, allocated for memory pools */
-
-#define DMP_AVAIL_SIZE 32 //128 //32
-/* max size of an atom in bytes, allocated for memory pools */
-
-
 struct DMP
 {     /* dynamic memory pool */
-      void *avail[DMP_AVAIL_SIZE];
+      void *avail[32];
       /* avail[k], 0 <= k <= 31, is a pointer to first available (free)
        * atom of (k+1)*8 bytes long; at the beginning of each free atom
        * there is a pointer to another free atom of the same size */
@@ -50,6 +40,9 @@ struct DMP
       /* number of atoms which are currently in use */
 };
 
+#define DMP_BLK_SIZE 8000
+/* size of memory blocks, in bytes, allocated for memory pools */
+
 struct prefix
 {     /* atom prefix (for debugging only) */
       DMP *pool;
@@ -61,10 +54,8 @@ struct prefix
 #define prefix_size ((sizeof(struct prefix) + 7) & ~7)
 /* size of atom prefix rounded up to multiple of 8 bytes */
 
-#if !(defined(NDEBUG) || defined(NO_XASSERT))
 int dmp_debug;
 /* debug mode flag */
-#endif
 
 /***********************************************************************
 *  NAME
@@ -88,10 +79,8 @@ DMP *dmp_create_pool(void)
 {     DMP *pool;
       int k;
       xassert(sizeof(void *) <= 8);
-#if !(defined(NDEBUG) || defined(NO_XASSERT))
       if (dmp_debug)
          xprintf("dmp_create_pool: warning: debug mode is on\n");
-#endif
       pool = talloc(1, DMP);
       for (k = 0; k <= 31; k++)
          pool->avail[k] = NULL;
@@ -127,7 +116,7 @@ DMP *dmp_create_pool(void)
 void *dmp_get_atom(DMP *pool, int size)
 {     void *atom;
       int k, need;
-      xassert(1 <= size && size <= DMP_MAX_ATOM_SIZE);
+      xassert(1 <= size && size <= 256);
       /* round up atom size to multiple of 8 bytes */
       need = (size + 7) & ~7;
       /* determine number of corresponding list of free atoms */
@@ -136,16 +125,14 @@ void *dmp_get_atom(DMP *pool, int size)
       if (pool->avail[k] == NULL)
       {  /* corresponding list of free atoms is empty */
          /* if debug mode is on, add atom prefix size */
-#if !(defined(NDEBUG) || defined(NO_XASSERT))
          if (dmp_debug)
             need += prefix_size;
-#endif
          if (pool->used + need > DMP_BLK_SIZE)
          {  /* allocate new memory block */
             void *block = talloc(DMP_BLK_SIZE, char);
             *(void **)block = pool->block;
             pool->block = block;
-            pool->used = sizeof(void*); /* sufficient to store pointer */
+            pool->used = 8; /* sufficient to store pointer */
          }
          /* allocate new atom in current memory block */
          atom = (char *)pool->block + pool->used;
@@ -156,14 +143,12 @@ void *dmp_get_atom(DMP *pool, int size)
          atom  = pool->avail[k];
          pool->avail[k] = *(void **)atom;
       }
-#if !(defined(NDEBUG) || defined(NO_XASSERT))
       /* if debug mode is on, fill atom prefix */
       if (dmp_debug)
       {  ((struct prefix *)atom)->pool = pool;
          ((struct prefix *)atom)->size = size;
          atom = (char *)atom + prefix_size;
       }
-#endif
       /* increase number of allocated atoms */
       pool->count++;
       return atom;
@@ -192,17 +177,15 @@ void *dmp_get_atom(DMP *pool, int size)
 
 void dmp_free_atom(DMP *pool, void *atom, int size)
 {     int k;
-      xassert(1 <= size && size <= DMP_MAX_ATOM_SIZE);
+      xassert(1 <= size && size <= 256);
       /* determine number of corresponding list of free atoms */
       k = ((size + 7) >> 3) - 1;
       /* if debug mode is on, check atom prefix */
-#if !(defined(NDEBUG) || defined(NO_XASSERT))
       if (dmp_debug)
       {  atom = (char *)atom - prefix_size;
          xassert(((struct prefix *)atom)->pool == pool);
          xassert(((struct prefix *)atom)->size == size);
       }
-#endif
       /* return atom to corresponding list of free atoms */
       *(void **)atom = pool->avail[k];
       pool->avail[k] = atom;

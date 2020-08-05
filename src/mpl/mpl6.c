@@ -508,7 +508,7 @@ static void read_header(TABDCA *dca, struct dbf *dbf)
       recl = read_byte(dbf);
       recl += read_byte(dbf) << 8;
       /* (ignored) */
-      for (j = 1; j <= MAX_TUPLE_DIM; j++)
+      for (j = 1; j <= 20; j++)
          read_byte(dbf);
       /* field descriptor array */
       xassert(dbf->nf == 0);
@@ -679,7 +679,7 @@ static void write_header(TABDCA *dca, struct dbf *dbf)
       write_byte(dbf, temp);
       write_byte(dbf, temp >> 8);
       /* (reserved) */
-      for (j = 1; j <= MAX_TUPLE_DIM; j++)
+      for (j = 1; j <= 20; j++)
          write_byte(dbf, 0x00);
       /* field descriptor array */
       for (k = 1; k <= dbf->nf; k++)

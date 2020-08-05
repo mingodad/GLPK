@@ -537,7 +537,6 @@ CODE *make_code(MPL *mpl, int op, OPERANDS *arg, int type, int dim)
             }
             code->arg.set.set = arg->set.set;
             code->arg.set.list = arg->set.list;
-            code->arg.set.elemset = arg->set.elemset;
             break;
          case O_MEMVAR:
             for (e = arg->var.list; e != NULL; e = e->next)
@@ -1046,7 +1045,6 @@ CODE *object_reference(MPL *mpl)
          case A_SET:
             arg.set.set = set;
             arg.set.list = list;
-            arg.set.elemset = NULL;
             code = make_code(mpl, O_MEMSET, &arg, A_ELEMSET,
                set->dimen);
             break;
@@ -3016,9 +3014,9 @@ SET *set_statement(MPL *mpl)
             int dimen;
             get_token(mpl /* dimen */);
             if (!(mpl->token == T_NUMBER &&
-                  1.0 <= mpl->value && mpl->value <= MAX_TUPLE_DIM &&
+                  1.0 <= mpl->value && mpl->value <= 20.0 &&
                   floor(mpl->value) == mpl->value))
-               error(mpl, "dimension must be integer between 1 and %d", MAX_TUPLE_DIM);
+               error(mpl, "dimension must be integer between 1 and 20");
             dimen = (int)(mpl->value + 0.5);
             if (dimen_used)
                error(mpl, "at most one dimension attribute allowed");
@@ -3102,7 +3100,7 @@ err:           error(mpl, "at most one := or default/data allowed");
          {  /* gadget to initialize the set by data from plain set */
             GADGET *gadget;
             AVLNODE *node;
-            int i, k, fff[MAX_TUPLE_DIM];
+            int i, k, fff[20];
             if (!(set->assign == NULL && set->gadget == NULL)) goto err;
             get_token(mpl /* data */);
             set->gadget = gadget = alloc(GADGET);

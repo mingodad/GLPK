@@ -2101,7 +2101,7 @@ int enter_domain_block
          assigned values of the dummy indices that involves keeping all
          dependent temporary results and thereby, if this domain block
          is not used recursively, allows improving efficiency */
-      if(block->backup) update_dummy_indices(mpl, block);
+      update_dummy_indices(mpl, block);
 done: return ret;
 }
 
@@ -4694,16 +4694,12 @@ int is_member(MPL *mpl, CODE *code, const TUPLE *tuple)
                TUPLE *temp;
                ELEMSET *set;
                /* evaluate reference to elemental set */
-               set = code->arg.set.elemset;
-               if(!set) {
-                   temp = create_tuple(mpl);
-                   for (e = code->arg.set.list; e != NULL; e = e->next)
-                      temp = expand_tuple(mpl, temp, eval_symbolic(mpl,
-                         e->x));
-                    set = eval_member_set(mpl, code->arg.set.set, temp);
-                    code->arg.set.elemset = set;
-                    delete_tuple(mpl, temp);
-               }
+               temp = create_tuple(mpl);
+               for (e = code->arg.set.list; e != NULL; e = e->next)
+                  temp = expand_tuple(mpl, temp, eval_symbolic(mpl,
+                     e->x));
+               set = eval_member_set(mpl, code->arg.set.set, temp);
+               delete_tuple(mpl, temp);
                /* check if the n-tuple is contained in the set array */
                temp = build_subtuple(mpl, tuple, set->dim);
                value = (find_tuple(mpl, set, temp) != NULL);
@@ -4869,7 +4865,7 @@ static int iter_form_func(MPL *mpl, void *_info)
                   info->tail->next = form;
                }
                for (term = form; term != NULL; term = term->next)
-                  if(!term->next) info->tail = term;
+                  info->tail = term;
             }
 #endif
             break;
