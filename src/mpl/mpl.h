@@ -2086,6 +2086,7 @@ union OPERANDS
          /* model set, which contains member to be taken */
          ARG_LIST *list;
          /* list of subscripts; NULL for 0-dimensional set */
+         ELEMSET *elemset;
       } set;
       /*--------------------------------------------------------------*/
       struct                  /* O_MEMVAR */
