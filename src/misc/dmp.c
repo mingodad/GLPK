@@ -24,7 +24,7 @@
 #include "env.h"
 #include "dmp.h"
 
-#define DMP_BLK_SIZE 4096
+#define DMP_BLK_SIZE 8192 //4096
 /* size of memory blocks, in bytes, allocated for memory pools */
 
 #define DMP_MAX_ATOM_SIZE 256 //1024 //256
