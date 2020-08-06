@@ -3100,7 +3100,7 @@ err:           error(mpl, "at most one := or default/data allowed");
          {  /* gadget to initialize the set by data from plain set */
             GADGET *gadget;
             AVLNODE *node;
-            int i, k, fff[20];
+            int i, k, fff[MAX_TUPLE_DIM];
             if (!(set->assign == NULL && set->gadget == NULL)) goto err;
             get_token(mpl /* data */);
             set->gadget = gadget = alloc(GADGET);
