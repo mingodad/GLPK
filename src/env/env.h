@@ -85,6 +85,8 @@ struct ENV
        * allocation */
       MBD *mem_ptr;
       /* pointer to the linked list of allocated memory blocks */
+      int show_mem_count;
+      /* total number of currently allocated memory blocks */
       int mem_count;
       /* total number of currently allocated memory blocks */
       int mem_cpeak;
@@ -110,6 +112,8 @@ struct ENV
       /* handle to ODBC shared library */
       void *h_mysql;
       /* handle to MySQL shared library */
+      double time_start;
+      /* start time to compute time spent */
 };
 
 struct MBD
@@ -192,27 +196,59 @@ void put_err_msg(const char *msg);
 const char *get_err_msg(void);
 /* obtain error message string */
 
+#if defined(GLP_NO_MEMORY_POOL)
+#define xmalloc(size) malloc(size)
+#else
 #define xmalloc(size) glp_alloc(1, size)
+#endif
 /* allocate memory block (obsolete) */
 
+#if defined(GLP_NO_MEMORY_POOL)
+#define xcalloc(n, size) calloc(n, size)
+#else
 #define xcalloc(n, size) glp_alloc(n, size)
+#endif
 /* allocate memory block (obsolete) */
 
+#if defined(GLP_NO_MEMORY_POOL)
+#define xalloc(n, size) calloc(n, size)
+#define talloc(n, type) ((type *)calloc(n, sizeof(type)))
+#else
 #define xalloc(n, size) glp_alloc(n, size)
 #define talloc(n, type) ((type *)glp_alloc(n, sizeof(type)))
+#endif
+
+#ifndef GLP_NO_MEMORY_POOL
 void *glp_alloc(int n, int size);
 /* allocate memory block */
+#endif
 
+#if defined(GLP_NO_MEMORY_POOL)
+#define xrealloc(ptr, n, size) realloc(ptr, (n)*(size))
+#define trealloc(ptr, n, type) ((type *)realloc(ptr, (n)*sizeof(type)))
+#else
 #define xrealloc(ptr, n, size) glp_realloc(ptr, n, size)
 #define trealloc(ptr, n, type) ((type *)glp_realloc(ptr, n, \
       sizeof(type)))
+#endif
+
+#ifndef GLP_NO_MEMORY_POOL
 void *glp_realloc(void *ptr, int n, int size);
 /* reallocate memory block */
+#endif
 
+#if defined(GLP_NO_MEMORY_POOL)
+#define xfree(ptr) free(ptr)
+#define tfree(ptr) free(ptr)
+#else
 #define xfree(ptr) glp_free(ptr)
 #define tfree(ptr) glp_free(ptr)
+#endif
+
+#ifndef GLP_NO_MEMORY_POOL
 void glp_free(void *ptr);
 /* free memory block */
+#endif
 
 void glp_mem_limit(int limit);
 /* set memory usage limit */
@@ -220,6 +256,9 @@ void glp_mem_limit(int limit);
 void glp_mem_usage(int *count, int *cpeak, size_t *total,
       size_t *tpeak);
 /* get memory usage information */
+
+void glp_show_mem_usage();
+/* show memory usage information */
 
 typedef struct glp_file glp_file;
 /* sequential stream descriptor */
