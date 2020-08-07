@@ -410,7 +410,6 @@ void matrix_format
       const SLICE *col, *temp;
       TUPLE *tuple;
       SYMBOL row;
-      int sdimem;
       xassert(set != NULL);
       xassert(memb != NULL);
       xassert(slice != NULL);
@@ -443,7 +442,7 @@ void matrix_format
                continue;
             }
             else
-            {   int lack = slice_dimen(mpl, col);
+            {  int lack = slice_dimen(mpl, col);
                if (lack == 1)
                   error(mpl, "one item missing in data group beginning "
                      "with %s", format_symbol(mpl, row));
@@ -740,36 +739,33 @@ void plain_format
 {     TUPLE *tuple;
       const SLICE *temp;
       SYMBOL sym, with;
-      TUPLE_SIZE_T i;
       with.sym = nanbox_null();
       xassert(par != NULL);
       xassert(par->dim == slice_dimen(mpl, slice));
       xassert(is_symbol(mpl));
       /* read symbols and construct complete subscript list */
       tuple = create_tuple(mpl);
-      if(slice) {
-        for (temp = slice; temp != NULL; temp = temp->next)
-        {  if (symbol_is_null(temp->sym))
-           {  /* substitution is needed; read symbol */
-              if (!is_symbol(mpl))
-              {  int lack = slice_arity(mpl, slice) + 1;
-                 xassert(!symbol_is_null(with));
-                 xassert(lack > 1);
-                 error(mpl, "%d items missing in data group beginning wit"
-                    "h %s", lack, format_symbol(mpl, with));
-              }
-              sym = read_symbol(mpl);
-              if (symbol_is_null(with)) with = sym;
-           }
-           else
-           {  /* copy symbol from the slice */
-              sym = copy_symbol(mpl, temp->sym);
-           }
-           /* append the symbol to the subscript list */
-           tuple = expand_tuple(mpl, tuple, sym);
-           /* skip optional comma */
-           if (mpl->token == T_COMMA) get_token(mpl /* , */);
-        }
+      for (temp = slice; temp != NULL; temp = temp->next)
+      {  if (symbol_is_null(temp->sym))
+         {  /* substitution is needed; read symbol */
+            if (!is_symbol(mpl))
+            {  int lack = slice_arity(mpl, temp) + 1;
+               xassert(!symbol_is_null(with));
+               xassert(lack > 1);
+               error(mpl, "%d items missing in data group beginning wit"
+                  "h %s", lack, format_symbol(mpl, with));
+            }
+            sym = read_symbol(mpl);
+            if (symbol_is_null(with)) with = sym;
+         }
+         else
+         {  /* copy symbol from the slice */
+            sym = copy_symbol(mpl, temp->sym);
+         }
+         /* append the symbol to the subscript list */
+         tuple = expand_tuple(mpl, tuple, sym);
+         /* skip optional comma */
+         if (mpl->token == T_COMMA) get_token(mpl /* , */);
       }
       /* read value and assign it to new parameter member */
       if (!is_symbol(mpl))
