@@ -4759,12 +4759,12 @@ int is_member(MPL *mpl, CODE *code, TUPLE *tuple)
                /* evaluate reference to elemental set */
                set = code->arg.set.elemset;
                if(!set) {
-                   temp = create_tuple(mpl);
-                   for (e = code->arg.set.list; e != NULL; e = e->next)
-                      temp = expand_tuple(mpl, temp, eval_symbolic(mpl,
-                         e->x));
+                    temp = create_tuple(mpl);
+                    for (e = code->arg.set.list; e != NULL; e = e->next)
+                        temp = expand_tuple(mpl, temp, eval_symbolic(mpl,
+                           e->x));
                     set = eval_member_set(mpl, code->arg.set.set, temp);
-                    code->arg.set.elemset = set;
+                    if(!code->arg.set.list) code->arg.set.elemset = set; /* For now only if 1 dimension */
                     delete_tuple(mpl, temp);
                }
                /* check if the n-tuple is contained in the set array */
@@ -4811,7 +4811,7 @@ int is_member(MPL *mpl, CODE *code, TUPLE *tuple)
                value = is_member(mpl, code->arg.arg.x, tuple);
                if (value)
                {
-                  tuple = expand_tuple(mpl, create_tuple(mpl), tuple->sym[code->arg.arg.x->dim]);
+                  tuple = build_subtuple_starting_at(mpl, tuple, code->arg.arg.x->dim);
                   value = is_member(mpl, code->arg.arg.y, tuple);
                   delete_tuple(mpl, tuple);
                }
@@ -5873,8 +5873,10 @@ static int display_func(MPL *mpl, void *info)
                   eval_member_set(mpl, set, set->array->head->tuple);
             }
             /* display all members of the set array */
-            if (set->array->head == NULL)
-               write_text(mpl, "%s has empty content\n", set->name);
+            if (set->array->head == NULL) {
+               if (set->option != NULL) eval_whole_set(mpl, set);
+               else write_text(mpl, "%s has empty content\n", set->name);
+            }
             for (memb = set->array->head; memb != NULL; memb =
                memb->next) display_set(mpl, set, memb);
          }
@@ -5900,8 +5902,10 @@ static int display_func(MPL *mpl, void *info)
                }
             }
             /* display all members of the parameter array */
-            if (par->array->head == NULL)
-               write_text(mpl, "%s has empty content\n", par->name);
+            if (par->array->head == NULL) {
+               if (par->option != NULL) eval_whole_par(mpl, par);
+               else write_text(mpl, "%s has empty content\n", par->name);
+            }
             for (memb = par->array->head; memb != NULL; memb =
                memb->next) display_par(mpl, par, memb);
          }
