@@ -1236,11 +1236,6 @@ struct ELEMVAR
 {     /* elemental variable; formally it is a "value" assigned to
          members of model variables (like numbers and symbols, which
          are values assigned to members of model parameters) */
-      int j;
-#if 1 /* 15/V-2010 */
-      int stat;
-#endif
-      /* LP column number assigned to this elemental variable */
       VARIABLE *var;
       /* model variable, which contains this elemental variable */
       MEMBER *memb;
@@ -1252,7 +1247,10 @@ struct ELEMVAR
       double temp;
       /* working quantity used in operations on linear forms; normally
          it contains floating-point zero */
+      int j;
+      /* LP column number assigned to this elemental variable */
 #if 1 /* 15/V-2010 */
+      int stat;
       double prim, dual;
       /* solution components provided by the solver */
 #endif
@@ -1331,11 +1329,6 @@ struct ELEMCON
 {     /* elemental constraint; formally it is a "value" assigned to
          members of model constraints (like numbers or symbols, which
          are values assigned to members of model parameters) */
-      int i;
-      /* LP row number assigned to this elemental constraint */
-#if 1 /* 15/V-2010 */
-      int stat;
-#endif
       CONSTRAINT *con;
       /* model constraint, which contains this elemental constraint */
       MEMBER *memb;
@@ -1346,7 +1339,10 @@ struct ELEMCON
       /* lower bound */
       double ubnd;
       /* upper bound */
+      int i;
+      /* LP row number assigned to this elemental constraint */
 #if 1 /* 15/V-2010 */
+      int stat;
       double prim, dual;
       /* solution components provided by the solver */
 #endif
