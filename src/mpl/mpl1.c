@@ -3014,9 +3014,9 @@ SET *set_statement(MPL *mpl)
             int dimen;
             get_token(mpl /* dimen */);
             if (!(mpl->token == T_NUMBER &&
-                  1.0 <= mpl->value && mpl->value <= 20.0 &&
+                  1.0 <= mpl->value && mpl->value <= MAX_TUPLE_DIM &&
                   floor(mpl->value) == mpl->value))
-               error(mpl, "dimension must be integer between 1 and 20");
+               error(mpl, "dimension must be integer between 1 and %d", MAX_TUPLE_DIM);
             dimen = (int)(mpl->value + 0.5);
             if (dimen_used)
                error(mpl, "at most one dimension attribute allowed");
