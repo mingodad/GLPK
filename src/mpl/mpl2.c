@@ -405,9 +405,8 @@ void matrix_format
       const SLICE *slice,           /* not changed */
       int tr
 )
-{
-      SLICE *list;
-      const SLICE *col, *temp;
+{     const SLICE *temp;
+      SLICE *list, *col;
       TUPLE *tuple;
       SYMBOL row;
       xassert(set != NULL);
@@ -806,9 +805,8 @@ void tabular_format
       const SLICE *slice,           /* not changed */
       int tr
 )
-{
-      SLICE *list;
-      const SLICE *col, *temp;
+{     const SLICE *temp;
+      SLICE *list, *col;
       TUPLE *tuple;
       SYMBOL row;
       xassert(par != NULL);
