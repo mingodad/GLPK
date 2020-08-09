@@ -4694,16 +4694,20 @@ int is_member(MPL *mpl, CODE *code, const TUPLE *tuple)
                TUPLE *temp;
                ELEMSET *set;
                /* evaluate reference to elemental set */
-               temp = create_tuple(mpl);
-               for (e = code->arg.set.list; e != NULL; e = e->next)
-                  temp = expand_tuple(mpl, temp, eval_symbolic(mpl,
-                     e->x));
-               set = eval_member_set(mpl, code->arg.set.set, temp);
-               delete_tuple(mpl, temp);
+               set = code->arg.set.elemset;
+               if(!set) {
+                    temp = create_tuple(mpl);
+                    for (e = code->arg.set.list; e != NULL; e = e->next)
+                        temp = expand_tuple(mpl, temp, eval_symbolic(mpl,
+                           e->x));
+                    set = eval_member_set(mpl, code->arg.set.set, temp);
+                    if(!code->arg.set.list) code->arg.set.elemset = set; /* For now only if 1 dimension */
+                    delete_tuple(mpl, temp);
+               }
                /* check if the n-tuple is contained in the set array */
-               temp = build_subtuple(mpl, tuple, set->dim);
+               temp = (set->dim != tuple_dimen(mpl, tuple)) ? build_subtuple(mpl, tuple, set->dim) : tuple;
                value = (find_tuple(mpl, set, temp) != NULL);
-               delete_tuple(mpl, temp);
+               if(temp != tuple) delete_tuple(mpl, temp);
             }
             break;
          case O_MAKE:

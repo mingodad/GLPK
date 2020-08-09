@@ -537,6 +537,7 @@ CODE *make_code(MPL *mpl, int op, OPERANDS *arg, int type, int dim)
             }
             code->arg.set.set = arg->set.set;
             code->arg.set.list = arg->set.list;
+            code->arg.set.elemset = arg->set.elemset;
             break;
          case O_MEMVAR:
             for (e = arg->var.list; e != NULL; e = e->next)
@@ -1045,6 +1046,7 @@ CODE *object_reference(MPL *mpl)
          case A_SET:
             arg.set.set = set;
             arg.set.list = list;
+            arg.set.elemset = NULL;
             code = make_code(mpl, O_MEMSET, &arg, A_ELEMSET,
                set->dimen);
             break;
