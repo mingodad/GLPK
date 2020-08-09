@@ -768,20 +768,13 @@ TUPLE *create_tuple(MPL *mpl)
       return tuple;
 }
 
-/*----------------------------------------------------------------------
--- expand_tuple - append symbol to n-tuple.
---
--- This routine expands n-tuple appending to it a given symbol, which
--- becomes its new last component. */
-
-TUPLE *expand_tuple_or_slice
+TUPLE *expand_tuple
 (     MPL *mpl,
       TUPLE *tuple,           /* modified */
-      SYMBOL sym,             /* not changed */
-      int  isSlice
+      SYMBOL sym             /* not changed */
 )
 {     TUPLE *temp;
-      xassert(isSlice ? 1 : !symbol_is_null(sym));
+      xassert(!symbol_is_null(sym));
       /* and append it to the component list */
       if (tuple == NULL) {
          tuple = dmp_get_atom(mpl->tuples, sizeof(TUPLE));
@@ -799,15 +792,6 @@ TUPLE *expand_tuple_or_slice
       ++temp->size;
       dmp_free_atom(mpl->tuples, tuple, old_sz);
       return temp;
-}
-
-TUPLE *expand_tuple
-(     MPL *mpl,
-      TUPLE *tuple,           /* modified */
-      SYMBOL sym             /* not changed */
-)
-{
-    return expand_tuple_or_slice(mpl, tuple, sym, 0);
 }
 
 /*----------------------------------------------------------------------
@@ -839,7 +823,7 @@ TUPLE *copy_tuple_full
       TUPLE *temp;
       if (tuple == NULL)
          return NULL;
-      size_t sz = sizeof(TUPLE)+((tuple->size-1)*sizeof(SYMBOL));
+      size_t sz = CALC_TUPLE_SIZE(tuple);
       temp = dmp_get_atom(mpl->tuples, sz);
       memcpy(temp, tuple, sz);
       temp->refcount = 1;
@@ -928,7 +912,7 @@ TUPLE *build_subtuple_starting_at
       if (tuple == NULL)
          return NULL;
       xassert(start_at < tuple->size);
-      size_t sz = sizeof(TUPLE)+((tuple->size-start_at)*sizeof(SYMBOL));
+      size_t sz = sizeof(TUPLE)+((tuple->size-start_at-1)*sizeof(SYMBOL));
       temp = dmp_get_atom(mpl->tuples, sz);
       temp->refcount = 1;
       temp->size = tuple->size-start_at;
