@@ -1485,7 +1485,7 @@ DOMAIN_SLOT *append_slot(MPL *mpl, DOMAIN_BLOCK *block, char *name,
       slot = alloc(DOMAIN_SLOT);
       slot->name = name;
       slot->code = code;
-      slot->value.sym = nanbox_null();
+      slot->value.sym = mpl->symbol_null;
       slot->list = NULL;
       slot->next = NULL;
       if (block->list == NULL)
@@ -3235,7 +3235,7 @@ PARAMETER *parameter_statement(MPL *mpl)
       par->assign = NULL;
       par->option = NULL;
       par->data = 0;
-      par->defval.sym = nanbox_null();
+      par->defval.sym = mpl->symbol_null;
       par->array = NULL;
       get_token(mpl /* <symbolic name> */);
       /* parse optional alias */

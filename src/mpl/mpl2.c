@@ -334,7 +334,7 @@ void simple_format
 {     TUPLE *tuple;
       const SLICE *temp;
       SYMBOL sym, with;
-      with.sym = nanbox_null();
+      with.sym = mpl->symbol_null;
       xassert(set != NULL);
       xassert(memb != NULL);
       xassert(slice != NULL);
@@ -738,7 +738,7 @@ void plain_format
 {     TUPLE *tuple;
       const SLICE *temp;
       SYMBOL sym, with;
-      with.sym = nanbox_null();
+      with.sym = mpl->symbol_null;
       xassert(par != NULL);
       xassert(par->dim == slice_dimen(mpl, slice));
       xassert(is_symbol(mpl));
@@ -1036,7 +1036,7 @@ void tabbing_format
       }
       /* delete the column list (it contains parameters, not symbols,
          so nullify it before) */
-      for (col = list; col != NULL; col = col->next) col->sym.sym = nanbox_null();
+      for (col = list; col != NULL; col = col->next) col->sym.sym = mpl->symbol_null;
       delete_slice(mpl, list);
       return;
 }
@@ -1065,7 +1065,7 @@ void tabbing_format
 void parameter_data(MPL *mpl)
 {     PARAMETER *par;
       SYMBOL altval;
-      altval.sym = nanbox_null();
+      altval.sym = mpl->symbol_null;
       SLICE *slice;
       int tr = 0;
       xassert(is_literal(mpl, "param"));

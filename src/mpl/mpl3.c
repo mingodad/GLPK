@@ -1634,7 +1634,7 @@ void delete_value
             value->num = 0.0;
             break;
          case A_SYMBOLIC:
-            delete_symbol(mpl, value->sym); value->sym.sym = nanbox_null();
+            delete_symbol(mpl, value->sym); value->sym.sym = mpl->symbol_null;
             break;
          case A_LOGICAL:
             value->bit = 0;
@@ -1841,9 +1841,9 @@ MEMBER *find_member
          all existing members of the array */
       if (array->size > 30 && array->tree == NULL)
 #if defined(WITH_SPLAYTREE)
-      {  array->tree = SplayTree_New(SplayTree_compare_member_tuples, mpl);
+      {  array->tree = SplayTree_New(compare_member_tuples, mpl);
          for (memb = array->head; memb != NULL; memb = memb->next)
-            SplayTree_insert(array->tree, (void *)memb);
+            SplayTree_insert(array->tree, memb->tuple, memb);
 #elif defined(WITH_KBTREE)
       {
          array->tree = kb_init(memb, KB_DEFAULT_SIZE);
@@ -1876,13 +1876,13 @@ MEMBER *find_member
       }
       else
       {  /* the search tree exists; use the binary search */
-         MEMBER mf;
-         mf.tuple = tuple;
 #if defined(WITH_SPLAYTREE)
-         memb = (MEMBER *)SplayTree_find(array->tree, &mf);
+         memb = (MEMBER *)SplayTree_find(array->tree, tuple);
 #elif defined(WITH_KHASH)
          memb = hashmap_find_member(mpl, array, tuple);
 #elif defined(WITH_KBTREE)
+         MEMBER mf;
+         mf.tuple = tuple;
          kbt_t.memb = &mf;
          kbt_p = kb_getp(memb, array->tree, &kbt_t);
          memb = kbt_p ? kbt_p->memb : NULL;
@@ -1934,7 +1934,7 @@ MEMBER *add_member
       /* if the search tree exists, index the new member */
       if (array->tree != NULL)
 #if defined(WITH_SPLAYTREE)
-        SplayTree_insert(array->tree, memb);
+        SplayTree_insert(array->tree, memb->tuple, memb);
 #elif defined(WITH_KHASH)
       khash_map_insert_member(mpl, array, memb);
 #elif defined(WITH_KBTREE)
@@ -2025,7 +2025,7 @@ void assign_dummy_index
             assignment is not needed */
          if (compare_symbols(mpl, slot->value, value) == 0) goto done;
          /* delete a symbol, which is the current value */
-         delete_symbol(mpl, slot->value); slot->value.sym = nanbox_null();
+         delete_symbol(mpl, slot->value); slot->value.sym = mpl->symbol_null;
       }
       /* now walk through all the pseudo-codes with op = O_INDEX, which
          refer to the dummy index to be changed (these pseudo-codes are
@@ -2539,7 +2539,7 @@ void clean_domain(MPL *mpl, DOMAIN *domain)
             clean_code(mpl, slot->code);
             /* delete symbolic value assigned to dummy index */
             if (!symbol_is_null(slot->value))
-               delete_symbol(mpl, slot->value); slot->value.sym = nanbox_null();
+               delete_symbol(mpl, slot->value); slot->value.sym = mpl->symbol_null;
          }
          /* clean pseudo-code for computing basic set */
          clean_code(mpl, block->code);
@@ -2617,6 +2617,7 @@ add:     /* check that the elemental set satisfies to all restrictions,
          check_elem_set(mpl, set, tuple, refer);
          memb = add_member(mpl, set->array, copy_tuple(mpl, tuple));
          memb->value.set = refer;
+         /*DAD here is the place to reformulate the set to a plain array*/
       }
       else if (set->option != NULL)
       {  /* compute default elemental set */
@@ -2687,7 +2688,7 @@ static void saturate_set(MPL *mpl, SET *set)
       xassert(data->type == A_NONE);
       xassert(data->dim == gadget->set->dimen);
       /* walk thru all elements of the plain set */
-      sym.sym = nanbox_null(); 
+      sym.sym = mpl->symbol_null; 
       for (elem = data->head; elem != NULL; elem = elem->next)
       {  /* create a copy of n-tuple */
          tuple = create_tuple(mpl);
@@ -3318,7 +3319,7 @@ void clean_parameter(MPL *mpl, PARAMETER *par)
       par->data = 0;
       /* delete default symbolic value */
       if (!symbol_is_null(par->defval))
-         delete_symbol(mpl, par->defval); par->defval.sym = nanbox_null();
+         delete_symbol(mpl, par->defval); par->defval.sym = mpl->symbol_null;
       /* delete content array */
       for (memb = par->array->head; memb != NULL; memb = memb->next)
          delete_value(mpl, par->array->type, &memb->value);

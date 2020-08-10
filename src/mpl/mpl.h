@@ -338,6 +338,7 @@ struct glp_tran
       /* name of the input text file, which contains model section */
       char *mpl_buf; /* char mpl_buf[255+1]; */
       /* working buffer used by some interface routines */
+      nanbox_t symbol_null;
 };
 
 /**********************************************************************/
