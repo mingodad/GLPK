@@ -28,9 +28,11 @@
 
 typedef struct DMP DMP;
 
+#if !(defined(NDEBUG) || defined(NO_XASSERT))
 #define dmp_debug _glp_dmp_debug
 extern int dmp_debug;
 /* debug mode flag */
+#endif
 
 #define dmp_create_pool _glp_dmp_create_pool
 DMP *dmp_create_pool(void);
@@ -39,8 +41,16 @@ DMP *dmp_create_pool(void);
 #define dmp_talloc(pool, type) \
       ((type *)dmp_get_atom(pool, sizeof(type)))
 
-#define dmp_get_atom _glp_dmp_get_atom
-void *dmp_get_atom(DMP *pool, int size);
+#ifdef DMP_LOG
+extern FILE *dmp_log_fp;
+extern void *dmp_get_atom_log(DMP *pool, int size, const char *filename, int lineno);
+//#define dmp_get_atom_log _glp_dmp_get_atom_log
+#define dmp_get_atom(a, b) dmp_get_atom_log(a, b, __FILE__, __LINE__)
+#else
+#define dmp_get_atom_base _glp_dmp_get_atom
+#define dmp_get_atom dmp_get_atom_base
+void *dmp_get_atom_base(DMP *pool, int size);
+#endif
 /* get free atom from dynamic memory pool */
 
 #define dmp_tfree(pool, atom) \

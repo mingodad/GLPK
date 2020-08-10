@@ -196,21 +196,30 @@ void put_err_msg(const char *msg);
 const char *get_err_msg(void);
 /* obtain error message string */
 
-#if defined(GLP_NO_MEMORY_POOL)
+#ifdef DMP_LOG
+extern FILE *dmp_log_fp;
+void *glp_alloc_log(int n, int size, const char *filename, int lineno);
+#define xmalloc(a) glp_alloc_log(1, a, __FILE__, __LINE__)
+#elif defined(GLP_NO_MEMORY_POOL)
 #define xmalloc(size) malloc(size)
 #else
 #define xmalloc(size) glp_alloc(1, size)
 #endif
 /* allocate memory block (obsolete) */
 
-#if defined(GLP_NO_MEMORY_POOL)
+#ifdef DMP_LOG
+#define xcalloc(a, b) glp_alloc_log(a, b, __FILE__, __LINE__)
+#elif defined(GLP_NO_MEMORY_POOL)
 #define xcalloc(n, size) calloc(n, size)
 #else
 #define xcalloc(n, size) glp_alloc(n, size)
 #endif
 /* allocate memory block (obsolete) */
 
-#if defined(GLP_NO_MEMORY_POOL)
+#ifdef DMP_LOG
+#define xalloc(a, b) glp_alloc_log(a, b, __FILE__, __LINE__)
+#define talloc(a, b) ((b *)glp_alloc_log(a, sizeof(b), __FILE__, __LINE__))
+#elif defined(GLP_NO_MEMORY_POOL)
 #define xalloc(n, size) calloc(n, size)
 #define talloc(n, type) ((type *)calloc(n, sizeof(type)))
 #else
@@ -223,7 +232,11 @@ void *glp_alloc(int n, int size);
 /* allocate memory block */
 #endif
 
-#if defined(GLP_NO_MEMORY_POOL)
+#ifdef DMP_LOG
+void *glp_realloc_log(void *ptr, int n, int size, const char *filename, int lineno);
+#define xrealloc(a, b, c) glp_realloc_log(a, b, c, __FILE__, __LINE__)
+#define trealloc(a, b, c) ((c *)glp_realloc_log(a, b, sizeof(c), __FILE__, __LINE__))
+#elif defined(GLP_NO_MEMORY_POOL)
 #define xrealloc(ptr, n, size) realloc(ptr, (n)*(size))
 #define trealloc(ptr, n, type) ((type *)realloc(ptr, (n)*sizeof(type)))
 #else
@@ -237,7 +250,11 @@ void *glp_realloc(void *ptr, int n, int size);
 /* reallocate memory block */
 #endif
 
-#if defined(GLP_NO_MEMORY_POOL)
+#ifdef DMP_LOG
+void glp_free_log(void *ptr, const char *filename, int lineno);
+#define xfree(a) glp_free_log(a, __FILE__, __LINE__)
+#define tfree(a) glp_free_log(a, __FILE__, __LINE__)
+#elif defined(GLP_NO_MEMORY_POOL)
 #define xfree(ptr) free(ptr)
 #define tfree(ptr) free(ptr)
 #else

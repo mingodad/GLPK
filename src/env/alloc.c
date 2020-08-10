@@ -140,6 +140,14 @@ void *glp_alloc(int n, int size)
             n, size);
       return dma("glp_alloc", NULL, (size_t)n * (size_t)size);
 }
+#ifdef DMP_LOG
+void *glp_alloc_log(int n, int size, const char *filename, int lineno)
+{
+    void *p = glp_alloc(n, size);
+    fprintf(dmp_log_fp, "a:%s:%d:%d:%p\n", filename, lineno, n*size, p);
+    return p;
+}
+#endif
 
 /**********************************************************************/
 
@@ -156,6 +164,14 @@ void *glp_realloc(void *ptr, int n, int size)
             n, size);
       return dma("glp_realloc", ptr, (size_t)n * (size_t)size);
 }
+#ifdef DMP_LOG
+void *glp_realloc_log(void *ptr, int n, int size, const char *filename, int lineno)
+{
+    void *p = glp_realloc(ptr, n, size);
+    fprintf(dmp_log_fp, "r:%s:%d:%d:%p\n", filename, lineno, n*size, p);
+    return p;
+}
+#endif
 
 /***********************************************************************
 *  NAME
@@ -178,6 +194,13 @@ void glp_free(void *ptr)
       dma("glp_free", ptr, 0);
       return;
 }
+#ifdef DMP_LOG
+void glp_free_log(void *ptr, const char *filename, int lineno)
+{
+    glp_free(ptr);
+    fprintf(dmp_log_fp, "f:%s:%d:%d:%p\n", filename, lineno, 0, ptr);
+}
+#endif
 
 /***********************************************************************
 *  NAME

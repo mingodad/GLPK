@@ -124,7 +124,7 @@ DMP *dmp_create_pool(void)
 *
 *  The routine returns a pointer to the free atom obtained. */
 
-void *dmp_get_atom(DMP *pool, int size)
+void *dmp_get_atom_base(DMP *pool, int size)
 {     void *atom;
       int k, need;
       xassert(1 <= size && size <= DMP_MAX_ATOM_SIZE);
@@ -169,6 +169,14 @@ void *dmp_get_atom(DMP *pool, int size)
       return atom;
 }
 
+#ifdef DMP_LOG
+void *dmp_get_atom_log(DMP *pool, int size, const char *filename, int lineno)
+{
+    void *p = dmp_get_atom_base(pool, size);
+    fprintf(dmp_log_fp, "ga:%s:%d:%d:%p\n", filename, lineno, size, p);
+    return p;
+}
+#endif
 /***********************************************************************
 *  NAME
 *
