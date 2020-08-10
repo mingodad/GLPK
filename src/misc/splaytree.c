@@ -18,7 +18,7 @@ typedef struct SplayTree_node_s SplayTree_node_t;
 struct SplayTree_node_s
 {
     SplayTree_node_t *left, *right;
-    const void *key;
+    const void *key, *value;
 };
 
 struct SplayTree_t
@@ -31,12 +31,11 @@ struct SplayTree_t
     int count;
 };
 
-static SplayTree_node_t *SplayTree_newNode(SplayTree_t *t, const void *key);
+static SplayTree_node_t *SplayTree_newNode(SplayTree_t *t, const void *key, const void *value);
 static void  SplayTree_splay(SplayTree_t *t, const void *key);
 
 int SplayTree_strcmp(void *info, const void *key1, const void *key2)
 {     /* compare character string keys */
-      xassert(info == info);
       return strcmp(key1, key2);
 }
 
@@ -63,10 +62,11 @@ int  SplayTree_count(SplayTree_t *t) {
     return t->count;
 }
 
-static SplayTree_node_t *SplayTree_newNode(SplayTree_t *t, const void *key) {
+static SplayTree_node_t *SplayTree_newNode(SplayTree_t *t, const void *key, const void *value) {
 	SplayTree_node_t *node = dmp_get_atom(t->pool, sizeof(SplayTree_node_t));
 	memset(node, 0, sizeof(SplayTree_node_t));
 	node->key = key;
+	node->value = value;
 	return node;
   }
 
@@ -78,9 +78,9 @@ static SplayTree_node_t *SplayTree_newNode(SplayTree_t *t, const void *key) {
   // the tree does not already contain a node with the specified key. If
   // the value is inserted, it becomes the root of the tree.
   //
-int  SplayTree_insert(SplayTree_t *t, const void *key) {
+int  SplayTree_insert(SplayTree_t *t, const void *key, const void *value) {
     if (SplayTree_isEmpty(t)) {
-      t->root = SplayTree_newNode(t, key);
+      t->root = SplayTree_newNode(t, key, value);
       t->count = 1;
       return 1;
     }
@@ -91,7 +91,7 @@ int  SplayTree_insert(SplayTree_t *t, const void *key) {
     if (rc_cmp == 0) {
       return 0;
     }
-    SplayTree_node_t *node = SplayTree_newNode(t, key);
+    SplayTree_node_t *node = SplayTree_newNode(t, key, value);
     if (rc_cmp < 0) {
       node->left = t->root;
       node->right = t->root->right;
@@ -123,7 +123,7 @@ const void *SplayTree_remove(SplayTree_t *t, const void *key) {
       return NULL;
     }
     SplayTree_node_t *root = t->root;
-    const void *value = t->root->key;
+    const void *value = t->root->value;
     if (!t->root->left) {
       t->root = t->root->right;
     } else {
@@ -156,12 +156,12 @@ const void *SplayTree_find(SplayTree_t *t, const void *key) {
 
     SplayTree_splay(t, key);
     int rc_cmp = t->cmp_func(t->info, t->root->key, key);
-    return rc_cmp ? NULL : t->root->key;
+    return rc_cmp ? NULL : t->root->value;
 }
 
 const void *SplayTree_peek(SplayTree_t *t) {
     if (SplayTree_isEmpty(t)) return NULL;
-    return t->root->key;
+    return t->root->value;
 }
   //
   // ### function(opt_startNode)
@@ -172,6 +172,15 @@ static SplayTree_node_t *SplayTree_findMax(SplayTree_t *t, SplayTree_node_t *opt
     SplayTree_node_t * current = opt_startNode ?  opt_startNode : t->root;
     while (current->right) {
       current = current->right;
+    }
+    return current;
+}
+
+static SplayTree_node_t *SplayTree_findMin(SplayTree_t *t, SplayTree_node_t *opt_startNode) {
+    if (SplayTree_isEmpty(t)) return NULL;
+    SplayTree_node_t * current = opt_startNode ?  opt_startNode : t->root;
+    while (current->left) {
+      current = current->left;
     }
     return current;
 }
@@ -198,7 +207,29 @@ const void *SplayTree_findGreatestLessThan(SplayTree_t *t, const void *key) {
     if (rc_cmp < 0) {
       return t->root;
     } else if (t->root->left) {
-      return SplayTree_findMax(t, t->root->left)->key;
+      return SplayTree_findMax(t, t->root->left)->value;
+    }
+    return NULL;
+}
+
+const void *SplayTree_findSmallestGreaterThan(SplayTree_t *t, const void *key) {
+    if (SplayTree_isEmpty(t)) return NULL;
+
+    //
+    // Splay on the key to move the node with the given key or the last
+    // node on the search path to the top of the tree.
+    //
+    SplayTree_splay(t, key);
+    int rc_cmp = t->cmp_func(t->info, t->root->key, key);
+    //
+    // Now the result is either the root node or the greatest node in
+    // the left subtree.
+    //
+    //if (this.root.key > key) {
+    if (rc_cmp > 0) {
+      return t->root;
+    } else if (t->root->right) {
+      return SplayTree_findMin(t, t->root->right)->value;
     }
     return NULL;
 }

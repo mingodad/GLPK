@@ -24,7 +24,11 @@
 #ifndef PROB_H
 #define PROB_H
 
+#if defined(WITH_SPLAYTREE)
+#include "splaytree.h"
+#else
 #include "avl.h"
+#endif
 #include "bfd.h"
 #include "dmp.h"
 #if 1 /* 28/III-2016 */
@@ -83,10 +87,18 @@ struct glp_prob
       /* row[i], 1 <= i <= m, is a pointer to i-th row */
       GLPCOL **col; /* GLPCOL *col[1+n_max]; */
       /* col[j], 1 <= j <= n, is a pointer to j-th column */
+#if defined(WITH_SPLAYTREE)
+      SplayTree_t *r_tree;
+#else
       AVL *r_tree;
+#endif
       /* row index to find rows by their names; NULL means this index
          does not exist */
+#if defined(WITH_SPLAYTREE)
+      SplayTree_t *c_tree;
+#else
       AVL *c_tree;
+#endif
       /* column index to find columns by their names; NULL means this
          index does not exist */
 #ifdef CSL_MULTI_OBJECTIVE
@@ -175,7 +187,11 @@ struct GLPROW
       char *name;
       /* row name (1 to 255 chars); NULL means no name is assigned to
          this row */
+#if defined(WITH_SPLAYTREE)
+      GLPROW *node;
+#else
       AVLNODE *node;
+#endif
       /* pointer to corresponding node in the row index; NULL means
          that either the row index does not exist or this row has no
          name assigned */
@@ -232,7 +248,11 @@ struct GLPCOL
       char *name;
       /* column name (1 to 255 chars); NULL means no name is assigned
          to this column */
+#if defined(WITH_SPLAYTREE)
+      GLPCOL *node;
+#else
       AVLNODE *node;
+#endif
       /* pointer to corresponding node in the column index; NULL means
          that either the column index does not exist or the column has
          no name assigned */
