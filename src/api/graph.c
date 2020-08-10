@@ -21,7 +21,11 @@
 *  along with GLPK. If not, see <http://www.gnu.org/licenses/>.
 ***********************************************************************/
 
+#if defined(WITH_SPLAYTREE)
+#include "splaytree.h"
+#else
 #include "avl.h"
+#endif
 #include "dmp.h"
 #include "env.h"
 #include "glpk.h"
@@ -197,7 +201,11 @@ void glp_set_vertex_name(glp_graph *G, int i, const char *name)
       if (v->name != NULL)
       {  if (v->entry != NULL)
          {  xassert(G->index != NULL);
+#if defined(WITH_SPLAYTREE)
+            SplayTree_remove(G->index, ((glp_vertex*)v->entry)->name);
+#else
             avl_delete_node(G->index, v->entry);
+#endif
             v->entry = NULL;
          }
          dmp_free_atom(G->pool, v->name, strlen(v->name)+1);
@@ -217,8 +225,12 @@ void glp_set_vertex_name(glp_graph *G, int i, const char *name)
          strcpy(v->name, name);
          if (G->index != NULL)
          {  xassert(v->entry == NULL);
+#if defined(WITH_SPLAYTREE)
+            v->entry = SplayTree_insert(G->index, v->name, v) ? v : NULL;
+#else
             v->entry = avl_insert_node(G->index, v->name);
             avl_set_node_link(v->entry, v);
+#endif
          }
       }
       return;
@@ -421,7 +433,13 @@ void glp_del_arc(glp_graph *G, glp_arc *a)
 static void delete_graph(glp_graph *G)
 {     dmp_delete_pool(G->pool);
       xfree(G->v);
-      if (G->index != NULL) avl_delete_tree(G->index);
+      if (G->index != NULL) {
+#if defined(WITH_SPLAYTREE)
+          SplayTree_Free(G->index);
+#else
+          avl_delete_tree(G->index);
+#endif
+      }
       return;
 }
 
@@ -464,13 +482,23 @@ void glp_create_v_index(glp_graph *G)
       glp_vertex *v;
       int i;
       if (G->index == NULL)
-      {  G->index = avl_create_tree(avl_strcmp, NULL);
+      {
+#if defined(WITH_SPLAYTREE)
+         G->index = SplayTree_New(SplayTree_strcmp, NULL);
+#else
+         G->index = avl_create_tree(avl_strcmp, NULL);
+#endif
          for (i = 1; i <= G->nv; i++)
          {  v = G->v[i];
             xassert(v->entry == NULL);
             if (v->name != NULL)
-            {  v->entry = avl_insert_node(G->index, v->name);
+            {
+#if defined(WITH_SPLAYTREE)
+               v->entry = SplayTree_insert(G->index, v->name, v) ? v : NULL;
+#else
+               v->entry = avl_insert_node(G->index, v->name);
                avl_set_node_link(v->entry, v);
+#endif
             }
          }
       }
@@ -479,14 +507,25 @@ void glp_create_v_index(glp_graph *G)
 
 int glp_find_vertex(glp_graph *G, const char *name)
 {     /* find vertex by its name */
+#if defined(WITH_SPLAYTREE)
+      const glp_vertex *node;
+#else
       AVLNODE *node;
+#endif
       int i = 0;
       if (G->index == NULL)
          xerror("glp_find_vertex: vertex name index does not exist\n");
       if (!(name == NULL || name[0] == '\0' || strlen(name) > 255))
-      {  node = avl_find_node(G->index, name);
+      {
+#if defined(WITH_SPLAYTREE)
+         node = SplayTree_find(G->index, name);
+         if (node != NULL)
+            i = node->i;
+#else
+         node = avl_find_node(G->index, name);
          if (node != NULL)
             i = ((glp_vertex *)avl_get_node_link(node))->i;
+#endif
       }
       return i;
 }
@@ -495,7 +534,12 @@ void glp_delete_v_index(glp_graph *G)
 {     /* delete vertex name index */
       int i;
       if (G->index != NULL)
-      {  avl_delete_tree(G->index), G->index = NULL;
+      {
+#if defined(WITH_SPLAYTREE)
+         SplayTree_Free(G->index), G->index = NULL;
+#else
+         avl_delete_tree(G->index), G->index = NULL;
+#endif
          for (i = 1; i <= G->nv; i++) G->v[i]->entry = NULL;
       }
       return;

@@ -36,7 +36,6 @@ static void  SplayTree_splay(SplayTree_t *t, const void *key);
 
 int SplayTree_strcmp(void *info, const void *key1, const void *key2)
 {     /* compare character string keys */
-      xassert(info == info);
       return strcmp(key1, key2);
 }
 
@@ -160,6 +159,16 @@ const void *SplayTree_find(SplayTree_t *t, const void *key) {
     return rc_cmp ? NULL : t->root->value;
 }
 
+const void *SplayTree_find_prev(SplayTree_t *t, const void *key) {
+    const void *node = SplayTree_find(t, key);
+    return node ? NULL : (t->root->left ? t->root->left->value : NULL);
+}
+
+const void *SplayTree_find_next(SplayTree_t *t, const void *key) {
+    const void *node = SplayTree_find(t, key);
+    return node ? NULL : (t->root->right ? t->root->right->value : NULL);
+}
+
 const void *SplayTree_peek(SplayTree_t *t) {
     if (SplayTree_isEmpty(t)) return NULL;
     return t->root->value;
@@ -173,6 +182,15 @@ static SplayTree_node_t *SplayTree_findMax(SplayTree_t *t, SplayTree_node_t *opt
     SplayTree_node_t * current = opt_startNode ?  opt_startNode : t->root;
     while (current->right) {
       current = current->right;
+    }
+    return current;
+}
+
+static SplayTree_node_t *SplayTree_findMin(SplayTree_t *t, SplayTree_node_t *opt_startNode) {
+    if (SplayTree_isEmpty(t)) return NULL;
+    SplayTree_node_t * current = opt_startNode ?  opt_startNode : t->root;
+    while (current->left) {
+      current = current->left;
     }
     return current;
 }
@@ -200,6 +218,28 @@ const void *SplayTree_findGreatestLessThan(SplayTree_t *t, const void *key) {
       return t->root;
     } else if (t->root->left) {
       return SplayTree_findMax(t, t->root->left)->value;
+    }
+    return NULL;
+}
+
+const void *SplayTree_findSmallestGreaterThan(SplayTree_t *t, const void *key) {
+    if (SplayTree_isEmpty(t)) return NULL;
+
+    //
+    // Splay on the key to move the node with the given key or the last
+    // node on the search path to the top of the tree.
+    //
+    SplayTree_splay(t, key);
+    int rc_cmp = t->cmp_func(t->info, t->root->key, key);
+    //
+    // Now the result is either the root node or the greatest node in
+    // the left subtree.
+    //
+    //if (this.root.key > key) {
+    if (rc_cmp > 0) {
+      return t->root;
+    } else if (t->root->right) {
+      return SplayTree_findMin(t, t->root->right)->value;
     }
     return NULL;
 }
@@ -280,14 +320,14 @@ static void  SplayTree_splay(SplayTree_t *t, const void *key) {
   // Performs an ordered traversal of the subtree starting at
   // this SplayTree.Node.
   //
-/*
-void  SplayTree_traverse(SplayTree_t *t, f) {
-    tree_node_t *current = t->root;
+
+void  SplayTree_traverse(SplayTree_t *t, int (*f)(SplayTree_t *t, SplayTree_node_t *n)) {
+    SplayTree_node_t *current = t->root;
     while (current) {
-      tree_node_t *left = current->left;
-      if (left) left->traverse(t, f);
+      SplayTree_node_t *left = current->left;
+      if (left) SplayTree_traverse(t, f);
       f(t, current);
       current = current->right;
     }
 }
-*/
+

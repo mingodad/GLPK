@@ -497,7 +497,11 @@ void glp_set_row_name(glp_prob *lp, int i, const char *name)
       if (row->name != NULL)
       {  if (row->node != NULL)
          {  xassert(lp->r_tree != NULL);
+#if defined(WITH_SPLAYTREE)
+            SplayTree_remove(lp->r_tree, row->name);
+#else
             avl_delete_node(lp->r_tree, row->node);
+#endif
             row->node = NULL;
          }
          dmp_free_atom(lp->pool, row->name, strlen(row->name)+1);
@@ -517,8 +521,12 @@ void glp_set_row_name(glp_prob *lp, int i, const char *name)
          strcpy(row->name, name);
          if (lp->r_tree != NULL)
          {  xassert(row->node == NULL);
+#if defined(WITH_SPLAYTREE)
+            row->node = SplayTree_insert(lp->r_tree, row->name, row) ? row : NULL;
+#else
             row->node = avl_insert_node(lp->r_tree, row->name);
             avl_set_node_link(row->node, row);
+#endif
          }
       }
       return;
@@ -554,7 +562,11 @@ void glp_set_col_name(glp_prob *lp, int j, const char *name)
       if (col->name != NULL)
       {  if (col->node != NULL)
          {  xassert(lp->c_tree != NULL);
+#if defined(WITH_SPLAYTREE)
+            SplayTree_remove(lp->c_tree, col->name);
+#else
             avl_delete_node(lp->c_tree, col->node);
+#endif
             col->node = NULL;
          }
          dmp_free_atom(lp->pool, col->name, strlen(col->name)+1);
@@ -574,8 +586,12 @@ void glp_set_col_name(glp_prob *lp, int j, const char *name)
          strcpy(col->name, name);
          if (lp->c_tree != NULL && col->name != NULL)
          {  xassert(col->node == NULL);
+#if defined(WITH_SPLAYTREE)
+            col->node = SplayTree_insert(lp->c_tree, col->name, col) ? col : NULL;
+#else
             col->node = avl_insert_node(lp->c_tree, col->name);
             avl_set_node_link(col->node, col);
+#endif
          }
       }
       return;
@@ -1757,8 +1773,13 @@ static void delete_prob(glp_prob *lp)
 #endif
       xfree(lp->row);
       xfree(lp->col);
+#if defined(WITH_SPLAYTREE)
+      if (lp->r_tree != NULL) SplayTree_Free(lp->r_tree);
+      if (lp->c_tree != NULL) SplayTree_Free(lp->c_tree);
+#else
       if (lp->r_tree != NULL) avl_delete_tree(lp->r_tree);
       if (lp->c_tree != NULL) avl_delete_tree(lp->c_tree);
+#endif
       xfree(lp->head);
 #if 0 /* 08/III-2014 */
       if (lp->bfcp != NULL) xfree(lp->bfcp);

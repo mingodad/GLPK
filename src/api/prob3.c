@@ -49,25 +49,45 @@ void glp_create_index(glp_prob *lp)
       int i, j;
       /* create row name index */
       if (lp->r_tree == NULL)
-      {  lp->r_tree = avl_create_tree(avl_strcmp, NULL);
+      {
+#if defined(WITH_SPLAYTREE)
+         lp->r_tree = SplayTree_New(SplayTree_strcmp, NULL);
+#else
+         lp->r_tree = avl_create_tree(avl_strcmp, NULL);
+#endif
          for (i = 1; i <= lp->m; i++)
          {  row = lp->row[i];
             xassert(row->node == NULL);
             if (row->name != NULL)
-            {  row->node = avl_insert_node(lp->r_tree, row->name);
+            {
+#if defined(WITH_SPLAYTREE)
+               row->node = SplayTree_insert(lp->r_tree, row->name, row) ? row : NULL;
+#else
+               row->node = avl_insert_node(lp->r_tree, row->name);
                avl_set_node_link(row->node, row);
+#endif
             }
          }
       }
       /* create column name index */
       if (lp->c_tree == NULL)
-      {  lp->c_tree = avl_create_tree(avl_strcmp, NULL);
+      {
+#if defined(WITH_SPLAYTREE)
+         lp->c_tree = SplayTree_New(SplayTree_strcmp, NULL);
+#else
+         lp->c_tree = avl_create_tree(avl_strcmp, NULL);
+#endif
          for (j = 1; j <= lp->n; j++)
          {  col = lp->col[j];
             xassert(col->node == NULL);
             if (col->name != NULL)
-            {  col->node = avl_insert_node(lp->c_tree, col->name);
+            {
+#if defined(WITH_SPLAYTREE)
+               col->node = SplayTree_insert(lp->c_tree, col->name, row) ? col : NULL;
+#else
+               col->node = avl_insert_node(lp->c_tree, col->name);
                avl_set_node_link(col->node, col);
+#endif
             }
          }
       }
@@ -90,14 +110,26 @@ void glp_create_index(glp_prob *lp)
 *  symbolic name. If no such row exists, the routine returns 0. */
 
 int glp_find_row(glp_prob *lp, const char *name)
-{     AVLNODE *node;
+{
+#if defined(WITH_SPLAYTREE)
+      const GLPROW *node;
+#else
+      AVLNODE *node;
+#endif
       int i = 0;
       if (lp->r_tree == NULL)
          xerror("glp_find_row: row name index does not exist\n");
       if (!(name == NULL || name[0] == '\0' || strlen(name) > 255))
-      {  node = avl_find_node(lp->r_tree, name);
+      {
+#if defined(WITH_SPLAYTREE)
+         node = SplayTree_find(lp->r_tree, name);
+         if (node != NULL)
+            i = node->i;
+#else
+         node = avl_find_node(lp->r_tree, name);
          if (node != NULL)
             i = ((GLPROW *)avl_get_node_link(node))->i;
+#endif
       }
       return i;
 }
@@ -118,14 +150,26 @@ int glp_find_row(glp_prob *lp, const char *name)
 *  symbolic name. If no such column exists, the routine returns 0. */
 
 int glp_find_col(glp_prob *lp, const char *name)
-{     AVLNODE *node;
+{
+#if defined(WITH_SPLAYTREE)
+      const GLPCOL *node;
+#else
+      AVLNODE *node;
+#endif
       int j = 0;
       if (lp->c_tree == NULL)
          xerror("glp_find_col: column name index does not exist\n");
       if (!(name == NULL || name[0] == '\0' || strlen(name) > 255))
-      {  node = avl_find_node(lp->c_tree, name);
+      {
+#if defined(WITH_SPLAYTREE)
+         node = SplayTree_find(lp->c_tree, name);
+         if (node != NULL)
+            j = node->j;
+#else
+         node = avl_find_node(lp->c_tree, name);
          if (node != NULL)
             j = ((GLPCOL *)avl_get_node_link(node))->j;
+#endif
       }
       return j;
 }
@@ -153,12 +197,20 @@ void glp_delete_index(glp_prob *lp)
       /* delete row name index */
       if (lp->r_tree != NULL)
       {  for (i = 1; i <= lp->m; i++) lp->row[i]->node = NULL;
+#if defined(WITH_SPLAYTREE)
+         SplayTree_Free(lp->r_tree), lp->r_tree = NULL;
+#else
          avl_delete_tree(lp->r_tree), lp->r_tree = NULL;
+#endif
       }
       /* delete column name index */
       if (lp->c_tree != NULL)
       {  for (j = 1; j <= lp->n; j++) lp->col[j]->node = NULL;
+#if defined(WITH_SPLAYTREE)
+         SplayTree_Free(lp->c_tree), lp->c_tree = NULL;
+#else
          avl_delete_tree(lp->c_tree), lp->c_tree = NULL;
+#endif
       }
       return;
 }
