@@ -97,12 +97,14 @@ static AVLNODE *rotate_subtree(AVL *tree, AVLNODE *node);
 AVLNODE *avl_insert_node(AVL *tree, const void *key)
 {     /* insert new node into AVL tree */
       AVLNODE *p, *q, *r;
-      short int flag;
+      short int flag, rc;
       /* find an appropriate point for insertion */
       p = NULL; q = tree->root;
       while (q != NULL)
       {  p = q;
-         if (tree->fcmp(tree->info, key, p->key) <= 0)
+         rc = tree->fcmp(tree->info, key, p->key);
+         if(rc == 0) return NULL; /* no duplicate allowed */
+         if (rc < 0)
          {  flag = 0;
             q = p->left;
             p->rank++;
