@@ -159,16 +159,6 @@ const void *SplayTree_find(SplayTree_t *t, const void *key) {
     return rc_cmp ? NULL : t->root->value;
 }
 
-const void *SplayTree_find_prev(SplayTree_t *t, const void *key) {
-    const void *node = SplayTree_find(t, key);
-    return node ? NULL : (t->root->left ? t->root->left->value : NULL);
-}
-
-const void *SplayTree_find_next(SplayTree_t *t, const void *key) {
-    const void *node = SplayTree_find(t, key);
-    return node ? NULL : (t->root->right ? t->root->right->value : NULL);
-}
-
 const void *SplayTree_peek(SplayTree_t *t) {
     if (SplayTree_isEmpty(t)) return NULL;
     return t->root->value;

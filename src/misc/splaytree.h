@@ -22,8 +22,8 @@ int  SplayTree_count(SplayTree_t *t);
 int  SplayTree_insert(SplayTree_t *t, const void *key, const void *value);
 const void *SplayTree_remove(SplayTree_t *t, const void *key);
 const void *SplayTree_find(SplayTree_t *t, const void *key);
-const void *SplayTree_find_prev(SplayTree_t *t, const void *key);
-const void *SplayTree_find_next(SplayTree_t *t, const void *key);
+#define SplayTree_find_prev SplayTree_findGreatestLessThan
+#define SplayTree_find_next SplayTree_findSmallestGreaterThan
 const void *SplayTree_findGreatestLessThan(SplayTree_t *t, const void *key);
 const void *SplayTree_findSmallestGreaterThan(SplayTree_t *t, const void *key);
 const void *SplayTree_peek(SplayTree_t *t);

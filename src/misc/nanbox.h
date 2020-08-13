@@ -484,6 +484,43 @@ static inline double NANBOX_NAME(_to_double)(NANBOX_T val) {
  * Representation-independent functions
  */
 
+/*
+ * !!! nanbox_from_pointer doesn't work with literal arrays/strings (read only)
+ */
+
+#define NANBOX_AUX_COUNT 5
+static inline NANBOX_T NANBOX_NAME(_set_aux)(NANBOX_T val, int aux) {
+        assert(aux > 0 && aux <= NANBOX_AUX_COUNT);
+#if defined(NANBOX_64)
+	val.as_int64 = (val.as_int64 & ~NANBOX_HIGH16_TAG) ^ (NANBOX_MIN_AUX*aux);
+#elif defined(NANBOX_32)
+#define NANBOX_TAG_HIGH16 0xffff0000
+#define NANBOX_UNIT_AUX_TAG 0x00010000
+	val.as_bits.tag = (val.as_bits.tag & ~NANBOX_TAG_HIGH16) | (NANBOX_MIN_AUX_TAG + ((aux-1)*NANBOX_UNIT_AUX_TAG));
+#endif
+        return val;
+}
+
+static inline int NANBOX_NAME(_aux_n)(NANBOX_T val) {
+        assert(NANBOX_NAME(_is_aux)(val));
+#if defined(NANBOX_64)
+	return (val.as_int64 >> 48);
+#elif defined(NANBOX_32)
+	//return (NANBOX_MAX_AUX_TAG >> 16) - (val.as_bits.tag >> 16) +1;
+	return (val.as_bits.tag >> 16) - (NANBOX_MIN_AUX_TAG >> 16) +1;
+#endif
+}
+
+static inline void* NANBOX_NAME(_aux_to_pointer)(NANBOX_T val) {
+        assert(NANBOX_NAME(_is_aux)(val));
+#if defined(NANBOX_64)
+        val.as_int64 &= ~NANBOX_HIGH16_TAG;
+	return val.pointer;
+#elif defined(NANBOX_32)
+	return (void*)val.as_bits.payload;
+#endif
+}
+
 static inline double NANBOX_NAME(_to_number)(NANBOX_T val) {
 	assert(NANBOX_NAME(_is_number)(val));
 	return NANBOX_NAME(_is_int)(val) ? NANBOX_NAME(_to_int)(val)
