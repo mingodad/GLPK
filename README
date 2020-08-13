@@ -14,6 +14,8 @@ Here is a brief of changes made to GLPK 4.65 distribution:
 * Add a hash table for string interning
 * Added the patches from https://github.com/lcsirmaz/inner for
 	MultiObjective Linear Program (MOLP)
+* Added --genall option to glpsol to pre generate all entities in a GMPL model
+* Added --showdelta option to glpsol to show time/memory delta when generating a GMPL model
 
 To get the best performance configure like:
 

@@ -627,6 +627,7 @@ err2:          error(mpl, "transpose indicator (tr) incomplete");
       }
       /* delete the current slice */
       delete_slice(mpl, slice);
+      if(mpl->show_delta) glp_show_mem_usage();
       return;
 }
 
@@ -931,6 +932,7 @@ void tabbing_format
             /* and must not be defined yet */
             if (set->array->head != NULL)
                error(mpl, "%s already defined", set->name);
+            if(mpl->show_delta) xprintf("Reading set %s...\n", set->name);
             /* add new (the only) member to the set and assign it empty
                elemental set */
             add_member(mpl, set->array, NULL)->value.set =
@@ -959,6 +961,7 @@ void tabbing_format
             error(mpl, "%s has dimension %d while %s has dimension %d",
                last_name, dim, par->name, par->dim);
          }
+         if(mpl->show_delta) xprintf("Reading param %s...\n", par->name);
          /* set default value for the parameter (if specified) */
          if (!symbol_is_null(altval))
             set_default(mpl, par, copy_symbol(mpl, altval));
@@ -1088,6 +1091,7 @@ void parameter_data(MPL *mpl)
          /* skip optional comma */
          if (mpl->token == T_COMMA) get_token(mpl /* , */);
          /* read parameter data in the tabbing format */
+         if(mpl->show_delta) xprintf("Reading tabbing parameter ...\n");
          tabbing_format(mpl, altval);
          /* on reading data in the tabbing format the default value is
             always copied, so delete the original symbol */
@@ -1105,6 +1109,7 @@ void parameter_data(MPL *mpl)
          error(mpl, "parameter name missing where expected");
       /* select the parameter to saturate it with data */
       par = select_parameter(mpl, mpl->image);
+      if(mpl->show_delta) xprintf("Reading parameter %s...\n", par->name);
       get_token(mpl /* <symbol> */);
       /* read optional default value */
       if (is_literal(mpl, "default"))
@@ -1178,7 +1183,9 @@ err3:          error(mpl, "transpose indicator (tr) incomplete");
       }
       /* delete the current slice */
       delete_slice(mpl, slice);
-done: return;
+done:
+      if(mpl->show_delta) glp_show_mem_usage();
+      return;
 }
 
 /*----------------------------------------------------------------------

@@ -100,7 +100,7 @@ int glp_init_env(void)
       env->mem_limit = SIZE_T_MAX;
       env->mem_ptr = NULL;
       env->mem_count = env->mem_cpeak = 0;
-      env->mem_total = env->mem_tpeak = 0;
+      env->mem_total = env->mem_tpeak = env->last_mem_tpeak = 0;
 #if 1 /* 23/XI-2015 */
       env->gmp_pool = NULL;
       env->gmp_size = 0;
@@ -109,7 +109,7 @@ int glp_init_env(void)
       env->h_odbc = env->h_mysql = NULL;
       /* save pointer to the environment block */
       tls_set_ptr(env);
-      env->time_start = glp_time();
+      env->time_start = env->last_time_start = glp_time();
       /* initialization successful */
       return 0;
 }

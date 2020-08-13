@@ -114,6 +114,10 @@ struct ENV
       /* handle to MySQL shared library */
       double time_start;
       /* start time to compute time spent */
+      double last_time_start;
+      /* last start time to compute time spent */
+      size_t last_mem_tpeak;
+      /* last peak value of mem_total */
 };
 
 struct MBD

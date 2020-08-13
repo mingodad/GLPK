@@ -35,7 +35,7 @@ extern "C" {
 #define GLP_MAJOR_VERSION  4
 #define GLP_MINOR_VERSION  65
 
-#define CSL_MULTI_OBJECTIVE
+/*#define CSL_MULTI_OBJECTIVE*/
 
 typedef struct glp_prob glp_prob;
 /* LP/MIP problem object */
@@ -876,6 +876,14 @@ int glp_mpl_read_data(glp_tran *tran, const char *fname);
 
 int glp_mpl_generate(glp_tran *tran, const char *fname);
 /* generate the model */
+
+int glp_mpl_set_genall(glp_tran *tran, int bflag);
+/* set the gen_all option, pre generate all entities in the model
+   return the previous value */
+
+int glp_mpl_set_show_delta(glp_tran *tran, int bflag);
+/* set the show_delta option, show time/memory delta usage
+   return the previous value */
 
 void glp_mpl_build_prob(glp_tran *tran, glp_prob *prob);
 /* build LP/MIP problem instance from the model */

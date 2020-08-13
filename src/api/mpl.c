@@ -82,6 +82,20 @@ int glp_mpl_generate(glp_tran *tran, const char *fname)
       return ret;
 }
 
+int glp_mpl_set_genall(glp_tran *tran, int bflag)
+{
+    int rc = tran->gen_all;
+    tran->gen_all = bflag;
+    return rc;
+}
+
+int glp_mpl_set_show_delta(glp_tran *tran, int bflag)
+{
+    int rc = tran->show_delta;
+    tran->show_delta = bflag;
+    return rc;
+}
+
 void glp_mpl_build_prob(glp_tran *tran, glp_prob *prob)
 {     /* build LP/MIP problem instance from the model */
       int m, n, i, j, t, kind, type, len, *ind;

@@ -618,6 +618,8 @@ MPL *mpl_initialize(void)
       mpl->mod_file = NULL;
       mpl->mpl_buf = xcalloc(255+1, sizeof(char));
       mpl->mpl_buf[0] = '\0';
+      mpl->gen_all = 0;
+      mpl->show_delta = 0;
       return mpl;
 }
 
