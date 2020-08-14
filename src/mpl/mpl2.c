@@ -519,6 +519,7 @@ void set_data(MPL *mpl)
          error(mpl, "set name missing where expected");
       /* select the set to saturate it with data */
       set = select_set(mpl, mpl->image);
+      if(mpl->show_delta) xprintf("Reading set %s...", set->name);
       get_token(mpl /* <symbolic name> */);
       /* read optional subscript list, which identifies member of the
          set to be read */
@@ -627,7 +628,10 @@ err2:          error(mpl, "transpose indicator (tr) incomplete");
       }
       /* delete the current slice */
       delete_slice(mpl, slice);
-      if(mpl->show_delta) glp_show_mem_usage();
+      if(mpl->show_delta) {
+          xprintf(", %d elements\n", get_size_set(mpl, set));
+          glp_show_mem_usage();
+      }
       return;
 }
 
@@ -1071,6 +1075,7 @@ void parameter_data(MPL *mpl)
       altval.sym = nanbox_null();
       SLICE *slice;
       int tr = 0;
+      par = NULL;
       xassert(is_literal(mpl, "param"));
       get_token(mpl /* param */);
       /* read optional default value */
@@ -1109,7 +1114,7 @@ void parameter_data(MPL *mpl)
          error(mpl, "parameter name missing where expected");
       /* select the parameter to saturate it with data */
       par = select_parameter(mpl, mpl->image);
-      if(mpl->show_delta) xprintf("Reading parameter %s...\n", par->name);
+      if(mpl->show_delta) xprintf("Reading parameter %s...", par->name);
       get_token(mpl /* <symbol> */);
       /* read optional default value */
       if (is_literal(mpl, "default"))
@@ -1184,7 +1189,10 @@ err3:          error(mpl, "transpose indicator (tr) incomplete");
       /* delete the current slice */
       delete_slice(mpl, slice);
 done:
-      if(mpl->show_delta) glp_show_mem_usage();
+      if(mpl->show_delta) {
+          if(par) xprintf(", %d elements\n", par->array->size);
+          glp_show_mem_usage();
+      }
       return;
 }
 

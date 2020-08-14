@@ -2783,6 +2783,19 @@ void clean_set(MPL *mpl, SET *set)
       return;
 }
 
+int get_size_set(MPL *mpl, SET *set)
+{
+    xassert(set != NULL);
+    int set_sz = 0;
+    if(set->domain) set_sz = set->array->size;
+    else {
+        for(MEMBER *memb=set->array->head; memb != NULL; memb=memb->next)
+            set_sz = (set_sz ? set_sz : 1) * memb->value.set->size;
+    }
+    return set_sz;
+}
+
+
 /**********************************************************************/
 /* * *                      MODEL PARAMETERS                      * * */
 /**********************************************************************/
@@ -5798,6 +5811,9 @@ static void eval_whole_set_statement(MPL *mpl, SET *set)
        if (set->array->head != NULL)
           eval_member_set(mpl, set, set->array->head->tuple);
     }
+    if (set->array->head == NULL) {
+        if (set->option != NULL) eval_whole_set(mpl, set);
+    }
 }
 
 static void eval_whole_param_statemtnt(MPL *mpl, PARAMETER *par)
@@ -5820,6 +5836,9 @@ static void eval_whole_param_statemtnt(MPL *mpl, PARAMETER *par)
                 par->array->head->tuple));
        }
     }
+    if (par->array->head == NULL) {
+        if (par->option != NULL) eval_whole_par(mpl, par);
+    }
 }
 
 static int display_func(MPL *mpl, void *info)
@@ -5839,10 +5858,8 @@ static int display_func(MPL *mpl, void *info)
             MEMBER *memb;
             eval_whole_set_statement(mpl, set);
             /* display all members of the set array */
-            if (set->array->head == NULL) {
-               if (set->option != NULL) eval_whole_set(mpl, set);
-               else write_text(mpl, "%s has empty content\n", set->name);
-            }
+            if (set->array->head == NULL)
+               write_text(mpl, "%s has empty content\n", set->name);
             for (memb = set->array->head; memb != NULL; memb =
                memb->next) display_set(mpl, set, memb);
          }
@@ -5852,10 +5869,8 @@ static int display_func(MPL *mpl, void *info)
             MEMBER *memb;
             eval_whole_param_statemtnt(mpl, par);
             /* display all members of the parameter array */
-            if (par->array->head == NULL) {
-               if (par->option != NULL) eval_whole_par(mpl, par);
-               else write_text(mpl, "%s has empty content\n", par->name);
-            }
+            if (par->array->head == NULL)
+               write_text(mpl, "%s has empty content\n", par->name);
             for (memb = par->array->head; memb != NULL; memb =
                memb->next) display_par(mpl, par, memb);
          }
@@ -6216,29 +6231,45 @@ void execute_statement(MPL *mpl, STATEMENT *stmt)
       switch (stmt->type)
       {  case A_SET:
             if(mpl->gen_all) {
-                xprintf("Generating set %s...\n", stmt->u.set->name);
+                xprintf("Generating set %s...", stmt->u.set->name,
+                        mpl->show_delta ? "" : "\n");
                 eval_whole_set_statement(mpl, stmt->u.set);
-                if(mpl->show_delta) glp_show_mem_usage();
+                if(mpl->show_delta) {
+                    xprintf(", %d elements\n", get_size_set(mpl, stmt->u.set));
+                    glp_show_mem_usage();
+                }
             }
             break;
          case A_PARAMETER:
             if(mpl->gen_all) {
-                xprintf("Generating param %s...\n", stmt->u.par->name);
+                xprintf("Generating param %s...", stmt->u.par->name,
+                        mpl->show_delta ? "" : "\n");
                 eval_whole_param_statemtnt(mpl, stmt->u.par);
-                if(mpl->show_delta) glp_show_mem_usage();
+                if(mpl->show_delta) {
+                    xprintf(", %d elements\n", stmt->u.par->array->size);
+                    glp_show_mem_usage();
+                }
             }
             break;
          case A_VARIABLE:
             if(mpl->gen_all) {
-                xprintf("Generating var %s...\n", stmt->u.var->name);
+                xprintf("Generating var %s...", stmt->u.var->name,
+                        mpl->show_delta ? "" : "\n");
                 eval_whole_var(mpl, stmt->u.var);
-                if(mpl->show_delta) glp_show_mem_usage();
+                if(mpl->show_delta) {
+                    xprintf(", %d elements\n", stmt->u.var->array->size);
+                    glp_show_mem_usage();
+                }
             }
             break;
          case A_CONSTRAINT:
-            xprintf("Generating %s...\n", stmt->u.con->name);
+            xprintf("Generating %s...%s", stmt->u.con->name,
+                    mpl->show_delta ? "" : "\n");
             eval_whole_con(mpl, stmt->u.con);
-            if(mpl->show_delta) glp_show_mem_usage();
+            if(mpl->show_delta) {
+                xprintf(", %d elements\n", stmt->u.con->array->size);
+                glp_show_mem_usage();
+            }
             break;
          case A_TABLE:
             switch (stmt->u.tab->type)

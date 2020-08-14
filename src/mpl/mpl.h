@@ -1653,6 +1653,10 @@ void eval_whole_set(MPL *mpl, SET *set);
 void clean_set(MPL *mpl, SET *set);
 /* clean model set */
 
+#define get_size_set _glp_mpl_get_size_set
+int get_size_set(MPL *mpl, SET *set);
+/* get the size of a model set */
+
 /**********************************************************************/
 /* * *                      MODEL PARAMETERS                      * * */
 /**********************************************************************/
