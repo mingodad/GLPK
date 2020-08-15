@@ -159,6 +159,8 @@ struct csa
       const char *use_sol;
       /* name of input mip solution file in GLPK format */
 #endif
+      int show_delta;
+      int gen_all;
 };
 
 static int str2int(const char *s, int *x)
@@ -264,6 +266,8 @@ static void print_help(const char *my_name)
          "ytes\n");
       xprintf("   --check           do not solve problem, check input d"
          "ata only\n");
+      xprintf("   --genall          pre generate all model entities\n");
+      xprintf("   --showdelta       show time/memory delta usage\n");
       xprintf("   --genonly         only generate the model\n");
       xprintf("   --name probname   change problem name to probname\n");
 #if 1 /* 18/I-2018 */
@@ -614,6 +618,10 @@ static int parse_cmdline(struct csa *csa, int argc, char *argv[])
          }
          else if (p("--check"))
             csa->check = 1;
+         else if (p("--genall"))
+            csa->gen_all = 1;
+         else if (p("--showdelta"))
+            csa->show_delta = 1;
          else if (p("--genonly"))
             csa->genonly = 1;
          else if (p("--name"))
@@ -1034,6 +1042,8 @@ int __cdecl main(int argc, char *argv[])
 #if 1 /* 11/VII-2013 */
       csa->use_sol = NULL;
 #endif
+      csa->show_delta = 0;
+      csa->gen_all = 0;
       /* parse command-line parameters */
       ret = parse_cmdline(csa, argc, argv);
       if (ret < 0)
@@ -1129,6 +1139,8 @@ err1:    {  xprintf("MPS file processing error\n");
       {  int k;
          /* allocate the translator workspace */
          csa->tran = glp_mpl_alloc_wksp();
+         glp_mpl_set_genall(csa->tran, csa->gen_all);
+         glp_mpl_set_show_delta(csa->tran, csa->show_delta);
          /* set seed value */
          if (csa->seed == 0x80000000)
 #if 0 /* 10/VI-2013 */

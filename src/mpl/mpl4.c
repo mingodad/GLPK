@@ -619,6 +619,8 @@ MPL *mpl_initialize(void)
       mpl->mpl_buf = xcalloc(255+1, sizeof(char));
       mpl->mpl_buf[0] = '\0';
       mpl->symbol_null = nanbox_null();
+      mpl->gen_all = 0;
+      mpl->show_delta = 0;
       return mpl;
 }
 

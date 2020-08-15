@@ -185,6 +185,11 @@ static SplayTree_node_t *SplayTree_findMin(SplayTree_t *t, SplayTree_node_t *opt
     return current;
 }
 
+const void *SplayTree_first(SplayTree_t *t) {
+    SplayTree_node_t *rc = SplayTree_findMin(t, NULL);
+    return rc ? rc->value : NULL;
+}
+
   //
   // ### function findGreatestLessThan(key)
   // #### @return {SplayTree.Node} Node having the maximum key value that

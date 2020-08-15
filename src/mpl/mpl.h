@@ -339,6 +339,10 @@ struct glp_tran
       char *mpl_buf; /* char mpl_buf[255+1]; */
       /* working buffer used by some interface routines */
       nanbox_t symbol_null;
+      int gen_all;
+      /* flag to pre generate all entities in the model */
+      int show_delta;
+      /* flag to show time/memory delta usage */
 };
 
 /**********************************************************************/
@@ -1681,6 +1685,10 @@ void eval_whole_set(MPL *mpl, SET *set);
 #define clean_set _glp_mpl_clean_set
 void clean_set(MPL *mpl, SET *set);
 /* clean model set */
+
+#define get_size_set _glp_mpl_get_size_set
+int get_size_set(MPL *mpl, SET *set);
+/* get the size of a model set */
 
 /**********************************************************************/
 /* * *                      MODEL PARAMETERS                      * * */
