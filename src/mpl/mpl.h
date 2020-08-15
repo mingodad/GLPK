@@ -342,6 +342,7 @@ struct glp_tran
       /* flag to pre generate all entities in the model */
       int show_delta;
       /* flag to show time/memory delta usage */
+      int add_missing_param_values;
 };
 
 /**********************************************************************/

@@ -2918,7 +2918,7 @@ add:     /* check that the value satisfies to all restrictions, assign
       else if (par->option != NULL)
       {  /* compute default value */
          value = eval_numeric(mpl, par->option);
-         goto add;
+         if(mpl->add_missing_param_values) goto add;
       }
       else if (!symbol_is_null(par->defval))
       {  /* take default value provided in the data section */

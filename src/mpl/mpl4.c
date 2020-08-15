@@ -620,6 +620,7 @@ MPL *mpl_initialize(void)
       mpl->mpl_buf[0] = '\0';
       mpl->gen_all = 0;
       mpl->show_delta = 0;
+      mpl->add_missing_param_values = 0;
       return mpl;
 }
 

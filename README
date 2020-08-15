@@ -16,6 +16,9 @@ Here is a brief of changes made to GLPK 4.65 distribution:
 	MultiObjective Linear Program (MOLP)
 * Added --genall option to glpsol to pre generate all entities in a GMPL model
 * Added --showdelta option to glpsol to show time/memory delta when generating a GMPL model
+* Added --addmissing option to glpsol to add missing parameter values with default option
+	instead of calculate then every time (that was the previous default), on one problem
+	this change alone made the momory usage drop from 1.7GB to  26MB
 
 To get the best performance configure like:
 

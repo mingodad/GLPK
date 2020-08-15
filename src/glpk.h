@@ -885,6 +885,11 @@ int glp_mpl_set_show_delta(glp_tran *tran, int bflag);
 /* set the show_delta option, show time/memory delta usage
    return the previous value */
 
+int glp_mpl_set_add_missing_param_values(glp_tran *tran, int bflag);
+/* set the add_missing_param_values option, parameters
+   with missing values and a default option by default
+   calculates it every unless this option is set to non zero */
+
 void glp_mpl_build_prob(glp_tran *tran, glp_prob *prob);
 /* build LP/MIP problem instance from the model */
 
