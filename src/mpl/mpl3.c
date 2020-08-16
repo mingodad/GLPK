@@ -2926,7 +2926,7 @@ add:     /* check that the value satisfies to all restrictions, assign
             error(mpl, "cannot convert %s to floating-point number",
                format_symbol(mpl, par->defval));
          value = nanbox_to_double(par->defval.sym);
-         goto add;
+         if(mpl->add_missing_param_values) goto add;
       }
       else
       {  /* no value is provided */
