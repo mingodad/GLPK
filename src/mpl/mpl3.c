@@ -2904,21 +2904,15 @@ double take_member_num
       memb = find_member(mpl, par->array, tuple);
       if (memb != NULL)
       {  /* member exists, so just take its value */
-         value = memb->value.num;
+         return memb->value.num;
       }
       else if (par->assign != NULL)
       {  /* compute value using assignment expression */
          value = eval_numeric(mpl, par->assign);
-add:     /* check that the value satisfies to all restrictions, assign
-            it to new member, and add the member to the array */
-         check_value_num(mpl, par, tuple, value);
-         memb = add_member(mpl, par->array, copy_tuple(mpl, tuple));
-         memb->value.num = value;
       }
       else if (par->option != NULL)
       {  /* compute default value */
          value = eval_numeric(mpl, par->option);
-         if(mpl->add_missing_param_values) goto add;
       }
       else if (!symbol_is_null(par->defval))
       {  /* take default value provided in the data section */
@@ -2926,12 +2920,18 @@ add:     /* check that the value satisfies to all restrictions, assign
             error(mpl, "cannot convert %s to floating-point number",
                format_symbol(mpl, par->defval));
          value = nanbox_to_double(par->defval.sym);
-         if(mpl->add_missing_param_values) goto add;
       }
       else
       {  /* no value is provided */
          error(mpl, "no value for %s%s", par->name, format_tuple(mpl,
             '[', tuple));
+      }
+      /* check that the value satisfies to all restrictions, assign
+            it to new member, and add the member to the array */
+      check_value_num(mpl, par, tuple, value);
+      if (par->assign || mpl->add_missing_param_values) {
+        memb = add_member(mpl, par->array, copy_tuple(mpl, tuple));
+        memb->value.num = value;
       }
       return value;
 }
@@ -3117,31 +3117,31 @@ SYMBOL take_member_sym       /* returns value, not reference */
       memb = find_member(mpl, par->array, tuple);
       if (memb != NULL)
       {  /* member exists, so just take its value */
-         value = copy_symbol(mpl, memb->value.sym);
+         return copy_symbol(mpl, memb->value.sym);
       }
       else if (par->assign != NULL)
       {  /* compute value using assignment expression */
          value = eval_symbolic(mpl, par->assign);
-add:     /* check that the value satisfies to all restrictions, assign
-            it to new member, and add the member to the array */
-         check_value_sym(mpl, par, tuple, value);
-         memb = add_member(mpl, par->array, copy_tuple(mpl, tuple));
-         memb->value.sym = copy_symbol(mpl, value);
       }
       else if (par->option != NULL)
       {  /* compute default value */
          value = eval_symbolic(mpl, par->option);
-         goto add;
       }
       else if (!symbol_is_null(par->defval))
       {  /* take default value provided in the data section */
          value = copy_symbol(mpl, par->defval);
-         goto add;
       }
       else
       {  /* no value is provided */
          error(mpl, "no value for %s%s", par->name, format_tuple(mpl,
             '[', tuple));
+      }
+      /* check that the value satisfies to all restrictions, assign
+            it to new member, and add the member to the array */
+      check_value_sym(mpl, par, tuple, value);
+      if(par->assign || mpl->add_missing_param_values) {
+        memb = add_member(mpl, par->array, copy_tuple(mpl, tuple));
+        memb->value.sym = copy_symbol(mpl, value);
       }
       return value;
 }
