@@ -621,6 +621,7 @@ MPL *mpl_initialize(void)
       mpl->symbol_null = nanbox_null();
       mpl->gen_all = 0;
       mpl->show_delta = 0;
+      mpl->add_missing_param_values = 0;
       return mpl;
 }
 

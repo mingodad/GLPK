@@ -753,7 +753,8 @@ SYMBOL concat_symbols
 /* * *                          N-TUPLES                          * * */
 /**********************************************************************/
 
-#define CALC_TUPLE_SIZE(tuple) (sizeof(TUPLE)+((tuple->size-1)*sizeof(SYMBOL)))
+#define CALC_TUPLE_NDIM_SIZE(ndim) (sizeof(TUPLE)+((ndim-1)*sizeof(SYMBOL)))
+#define CALC_TUPLE_SIZE(tuple) CALC_TUPLE_NDIM_SIZE(tuple->size)
 
 /*----------------------------------------------------------------------
 -- create_tuple - create n-tuple.
@@ -761,9 +762,27 @@ SYMBOL concat_symbols
 -- This routine creates a n-tuple, which initially has no components,
 -- i.e. which is 0-tuple. */
 
+TUPLE *create_tuple_ndim0(MPL *mpl, int dim)
+{     TUPLE *tuple;
+      int i;
+      xassert(dim > 0);
+      tuple = dmp_get_atom(mpl->tuples, CALC_TUPLE_NDIM_SIZE(dim));
+      tuple->size = dim;
+      tuple->refcount = 1;
+      return tuple;
+}
+
+TUPLE *create_tuple_ndim(MPL *mpl, int dim, const SYMBOL fill)
+{     TUPLE *tuple;
+      int i;
+      xassert(dim > 0);
+      tuple = create_tuple_ndim0(mpl, dim);
+      for(i=0; i < dim; ++i) tuple->sym[i] = fill;
+      return tuple;
+}
+
 TUPLE *create_tuple(MPL *mpl)
 {     TUPLE *tuple;
-      xassert(mpl == mpl);
       tuple = NULL;
       return tuple;
 }
@@ -870,6 +889,22 @@ int compare_tuples
           if (ret != 0) return ret;
       }
       return 0;
+}
+
+int compare_tuples_diff_size
+(     MPL *mpl,
+      const TUPLE *tuple1,          /* not changed */
+      const TUPLE *tuple2           /* not changed */
+)
+{
+      int ret;
+      TUPLE_SIZE_T i, imax = (tuple1->size < tuple2->size) ? tuple1->size : tuple2->size;
+      if(!tuple1 || !tuple2) return 0;
+      for(i=0; i < imax; ++i) {
+          ret = compare_symbols(mpl, tuple1->sym[i], tuple2->sym[i]);
+          if (ret != 0) return ret;
+      }
+      return tuple1->size - tuple2->size;
 }
 
 /*----------------------------------------------------------------------
@@ -1729,19 +1764,17 @@ static int SplayTree_compare_member_tuples(void *info, const void *key1,
               ((MEMBER*)key2)->tuple);
 }
 #elif defined(WITH_KBTREE)
-typedef struct {
-    MEMBER *memb;
-} kbtree_elem_t;
+typedef MEMBER* kbt_memb_t;
 
-static int compare_kbtree_members(void *info, const kbtree_elem_t key1,
-      const kbtree_elem_t key2)
+static int compare_kbtree_members(void *info, const kbt_memb_t key1,
+      const kbt_memb_t key2)
 {     /* this is an auxiliary routine used to compare keys, which are
          n-tuples assigned to array members */
-      return compare_tuples((MPL *)info, key1.memb->tuple,
-              key2.memb->tuple);
+      return compare_tuples((MPL *)info, key1->tuple,
+              key2->tuple);
 }
 
-KBTREE_INIT(memb, kbtree_elem_t, compare_kbtree_members)
+KBTREE_INIT(memb, kbt_memb_t, compare_kbtree_members)
 
 void kbtree_memb_DESTROY(void *btree) {
     if(btree != NULL) kb_destroy(memb, ((kbtree_t(memb) *)btree));
@@ -1831,9 +1864,6 @@ MEMBER *find_member
       TUPLE *tuple      /* not changed */
 )
 {     MEMBER *memb;
-#if defined(WITH_KBTREE)
-      kbtree_elem_t *kbt_p, kbt_t;
-#endif
       xassert(array != NULL);
       /* the n-tuple must have the same dimension as the array */
       xassert(tuple_dimen(mpl, tuple) == array->dim);
@@ -1849,10 +1879,8 @@ MEMBER *find_member
          array->tree = kb_init(memb, KB_DEFAULT_SIZE);
          ((kbtree_t(memb)*)array->tree)->udata = mpl;
          for (memb = array->head; memb != NULL; memb = memb->next) {
-            kbt_t.memb = memb;
-            kbt_p = kb_getp(memb, array->tree, &kbt_t); // kb_get() also works
             // IMPORTANT: put() only works if key is absent
-            if (!kbt_p) kb_putp(memb, array->tree, &kbt_t);
+            if (!kb_get(memb, array->tree, memb)) kb_put(memb, array->tree, memb);
          }
 #elif defined(WITH_KHASH)
       {
@@ -1881,11 +1909,10 @@ MEMBER *find_member
 #elif defined(WITH_KHASH)
          memb = hashmap_find_member(mpl, array, tuple);
 #elif defined(WITH_KBTREE)
-         MEMBER mf;
+         MEMBER mf, **mp;
          mf.tuple = tuple;
-         kbt_t.memb = &mf;
-         kbt_p = kb_getp(memb, array->tree, &kbt_t);
-         memb = kbt_p ? kbt_p->memb : NULL;
+         mp = kb_get(memb, array->tree, &mf);
+         memb = mp ? *mp : NULL;
 #else
          AVLNODE *node;
          node = avl_find_node(array->tree, tuple);
@@ -1939,12 +1966,7 @@ MEMBER *add_member
       khash_map_insert_member(mpl, array, memb);
 #elif defined(WITH_KBTREE)
       {
-        kbtree_elem_t *kbt_p, kbt_t;
-        MEMBER mf;
-        mf.tuple = tuple;
-        kbt_t.memb = &mf;
-        kbt_p = kb_getp(memb, array->tree, &kbt_t);
-        if (!kbt_p) kb_putp(memb, array->tree, &kbt_t);
+        if (!kb_get(memb, array->tree, memb)) kb_put(memb, array->tree, memb);
       }
 #else
         avl_set_node_link(avl_insert_node(array->tree, memb->tuple),
@@ -2500,23 +2522,27 @@ void out_of_domain
 
 TUPLE *get_domain_tuple
 (     MPL *mpl,
-      const DOMAIN *domain          /* not changed */
+      DOMAIN *domain          /* not changed */
 )
 {     DOMAIN_BLOCK *block;
       DOMAIN_SLOT *slot;
       TUPLE *tuple;
-      tuple = create_tuple(mpl);
+      int tuple_idx;
       if (domain != NULL)
-      {  for (block = domain->list; block != NULL; block = block->next)
+      {  
+         tuple_idx = 0;
+         tuple = create_tuple_ndim0(mpl, domain_arity(mpl, domain));
+         for (block = domain->list; block != NULL; block = block->next)
          {  for (slot = block->list; slot != NULL; slot = slot->next)
             {  if (slot->code == NULL)
                {  xassert(!symbol_is_null(slot->value));
-                  tuple = expand_tuple(mpl, tuple, copy_symbol(mpl,
-                     slot->value));
+                  tuple->sym[tuple_idx++] = copy_symbol(mpl, slot->value);
                }
             }
          }
+         xassert(tuple_idx == tuple->size);
       }
+      else tuple = create_tuple(mpl);
       return tuple;
 }
 
@@ -2952,21 +2978,15 @@ double take_member_num
       memb = find_member(mpl, par->array, tuple);
       if (memb != NULL)
       {  /* member exists, so just take its value */
-         value = memb->value.num;
+         return memb->value.num;
       }
       else if (par->assign != NULL)
       {  /* compute value using assignment expression */
          value = eval_numeric(mpl, par->assign);
-add:     /* check that the value satisfies to all restrictions, assign
-            it to new member, and add the member to the array */
-         check_value_num(mpl, par, tuple, value);
-         memb = add_member(mpl, par->array, copy_tuple(mpl, tuple));
-         memb->value.num = value;
       }
       else if (par->option != NULL)
       {  /* compute default value */
          value = eval_numeric(mpl, par->option);
-         goto add;
       }
       else if (!symbol_is_null(par->defval))
       {  /* take default value provided in the data section */
@@ -2974,12 +2994,18 @@ add:     /* check that the value satisfies to all restrictions, assign
             error(mpl, "cannot convert %s to floating-point number",
                format_symbol(mpl, par->defval));
          value = nanbox_to_double(par->defval.sym);
-         goto add;
       }
       else
       {  /* no value is provided */
          error(mpl, "no value for %s%s", par->name, format_tuple(mpl,
             '[', tuple));
+      }
+      /* check that the value satisfies to all restrictions, assign
+            it to new member, and add the member to the array */
+      check_value_num(mpl, par, tuple, value);
+      if (par->assign || mpl->add_missing_param_values) {
+        memb = add_member(mpl, par->array, copy_tuple(mpl, tuple));
+        memb->value.num = value;
       }
       return value;
 }
@@ -3165,31 +3191,31 @@ SYMBOL take_member_sym       /* returns value, not reference */
       memb = find_member(mpl, par->array, tuple);
       if (memb != NULL)
       {  /* member exists, so just take its value */
-         value = copy_symbol(mpl, memb->value.sym);
+         return copy_symbol(mpl, memb->value.sym);
       }
       else if (par->assign != NULL)
       {  /* compute value using assignment expression */
          value = eval_symbolic(mpl, par->assign);
-add:     /* check that the value satisfies to all restrictions, assign
-            it to new member, and add the member to the array */
-         check_value_sym(mpl, par, tuple, value);
-         memb = add_member(mpl, par->array, copy_tuple(mpl, tuple));
-         memb->value.sym = copy_symbol(mpl, value);
       }
       else if (par->option != NULL)
       {  /* compute default value */
          value = eval_symbolic(mpl, par->option);
-         goto add;
       }
       else if (!symbol_is_null(par->defval))
       {  /* take default value provided in the data section */
          value = copy_symbol(mpl, par->defval);
-         goto add;
       }
       else
       {  /* no value is provided */
          error(mpl, "no value for %s%s", par->name, format_tuple(mpl,
             '[', tuple));
+      }
+      /* check that the value satisfies to all restrictions, assign
+            it to new member, and add the member to the array */
+      check_value_sym(mpl, par, tuple, value);
+      if(par->assign || mpl->add_missing_param_values) {
+        memb = add_member(mpl, par->array, copy_tuple(mpl, tuple));
+        memb->value.sym = copy_symbol(mpl, value);
       }
       return value;
 }

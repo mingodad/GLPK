@@ -343,6 +343,7 @@ struct glp_tran
       /* flag to pre generate all entities in the model */
       int show_delta;
       /* flag to show time/memory delta usage */
+      int add_missing_param_values;
 };
 
 /**********************************************************************/
@@ -1039,6 +1040,12 @@ struct TUPLE
       /* symbol, which the component refers to; cannot be NULL */
 };
 
+#define create_tuple_ndim0 _glp_mpl_create_tuple_ndim0
+TUPLE *create_tuple_ndim0(MPL *mpl, int dim);
+
+#define create_tuple_ndim _glp_mpl_create_tuple_ndim
+TUPLE *create_tuple_ndim(MPL *mpl, int dim, const SYMBOL fill);
+
 #define create_tuple _glp_mpl_create_tuple
 TUPLE *create_tuple(MPL *mpl);
 /* create n-tuple */
@@ -1494,6 +1501,7 @@ struct DOMAIN
       CODE *code;
       /* pseudo-code for computing the logical predicate, which follows
          the colon; NULL means no predicate is specified */
+      int dim;
 };
 
 struct DOMAIN_BLOCK
@@ -1591,7 +1599,7 @@ void out_of_domain
 #define get_domain_tuple _glp_mpl_get_domain_tuple
 TUPLE *get_domain_tuple
 (     MPL *mpl,
-      const DOMAIN *domain          /* not changed */
+      DOMAIN *domain          /* not changed */
 );
 /* obtain current n-tuple from domain */
 

@@ -160,7 +160,11 @@ struct csa
       /* name of input mip solution file in GLPK format */
 #endif
       int show_delta;
+      /* show time/memory usage increments */
       int gen_all;
+      /* generate all sets/parameters/variables before usage */
+      int add_missing_param_values;
+      /* for parameters with default values and missing values add then to the array */
 };
 
 static int str2int(const char *s, int *x)
@@ -270,6 +274,7 @@ static void print_help(const char *my_name)
       xprintf("   --showdelta       show time/memory delta usage\n");
       xprintf("   --genonly         only generate the model\n");
       xprintf("   --name probname   change problem name to probname\n");
+      xprintf("   --addmissing      add missing parameter values with default\n");
 #if 1 /* 18/I-2018 */
       xprintf("   --hide            remove all symbolic names from prob"
          "lem object\n");
@@ -624,6 +629,8 @@ static int parse_cmdline(struct csa *csa, int argc, char *argv[])
             csa->show_delta = 1;
          else if (p("--genonly"))
             csa->genonly = 1;
+         else if (p("--addmissing"))
+            csa->add_missing_param_values = 1;
          else if (p("--name"))
          {  k++;
             if (k == argc || argv[k][0] == '\0' || argv[k][0] == '-')
@@ -1044,6 +1051,7 @@ int __cdecl main(int argc, char *argv[])
 #endif
       csa->show_delta = 0;
       csa->gen_all = 0;
+      csa->add_missing_param_values = 0;
       /* parse command-line parameters */
       ret = parse_cmdline(csa, argc, argv);
       if (ret < 0)
@@ -1141,6 +1149,7 @@ err1:    {  xprintf("MPS file processing error\n");
          csa->tran = glp_mpl_alloc_wksp();
          glp_mpl_set_genall(csa->tran, csa->gen_all);
          glp_mpl_set_show_delta(csa->tran, csa->show_delta);
+         glp_mpl_set_add_missing_param_values(csa->tran, csa->add_missing_param_values);
          /* set seed value */
          if (csa->seed == 0x80000000)
 #if 0 /* 10/VI-2013 */

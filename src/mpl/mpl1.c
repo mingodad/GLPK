@@ -1423,6 +1423,7 @@ DOMAIN *create_domain(MPL *mpl)
       domain = alloc(DOMAIN);
       domain->list = NULL;
       domain->code = NULL;
+      domain->dim = 0;
       return domain;
 }
 
@@ -2047,13 +2048,13 @@ err:           error(mpl, "integrand following %s{...} has invalid type"
 int domain_arity(MPL *mpl, DOMAIN *domain)
 {     DOMAIN_BLOCK *block;
       DOMAIN_SLOT *slot;
-      int arity;
-      xassert(mpl == mpl);
-      arity = 0;
-      for (block = domain->list; block != NULL; block = block->next)
+      xassert(domain != NULL);
+      if(!domain->dim) {
+        for (block = domain->list; block != NULL; block = block->next)
          for (slot = block->list; slot != NULL; slot = slot->next)
-            if (slot->code == NULL) arity++;
-      return arity;
+            if (slot->code == NULL) domain->dim++;
+      }
+      return domain->dim;
 }
 
 /*----------------------------------------------------------------------

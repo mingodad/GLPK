@@ -96,6 +96,13 @@ int glp_mpl_set_show_delta(glp_tran *tran, int bflag)
     return rc;
 }
 
+int glp_mpl_set_add_missing_param_values(glp_tran *tran, int bflag)
+{
+    int rc = tran->add_missing_param_values;
+    tran->add_missing_param_values = bflag;
+    return rc;
+}
+
 void glp_mpl_build_prob(glp_tran *tran, glp_prob *prob)
 {     /* build LP/MIP problem instance from the model */
       int m, n, i, j, t, kind, type, len, *ind;
