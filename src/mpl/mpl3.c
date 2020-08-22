@@ -27,7 +27,6 @@
 #include "kbtree.h"
 #elif defined(WITH_KHASH)
 #include "khash.h"
-KHASH_MAP_INIT_STR(kh_str_map, MEMBER*)
 #endif
 
 /**********************************************************************/
@@ -1688,64 +1687,128 @@ static int compare_member_tuples(void *info, const void *key1,
 
 #if defined(WITH_SPLAYTREE)
 #elif defined(WITH_KBTREE)
-typedef struct {
-    MEMBER *memb;
-} kbtree_elem_t;
+typedef MEMBER* kbt_memb_t;
 
-static int compare_kbtree_members(void *info, const kbtree_elem_t key1,
-      const kbtree_elem_t key2)
+static int compare_kbtree_members(void *info, const kbt_memb_t key1,
+      const kbt_memb_t key2)
 {     /* this is an auxiliary routine used to compare keys, which are
          n-tuples assigned to array members */
-      return compare_tuples((MPL *)info, key1.memb->tuple,
-              key2.memb->tuple);
+      return compare_tuples((MPL *)info, key1->tuple,
+              key2->tuple);
 }
 
-KBTREE_INIT(memb, kbtree_elem_t, compare_kbtree_members)
+KBTREE_INIT(memb, kbt_memb_t, compare_kbtree_members)
 
 void kbtree_memb_DESTROY(void *btree) {
     if(btree != NULL) kb_destroy(memb, ((kbtree_t(memb) *)btree));
 }
 #elif defined(WITH_KHASH)
 
-#define KHASH_MAX_KEY_LENHGTH 1024
+/* Hash for tuples. This is a slightly simplified version of the xxHash
+   non-cryptographic hash:
+   - we do not use any parallellism, there is only 1 accumulator.
+   - we drop the final mixing since this is just a permutation of the
+     output space: it does not help against collisions.
+   - at the end, we mangle the length with a single constant.
+   For the xxHash specification, see
+   https://github.com/Cyan4973/xxHash/blob/master/doc/xxhash_spec.md
 
-static STRING *tuple_to_hash_key(MPL *mpl, const TUPLE *tuple)
+   Below are the official constants from the xxHash specification. Optimizing
+   compilers should emit a single "rotate" instruction for the
+   _PyHASH_XXROTATE() expansion. If that doesn't happen for some important
+   platform, the macro could be changed to expand to a platform-specific rotate
+   spelling instead.
+*/
+
+/* uintptr_t is the C9X name for an unsigned integral type such that a
+ * legitimate void* can be cast to uintptr_t and then back to void* again
+ * without loss of information.  Similarly for intptr_t, wrt a signed
+ * integral type.
+ */
+typedef uintptr_t       Py_uintptr_t;
+typedef intptr_t        Py_intptr_t;
+
+/* The size of `size_t', as computed by sizeof. */
+#define SIZEOF_SIZE_T 8
+
+/* The size of `void *', as computed by sizeof. */
+#define SIZEOF_VOID_P 8
+
+/* Py_ssize_t is a signed integral type such that sizeof(Py_ssize_t) ==
+ * sizeof(size_t).  C99 doesn't define such a thing directly (size_t is an
+ * unsigned integral type).  See PEP 353 for details.
+ */
+#ifdef HAVE_SSIZE_T
+typedef ssize_t         Py_ssize_t;
+#elif SIZEOF_VOID_P == SIZEOF_SIZE_T
+typedef Py_intptr_t     Py_ssize_t;
+#else
+#   error "Python needs a typedef for Py_ssize_t in pyport.h."
+#endif
+
+/* Py_hash_t is the same size as a pointer. */
+#define SIZEOF_PY_HASH_T SIZEOF_SIZE_T
+typedef Py_ssize_t Py_hash_t;
+/* Py_uhash_t is the unsigned equivalent needed to calculate numeric hash. */
+#define SIZEOF_PY_UHASH_T SIZEOF_SIZE_T
+typedef size_t Py_uhash_t;
+
+#if SIZEOF_PY_UHASH_T > 4
+#define _PyHASH_XXPRIME_1 ((Py_uhash_t)11400714785074694791ULL)
+#define _PyHASH_XXPRIME_2 ((Py_uhash_t)14029467366897019727ULL)
+#define _PyHASH_XXPRIME_5 ((Py_uhash_t)2870177450012600261ULL)
+#define _PyHASH_XXROTATE(x) ((x << 31) | (x >> 33))  /* Rotate left 31 bits */
+#else
+#define _PyHASH_XXPRIME_1 ((Py_uhash_t)2654435761UL)
+#define _PyHASH_XXPRIME_2 ((Py_uhash_t)2246822519UL)
+#define _PyHASH_XXPRIME_5 ((Py_uhash_t)374761393UL)
+#define _PyHASH_XXROTATE(x) ((x << 13) | (x >> 19))  /* Rotate left 13 bits */
+#endif
+
+/* Tests have shown that it's not worth to cache the hash value, see
+   https://bugs.python.org/issue9685 */
+static Py_hash_t
+tuplehash(const TUPLE *tuple)
 {
     TUPLE *temp;
-    STRING *key;
-    char *buf_ptr, buf[KHASH_MAX_KEY_LENHGTH];
-    int size = 0;
-    int remaining_size = KHASH_MAX_KEY_LENHGTH;
-    buf_ptr = buf;
+    Py_ssize_t len = 0;
+    Py_uhash_t acc = _PyHASH_XXPRIME_5;
     for (temp = tuple; temp != NULL; temp = temp->next) {
         xassert(!symbol_is_null(temp->sym));
-        if (nanbox_is_double(temp->sym.sym)) {
-            size = snprintf(buf_ptr, remaining_size, "|N%.*g", DBL_DIG, nanbox_to_double(temp->sym.sym));
-        }
-        else
-        {
-            size = snprintf(buf_ptr, remaining_size, "|S%s", (const char*)nanbox_to_pointer(temp->sym.sym));
-        }
-        remaining_size -= size;
-        buf_ptr += size;
-        if(remaining_size <= 0) {
-            error(mpl, "tuple_to_hash_key key too big");
-        }
+        acc += temp->sym.sym.as_int64 * _PyHASH_XXPRIME_2;
+        acc = _PyHASH_XXROTATE(acc);
+        acc *= _PyHASH_XXPRIME_1;
+	++len;
     }
-    size = KHASH_MAX_KEY_LENHGTH-remaining_size;
-    key = dmp_get_atom(mpl->strings, size+1);
-    memcpy(key, buf, size);
-    key[size] = '\0';
-    return key;
+    /* Add input length, mangled to keep the historical value of hash(()). */
+    acc += len ^ (_PyHASH_XXPRIME_5 ^ 3527539UL);
+
+    if (acc == (Py_uhash_t)-1) {
+        return 1546275796;
+    }
+    return acc;
 }
+
+int tuplehash_equal(const TUPLE *tuple1, const TUPLE *tuple2)
+{
+    xassert(tuple1->size == tuple2->size);
+    for (; tuple1 != NULL; tuple1 = tuple1->next, tuple2 = tuple2->next) {
+        if(tuple1->sym.sym.as_int64 != tuple2->sym.sym.as_int64)
+            return 0;
+    }
+    return 1;
+}
+
+#define KHASH_MAP_INIT_TUPLE(name, khval_t) \
+	KHASH_INIT(name, const TUPLE *, khval_t, 1, tuplehash, tuplehash_equal)
+
+KHASH_MAP_INIT_TUPLE(kh_tuple_map, MEMBER*)
 
 static MEMBER *hashmap_find_member(MPL *mpl, ARRAY *array, const TUPLE *tuple){
     if(tuple) {
         khint_t kh_k;
-        khash_t(kh_str_map) *kh = (khash_t(kh_str_map)*)array->tree;
-        STRING *key = tuple_to_hash_key(mpl, tuple);
-        kh_k = kh_get(kh_str_map, kh, key);
-        dmp_free_atom(mpl->strings, key, strlen((STRING*)key)+1);
+        khash_t(kh_tuple_map) *kh = (khash_t(kh_tuple_map)*)array->tree;
+        kh_k = kh_get(kh_tuple_map, kh, tuple);
         if(kh_k != kh_end(kh))
             return kh_value(kh, kh_k);
     }
@@ -1755,11 +1818,10 @@ static MEMBER *hashmap_find_member(MPL *mpl, ARRAY *array, const TUPLE *tuple){
 static void khash_map_insert_member(MPL *mpl, ARRAY *array, MEMBER *memb) {
     khint_t kh_k;
     int kh_absent;
-    khash_t(kh_str_map) *kh = (khash_t(kh_str_map)*)array->tree;
-    STRING *key = tuple_to_hash_key(mpl, memb->tuple);
-    kh_k = kh_put(kh_str_map, kh, key, &kh_absent);
+    khash_t(kh_tuple_map) *kh = (khash_t(kh_tuple_map)*)array->tree;
+    kh_k = kh_put(kh_tuple_map, kh, memb->tuple, &kh_absent);
     if (kh_absent) {
-        kh_key(kh, kh_k) = key;
+        kh_key(kh, kh_k) = memb->tuple;
         kh_value(kh, kh_k) = memb;
     }
     else
@@ -1770,14 +1832,8 @@ static void khash_map_insert_member(MPL *mpl, ARRAY *array, MEMBER *memb) {
 
 void destroy_khash_map_member(MPL *mpl, ARRAY *array) {
     if (array->tree != NULL) {
-        khint_t kh_k;
-        khash_t(kh_str_map) *kh = (khash_t(kh_str_map)*)array->tree;
-        for (kh_k = 0; kh_k < kh_end(kh); ++kh_k)
-        if (kh_exist(kh, kh_k)) {
-            STRING *key = kh_key(kh, kh_k);
-            dmp_free_atom(mpl->strings, key, strlen(key)+1);
-        }
-        kh_destroy(kh_str_map, kh);
+        khash_t(kh_tuple_map) *kh = (khash_t(kh_tuple_map)*)array->tree;
+        kh_destroy(kh_tuple_map, kh);
     }
 }
 
@@ -1790,12 +1846,10 @@ MEMBER *find_member
       const TUPLE *tuple      /* not changed */
 )
 {     MEMBER *memb;
-#if defined(WITH_KBTREE)
-      kbtree_elem_t *kbt_p, kbt_t;
-#endif
       xassert(array != NULL);
       /* the n-tuple must have the same dimension as the array */
       xassert(tuple_dimen(mpl, tuple) == array->dim);
+      if(!tuple) return array->head;
       /* if the array is large enough, create the search tree and index
          all existing members of the array */
       if (array->size > 30 && array->tree == NULL)
@@ -1808,15 +1862,13 @@ MEMBER *find_member
          array->tree = kb_init(memb, KB_DEFAULT_SIZE);
          ((kbtree_t(memb)*)array->tree)->udata = mpl;
          for (memb = array->head; memb != NULL; memb = memb->next) {
-            kbt_t.memb = memb;
-            kbt_p = kb_getp(memb, array->tree, &kbt_t); // kb_get() also works
             // IMPORTANT: put() only works if key is absent
-            if (!kbt_p) kb_putp(memb, array->tree, &kbt_t);
+            if (!kb_get(memb, array->tree, memb)) kb_put(memb, array->tree, memb);
          }
 #elif defined(WITH_KHASH)
       {
-         array->tree = kh_init(kh_str_map);
-         kh_resize(kh_str_map, array->tree, array->size);
+         array->tree = kh_init(kh_tuple_map);
+         kh_resize(kh_tuple_map, array->tree, array->size);
          for (memb = array->head; memb != NULL; memb = memb->next) {
              khash_map_insert_member(mpl, array, memb);
          }
@@ -1840,11 +1892,10 @@ MEMBER *find_member
 #elif defined(WITH_KHASH)
          memb = hashmap_find_member(mpl, array, tuple);
 #elif defined(WITH_KBTREE)
-         MEMBER mf;
+         MEMBER mf, **mp;
          mf.tuple = tuple;
-         kbt_t.memb = &mf;
-         kbt_p = kb_getp(memb, array->tree, &kbt_t);
-         memb = kbt_p ? kbt_p->memb : NULL;
+         mp = kb_get(memb, array->tree, &mf);
+         memb = mp ? *mp : NULL;
 #else
          AVLNODE *node;
          node = avl_find_node(array->tree, tuple);
@@ -1898,12 +1949,7 @@ MEMBER *add_member
       khash_map_insert_member(mpl, array, memb);
 #elif defined(WITH_KBTREE)
       {
-        kbtree_elem_t *kbt_p, kbt_t;
-        MEMBER mf;
-        mf.tuple = tuple;
-        kbt_t.memb = &mf;
-        kbt_p = kb_getp(memb, array->tree, &kbt_t);
-        if (!kbt_p) kb_putp(memb, array->tree, &kbt_t);
+        if (!kb_get(memb, array->tree, memb)) kb_put(memb, array->tree, memb);
       }
 #else
         avl_set_node_link(avl_insert_node(array->tree, memb->tuple),
