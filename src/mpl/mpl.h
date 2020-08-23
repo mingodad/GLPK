@@ -80,6 +80,7 @@ typedef struct PRINTF1 PRINTF1;
 typedef struct FOR FOR;
 typedef struct STATEMENT STATEMENT;
 typedef struct TUPLE SLICE;
+typedef struct IF_STMT IF_STMT;
 
 /**********************************************************************/
 /* * *                    TRANSLATOR DATABASE                     * * */
@@ -112,6 +113,7 @@ typedef struct TUPLE SLICE;
 #define A_TABLE         125   /* data table */
 #define A_TUPLE         126   /* n-tuple */
 #define A_VARIABLE      127   /* model variable */
+#define A_IF            128   /* if then else statement */
 
 #define MAX_LENGTH 100
 /* maximal length of any symbolic value (this includes symbolic names,
@@ -608,6 +610,10 @@ PRINTF *printf_statement(MPL *mpl);
 #define for_statement _glp_mpl_for_statement
 FOR *for_statement(MPL *mpl);
 /* parse for statement */
+
+#define if_statement _glp_mpl_if_statement
+IF_STMT *if_statement(MPL *mpl);
+/* parse if then else statement */
 
 #define end_statement _glp_mpl_end_statement
 void end_statement(MPL *mpl);
@@ -2379,6 +2385,18 @@ struct FOR
          the original order */
 };
 
+struct IF_STMT
+{     /* if then else statement */
+      CODE *code;
+      /* pseudo-code for the logical expression */
+      STATEMENT *true_list;
+      /* linked list of model statements within this if true statement in
+         the original order */
+      STATEMENT *else_list;
+      /* linked list of model statements within this if false statement in
+         the original order */
+};
+
 struct STATEMENT
 {     /* model statement */
       int line;
@@ -2406,6 +2424,7 @@ struct STATEMENT
          DISPLAY *dpy;
          PRINTF *prt;
          FOR *fur;
+         IF_STMT *if_stmt;
       } u;
       /* specific part of statement */
       STATEMENT *next;
@@ -2456,6 +2475,14 @@ void execute_for(MPL *mpl, FOR *fur);
 #define clean_for _glp_mpl_clean_for
 void clean_for(MPL *mpl, FOR *fur);
 /* clean for statement */
+
+#define execute_if _glp_mpl_execute_if
+void execute_if(MPL *mpl, IF_STMT *if_stmt);
+/* execute if then else  statement */
+
+#define clean_if _glp_mpl_clean_if
+void clean_if(MPL *mpl, IF_STMT *if_stmt);
+/* clean if then else statement */
 
 #define execute_statement _glp_mpl_execute_statement
 void execute_statement(MPL *mpl, STATEMENT *stmt);

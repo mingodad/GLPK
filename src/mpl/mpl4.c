@@ -131,6 +131,7 @@ void alloc_content(MPL *mpl)
             case A_DISPLAY:
             case A_PRINTF:
             case A_FOR:
+            case A_IF:
                /* functional statements have no content array */
                break;
             default:

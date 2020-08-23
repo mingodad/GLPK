@@ -4527,6 +4527,7 @@ PRINTF *printf_statement(MPL *mpl)
 -- <statement> ::= <check statement>
 -- <statement> ::= <display statement>
 -- <statement> ::= <printf statement>
+-- <statement> ::= <if statement>
 -- <statement> ::= <for statement> */
 
 FOR *for_statement(MPL *mpl)
@@ -4569,6 +4570,86 @@ FOR *for_statement(MPL *mpl)
       close_scope(mpl, fur->domain);
       /* the for statement has been completely parsed */
       return fur;
+}
+
+/*----------------------------------------------------------------------
+-- if_statement - parse if then else statement.
+--
+-- This routine parses for statement using the syntax:
+--
+-- <if statement> ::= if <logical expression> then <statement>
+-- <if statement> ::= if <logical expression> then <statement> else <statement>
+-- <if statement> ::= if <logical expression> then { <statement list> }
+-- <if statement> ::= if <logical expression> then { <statement list> } else { <statement list> }
+-- <statement list> ::= <empty>
+-- <statement list> ::= <statement list> <statement>
+-- <statement> ::= <check statement>
+-- <statement> ::= <display statement>
+-- <statement> ::= <printf statement>
+-- <statement> ::= <if statement>
+-- <statement> ::= <for statement> */
+
+IF_STMT *if_statement(MPL *mpl)
+{     IF_STMT *if_stmt;
+      STATEMENT *stmt, *last_stmt;
+      xassert(mpl->token == T_IF);
+      /* create for descriptor */
+      if_stmt = alloc(IF_STMT);
+      if_stmt->true_list = if_stmt->else_list = NULL;
+      get_token(mpl /* if */);
+      /* parse logical expression */
+      if_stmt->code = expression_13(mpl);
+      if(mpl->token != T_THEN)
+          error(mpl, "'then' keyword expected");
+      get_token(mpl /* then */);
+      /* parse true statement body */
+      if (mpl->token != T_LBRACE)
+      {  /* parse simple statement */
+         if_stmt->true_list = simple_statement(mpl, 1);
+      }
+      else
+      {  /* parse compound statement */
+         get_token(mpl /* { */);
+         last_stmt = NULL;
+         while (mpl->token != T_RBRACE)
+         {  /* parse statement */
+            stmt = simple_statement(mpl, 1);
+            /* and append it to the end of the statement list */
+            if (last_stmt == NULL)
+               if_stmt->true_list = stmt;
+            else
+               last_stmt->next = stmt;
+            last_stmt = stmt;
+         }
+         get_token(mpl /* } */);
+      }
+      if(mpl->token == T_ELSE)
+      {
+        get_token(mpl /* else */);
+        /* parse else statement body */
+        if (mpl->token != T_LBRACE)
+        {  /* parse simple statement */
+           if_stmt->else_list = simple_statement(mpl, 1);
+        }
+        else
+        {  /* parse compound statement */
+           get_token(mpl /* { */);
+           last_stmt = NULL;
+           while (mpl->token != T_RBRACE)
+           {  /* parse statement */
+              stmt = simple_statement(mpl, 1);
+              /* and append it to the end of the statement list */
+              if (last_stmt == NULL)
+                 if_stmt->else_list = stmt;
+              else
+                 last_stmt->next = stmt;
+              last_stmt = stmt;
+           }
+           get_token(mpl /* } */);
+        }
+      }
+      /* the for statement has been completely parsed */
+      return if_stmt;
 }
 
 /*----------------------------------------------------------------------
@@ -4682,6 +4763,10 @@ STATEMENT *simple_statement(MPL *mpl, int spec)
       else if (is_keyword(mpl, "for"))
       {  stmt->type = A_FOR;
          stmt->u.fur = for_statement(mpl);
+      }
+      else if (mpl->token == T_IF)
+      {  stmt->type = A_IF;
+         stmt->u.if_stmt = if_statement(mpl);
       }
       else if (mpl->token == T_NAME)
       {  if (spec)

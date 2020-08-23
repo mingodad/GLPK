@@ -6268,6 +6268,45 @@ void clean_for(MPL *mpl, FOR *fur)
 }
 
 /*----------------------------------------------------------------------
+-- execute_if - execute if then else statement.
+--
+-- This routine executes specified if then else statement. */
+
+void execute_if(MPL *mpl, IF_STMT *if_stmt)
+{
+      STATEMENT *stmt, *save;
+      save = mpl->stmt;
+      if(eval_logical(mpl, if_stmt->code))
+      {
+        for (stmt = if_stmt->true_list; stmt != NULL; stmt = stmt->next)
+           execute_statement(mpl, stmt);
+      }
+      else
+      {
+        for (stmt = if_stmt->else_list; stmt != NULL; stmt = stmt->next)
+           execute_statement(mpl, stmt);
+      }
+      mpl->stmt = save;
+}
+
+/*----------------------------------------------------------------------
+-- clean_if - clean if then else statement.
+--
+-- This routine cleans specified for statement that assumes deleting all
+-- stuff dynamically allocated on generating/postsolving phase. */
+
+void clean_if(MPL *mpl, IF_STMT *if_stmt)
+{     STATEMENT *stmt;
+      /* clean all true sub-statements */
+      for (stmt = if_stmt->true_list; stmt != NULL; stmt = stmt->next)
+         clean_statement(mpl, stmt);
+      /* clean all false sub-statements */
+      for (stmt = if_stmt->else_list; stmt != NULL; stmt = stmt->next)
+         clean_statement(mpl, stmt);
+      return;
+}
+
+/*----------------------------------------------------------------------
 -- execute_statement - execute specified model statement.
 --
 -- This routine executes specified model statement. */
@@ -6347,6 +6386,9 @@ void execute_statement(MPL *mpl, STATEMENT *stmt)
          case A_FOR:
             execute_for(mpl, stmt->u.fur);
             break;
+         case A_IF: /* if then else */
+            execute_if(mpl, stmt->u.if_stmt);
+            break;
          default:
             xassert(stmt != stmt);
       }
@@ -6383,6 +6425,8 @@ void clean_statement(MPL *mpl, STATEMENT *stmt)
             clean_printf(mpl, stmt->u.prt); break;
          case A_FOR:
             clean_for(mpl, stmt->u.fur); break;
+         case A_IF:
+            clean_if(mpl, stmt->u.if_stmt); break;
          default:
             xassert(stmt != stmt);
       }
