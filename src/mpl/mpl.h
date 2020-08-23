@@ -114,6 +114,8 @@ typedef struct IF_STMT IF_STMT;
 #define A_TUPLE         126   /* n-tuple */
 #define A_VARIABLE      127   /* model variable */
 #define A_IF            128   /* if then else statement */
+#define A_BREAK         129   /* break statement */
+#define A_CONTINUE      130   /* continue statement */
 
 #define MAX_LENGTH 100
 /* maximal length of any symbolic value (this includes symbolic names,
@@ -254,6 +256,8 @@ struct glp_tran
       /* the warning "logical understood as binary" has been issued */
       int flag_s;
       /* if this flag is set, the solve statement has been parsed */
+      FOR *current_for_loop;
+      /* if this is not NULL we are inside a for loop */
       /*--------------------------------------------------------------*/
       /* common segment */
       DMP *strings;
@@ -610,6 +614,10 @@ PRINTF *printf_statement(MPL *mpl);
 #define for_statement _glp_mpl_for_statement
 FOR *for_statement(MPL *mpl);
 /* parse for statement */
+
+#define break_continue_statement _glp_mpl_break_continue_statement
+void break_continue_statement(MPL *mpl);
+/* parse break/continue statement */
 
 #define if_statement _glp_mpl_if_statement
 IF_STMT *if_statement(MPL *mpl);
@@ -2383,6 +2391,7 @@ struct FOR
       STATEMENT *list;
       /* linked list of model statements within this for statement in
          the original order */
+      char do_break, do_continue; 
 };
 
 struct IF_STMT
@@ -2471,6 +2480,10 @@ void clean_printf(MPL *mpl, PRINTF *prt);
 #define execute_for _glp_mpl_execute_for
 void execute_for(MPL *mpl, FOR *fur);
 /* execute for statement */
+
+#define execute_break_continue _glp_mpl_execute_break_continue
+void execute_break_continue(MPL *mpl, int stmt_type);
+/* execute break/continue statement */
 
 #define clean_for _glp_mpl_clean_for
 void clean_for(MPL *mpl, FOR *fur);

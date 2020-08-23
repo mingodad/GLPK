@@ -132,6 +132,8 @@ void alloc_content(MPL *mpl)
             case A_PRINTF:
             case A_FOR:
             case A_IF:
+            case A_BREAK:
+            case A_CONTINUE:
                /* functional statements have no content array */
                break;
             default:
@@ -580,6 +582,7 @@ MPL *mpl_initialize(void)
       mpl->as_in = 0;
       mpl->as_binary = 0;
       mpl->flag_s = 0;
+      mpl->current_for_loop = NULL;
       /* common segment */
       mpl->str_intern = kh_init(kh_str);
       mpl->strings = dmp_create_poolx(sizeof(STRING));

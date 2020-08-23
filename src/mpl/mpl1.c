@@ -4531,13 +4531,17 @@ PRINTF *printf_statement(MPL *mpl)
 -- <statement> ::= <for statement> */
 
 FOR *for_statement(MPL *mpl)
-{     FOR *fur;
+{     FOR *fur, *prev_for_loop;
       STATEMENT *stmt, *last_stmt;
       xassert(is_keyword(mpl, "for"));
       /* create for descriptor */
       fur = alloc(FOR);
       fur->domain = NULL;
+      fur->do_break = 0;
+      fur->do_continue = 0;
       fur->list = last_stmt = NULL;
+      prev_for_loop = mpl->current_for_loop;
+      mpl->current_for_loop = fur;
       get_token(mpl /* for */);
       /* parse indexing expression */
       if (mpl->token != T_LBRACE)
@@ -4569,7 +4573,21 @@ FOR *for_statement(MPL *mpl)
       xassert(fur->domain != NULL);
       close_scope(mpl, fur->domain);
       /* the for statement has been completely parsed */
+      mpl->current_for_loop = prev_for_loop;
       return fur;
+}
+
+void break_continue_statement(MPL *mpl)
+{
+    if(!mpl->current_for_loop)
+        error(mpl, "break/continue only allowed inside for loops");
+    if (!(is_keyword(mpl, "break") || is_keyword(mpl, "continue")))
+        error(mpl, "break/continue keywords expected");
+    get_token(mpl /* break/continue */);
+    /* the break/continue statement has been completely parsed */
+    if (mpl->token != T_SEMICOLON)
+       error(mpl, "syntax error in break statement");
+    get_token(mpl /* ; */);
 }
 
 /*----------------------------------------------------------------------
@@ -4763,6 +4781,14 @@ STATEMENT *simple_statement(MPL *mpl, int spec)
       else if (is_keyword(mpl, "for"))
       {  stmt->type = A_FOR;
          stmt->u.fur = for_statement(mpl);
+      }
+      else if (is_keyword(mpl, "break"))
+      {  stmt->type = A_BREAK;
+         break_continue_statement(mpl);
+      }
+      else if (is_keyword(mpl, "continue"))
+      {  stmt->type = A_CONTINUE;
+         break_continue_statement(mpl);
       }
       else if (mpl->token == T_IF)
       {  stmt->type = A_IF;

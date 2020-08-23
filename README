@@ -19,7 +19,8 @@ Here is a brief of changes made to GLPK 4.65 distribution:
 * Added --addmissing option to glpsol to add missing parameter values with default option
 	instead of calculate then every time (that was the previous default), on one problem
 	this change alone made the momory usage drop from 1.7GB to  26MB
-* Add the if/then/else statement
+* Add the if/then/else statements
+* Add the break/continue statements
 
 To get the best performance configure like:
 

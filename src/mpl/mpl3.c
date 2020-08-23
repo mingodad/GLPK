@@ -6241,14 +6241,42 @@ static int for_func(MPL *mpl, void *info)
       STATEMENT *stmt, *save;
       save = mpl->stmt;
       for (stmt = fur->list; stmt != NULL; stmt = stmt->next)
+      {
          execute_statement(mpl, stmt);
+         if(fur->do_break) {
+             fur->do_break = 0;
+             return 1;
+             break;
+         }
+         else if(fur->do_continue) {
+             fur->do_continue = 0;
+             break;
+         }
+      }
       mpl->stmt = save;
       return 0;
 }
 
 void execute_for(MPL *mpl, FOR *fur)
-{     loop_within_domain(mpl, fur->domain, fur, for_func);
+{     FOR *prev_for_loop = mpl->current_for_loop;
+      mpl->current_for_loop = fur;
+      loop_within_domain(mpl, fur->domain, fur, for_func);
+      mpl->current_for_loop = prev_for_loop;
       return;
+}
+
+void execute_break_continue(MPL *mpl, int stmt_type)
+{
+    xassert(mpl->current_for_loop);
+    if(stmt_type == A_BREAK)
+    {
+        mpl->current_for_loop->do_break = 1;
+    }
+    else if(stmt_type == A_CONTINUE)
+    {
+        mpl->current_for_loop->do_continue = 1;
+    }
+    else xassert(mpl != mpl);
 }
 
 /*----------------------------------------------------------------------
@@ -6386,6 +6414,10 @@ void execute_statement(MPL *mpl, STATEMENT *stmt)
          case A_FOR:
             execute_for(mpl, stmt->u.fur);
             break;
+         case A_BREAK:
+         case A_CONTINUE:
+            execute_break_continue(mpl, stmt->type);
+            break;
          case A_IF: /* if then else */
             execute_if(mpl, stmt->u.if_stmt);
             break;
@@ -6427,6 +6459,9 @@ void clean_statement(MPL *mpl, STATEMENT *stmt)
             clean_for(mpl, stmt->u.fur); break;
          case A_IF:
             clean_if(mpl, stmt->u.if_stmt); break;
+         case A_BREAK:
+         case A_CONTINUE:
+            break;
          default:
             xassert(stmt != stmt);
       }
