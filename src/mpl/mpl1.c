@@ -4514,6 +4514,27 @@ PRINTF *printf_statement(MPL *mpl)
       return prt;
 }
 
+static STATEMENT *parse_compound_statement(MPL *mpl)
+{
+    STATEMENT *list, *stmt, *last_stmt;
+    list = last_stmt = NULL;
+    get_token(mpl /* { */);
+    ++mpl->nested_scope;
+    while (mpl->token != T_RBRACE)
+    {  /* parse statement */
+       stmt = simple_statement(mpl, 1);
+       /* and append it to the end of the statement list */
+       if (last_stmt == NULL)
+          list = stmt;
+       else
+          last_stmt->next = stmt;
+       last_stmt = stmt;
+    }
+    get_token(mpl /* } */);
+    --mpl->nested_scope;
+    return list;
+}
+
 /*----------------------------------------------------------------------
 -- for_statement - parse for statement.
 --
@@ -4532,14 +4553,13 @@ PRINTF *printf_statement(MPL *mpl)
 
 FOR *for_statement(MPL *mpl)
 {     FOR *fur, *prev_for_loop;
-      STATEMENT *stmt, *last_stmt;
       xassert(is_keyword(mpl, "for"));
       /* create for descriptor */
       fur = alloc(FOR);
       fur->domain = NULL;
       fur->do_break = 0;
       fur->do_continue = 0;
-      fur->list = last_stmt = NULL;
+      fur->list = NULL;
       prev_for_loop = mpl->current_for_loop;
       mpl->current_for_loop = fur;
       get_token(mpl /* for */);
@@ -4555,20 +4575,7 @@ FOR *for_statement(MPL *mpl)
          fur->list = simple_statement(mpl, 1);
       }
       else
-      {  /* parse compound statement */
-         get_token(mpl /* { */);
-         while (mpl->token != T_RBRACE)
-         {  /* parse statement */
-            stmt = simple_statement(mpl, 1);
-            /* and append it to the end of the statement list */
-            if (last_stmt == NULL)
-               fur->list = stmt;
-            else
-               last_stmt->next = stmt;
-            last_stmt = stmt;
-         }
-         get_token(mpl /* } */);
-      }
+          fur->list = parse_compound_statement(mpl);
       /* close the domain scope */
       xassert(fur->domain != NULL);
       close_scope(mpl, fur->domain);
@@ -4609,7 +4616,6 @@ void break_continue_statement(MPL *mpl)
 
 IF_STMT *if_statement(MPL *mpl)
 {     IF_STMT *if_stmt;
-      STATEMENT *stmt, *last_stmt;
       xassert(mpl->token == T_IF);
       /* create for descriptor */
       if_stmt = alloc(IF_STMT);
@@ -4626,21 +4632,8 @@ IF_STMT *if_statement(MPL *mpl)
          if_stmt->true_list = simple_statement(mpl, 1);
       }
       else
-      {  /* parse compound statement */
-         get_token(mpl /* { */);
-         last_stmt = NULL;
-         while (mpl->token != T_RBRACE)
-         {  /* parse statement */
-            stmt = simple_statement(mpl, 1);
-            /* and append it to the end of the statement list */
-            if (last_stmt == NULL)
-               if_stmt->true_list = stmt;
-            else
-               last_stmt->next = stmt;
-            last_stmt = stmt;
-         }
-         get_token(mpl /* } */);
-      }
+          if_stmt->true_list = parse_compound_statement(mpl);
+
       if(mpl->token == T_ELSE)
       {
         get_token(mpl /* else */);
@@ -4650,21 +4643,7 @@ IF_STMT *if_statement(MPL *mpl)
            if_stmt->else_list = simple_statement(mpl, 1);
         }
         else
-        {  /* parse compound statement */
-           get_token(mpl /* { */);
-           last_stmt = NULL;
-           while (mpl->token != T_RBRACE)
-           {  /* parse statement */
-              stmt = simple_statement(mpl, 1);
-              /* and append it to the end of the statement list */
-              if (last_stmt == NULL)
-                 if_stmt->else_list = stmt;
-              else
-                 last_stmt->next = stmt;
-              last_stmt = stmt;
-           }
-           get_token(mpl /* } */);
-        }
+            if_stmt->else_list = parse_compound_statement(mpl);
       }
       /* the for statement has been completely parsed */
       return if_stmt;
@@ -4716,6 +4695,18 @@ void end_statement(MPL *mpl)
 
 STATEMENT *simple_statement(MPL *mpl, int spec)
 {     STATEMENT *stmt;
+      if (mpl->token == T_LBRACE)
+      {
+          ++mpl->nested_scope;
+          get_token(mpl /* { */);
+      }
+      else if (mpl->token == T_RBRACE)
+      {
+          if(mpl->nested_scope == 0)
+              error(mpl, "unmatched scope closing");
+          --mpl->nested_scope;
+          get_token(mpl /* } */);
+      }
       stmt = alloc(STATEMENT);
       stmt->line = mpl->line;
       stmt->next = NULL;
@@ -4833,6 +4824,8 @@ void model_section(MPL *mpl)
             last_stmt->next = stmt;
          last_stmt = stmt;
       }
+      if(mpl->nested_scope)
+              error(mpl, "unmatched scope open");
       return;
 }
 

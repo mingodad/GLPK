@@ -573,6 +573,7 @@ MPL *mpl_initialize(void)
       memset(mpl->context, ' ', CONTEXT_SIZE);
       mpl->c_ptr = 0;
       mpl->flag_d = 0;
+      mpl->nested_scope = 0;
       /* translating segment */
       mpl->pool = dmp_create_poolx(0);
       mpl->tree = avl_create_tree(avl_strcmp, NULL);

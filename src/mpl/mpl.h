@@ -238,6 +238,8 @@ struct glp_tran
       /* pointer to the current position in the context queue */
       int flag_d;
       /* if this flag is set, the data section is being processed */
+      int nested_scope;
+      /* this is a counter for scope nesting {} */
       /*--------------------------------------------------------------*/
       /* translating segment */
       DMP *pool;
