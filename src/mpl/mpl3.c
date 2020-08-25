@@ -1959,21 +1959,20 @@ MEMBER *add_member
 }
 
 /*----------------------------------------------------------------------
--- delete_array - delete array.
+-- clear_array - clear array.
 --
--- This routine deletes specified array.
+-- This routine clear the specified array.
 --
 -- Generic values assigned to the array members are not deleted by this
 -- routine. The calling program itself must delete all assigned generic
--- values before deleting the array. */
+-- values before clearing the array. */
 
-void delete_array
+void clear_array
 (     MPL *mpl,
-      ARRAY *array            /* destroyed */
+      ARRAY *array            /* cleared */
 )
 {     MEMBER *memb;
       xassert(array != NULL);
-      if(--array->refcount) return; /* someone is still using this array */
       /* delete all existing array members */
       while (array->head != NULL)
       {  memb = array->head;
@@ -1991,6 +1990,29 @@ void delete_array
 #else
       if (array->tree != NULL) avl_delete_tree(array->tree);
 #endif
+      array->size = 0;
+      array->head = array->tail = NULL;
+      array->tree = NULL;
+}
+
+/*----------------------------------------------------------------------
+-- delete_array - delete array.
+--
+-- This routine deletes specified array.
+--
+-- Generic values assigned to the array members are not deleted by this
+-- routine. The calling program itself must delete all assigned generic
+-- values before deleting the array. */
+
+void delete_array
+(     MPL *mpl,
+      ARRAY *array            /* destroyed */
+)
+{     MEMBER *memb;
+      xassert(array != NULL);
+      if(--array->refcount) return; /* someone is still using this array */
+      /* delete all existing array members */
+      clear_array(mpl, array);
       /* remove the array from the global array list */
       if (array->prev == NULL)
          mpl->a_list = array->next;
@@ -6230,6 +6252,38 @@ void clean_printf(MPL *mpl, PRINTF *prt)
       return;
 }
 
+static void clear_local_decl(MPL *mpl, STATEMENT *list)
+{
+    STATEMENT *stmt;
+    MEMBER *memb;
+    for (stmt = list; stmt != NULL; stmt = stmt->next)
+    {
+        if(stmt->type == A_PARAMETER)
+        {
+            PARAMETER *par = stmt->u.par;
+            par->data = 0;
+            /* delete content array */
+            for (memb = par->array->head; memb != NULL; memb = memb->next)
+            {
+                delete_value(mpl, par->array->type, &memb->value);
+            }
+            clear_array(mpl, par->array);
+        }
+        else if(stmt->type == A_SET)
+        {
+            SET *set = stmt->u.set;
+            set->data = 0;
+            /* delete content array */
+            for (memb = set->array->head; memb != NULL; memb = memb->next)
+            {
+                clear_array(mpl, memb->value.set);
+                delete_value(mpl, set->array->type, &memb->value);
+            }
+            clear_array(mpl, set->array);
+        }
+    }
+}
+
 /*----------------------------------------------------------------------
 -- execute_for - execute for statement.
 --
@@ -6239,9 +6293,12 @@ static int for_func(MPL *mpl, void *info)
 {     /* this is auxiliary routine to work within domain scope */
       FOR *fur = (FOR *)info;
       STATEMENT *stmt, *save;
+      int has_local_decl = 0;
       save = mpl->stmt;
       for (stmt = fur->list; stmt != NULL; stmt = stmt->next)
       {
+         if(!has_local_decl && (stmt->type == A_PARAMETER || stmt->type == A_SET))
+            has_local_decl = 1;
          execute_statement(mpl, stmt);
          if(fur->do_break) {
              fur->do_break = 0;
@@ -6252,6 +6309,10 @@ static int for_func(MPL *mpl, void *info)
              fur->do_continue = 0;
              break;
          }
+      }
+      if(has_local_decl)
+      {
+          clear_local_decl(mpl, fur->list);
       }
       mpl->stmt = save;
       return 0;
@@ -6302,17 +6363,25 @@ void clean_for(MPL *mpl, FOR *fur)
 
 void execute_if(MPL *mpl, IF_STMT *if_stmt)
 {
-      STATEMENT *stmt, *save;
+      STATEMENT *stmt, *list, *save;
+      int has_local_decl = 0;
       save = mpl->stmt;
       if(eval_logical(mpl, if_stmt->code))
-      {
-        for (stmt = if_stmt->true_list; stmt != NULL; stmt = stmt->next)
-           execute_statement(mpl, stmt);
-      }
+          list = if_stmt->true_list;
       else
+          list = if_stmt->else_list;
+      for (stmt = list; stmt != NULL; stmt = stmt->next)
       {
-        for (stmt = if_stmt->else_list; stmt != NULL; stmt = stmt->next)
-           execute_statement(mpl, stmt);
+         if(!has_local_decl && (stmt->type == A_PARAMETER || stmt->type == A_SET))
+            has_local_decl = 1;
+         execute_statement(mpl, stmt);
+         if(mpl->current_for_loop && (mpl->current_for_loop->do_break
+               || mpl->current_for_loop->do_continue))
+            break;
+      }
+      if(has_local_decl)
+      {
+          clear_local_decl(mpl, list);
       }
       mpl->stmt = save;
 }
@@ -6331,6 +6400,8 @@ void clean_if(MPL *mpl, IF_STMT *if_stmt)
       /* clean all false sub-statements */
       for (stmt = if_stmt->else_list; stmt != NULL; stmt = stmt->next)
          clean_statement(mpl, stmt);
+      /* clean pseudo-code for computing predicate */
+      clean_code(mpl, if_stmt->code);
       return;
 }
 

@@ -1466,6 +1466,13 @@ void delete_array
 );
 /* delete array */
 
+#define clear_array _glp_mpl_clear_array
+void clear_array
+(     MPL *mpl,
+      ARRAY *array            /* cleared */
+);
+/* clear array */
+
 /**********************************************************************/
 /* * *                 DOMAINS AND DUMMY INDICES                  * * */
 /**********************************************************************/
@@ -1616,6 +1623,8 @@ struct SET
       /* pseudo-code for computing default value; can be NULL */
       GADGET *gadget;
       /* plain set used to initialize the array of sets; can be NULL */
+      int scoped;
+      /* indicates that it was declared inside a block scope */
       int data;
       /* data status flag:
          0 - no data are provided in the data section
@@ -1711,6 +1720,8 @@ struct PARAMETER
       /* pseudo-code for computing assigned value; can be NULL */
       CODE *option;
       /* pseudo-code for computing default value; can be NULL */
+      int scoped;
+      /* indicates that it was declared inside a block scope */
       int data;
       /* data status flag:
          0 - no data are provided in the data section
@@ -2514,6 +2525,10 @@ void clean_statement(MPL *mpl, STATEMENT *stmt);
 /**********************************************************************/
 /* * *              GENERATING AND POSTSOLVING MODEL              * * */
 /**********************************************************************/
+
+#define alloc_content_for_stmt _glp_mpl_alloc_content_for_stmt
+void alloc_content_for_stmt(MPL *mpl, STATEMENT *stmt);
+/* allocate content arrays for a model object */
 
 #define alloc_content _glp_mpl_alloc_content
 void alloc_content(MPL *mpl);

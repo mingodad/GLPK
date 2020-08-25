@@ -1049,6 +1049,8 @@ CODE *object_reference(MPL *mpl)
             arg.set.elemset = NULL;
             code = make_code(mpl, O_MEMSET, &arg, A_ELEMSET,
                set->dimen);
+            if(set->scoped)
+                code->vflag = 1;
             break;
          case A_PARAMETER:
             arg.par.par = par;
@@ -1057,6 +1059,8 @@ CODE *object_reference(MPL *mpl)
                code = make_code(mpl, O_MEMSYM, &arg, A_SYMBOLIC, 0);
             else
                code = make_code(mpl, O_MEMNUM, &arg, A_NUMERIC, 0);
+            if(par->scoped)
+                code->vflag = 1;
             break;
          case A_VARIABLE:
             if (!mpl->flag_s && (suff == DOT_STATUS || suff == DOT_VAL
@@ -2986,6 +2990,7 @@ SET *set_statement(MPL *mpl)
       set->option = NULL;
       set->gadget = NULL;
       set->data = 0;
+      set->scoped = mpl->current_for_loop ? 1 : 0;
       set->array = NULL;
       get_token(mpl /* <symbolic name> */);
       /* parse optional alias */
@@ -3234,6 +3239,7 @@ PARAMETER *parameter_statement(MPL *mpl)
       par->in = NULL;
       par->assign = NULL;
       par->option = NULL;
+      par->scoped = mpl->current_for_loop ? 1 : 0;
       par->data = 0;
       par->defval.sym = nanbox_null();
       par->array = NULL;
@@ -4535,6 +4541,26 @@ static STATEMENT *parse_compound_statement(MPL *mpl)
     return list;
 }
 
+/* Remove local param/set declarations from symbol table */
+static void close_scope_remove_decl(MPL *mpl, STATEMENT *list)
+{
+    STATEMENT *stmt;
+    AVLNODE *node = NULL;
+    for(stmt = list; stmt != NULL; stmt = stmt->next)
+    {
+        if(stmt->type == A_PARAMETER)
+            node = avl_find_node(mpl->tree, stmt->u.par->name);
+        else if(stmt->type == A_SET)
+            node = avl_find_node(mpl->tree, stmt->u.set->name);
+        if(node)
+        {
+            alloc_content_for_stmt(mpl, stmt);
+            avl_delete_node(mpl->tree, node);
+            node = NULL;
+        }
+    }
+}
+
 /*----------------------------------------------------------------------
 -- for_statement - parse for statement.
 --
@@ -4579,6 +4605,7 @@ FOR *for_statement(MPL *mpl)
       /* close the domain scope */
       xassert(fur->domain != NULL);
       close_scope(mpl, fur->domain);
+      close_scope_remove_decl(mpl, fur->list);
       /* the for statement has been completely parsed */
       mpl->current_for_loop = prev_for_loop;
       return fur;
@@ -4633,6 +4660,7 @@ IF_STMT *if_statement(MPL *mpl)
       }
       else
           if_stmt->true_list = parse_compound_statement(mpl);
+      close_scope_remove_decl(mpl, if_stmt->true_list);
 
       if(mpl->token == T_ELSE)
       {
@@ -4644,6 +4672,7 @@ IF_STMT *if_statement(MPL *mpl)
         }
         else
             if_stmt->else_list = parse_compound_statement(mpl);
+        close_scope_remove_decl(mpl, if_stmt->else_list);
       }
       /* the for statement has been completely parsed */
       return if_stmt;
@@ -4695,6 +4724,7 @@ void end_statement(MPL *mpl)
 
 STATEMENT *simple_statement(MPL *mpl, int spec)
 {     STATEMENT *stmt;
+#if 0
       if (mpl->token == T_LBRACE)
       {
           ++mpl->nested_scope;
@@ -4707,17 +4737,18 @@ STATEMENT *simple_statement(MPL *mpl, int spec)
           --mpl->nested_scope;
           get_token(mpl /* } */);
       }
+#endif
       stmt = alloc(STATEMENT);
       stmt->line = mpl->line;
       stmt->next = NULL;
       if (is_keyword(mpl, "set"))
-      {  if (spec)
+      {  if (spec && !mpl->nested_scope)
             error(mpl, "set statement not allowed here");
          stmt->type = A_SET;
          stmt->u.set = set_statement(mpl);
       }
       else if (is_keyword(mpl, "param"))
-      {  if (spec)
+      {  if (spec && !mpl->nested_scope)
             error(mpl, "parameter statement not allowed here");
          stmt->type = A_PARAMETER;
          stmt->u.par = parameter_statement(mpl);

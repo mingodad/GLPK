@@ -82,10 +82,8 @@ static void clean_string_interned(MPL *mpl) {
 -- This routine must be called immediately after reading model section,
 -- i.e. before reading data section or generating model. */
 
-void alloc_content(MPL *mpl)
-{     STATEMENT *stmt;
-      /* walk through all model statements */
-      for (stmt = mpl->model; stmt != NULL; stmt = stmt->next)
+void alloc_content_for_stmt(MPL *mpl, STATEMENT *stmt)
+{
       {  switch (stmt->type)
          {  case A_SET:
                /* model set */
@@ -141,6 +139,13 @@ void alloc_content(MPL *mpl)
          }
       }
       return;
+}
+
+void alloc_content(MPL *mpl)
+{     STATEMENT *stmt;
+      /* walk through all model statements */
+      for (stmt = mpl->model; stmt != NULL; stmt = stmt->next)
+          alloc_content_for_stmt(mpl, stmt);
 }
 
 /*----------------------------------------------------------------------
