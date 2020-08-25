@@ -474,15 +474,15 @@ void error(MPL *mpl, char *fmt, ...)
       xassert(strlen(msg) < sizeof(msg));
       va_end(arg);
       switch (mpl->phase)
-      {  case 1:
-         case 2:
+      {  case GLP_TRAN_PHASE_MODEL:
+         case GLP_TRAN_PHASE_DATA:
             /* translation phase */
             xprintf("%s:%d: %s\n",
                mpl->in_file == NULL ? "(unknown)" : mpl->in_file,
                mpl->line, msg);
             print_context(mpl);
             break;
-         case 3:
+         case GLP_TRAN_PHASE_GENERATE:
             /* generation/postsolve phase */
             xprintf("%s:%d: %s\n",
                mpl->mod_file == NULL ? "(unknown)" : mpl->mod_file,
@@ -491,7 +491,7 @@ void error(MPL *mpl, char *fmt, ...)
          default:
             xassert(mpl != mpl);
       }
-      mpl->phase = 4;
+      mpl->phase = GLP_TRAN_PHASE_ERROR;
       longjmp(mpl->jump, 1);
       /* no return */
 }
@@ -510,14 +510,14 @@ void warning(MPL *mpl, char *fmt, ...)
       xassert(strlen(msg) < sizeof(msg));
       va_end(arg);
       switch (mpl->phase)
-      {  case 1:
-         case 2:
+      {  case GLP_TRAN_PHASE_MODEL:
+         case GLP_TRAN_PHASE_DATA:
             /* translation phase */
             xprintf("%s:%d: warning: %s\n",
                mpl->in_file == NULL ? "(unknown)" : mpl->in_file,
                mpl->line, msg);
             break;
-         case 3:
+         case GLP_TRAN_PHASE_GENERATE:
             /* generation/postsolve phase */
             xprintf("%s:%d: warning: %s\n",
                mpl->mod_file == NULL ? "(unknown)" : mpl->mod_file,
@@ -618,7 +618,7 @@ MPL *mpl_initialize(void)
       mpl->prt_file = NULL;
       /* solver interface segment */
       if (setjmp(mpl->jump)) xassert(mpl != mpl);
-      mpl->phase = 0;
+      mpl->phase = GLP_TRAN_PHASE_INITIAL;
       mpl->mod_file = NULL;
       mpl->mpl_buf = xcalloc(255+1, sizeof(char));
       mpl->mpl_buf[0] = '\0';
@@ -666,14 +666,14 @@ MPL *mpl_initialize(void)
 --     processing. */
 
 int mpl_read_model(MPL *mpl, char *file, int skip_data)
-{     if (mpl->phase != 0)
+{     if (mpl->phase != GLP_TRAN_PHASE_INITIAL)
          xfault("mpl_read_model: invalid call sequence\n");
       if (file == NULL)
          xfault("mpl_read_model: no input filename specified\n");
       /* set up error handler */
       if (setjmp(mpl->jump)) goto done;
       /* translate model section */
-      mpl->phase = 1;
+      mpl->phase = GLP_TRAN_PHASE_MODEL;
       xprintf("Reading model section from %s...\n", file);
       open_input(mpl, file);
       model_section(mpl);
@@ -697,7 +697,7 @@ int mpl_read_model(MPL *mpl, char *file, int skip_data)
             error(mpl, "semicolon missing where expected");
          get_token(mpl /* ; */);
          /* translate data section */
-         mpl->phase = 2;
+         mpl->phase = GLP_TRAN_PHASE_DATA;
          xprintf("Reading data section from %s...\n", file);
          data_section(mpl);
       }
@@ -738,9 +738,9 @@ done: /* return to the calling program */
 
 int mpl_read_data(MPL *mpl, char *file)
 #if 0 /* 02/X-2008 */
-{     if (mpl->phase != 1)
+{     if (mpl->phase != GLP_TRAN_PHASE_MODEL)
 #else
-{     if (!(mpl->phase == 1 || mpl->phase == 2))
+{     if (!(mpl->phase == GLP_TRAN_PHASE_MODEL || mpl->phase == GLP_TRAN_PHASE_DATA))
 #endif
          xfault("mpl_read_data: invalid call sequence\n");
       if (file == NULL)
@@ -748,7 +748,7 @@ int mpl_read_data(MPL *mpl, char *file)
       /* set up error handler */
       if (setjmp(mpl->jump)) goto done;
       /* process data section */
-      mpl->phase = 2;
+      mpl->phase = GLP_TRAN_PHASE_DATA;
       xprintf("Reading data section from %s...\n", file);
       mpl->flag_d = 1;
       open_input(mpl, file);
@@ -805,12 +805,12 @@ done: /* return to the calling program */
 --     processing. */
 
 int mpl_generate(MPL *mpl, char *file)
-{     if (!(mpl->phase == 1 || mpl->phase == 2))
+{     if (!(mpl->phase == GLP_TRAN_PHASE_MODEL || mpl->phase == GLP_TRAN_PHASE_DATA))
          xfault("mpl_generate: invalid call sequence\n");
       /* set up error handler */
       if (setjmp(mpl->jump)) goto done;
       /* generate model */
-      mpl->phase = 3;
+      mpl->phase = GLP_TRAN_PHASE_GENERATE;
       open_output(mpl, file);
       generate_model(mpl);
       flush_output(mpl);
@@ -846,7 +846,7 @@ char *mpl_get_prob_name(MPL *mpl)
 {     char *name = mpl->mpl_buf;
       char *file = mpl->mod_file;
       int k;
-      if (mpl->phase != 3)
+      if (mpl->phase != GLP_TRAN_PHASE_GENERATE)
          xfault("mpl_get_prob_name: invalid call sequence\n");
       for (;;)
       {  if (strchr(file, '/') != NULL)
@@ -885,7 +885,7 @@ char *mpl_get_prob_name(MPL *mpl)
 -- problem, where each row is an individual constraint or objective. */
 
 int mpl_get_num_rows(MPL *mpl)
-{     if (mpl->phase != 3)
+{     if (mpl->phase != GLP_TRAN_PHASE_GENERATE)
          xfault("mpl_get_num_rows: invalid call sequence\n");
       return mpl->m;
 }
@@ -904,7 +904,7 @@ int mpl_get_num_rows(MPL *mpl)
 -- problem, where each column is an individual variable. */
 
 int mpl_get_num_cols(MPL *mpl)
-{     if (mpl->phase != 3)
+{     if (mpl->phase != GLP_TRAN_PHASE_GENERATE)
          xfault("mpl_get_num_cols: invalid call sequence\n");
       return mpl->n;
 }
@@ -925,7 +925,7 @@ int mpl_get_num_cols(MPL *mpl)
 char *mpl_get_row_name(MPL *mpl, int i)
 {     char *name = mpl->mpl_buf, *t;
       int len;
-      if (mpl->phase != 3)
+      if (mpl->phase != GLP_TRAN_PHASE_GENERATE)
          xfault("mpl_get_row_name: invalid call sequence\n");
       if (!(1 <= i && i <= mpl->m))
          xfault("mpl_get_row_name: i = %d; row number out of range\n",
@@ -963,7 +963,7 @@ char *mpl_get_row_name(MPL *mpl, int i)
 
 int mpl_get_row_kind(MPL *mpl, int i)
 {     int kind;
-      if (mpl->phase != 3)
+      if (mpl->phase != GLP_TRAN_PHASE_GENERATE)
          xfault("mpl_get_row_kind: invalid call sequence\n");
       if (!(1 <= i && i <= mpl->m))
          xfault("mpl_get_row_kind: i = %d; row number out of range\n",
@@ -1024,7 +1024,7 @@ int mpl_get_row_bnds(MPL *mpl, int i, double *_lb, double *_ub)
 {     ELEMCON *con;
       int type;
       double lb, ub;
-      if (mpl->phase != 3)
+      if (mpl->phase != GLP_TRAN_PHASE_GENERATE)
          xfault("mpl_get_row_bnds: invalid call sequence\n");
       if (!(1 <= i && i <= mpl->m))
          xfault("mpl_get_row_bnds: i = %d; row number out of range\n",
@@ -1092,7 +1092,7 @@ int mpl_get_row_bnds(MPL *mpl, int i, double *_lb, double *_ub)
 int mpl_get_mat_row(MPL *mpl, int i, int ndx[], double val[])
 {     FORMULA *term;
       int len = 0;
-      if (mpl->phase != 3)
+      if (mpl->phase != GLP_TRAN_PHASE_GENERATE)
          xfault("mpl_get_mat_row: invalid call sequence\n");
       if (!(1 <= i && i <= mpl->m))
          xfault("mpl_get_mat_row: i = %d; row number out of range\n",
@@ -1126,7 +1126,7 @@ int mpl_get_mat_row(MPL *mpl, int i, int ndx[], double val[])
 double mpl_get_row_c0(MPL *mpl, int i)
 {     ELEMCON *con;
       double c0;
-      if (mpl->phase != 3)
+      if (mpl->phase != GLP_TRAN_PHASE_GENERATE)
          xfault("mpl_get_row_c0: invalid call sequence\n");
       if (!(1 <= i && i <= mpl->m))
          xfault("mpl_get_row_c0: i = %d; row number out of range\n",
@@ -1155,7 +1155,7 @@ double mpl_get_row_c0(MPL *mpl, int i)
 char *mpl_get_col_name(MPL *mpl, int j)
 {     char *name = mpl->mpl_buf, *t;
       int len;
-      if (mpl->phase != 3)
+      if (mpl->phase != GLP_TRAN_PHASE_GENERATE)
          xfault("mpl_get_col_name: invalid call sequence\n");
       if (!(1 <= j && j <= mpl->n))
          xfault("mpl_get_col_name: j = %d; column number out of range\n"
@@ -1199,7 +1199,7 @@ char *mpl_get_col_name(MPL *mpl, int j)
 
 int mpl_get_col_kind(MPL *mpl, int j)
 {     int kind;
-      if (mpl->phase != 3)
+      if (mpl->phase != GLP_TRAN_PHASE_GENERATE)
          xfault("mpl_get_col_kind: invalid call sequence\n");
       if (!(1 <= j && j <= mpl->n))
          xfault("mpl_get_col_kind: j = %d; column number out of range\n"
@@ -1260,7 +1260,7 @@ int mpl_get_col_bnds(MPL *mpl, int j, double *_lb, double *_ub)
 {     ELEMVAR *var;
       int type;
       double lb, ub;
-      if (mpl->phase != 3)
+      if (mpl->phase != GLP_TRAN_PHASE_GENERATE)
          xfault("mpl_get_col_bnds: invalid call sequence\n");
       if (!(1 <= j && j <= mpl->n))
          xfault("mpl_get_col_bnds: j = %d; column number out of range\n"
@@ -1310,7 +1310,7 @@ int mpl_get_col_bnds(MPL *mpl, int j, double *_lb, double *_ub)
 -- otherwise zero is returned. */
 
 int mpl_has_solve_stmt(MPL *mpl)
-{     if (mpl->phase != 3)
+{     if (mpl->phase != GLP_TRAN_PHASE_GENERATE)
          xfault("mpl_has_solve_stmt: invalid call sequence\n");
       return mpl->flag_s;
 }
@@ -1319,7 +1319,7 @@ int mpl_has_solve_stmt(MPL *mpl)
 void mpl_put_row_soln(MPL *mpl, int i, int stat, double prim,
       double dual)
 {     /* store row (constraint/objective) solution components */
-      xassert(mpl->phase == 3);
+      xassert(mpl->phase == GLP_TRAN_PHASE_GENERATE);
       xassert(1 <= i && i <= mpl->m);
       mpl->row[i]->stat = stat;
       mpl->row[i]->prim = prim;
@@ -1332,7 +1332,7 @@ void mpl_put_row_soln(MPL *mpl, int i, int stat, double prim,
 void mpl_put_col_soln(MPL *mpl, int j, int stat, double prim,
       double dual)
 {     /* store column (variable) solution components */
-      xassert(mpl->phase == 3);
+      xassert(mpl->phase == GLP_TRAN_PHASE_GENERATE);
       xassert(1 <= j && j <= mpl->n);
       mpl->col[j]->stat = stat;
       mpl->col[j]->prim = prim;
@@ -1394,7 +1394,7 @@ void mpl_put_col_value(MPL *mpl, int j, double val)
 --     processing. */
 
 int mpl_postsolve(MPL *mpl)
-{     if (!(mpl->phase == 3 && !mpl->flag_p))
+{     if (!(mpl->phase == GLP_TRAN_PHASE_GENERATE && !mpl->flag_p))
          xfault("mpl_postsolve: invalid call sequence\n");
       /* set up error handler */
       if (setjmp(mpl->jump)) goto done;
@@ -1429,10 +1429,10 @@ extern void destroy_khash_map_member(MPL *mpl, ARRAY *array);
 void mpl_terminate(MPL *mpl)
 {     if (setjmp(mpl->jump)) xassert(mpl != mpl);
       switch (mpl->phase)
-      {  case 0:
-         case 1:
-         case 2:
-         case 3:
+      {  case GLP_TRAN_PHASE_INITIAL:
+         case GLP_TRAN_PHASE_MODEL:
+         case GLP_TRAN_PHASE_DATA:
+         case GLP_TRAN_PHASE_GENERATE:
             /* there were no errors; clean the model content */
             clean_model(mpl);
             xassert(mpl->a_list == NULL);
@@ -1440,7 +1440,7 @@ void mpl_terminate(MPL *mpl)
             xassert(mpl->dca == NULL);
 #endif
             break;
-         case 4:
+         case GLP_TRAN_PHASE_ERROR:
             /* model processing has been finished due to error; delete
                search trees, which may be created for some arrays */
             {  ARRAY *a;

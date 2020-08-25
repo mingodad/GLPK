@@ -130,6 +130,15 @@ typedef struct IF_STMT IF_STMT;
 #define OUTBUF_SIZE 1024
 /* size of the output buffer, in characters */
 
+/* phase of processing */
+enum eGLP_TRAN_PHASE {
+    GLP_TRAN_PHASE_INITIAL, /* database is being or has been initialized */
+    GLP_TRAN_PHASE_MODEL, /* model section is being or has been read */
+    GLP_TRAN_PHASE_DATA, /* data section is being or has been read */
+    GLP_TRAN_PHASE_GENERATE, /* model is being or has been generated/postsolved */
+    GLP_TRAN_PHASE_ERROR  /* model processing error has occurred */
+};
+
 #if 0 /* 22/I-2013 */
 struct MPL
 #else
@@ -333,13 +342,8 @@ struct glp_tran
       /* solver interface segment */
       jmp_buf jump;
       /* jump address for non-local go to in case of error */
-      int phase;
-      /* phase of processing:
-         0 - database is being or has been initialized
-         1 - model section is being or has been read
-         2 - data section is being or has been read
-         3 - model is being or has been generated/postsolved
-         4 - model processing error has occurred */
+      enum eGLP_TRAN_PHASE phase;
+      /* phase of processing */
       char *mod_file;
       /* name of the input text file, which contains model section */
       char *mpl_buf; /* char mpl_buf[255+1]; */

@@ -33,7 +33,7 @@ glp_tran *glp_mpl_alloc_wksp(void)
 
 void glp_mpl_init_rand(glp_tran *tran, int seed)
 {     /* initialize pseudo-random number generator */
-      if (tran->phase != 0)
+      if (tran->phase != GLP_TRAN_PHASE_INITIAL)
          xerror("glp_mpl_init_rand: invalid call sequence\n");
       rng_init_rand(tran->rand, seed);
       return;
@@ -42,7 +42,7 @@ void glp_mpl_init_rand(glp_tran *tran, int seed)
 int glp_mpl_read_model(glp_tran *tran, const char *fname, int skip)
 {     /* read and translate model section */
       int ret;
-      if (tran->phase != 0)
+      if (tran->phase != GLP_TRAN_PHASE_INITIAL)
          xerror("glp_mpl_read_model: invalid call sequence\n");
       ret = mpl_read_model(tran, (char *)fname, skip);
       if (ret == 1 || ret == 2)
@@ -57,7 +57,7 @@ int glp_mpl_read_model(glp_tran *tran, const char *fname, int skip)
 int glp_mpl_read_data(glp_tran *tran, const char *fname)
 {     /* read and translate data section */
       int ret;
-      if (!(tran->phase == 1 || tran->phase == 2))
+      if (!(tran->phase == GLP_TRAN_PHASE_MODEL || tran->phase == GLP_TRAN_PHASE_DATA))
          xerror("glp_mpl_read_data: invalid call sequence\n");
       ret = mpl_read_data(tran, (char *)fname);
       if (ret == 2)
@@ -72,7 +72,7 @@ int glp_mpl_read_data(glp_tran *tran, const char *fname)
 int glp_mpl_generate(glp_tran *tran, const char *fname)
 {     /* generate the model */
       int ret;
-      if (!(tran->phase == 1 || tran->phase == 2))
+      if (!(tran->phase == GLP_TRAN_PHASE_MODEL || tran->phase == GLP_TRAN_PHASE_DATA))
          xerror("glp_mpl_generate: invalid call sequence\n");
       ret = mpl_generate(tran, (char *)fname);
       if (ret == 3)
@@ -107,7 +107,7 @@ void glp_mpl_build_prob(glp_tran *tran, glp_prob *prob)
 {     /* build LP/MIP problem instance from the model */
       int m, n, i, j, t, kind, type, len, *ind;
       double lb, ub, *val;
-      if (tran->phase != 3)
+      if (tran->phase != GLP_TRAN_PHASE_GENERATE)
          xerror("glp_mpl_build_prob: invalid call sequence\n");
       /* erase the problem object */
       i = glp_get_use_col_row_names(prob);
@@ -221,7 +221,7 @@ int glp_mpl_postsolve(glp_tran *tran, glp_prob *prob, int sol)
 {     /* postsolve the model */
       int i, j, m, n, stat, ret;
       double prim, dual;
-      if (!(tran->phase == 3 && !tran->flag_p))
+      if (!(tran->phase == GLP_TRAN_PHASE_GENERATE && !tran->flag_p))
          xerror("glp_mpl_postsolve: invalid call sequence\n");
       if (!(sol == GLP_SOL || sol == GLP_IPT || sol == GLP_MIP))
          xerror("glp_mpl_postsolve: sol = %d; invalid parameter\n",
