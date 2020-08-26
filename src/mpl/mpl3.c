@@ -22,6 +22,7 @@
 ***********************************************************************/
 
 #include "mpl.h"
+#define dmp_get_atomv dmp_get_atom
 
 #if defined(WITH_KBTREE)
 #include "kbtree.h"
@@ -2573,6 +2574,62 @@ void clean_domain(MPL *mpl, DOMAIN *domain)
       /* clean pseudo-code for computing domain predicate */
       clean_code(mpl, domain->code);
 done: return;
+}
+
+/*----------------------------------------------------------------------
+-- add problem element - add an element to the current problem.
+--
+-- This routine add an element to the current problem if there is one */
+
+void add_problem_element(MPL *mpl, STATEMENT *stmt)
+{
+    PROBLEM_ELEMENT *elm, *tmp;
+    xassert(stmt != NULL);
+    if(mpl->current_problem) {
+        switch(stmt->type)
+        {
+            case A_VARIABLE:
+            case A_CONSTRAINT:
+            case A_MINIMIZE:
+            case A_MAXIMIZE:
+                break;
+            default:
+                error(mpl, "wrong type of element to add to problem");
+        }
+        elm = alloc(PROBLEM_ELEMENT);
+        elm->type = stmt->type;
+        elm->u.var = stmt->u.var;
+        elm->next = NULL;
+        if(mpl->current_problem->list) {
+            tmp = mpl->current_problem->list;
+            while(tmp->next) tmp = tmp->next;
+            tmp->next = elm;
+        }
+        else
+            mpl->current_problem->list = elm;
+    }
+}
+
+/*----------------------------------------------------------------------
+-- clean problem - clean model problem.
+--
+-- This routine cleans specified model problem that assumes deleting all
+-- stuff dynamically allocated during the generation phase. */
+
+void clean_problem(MPL *mpl, PROBLEM *prob)
+{
+      return;
+}
+
+/*----------------------------------------------------------------------
+-- clean solve - clean model solve.
+--
+-- This routine cleans specified model problem that assumes deleting all
+-- stuff dynamically allocated during the generation phase. */
+
+void clean_solve(MPL *mpl, SOLVE *solve)
+{
+      return;
 }
 
 /**********************************************************************/
@@ -5964,6 +6021,30 @@ static int display_func(MPL *mpl, void *info)
             for (memb = con->array->head; memb != NULL; memb =
                memb->next) display_con(mpl, con, memb, DOT_NONE);
          }
+         else if (entry->type == A_PROBLEM)
+         {  /* model problem */
+            PROBLEM *prob = entry->u.prob;
+            PROBLEM_ELEMENT *elm;
+            write_text(mpl, "problem %s%s", prob->name, prob->list ? ":" : "");
+            for (elm = prob->list; elm != NULL; elm = elm->next)
+            {
+                if(elm != prob->list)
+                    write_text(mpl, ",");
+                switch(elm->type){
+                    case A_VARIABLE:
+                        write_text(mpl, " %s", elm->u.var->name);
+                        break;
+                    case A_CONSTRAINT:
+                    case A_MAXIMIZE:
+                    case A_MINIMIZE:
+                        write_text(mpl, " %s", elm->u.con->name);
+                        break;
+                    default:
+                        xassert(elm != elm);
+                }
+            }
+            write_text(mpl, ";\n");
+         }
          else if (entry->type == A_EXPRESSION)
          {  /* expression */
             CODE *code = entry->u.code;
@@ -6468,6 +6549,7 @@ void execute_statement(MPL *mpl, STATEMENT *stmt)
             }
             execute_table(mpl, stmt->u.tab);
             break;
+         case A_PROBLEM:
          case A_SOLVE:
             break;
          case A_CHECK:
@@ -6518,7 +6600,10 @@ void clean_statement(MPL *mpl, STATEMENT *stmt)
          case A_TABLE:
             clean_table(mpl, stmt->u.tab); break;
 #endif
+         case A_PROBLEM:
+            clean_problem(mpl, stmt->u.prob); break;
          case A_SOLVE:
+            clean_solve(mpl, stmt->u.slv); break;
             break;
          case A_CHECK:
             clean_check(mpl, stmt->u.chk); break;

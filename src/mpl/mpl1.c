@@ -2944,6 +2944,75 @@ CODE *expression_13(MPL *mpl)
 }
 
 /*----------------------------------------------------------------------
+-- problem_statement - parse problem statement.
+--
+-- This routine parses problem statement using the syntax:
+--
+-- <problem statement> ::= problem <symbolic name> <alias> : <elements>;
+-- <alias> ::= <empty>
+-- <alias> ::= <string literal>
+-- <elements> ::= <empty>
+-- <elements> ::= <elements>, <elements>
+--
+ */
+
+PROBLEM *problem_statement(MPL *mpl)
+{     PROBLEM *prob;
+      xassert(is_keyword(mpl, "problem"));
+      get_token(mpl /* problem */);
+      /* symbolic name must follow the keyword 'problem' */
+      if (mpl->token == T_NAME)
+         ;
+      else if (is_reserved(mpl))
+         error(mpl, "invalid use of reserved keyword %s", mpl->image);
+      else
+         error(mpl, "symbolic name missing where expected");
+      /* there must be no other object with the same name */
+      if (avl_find_node(mpl->tree, mpl->image) != NULL)
+         error(mpl, "%s multiply declared", mpl->image);
+      /* create model set */
+      prob = alloc(PROBLEM);
+      prob->name = dmp_get_atomv(mpl->pool, strlen(mpl->image)+1);
+      strcpy(prob->name, mpl->image);
+      prob->alias = NULL;
+      prob->list = NULL;
+      prob->type = 0;
+      get_token(mpl /* <symbolic name> */);
+      /* parse optional alias */
+      if (mpl->token == T_STRING)
+      {  prob->alias = dmp_get_atomv(mpl->pool, strlen(mpl->image)+1);
+         strcpy(prob->alias, mpl->image);
+         get_token(mpl /* <string literal> */);
+      }
+      /* include the problem name in the symbolic names table */
+      {  AVLNODE *node;
+         node = avl_insert_node(mpl->tree, prob->name);
+         avl_set_node_type(node, A_PROBLEM);
+         avl_set_node_link(node, (void *)prob);
+      }
+      mpl->current_problem = prob;
+      /* the colon must precede the first element */
+      if (mpl->token == T_COLON) {
+          get_token(mpl /* : */);
+          while(mpl->token == T_NAME) {
+              AVLNODE *node = avl_find_node(mpl->tree, mpl->image);
+              if (!node) error(mpl, "unknown name '%s'", mpl->image);
+              STATEMENT stmt;
+              stmt.type = avl_get_node_type(node);
+              stmt.u.var = (VARIABLE*)avl_get_node_link(node);
+              add_problem_element(mpl, &stmt);
+              get_token(mpl /* name */);
+              if(mpl->token != T_COMMA) break;
+              get_token(mpl /* , */);
+          }
+      }
+      /* the problem statement has been completely parsed */
+      xassert(mpl->token == T_SEMICOLON);
+      get_token(mpl /* ; */);
+      return prob;
+}
+
+/*----------------------------------------------------------------------
 -- set_statement - parse set statement.
 --
 -- This routine parses set statement using the syntax:
@@ -4251,16 +4320,29 @@ end_of_table:
 --
 -- This routine parses solve statement using the syntax:
 --
--- <solve statement> ::= solve ;
+-- <solve statement> ::= solve <problem>;
+-- <problem> ::= <empty>
 --
 -- The solve statement can be used at most once. */
 
-void *solve_statement(MPL *mpl)
-{     xassert(is_keyword(mpl, "solve"));
+SOLVE *solve_statement(MPL *mpl)
+{     SOLVE *solve;
+      xassert(is_keyword(mpl, "solve"));
       if (mpl->flag_s)
          error(mpl, "at most one solve statement allowed");
       mpl->flag_s = 1;
       get_token(mpl /* solve */);
+      solve = alloc(SOLVE);
+      solve->prob = NULL;
+      solve->type = 0;
+      /* there is a problem ? */
+      if (mpl->token == T_NAME) {
+          AVLNODE *node = avl_find_node(mpl->tree, mpl->image);
+          if(!node || avl_get_node_type(node) != A_PROBLEM)
+            error(mpl, "%s is not a problem name", mpl->image);
+          solve->prob = (PROBLEM *)avl_get_node_link(node);
+          get_token(mpl /* name */);
+      }
       /* semicolon must follow solve statement */
       if (mpl->token != T_SEMICOLON)
          error(mpl, "syntax error in solve statement");
@@ -4332,6 +4414,7 @@ CHECK *check_statement(MPL *mpl)
 -- <display entry> ::= <variable name> [ <subscript list> ]
 -- <display entry> ::= <constraint name>
 -- <display entry> ::= <constraint name> [ <subscript list> ]
+-- <display entry> ::= <problem name>
 -- <display entry> ::= <expression 13> */
 
 DISPLAY *display_statement(MPL *mpl)
@@ -4400,6 +4483,9 @@ DISPLAY *display_statement(MPL *mpl)
                         " statement",
                         entry->u.con->type == A_CONSTRAINT ?
                         "constraint" : "objective", entry->u.con->name);
+                  break;
+               case A_PROBLEM:
+                  entry->u.prob = (PROBLEM *)avl_get_node_link(node);
                   break;
                default:
                   xassert(node != node);
@@ -4758,6 +4844,7 @@ STATEMENT *simple_statement(MPL *mpl, int spec)
             error(mpl, "variable statement not allowed here");
          stmt->type = A_VARIABLE;
          stmt->u.var = variable_statement(mpl);
+         add_problem_element(mpl, stmt);
       }
       else if (is_keyword(mpl, "subject") ||
                is_keyword(mpl, "subj") ||
@@ -4766,6 +4853,7 @@ STATEMENT *simple_statement(MPL *mpl, int spec)
             error(mpl, "constraint statement not allowed here");
          stmt->type = A_CONSTRAINT;
          stmt->u.con = constraint_statement(mpl);
+         add_problem_element(mpl, stmt);
       }
       else if (is_keyword(mpl, "minimize") ||
                is_keyword(mpl, "maximize"))
@@ -4773,6 +4861,7 @@ STATEMENT *simple_statement(MPL *mpl, int spec)
             error(mpl, "objective statement not allowed here");
          stmt->type = A_CONSTRAINT;
          stmt->u.con = objective_statement(mpl);
+         add_problem_element(mpl, stmt);
       }
 #if 1 /* 11/II-2008 */
       else if (is_keyword(mpl, "table"))
@@ -4815,6 +4904,10 @@ STATEMENT *simple_statement(MPL *mpl, int spec)
       else if (mpl->token == T_IF)
       {  stmt->type = A_IF;
          stmt->u.if_stmt = if_statement(mpl);
+      }
+      else if (is_keyword(mpl, "problem"))
+      {  stmt->type = A_PROBLEM;
+         stmt->u.prob = problem_statement(mpl);
       }
       else if (mpl->token == T_NAME)
       {  if (spec)

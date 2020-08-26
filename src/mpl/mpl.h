@@ -81,6 +81,9 @@ typedef struct FOR FOR;
 typedef struct STATEMENT STATEMENT;
 typedef struct TUPLE SLICE;
 typedef struct IF_STMT IF_STMT;
+typedef struct PROBLEM PROBLEM;
+typedef struct PROBLEM_ELEMENT PROBLEM_ELEMENT;
+typedef struct SOLVE SOLVE;
 
 /**********************************************************************/
 /* * *                    TRANSLATOR DATABASE                     * * */
@@ -116,6 +119,7 @@ typedef struct IF_STMT IF_STMT;
 #define A_IF            128   /* if then else statement */
 #define A_BREAK         129   /* break statement */
 #define A_CONTINUE      130   /* continue statement */
+#define A_PROBLEM       131   /* problem statement */
 
 #define MAX_LENGTH 100
 /* maximal length of any symbolic value (this includes symbolic names,
@@ -269,6 +273,8 @@ struct glp_tran
       /* if this flag is set, the solve statement has been parsed */
       FOR *current_for_loop;
       /* if this is not NULL we are inside a for loop */
+      PROBLEM *current_problem;
+      /* if this is not NULL we are inside a problem */
       /*--------------------------------------------------------------*/
       /* common segment */
       DMP *strings;
@@ -577,6 +583,10 @@ CODE *expression_12(MPL *mpl);
 CODE *expression_13(MPL *mpl);
 /* parse expression of level 13 */
 
+#define problem_statement _glp_mpl_problem_statement
+PROBLEM *problem_statement(MPL *mpl);
+/* parse problem statement */
+
 #define set_statement _glp_mpl_set_statement
 SET *set_statement(MPL *mpl);
 /* parse set statement */
@@ -602,7 +612,7 @@ TABLE *table_statement(MPL *mpl);
 /* parse table statement */
 
 #define solve_statement _glp_mpl_solve_statement
-void *solve_statement(MPL *mpl);
+SOLVE *solve_statement(MPL *mpl);
 /* parse solve statement */
 
 #define check_statement _glp_mpl_check_statement
@@ -1688,6 +1698,68 @@ int get_size_set(MPL *mpl, SET *set);
 /* get the size of a model set */
 
 /**********************************************************************/
+/* * *                      MODEL PROBLEM                      * * */
+/**********************************************************************/
+
+struct PROBLEM_ELEMENT
+{     /* display list entry */
+      int type;
+      /* item type:
+         A_MINIMIZE  - model objective
+         A_MAXIMIZE  - model objective
+         A_VARIABLE   - model variable
+         A_CONSTRAINT - model constraint/objective */
+      union
+      {
+         VARIABLE *var;
+         CONSTRAINT *con;
+      } u;
+      /* element included in the problem */
+      PROBLEM_ELEMENT *next;
+      /* the next entry */
+};
+
+struct PROBLEM
+{     /* model problem */
+      char *name;
+      /* symbolic name; cannot be NULL */
+      char *alias;
+      /* alias; NULL means alias is not specified */
+      PROBLEM_ELEMENT *list;
+      int type;
+      /* parameter type:
+         A_PROBLEM_LP  - linear
+         A_PROBLEM_MIP  - mixed integer
+         A_PROBLEM_IP   - integer */
+};
+
+#define add_problem_element _glp_mpl_add_problem_element
+void add_problem_element(MPL *mpl, STATEMENT *stmt);
+/* add an element to the current problem */
+
+#define clean_problem _glp_mpl_clean_problem
+void clean_problem(MPL *mpl, PROBLEM *prob);
+/* clean model problem */
+
+/**********************************************************************/
+/* * *                      MODEL SOLVE                      * * */
+/**********************************************************************/
+
+struct SOLVE
+{     /* model solve */
+      PROBLEM *prob;
+      int type;
+      /* parameter type:
+         A_PROBLEM_LP  - linear
+         A_PROBLEM_MIP  - mixed integer
+         A_PROBLEM_IP   - integer */
+};
+
+#define clean_solve _glp_mpl_clean_solve
+void clean_solve(MPL *mpl, SOLVE *solve);
+/* clean model solve */
+
+/**********************************************************************/
 /* * *                      MODEL PARAMETERS                      * * */
 /**********************************************************************/
 
@@ -2360,6 +2432,7 @@ struct DISPLAY1
          A_PARAMETER  - model parameter
          A_VARIABLE   - model variable
          A_CONSTRAINT - model constraint/objective
+         A_PROBLEM    - model problem
          A_EXPRESSION - expression */
       union
       {  DOMAIN_SLOT *slot;
@@ -2367,6 +2440,7 @@ struct DISPLAY1
          PARAMETER *par;
          VARIABLE *var;
          CONSTRAINT *con;
+         PROBLEM *prob;
          CODE *code;
       } u;
       /* item to be displayed */
@@ -2445,12 +2519,13 @@ struct STATEMENT
          VARIABLE *var;
          CONSTRAINT *con;
          TABLE *tab;
-         void *slv; /* currently not used (set to NULL) */
+         SOLVE *slv; /* currently not used (set to NULL) */
          CHECK *chk;
          DISPLAY *dpy;
          PRINTF *prt;
          FOR *fur;
          IF_STMT *if_stmt;
+         PROBLEM *prob;
       } u;
       /* specific part of statement */
       STATEMENT *next;

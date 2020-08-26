@@ -125,6 +125,7 @@ void alloc_content_for_stmt(MPL *mpl, STATEMENT *stmt)
             case A_TABLE:
 #endif
             case A_SOLVE:
+            case A_PROBLEM:
             case A_CHECK:
             case A_DISPLAY:
             case A_PRINTF:
@@ -589,6 +590,7 @@ MPL *mpl_initialize(void)
       mpl->as_binary = 0;
       mpl->flag_s = 0;
       mpl->current_for_loop = NULL;
+      mpl->current_problem = NULL;
       /* common segment */
       mpl->str_intern = kh_init(kh_str);
       mpl->strings = dmp_create_poolx(sizeof(STRING));
