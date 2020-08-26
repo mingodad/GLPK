@@ -2958,6 +2958,7 @@ CODE *expression_13(MPL *mpl)
 
 PROBLEM *problem_statement(MPL *mpl)
 {     PROBLEM *prob;
+      AVLNODE *node;
       xassert(is_keyword(mpl, "problem"));
       get_token(mpl /* problem */);
       /* symbolic name must follow the keyword 'problem' */
@@ -2968,9 +2969,19 @@ PROBLEM *problem_statement(MPL *mpl)
       else
          error(mpl, "symbolic name missing where expected");
       /* there must be no other object with the same name */
-      if (avl_find_node(mpl->tree, mpl->image) != NULL)
-         error(mpl, "%s multiply declared", mpl->image);
-      /* create model set */
+      node = avl_find_node(mpl->tree, mpl->image);
+      if (node) {
+          if(avl_get_node_type(node) == A_PROBLEM) {
+              get_token(mpl /* <symbolic name> */);
+              if(mpl->token != T_SEMICOLON)
+                  error(mpl, "problem statement using an existing name do not accept paramenters");
+              get_token(mpl /* ; */);
+              prob = (PROBLEM*)avl_get_node_link(node);
+              return prob;
+          }
+          else error(mpl, "%s already in use", mpl->image);
+      }
+      /* create model problem */
       prob = alloc(PROBLEM);
       prob->name = dmp_get_atomv(mpl->pool, strlen(mpl->image)+1);
       strcpy(prob->name, mpl->image);

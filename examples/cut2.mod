@@ -36,6 +36,8 @@ subject to Width_Limit:
 
 problem Mix : Cut, Reduced_Cost;
 
+problem Pattern_Gen;
+
 display Cutting_Opt, Pattern_Gen, Mix;
 
 solve Cutting_Opt;
