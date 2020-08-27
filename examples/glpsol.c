@@ -1503,6 +1503,7 @@ skip: /* postsolve the model, if necessary */
             ret = EXIT_FAILURE;
             goto done;
          }
+         if(glp_mpl_waiting_solve(csa->tran)) goto build_again;
       }
       /*--------------------------------------------------------------*/
       /* write problem solution in printable format, if required */
@@ -1569,7 +1570,6 @@ ranges:        {  ret = glp_print_ranges(csa->prob, 0, NULL, 0,
       }
       /*--------------------------------------------------------------*/
       /* all seems to be ok */
-      if(glp_mpl_waiting_solve(csa->tran)) goto build_again;
       ret = EXIT_SUCCESS;
       /*--------------------------------------------------------------*/
 done: /* delete the LP/MIP problem object */
