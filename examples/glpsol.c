@@ -1165,6 +1165,7 @@ err2:    {  xprintf("MathProg model processing error\n");
          /* generate the model */
          if (glp_mpl_generate(csa->tran, csa->out_dpy)) goto err2;
          if (csa->genonly) goto done;
+build_again:
          /* build the problem instance from the model */
          glp_mpl_build_prob(csa->tran, csa->prob);
       }
@@ -1568,6 +1569,7 @@ ranges:        {  ret = glp_print_ranges(csa->prob, 0, NULL, 0,
       }
       /*--------------------------------------------------------------*/
       /* all seems to be ok */
+      if(glp_mpl_waiting_solve(csa->tran)) goto build_again;
       ret = EXIT_SUCCESS;
       /*--------------------------------------------------------------*/
 done: /* delete the LP/MIP problem object */

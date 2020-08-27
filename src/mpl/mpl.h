@@ -143,7 +143,8 @@ enum eGLP_TRAN_PHASE {
     GLP_TRAN_PHASE_MODEL, /* model section is being or has been read */
     GLP_TRAN_PHASE_DATA, /* data section is being or has been read */
     GLP_TRAN_PHASE_GENERATE, /* model is being or has been generated/postsolved */
-    GLP_TRAN_PHASE_ERROR  /* model processing error has occurred */
+    GLP_TRAN_PHASE_ERROR,  /* model processing error has occurred */
+    GLP_TRAN_PHASE_SOLVE,  /* model processing waiting solver */
 };
 
 #if 0 /* 22/I-2013 */

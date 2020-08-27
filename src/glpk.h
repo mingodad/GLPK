@@ -896,6 +896,9 @@ void glp_mpl_build_prob(glp_tran *tran, glp_prob *prob);
 int glp_mpl_postsolve(glp_tran *tran, glp_prob *prob, int sol);
 /* postsolve the model */
 
+int glp_mpl_waiting_solve(glp_tran *tran);
+/* check if the model execution is waiting for solve */
+
 void glp_mpl_free_wksp(glp_tran *tran);
 /* free the MathProg translator workspace */
 

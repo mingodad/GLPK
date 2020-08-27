@@ -287,6 +287,11 @@ int glp_mpl_postsolve(glp_tran *tran, glp_prob *prob, int sol)
 done: return ret;
 }
 
+int glp_mpl_waiting_solve(glp_tran *tran)
+{
+    return tran->stmt && tran->stmt->type == A_SOLVE;
+}
+
 void glp_mpl_free_wksp(glp_tran *tran)
 {     /* free the MathProg translator workspace */
       mpl_terminate(tran);
