@@ -38,6 +38,10 @@ problem Mix : Cut, Reduced_Cost;
 
 problem Pattern_Gen;
 
+if nPAT > 0 then {
+	#problem Mix2;
+}
+
 display Cutting_Opt, Pattern_Gen, Mix;
 
 solve Cutting_Opt;

@@ -2977,10 +2977,13 @@ PROBLEM *problem_statement(MPL *mpl)
                   error(mpl, "problem statement using an existing name do not accept paramenters");
               get_token(mpl /* ; */);
               prob = (PROBLEM*)avl_get_node_link(node);
+              mpl->current_problem = prob;
               return prob;
           }
           else error(mpl, "%s already in use", mpl->image);
       }
+      else if(mpl->nested_scope)
+          error(mpl, "problem creation not allowed here");
       /* create model problem */
       prob = alloc(PROBLEM);
       prob->name = dmp_get_atomv(mpl->pool, strlen(mpl->image)+1);
