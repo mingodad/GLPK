@@ -6550,8 +6550,10 @@ void execute_statement(MPL *mpl, STATEMENT *stmt)
             execute_table(mpl, stmt->u.tab);
             break;
          case A_PROBLEM:
+             mpl->current_problem = stmt->u.prob;
+             break;
          case A_SOLVE:
-            break;
+             break;
          case A_CHECK:
             xprintf("Checking (line %d)...\n", stmt->line);
             execute_check(mpl, stmt->u.chk);
