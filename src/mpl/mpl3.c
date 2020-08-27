@@ -5667,6 +5667,36 @@ void clean_table(MPL *mpl, TABLE *tab)
 /**********************************************************************/
 
 /*----------------------------------------------------------------------
+-- execute_let - execute let statement.
+--
+-- This routine executes specified let statement. */
+
+static int let_func(MPL *mpl, void *info)
+{     /* this is auxiliary routine to work within domain scope */
+      LET_STMT *let = (LET_STMT *)info;
+      return 0;
+}
+
+void execute_let(MPL *mpl, LET_STMT *let)
+{     loop_within_domain(mpl, let->domain, let, let_func);
+      return;
+}
+
+/*----------------------------------------------------------------------
+-- clean_let - clean let statement.
+--
+-- This routine cleans specified let statement that assumes deleting
+-- all stuff dynamically allocated on generating/postsolving phase. */
+
+void clean_let(MPL *mpl, LET_STMT *let)
+{     /* clean subscript domain */
+      clean_domain(mpl, let->domain);
+      /* clean pseudo-code for computing predicate */
+      clean_code(mpl, let->assign);
+      return;
+}
+
+/*----------------------------------------------------------------------
 -- execute_check - execute check statement.
 --
 -- This routine executes specified check statement. */
@@ -6430,7 +6460,7 @@ void execute_break_continue(MPL *mpl, int stmt_type)
 void clean_for(MPL *mpl, FOR *fur)
 {     STATEMENT *stmt;
       /* clean subscript domain */
-      clean_domain(mpl, fur->domain);
+      if(fur->domain) clean_domain(mpl, fur->domain);
       /* clean all sub-statements */
       for (stmt = fur->list; stmt != NULL; stmt = stmt->next)
          clean_statement(mpl, stmt);
@@ -6554,6 +6584,9 @@ void execute_statement(MPL *mpl, STATEMENT *stmt)
              break;
          case A_SOLVE:
              break;
+         case A_LET:
+            execute_let(mpl, stmt->u.let);
+            break;
          case A_CHECK:
             xprintf("Checking (line %d)...\n", stmt->line);
             execute_check(mpl, stmt->u.chk);
@@ -6566,6 +6599,7 @@ void execute_statement(MPL *mpl, STATEMENT *stmt)
          case A_PRINTF:
             execute_printf(mpl, stmt->u.prt);
             break;
+         case A_REPEAT:
          case A_FOR:
             execute_for(mpl, stmt->u.fur);
             break;
@@ -6607,12 +6641,15 @@ void clean_statement(MPL *mpl, STATEMENT *stmt)
          case A_SOLVE:
             clean_solve(mpl, stmt->u.slv); break;
             break;
+         case A_LET:
+            clean_let(mpl, stmt->u.let); break;
          case A_CHECK:
             clean_check(mpl, stmt->u.chk); break;
          case A_DISPLAY:
             clean_display(mpl, stmt->u.dpy); break;
          case A_PRINTF:
             clean_printf(mpl, stmt->u.prt); break;
+         case A_REPEAT:
          case A_FOR:
             clean_for(mpl, stmt->u.fur); break;
          case A_IF:

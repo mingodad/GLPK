@@ -127,9 +127,11 @@ void alloc_content_for_stmt(MPL *mpl, STATEMENT *stmt)
             case A_SOLVE:
             case A_PROBLEM:
             case A_CHECK:
+            case A_LET:
             case A_DISPLAY:
             case A_PRINTF:
             case A_FOR:
+            case A_REPEAT:
             case A_IF:
             case A_BREAK:
             case A_CONTINUE:

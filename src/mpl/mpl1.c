@@ -4342,9 +4342,9 @@ end_of_table:
 SOLVE *solve_statement(MPL *mpl)
 {     SOLVE *solve;
       xassert(is_keyword(mpl, "solve"));
-      if (mpl->flag_s)
-         error(mpl, "at most one solve statement allowed");
-      mpl->flag_s = 1;
+      //if (mpl->flag_s)
+      //   error(mpl, "at most one solve statement allowed");
+      ++mpl->flag_s;
       get_token(mpl /* solve */);
       solve = alloc(SOLVE);
       solve->prob = NULL;
@@ -4405,6 +4405,77 @@ CHECK *check_statement(MPL *mpl)
          error(mpl, "syntax error in check statement");
       get_token(mpl /* ; */);
       return chk;
+}
+
+/*----------------------------------------------------------------------
+-- let_statement - parse ley statement.
+--
+-- This routine parses check statement using the syntax:
+--
+-- <check statement> ::= check <domain> : <expression 13> ;
+-- <domain> ::= <empty>
+-- <domain> ::= <indexing expression>
+--
+-- If <domain> is omitted, colon following it may also be omitted. */
+
+LET_STMT *let_statement(MPL *mpl)
+{     LET_STMT *let;
+      CODE *code;
+      xassert(is_keyword(mpl, "let"));
+      /* create let descriptor */
+      let = alloc(LET_STMT);
+      let->domain = NULL;
+      let->par = NULL;
+      let->assign = NULL;
+      get_token(mpl /* let */);
+      /* parse optional indexing expression */
+      if (mpl->token == T_LBRACE)
+      {  let->domain = indexing_expression(mpl);
+#if 0
+         if (mpl->token != T_COLON)
+            error(mpl, "colon missing where expected");
+#endif
+      }
+      /* skip optional colon */
+      if (mpl->token == T_COLON) get_token(mpl /* : */);
+      if (mpl->token != T_NAME)
+          error(mpl, "existing model element missing");
+      code = object_reference(mpl);
+      switch (code->op)
+      {  case O_MEMNUM:
+         case O_MEMSYM:
+             let->par = code->arg.par.par;
+             clean_code(mpl, code);
+            break;
+          default:
+              error(mpl, "only parameter allowed here");
+      }
+      if (mpl->token != T_ASSIGN)
+          error(mpl, ":= assignment token expected");
+      get_token(mpl /* := */);
+      /* parse an expression that follows ':=' */
+      let->assign = expression_5(mpl);
+      /* the expression must be of numeric/symbolic type */
+      if (!(let->assign->type == A_NUMERIC ||
+              let->assign->type == A_SYMBOLIC))
+           error(mpl, "expression following := has invalid type");
+      xassert(let->assign->dim == 0);
+      /* convert to the parameter type, if necessary */
+      if (let->par->type != A_SYMBOLIC && let->assign->type ==
+           A_SYMBOLIC)
+           let->assign = make_unary(mpl, O_CVTNUM, let->assign,
+              A_NUMERIC, 0);
+      if (let->par->type == A_SYMBOLIC && let->assign->type !=
+           A_SYMBOLIC)
+           let->assign = make_unary(mpl, O_CVTSYM, let->assign,
+              A_SYMBOLIC, 0);
+      /* close the domain scope */
+      if (let->domain != NULL) close_scope(mpl, let->domain);
+      /* the check statement has been completely parsed */
+      if (mpl->token != T_SEMICOLON)
+         error(mpl, "syntax error in check statement");
+      get_token(mpl /* ; */);
+      return let;
 }
 
 #if 1 /* 15/V-2010 */
@@ -4662,9 +4733,10 @@ static void close_scope_remove_decl(MPL *mpl, STATEMENT *list)
 }
 
 /*----------------------------------------------------------------------
--- for_statement - parse for statement.
+-- for_statement - parse for/repeat statement.
 --
--- This routine parses for statement using the syntax:
+-- This routine parses for/repeat statement using the syntax:
+-- Note the repeat is identical to for but without a domain
 --
 -- <for statement> ::= for <domain> <statement>
 -- <for statement> ::= for <domain> { <statement list> }
@@ -4677,9 +4749,9 @@ static void close_scope_remove_decl(MPL *mpl, STATEMENT *list)
 -- <statement> ::= <if statement>
 -- <statement> ::= <for statement> */
 
-FOR *for_statement(MPL *mpl)
+FOR *for_statement(MPL *mpl, int is_repeat)
 {     FOR *fur, *prev_for_loop;
-      xassert(is_keyword(mpl, "for"));
+      xassert(is_keyword(mpl, "for") || is_keyword(mpl, "repeat"));
       /* create for descriptor */
       fur = alloc(FOR);
       fur->domain = NULL;
@@ -4688,13 +4760,15 @@ FOR *for_statement(MPL *mpl)
       fur->list = NULL;
       prev_for_loop = mpl->current_for_loop;
       mpl->current_for_loop = fur;
-      get_token(mpl /* for */);
-      /* parse indexing expression */
-      if (mpl->token != T_LBRACE)
-         error(mpl, "indexing expression missing where expected");
-      fur->domain = indexing_expression(mpl);
-      /* skip optional colon */
-      if (mpl->token == T_COLON) get_token(mpl /* : */);
+      get_token(mpl /* for/repeat */);
+      if(!is_repeat) {
+        /* parse indexing expression */
+        if (mpl->token != T_LBRACE)
+           error(mpl, "indexing expression missing where expected");
+        fur->domain = indexing_expression(mpl);
+        /* skip optional colon */
+        if (mpl->token == T_COLON) get_token(mpl /* : */);
+      }
       /* parse for statement body */
       if (mpl->token != T_LBRACE)
       {  /* parse simple statement */
@@ -4702,9 +4776,11 @@ FOR *for_statement(MPL *mpl)
       }
       else
           fur->list = parse_compound_statement(mpl);
-      /* close the domain scope */
-      xassert(fur->domain != NULL);
-      close_scope(mpl, fur->domain);
+      if(!is_repeat) {
+        /* close the domain scope */
+        xassert(fur->domain != NULL);
+        close_scope(mpl, fur->domain);
+      }
       close_scope_remove_decl(mpl, fur->list);
       /* the for statement has been completely parsed */
       mpl->current_for_loop = prev_for_loop;
@@ -4886,8 +4962,7 @@ STATEMENT *simple_statement(MPL *mpl, int spec)
       }
 #endif
       else if (is_keyword(mpl, "solve"))
-      {  if (spec)
-            error(mpl, "solve statement not allowed here");
+      {
          stmt->type = A_SOLVE;
          stmt->u.slv = solve_statement(mpl);
       }
@@ -4905,7 +4980,11 @@ STATEMENT *simple_statement(MPL *mpl, int spec)
       }
       else if (is_keyword(mpl, "for"))
       {  stmt->type = A_FOR;
-         stmt->u.fur = for_statement(mpl);
+         stmt->u.fur = for_statement(mpl, 0);
+      }
+      else if (is_keyword(mpl, "repeat"))
+      {  stmt->type = A_REPEAT;
+         stmt->u.fur = for_statement(mpl, 1);
       }
       else if (is_keyword(mpl, "break"))
       {  stmt->type = A_BREAK;
@@ -4922,6 +5001,10 @@ STATEMENT *simple_statement(MPL *mpl, int spec)
       else if (is_keyword(mpl, "problem"))
       {  stmt->type = A_PROBLEM;
          stmt->u.prob = problem_statement(mpl);
+      }
+      else if (is_keyword(mpl, "let"))
+      {  stmt->type = A_LET;
+         stmt->u.let = let_statement(mpl);
       }
       else if (mpl->token == T_NAME)
       {  if (spec)

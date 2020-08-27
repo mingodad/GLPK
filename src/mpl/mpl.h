@@ -84,6 +84,7 @@ typedef struct IF_STMT IF_STMT;
 typedef struct PROBLEM PROBLEM;
 typedef struct PROBLEM_ELEMENT PROBLEM_ELEMENT;
 typedef struct SOLVE SOLVE;
+typedef struct LET_STMT LET_STMT;
 
 /**********************************************************************/
 /* * *                    TRANSLATOR DATABASE                     * * */
@@ -120,6 +121,8 @@ typedef struct SOLVE SOLVE;
 #define A_BREAK         129   /* break statement */
 #define A_CONTINUE      130   /* continue statement */
 #define A_PROBLEM       131   /* problem statement */
+#define A_LET           132   /* let statement */
+#define A_REPEAT        133   /* repeat statement */
 
 #define MAX_LENGTH 100
 /* maximal length of any symbolic value (this includes symbolic names,
@@ -619,6 +622,10 @@ SOLVE *solve_statement(MPL *mpl);
 CHECK *check_statement(MPL *mpl);
 /* parse check statement */
 
+#define let_statement _glp_mpl_let_statement
+LET_STMT *let_statement(MPL *mpl);
+/* parse let statement */
+
 #define display_statement _glp_mpl_display_statement
 DISPLAY *display_statement(MPL *mpl);
 /* parse display statement */
@@ -628,7 +635,7 @@ PRINTF *printf_statement(MPL *mpl);
 /* parse printf statement */
 
 #define for_statement _glp_mpl_for_statement
-FOR *for_statement(MPL *mpl);
+FOR *for_statement(MPL *mpl, int is_repeat);
 /* parse for statement */
 
 #define break_continue_statement _glp_mpl_break_continue_statement
@@ -2407,6 +2414,16 @@ void clean_code(MPL *mpl, CODE *code);
 /* * *                      MODEL STATEMENTS                      * * */
 /**********************************************************************/
 
+struct LET_STMT
+{     /* let statement */
+      DOMAIN *domain;
+      /* subscript domain; NULL means domain is not used */
+      PARAMETER *par;
+      /* model element to assign an expression */
+      CODE *assign;
+      /* code for computing the assignment expression */
+};
+
 struct CHECK
 {     /* check statement */
       DOMAIN *domain;
@@ -2510,6 +2527,7 @@ struct STATEMENT
          A_TABLE      - table statement
          A_SOLVE      - solve statement
          A_CHECK      - check statement
+         A_LET        - let statement
          A_DISPLAY    - display statement
          A_PRINTF     - printf statement
          A_FOR        - for statement */
@@ -2526,6 +2544,7 @@ struct STATEMENT
          FOR *fur;
          IF_STMT *if_stmt;
          PROBLEM *prob;
+         LET_STMT *let;
       } u;
       /* specific part of statement */
       STATEMENT *next;
@@ -2552,6 +2571,14 @@ void execute_check(MPL *mpl, CHECK *chk);
 #define clean_check _glp_mpl_clean_check
 void clean_check(MPL *mpl, CHECK *chk);
 /* clean check statement */
+
+#define execute_let _glp_mpl_execute_let
+void execute_let(MPL *mpl, LET_STMT *let);
+/* execute let statement */
+
+#define clean_let _glp_mpl_clean_let
+void clean_let(MPL *mpl, LET_STMT *let);
+/* clean let statement */
 
 #define execute_display _glp_mpl_execute_display
 void execute_display(MPL *mpl, DISPLAY *dpy);

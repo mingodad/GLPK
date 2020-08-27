@@ -39,10 +39,32 @@ problem Mix : Cut, Reduced_Cost;
 problem Pattern_Gen;
 
 if nPAT > 0 then {
-	#problem Mix2;
+	problem Mix;
+	#problem Mix2; #problem creation not allowed here
 }
 
 display Cutting_Opt, Pattern_Gen, Mix;
+
+let nPAT := 0;
+for {i in WIDTHS} {
+   let nPAT := nPAT + 1;
+   let nbr[i,nPAT] := floor (roll_width/i);
+   let {i2 in WIDTHS: i2 <> i} nbr[i2,nPAT] := 0;
+}
+
+repeat {
+   solve Cutting_Opt;
+   let {i in WIDTHS} price[i] := Fill[i].dual;
+   display price;
+
+   solve Pattern_Gen;
+   if Reduced_Cost < -0.00001 then {
+      let nPAT := nPAT + 1;
+      let {i in WIDTHS} nbr[i,nPAT] := Use[i];
+      display Use;
+   }
+   else break;
+}
 
 solve Cutting_Opt;
 #solve Pattern_Gen;
