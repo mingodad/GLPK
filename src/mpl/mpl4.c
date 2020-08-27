@@ -270,7 +270,10 @@ void postsolve_model(MPL *mpl)
       mpl->flag_p = 1;
       for (stmt = mpl->stmt; stmt != NULL; stmt = stmt->next) {
          execute_statement(mpl, stmt);
-         if (mpl->stmt->type == A_SOLVE) return;
+         if (mpl->stmt->type == A_SOLVE) {
+             mpl->flag_p = 0;
+             return;
+         }
       }
       mpl->stmt = NULL;
       return;
