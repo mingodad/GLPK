@@ -1777,9 +1777,16 @@ struct PARAMETER
       /* symbolic name; cannot be NULL */
       char *alias;
       /* alias; NULL means alias is not specified */
-      int dim; /* aka arity */
+      short dim; /* aka arity */
       /* dimension (number of subscripts); dim = 0 means 0-dimensional
          (unsubscripted) parameter */
+      short data:8;
+      /* data status flag:
+         0 - no data are provided in the data section
+         1 - data are provided, but not checked yet
+         2 - data are provided and have been checked */
+      short scoped:1;
+      /* indicates that it was declared inside a block scope */
       int type;
       /* parameter type:
          A_NUMERIC  - numeric
@@ -1800,13 +1807,6 @@ struct PARAMETER
       /* pseudo-code for computing assigned value; can be NULL */
       CODE *option;
       /* pseudo-code for computing default value; can be NULL */
-      int scoped;
-      /* indicates that it was declared inside a block scope */
-      int data;
-      /* data status flag:
-         0 - no data are provided in the data section
-         1 - data are provided, but not checked yet
-         2 - data are provided and have been checked */
       SYMBOL defval;
       /* default value provided in the data section; can be NULL */
       ARRAY *array;
@@ -2419,7 +2419,7 @@ struct LET_STMT
 {     /* let statement */
       DOMAIN *domain;
       /* subscript domain; NULL means domain is not used */
-      PARAMETER *par;
+      CODE *par;
       /* model element to assign an expression */
       CODE *assign;
       /* code for computing the assignment expression */

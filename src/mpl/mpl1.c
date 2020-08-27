@@ -4420,7 +4420,6 @@ CHECK *check_statement(MPL *mpl)
 
 LET_STMT *let_statement(MPL *mpl)
 {     LET_STMT *let;
-      CODE *code;
       xassert(is_keyword(mpl, "let"));
       /* create let descriptor */
       let = alloc(LET_STMT);
@@ -4440,12 +4439,10 @@ LET_STMT *let_statement(MPL *mpl)
       if (mpl->token == T_COLON) get_token(mpl /* : */);
       if (mpl->token != T_NAME)
           error(mpl, "existing model element missing");
-      code = object_reference(mpl);
-      switch (code->op)
+      let->par = object_reference(mpl);
+      switch (let->par->op)
       {  case O_MEMNUM:
          case O_MEMSYM:
-             let->par = code->arg.par.par;
-             clean_code(mpl, code);
             break;
           default:
               error(mpl, "only parameter allowed here");
@@ -4461,11 +4458,11 @@ LET_STMT *let_statement(MPL *mpl)
            error(mpl, "expression following := has invalid type");
       xassert(let->assign->dim == 0);
       /* convert to the parameter type, if necessary */
-      if (let->par->type != A_SYMBOLIC && let->assign->type ==
+      if (let->par->arg.par.par->type != A_SYMBOLIC && let->assign->type ==
            A_SYMBOLIC)
            let->assign = make_unary(mpl, O_CVTNUM, let->assign,
               A_NUMERIC, 0);
-      if (let->par->type == A_SYMBOLIC && let->assign->type !=
+      if (let->par->arg.par.par->type == A_SYMBOLIC && let->assign->type !=
            A_SYMBOLIC)
            let->assign = make_unary(mpl, O_CVTSYM, let->assign,
               A_SYMBOLIC, 0);

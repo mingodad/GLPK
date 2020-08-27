@@ -5674,6 +5674,39 @@ void clean_table(MPL *mpl, TABLE *tab)
 static int let_func(MPL *mpl, void *info)
 {     /* this is auxiliary routine to work within domain scope */
       LET_STMT *let = (LET_STMT *)info;
+      SYMBOL svalue;
+      double dvalue;
+      MEMBER *memb;
+      TUPLE *tuple;
+      ARG_LIST *e;
+      PARAMETER *par = let->par->arg.par.par;
+      if(par->type == A_SYMBOLIC)
+          svalue = eval_symbolic(mpl, let->assign);
+      else
+          dvalue = eval_numeric(mpl, let->assign);
+
+      tuple = create_tuple(mpl);
+      for (e = let->par->arg.par.list; e != NULL; e = e->next)
+          tuple = expand_tuple(mpl, tuple, eval_symbolic(mpl, e->x));
+      memb = find_member(mpl, par->array, tuple);
+      if (!memb)
+      {
+          memb = add_member(mpl, par->array, copy_tuple(mpl, tuple));
+      }
+      switch (par->type)
+      {  case A_NUMERIC:
+         case A_INTEGER:
+         case A_BINARY:
+            memb->value.num = dvalue;
+            break;
+         case A_SYMBOLIC:
+            memb->value.sym = svalue;
+            break;
+         default:
+            xassert(par != par);
+      }
+      if(!par->data) par->data = 1;
+      delete_tuple(mpl, tuple);
       return 0;
 }
 
@@ -5691,6 +5724,8 @@ void execute_let(MPL *mpl, LET_STMT *let)
 void clean_let(MPL *mpl, LET_STMT *let)
 {     /* clean subscript domain */
       clean_domain(mpl, let->domain);
+      /* clean param reference */
+      clean_code(mpl, let->par);
       /* clean pseudo-code for computing predicate */
       clean_code(mpl, let->assign);
       return;

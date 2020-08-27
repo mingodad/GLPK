@@ -159,7 +159,19 @@ void alloc_content(MPL *mpl)
 
 void generate_model(MPL *mpl)
 {     STATEMENT *stmt;
+      PROBLEM_ELEMENT *elm;
       xassert(!mpl->flag_p);
+/*
+      if(mpl->stmt && mpl->stmt->type == A_SOLVE) {
+          if(mpl->stmt->u.slv->prob) {
+            for (elm = mpl->stmt->u.slv->prob->list; elm != NULL; elm = elm->next)
+            {
+                execute_statement(mpl, stmt);
+            }
+            return;
+          }
+      }
+*/
       for (stmt = mpl->model; stmt != NULL; stmt = stmt->next)
       {  execute_statement(mpl, stmt);
          if (mpl->stmt->type == A_SOLVE) break;
@@ -858,7 +870,12 @@ done: /* return to the calling program */
 -- although this is not a good idea (due to portability problems). */
 
 char *mpl_get_prob_name(MPL *mpl)
-{     char *name = mpl->mpl_buf;
+{
+      if(mpl->current_problem) {
+          strcpy(mpl->mpl_buf, mpl->current_problem->name);
+          return mpl->mpl_buf;
+      }
+      char *name = mpl->mpl_buf;
       char *file = mpl->mod_file;
       int k;
       if (mpl->phase != GLP_TRAN_PHASE_GENERATE)
