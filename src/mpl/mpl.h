@@ -279,6 +279,9 @@ struct glp_tran
       /* if this is not NULL we are inside a for loop */
       PROBLEM *current_problem;
       /* if this is not NULL we are inside a problem */
+      int last_code_valid;
+      /* this is used to globally invalidate cached values,
+         this value is used in CODE.valid */
       /*--------------------------------------------------------------*/
       /* common segment */
       DMP *strings;

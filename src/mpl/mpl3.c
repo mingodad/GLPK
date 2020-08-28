@@ -3805,9 +3805,13 @@ double eval_numeric(MPL *mpl, CODE *code)
       xassert(code->dim == 0);
       /* if the operation has a side effect, invalidate and delete the
          resultant value */
-      if (code->vflag && code->valid)
-      {  code->valid = 0;
-         delete_value(mpl, code->type, &code->value);
+      if (code->valid)
+      {
+          if(code->vflag || (code->valid != mpl->last_code_valid))
+          {
+            code->valid = 0;
+            delete_value(mpl, code->type, &code->value);
+          }
       }
       /* if resultant value is valid, no evaluation is needed */
       if (code->valid)
@@ -4211,7 +4215,7 @@ double eval_numeric(MPL *mpl, CODE *code)
       }
       /* save resultant value */
       xassert(!code->valid);
-      code->valid = 1;
+      code->valid = mpl->last_code_valid;
       code->value.num = value;
 done: return value;
 }
@@ -4229,9 +4233,13 @@ SYMBOL eval_symbolic(MPL *mpl, CODE *code)
       xassert(code->dim == 0);
       /* if the operation has a side effect, invalidate and delete the
          resultant value */
-      if (code->vflag && code->valid)
-      {  code->valid = 0;
-         delete_value(mpl, code->type, &code->value);
+      if (code->valid)
+      {
+          if(code->vflag || (code->valid != mpl->last_code_valid))
+          {
+            code->valid = 0;
+            delete_value(mpl, code->type, &code->value);
+          }
       }
       /* if resultant value is valid, no evaluation is needed */
       if (code->valid)
@@ -4342,7 +4350,7 @@ SYMBOL eval_symbolic(MPL *mpl, CODE *code)
       }
       /* save resultant value */
       xassert(!code->valid);
-      code->valid = 1;
+      code->valid = mpl->last_code_valid;
       code->value.sym = copy_symbol(mpl, value);
 done: return value;
 }
@@ -4389,9 +4397,13 @@ int eval_logical(MPL *mpl, CODE *code)
       xassert(code->dim == 0);
       /* if the operation has a side effect, invalidate and delete the
          resultant value */
-      if (code->vflag && code->valid)
-      {  code->valid = 0;
-         delete_value(mpl, code->type, &code->value);
+      if (code->valid)
+      {
+          if(code->vflag || (code->valid != mpl->last_code_valid))
+          {
+            code->valid = 0;
+            delete_value(mpl, code->type, &code->value);
+          }
       }
       /* if resultant value is valid, no evaluation is needed */
       if (code->valid)
@@ -4593,7 +4605,7 @@ int eval_logical(MPL *mpl, CODE *code)
       }
       /* save resultant value */
       xassert(!code->valid);
-      code->valid = 1;
+      code->valid = mpl->last_code_valid;
       code->value.bit = value;
 done: return value;
 }
@@ -4611,9 +4623,13 @@ TUPLE *eval_tuple(MPL *mpl, CODE *code)
       xassert(code->dim > 0);
       /* if the operation has a side effect, invalidate and delete the
          resultant value */
-      if (code->vflag && code->valid)
-      {  code->valid = 0;
-         delete_value(mpl, code->type, &code->value);
+      if (code->valid)
+      {
+          if(code->vflag || (code->valid != mpl->last_code_valid))
+          {
+            code->valid = 0;
+            delete_value(mpl, code->type, &code->value);
+          }
       }
       /* if resultant value is valid, no evaluation is needed */
       if (code->valid)
@@ -4641,7 +4657,7 @@ TUPLE *eval_tuple(MPL *mpl, CODE *code)
       }
       /* save resultant value */
       xassert(!code->valid);
-      code->valid = 1;
+      code->valid = mpl->last_code_valid;
       code->value.tuple = copy_tuple(mpl, value);
 done: return value;
 }
@@ -4695,9 +4711,13 @@ ELEMSET *eval_elemset(MPL *mpl, CODE *code)
       xassert(code->dim > 0);
       /* if the operation has a side effect, invalidate and delete the
          resultant value */
-      if (code->vflag && code->valid)
-      {  code->valid = 0;
-         delete_value(mpl, code->type, &code->value);
+      if (code->valid)
+      {
+          if(code->vflag || (code->valid != mpl->last_code_valid))
+          {
+            code->valid = 0;
+            delete_value(mpl, code->type, &code->value);
+          }
       }
       /* if resultant value is valid, no evaluation is needed */
       if (code->valid)
@@ -4797,7 +4817,7 @@ ELEMSET *eval_elemset(MPL *mpl, CODE *code)
       }
       /* save resultant value */
       xassert(!code->valid);
-      code->valid = 1;
+      code->valid = mpl->last_code_valid;
       code->value.set = copy_elemset(mpl, value);
 done: return value;
 }
@@ -5024,9 +5044,13 @@ FORMULA *eval_formula(MPL *mpl, CODE *code)
       xassert(code->dim == 0);
       /* if the operation has a side effect, invalidate and delete the
          resultant value */
-      if (code->vflag && code->valid)
-      {  code->valid = 0;
-         delete_value(mpl, code->type, &code->value);
+      if (code->valid)
+      {
+          if(code->vflag || (code->valid != mpl->last_code_valid))
+          {
+            code->valid = 0;
+            delete_value(mpl, code->type, &code->value);
+          }
       }
       /* if resultant value is valid, no evaluation is needed */
       if (code->valid)
@@ -5132,7 +5156,7 @@ FORMULA *eval_formula(MPL *mpl, CODE *code)
       }
       /* save resultant value */
       xassert(!code->valid);
-      code->valid = 1;
+      code->valid = mpl->last_code_valid;
       code->value.form = copy_formula(mpl, value);
 done: return value;
 }
@@ -5679,6 +5703,7 @@ static int let_func(MPL *mpl, void *info)
       MEMBER *memb;
       TUPLE *tuple;
       ARG_LIST *e;
+      if(++mpl->last_code_valid == 0) mpl->last_code_valid = 1;
       PARAMETER *par = let->par->arg.par.par;
       if(par->type == A_SYMBOLIC)
           svalue = eval_symbolic(mpl, let->assign);

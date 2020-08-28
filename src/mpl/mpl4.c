@@ -280,9 +280,10 @@ void postsolve_model(MPL *mpl)
 {     STATEMENT *stmt;
       xassert(!mpl->flag_p);
       mpl->flag_p = 1;
-      for (stmt = mpl->stmt; stmt != NULL; stmt = stmt->next) {
+      stmt = (mpl->stmt->type == A_SOLVE) ? mpl->stmt->next : mpl->stmt;
+      for (; stmt != NULL; stmt = stmt->next) {
          execute_statement(mpl, stmt);
-         if (mpl->stmt->type == A_SOLVE) {
+         if (stmt->type == A_SOLVE) {
              mpl->flag_p = 0;
              return;
          }
@@ -610,6 +611,7 @@ MPL *mpl_initialize(void)
       mpl->flag_s = 0;
       mpl->current_for_loop = NULL;
       mpl->current_problem = NULL;
+      mpl->last_code_valid = 1;
       /* common segment */
       mpl->str_intern = kh_init(kh_str);
       mpl->strings = dmp_create_poolx(sizeof(STRING));
