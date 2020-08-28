@@ -4361,7 +4361,7 @@ SOLVE *solve_statement(MPL *mpl)
       if (mpl->token != T_SEMICOLON)
          error(mpl, "syntax error in solve statement");
       get_token(mpl /* ; */);
-      return NULL;
+      return solve;
 }
 
 /*----------------------------------------------------------------------
