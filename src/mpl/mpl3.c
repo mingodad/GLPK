@@ -2583,7 +2583,7 @@ done: return;
 
 void add_problem_element(MPL *mpl, STATEMENT *stmt)
 {
-    PROBLEM_ELEMENT *elm, *tmp;
+    STATEMENT *elm, *tmp;
     xassert(stmt != NULL);
     if(mpl->current_problem) {
         switch(stmt->type)
@@ -2596,10 +2596,11 @@ void add_problem_element(MPL *mpl, STATEMENT *stmt)
             default:
                 error(mpl, "wrong type of element to add to problem");
         }
-        elm = alloc(PROBLEM_ELEMENT);
-        elm->type = stmt->type;
-        elm->u.var = stmt->u.var;
+        elm = alloc(STATEMENT);
+        elm->line = stmt->line;
         elm->next = NULL;
+        elm->type = stmt->type;
+        elm->u = stmt->u;
         if(mpl->current_problem->list) {
             tmp = mpl->current_problem->list;
             while(tmp->next) tmp = tmp->next;
@@ -2681,11 +2682,19 @@ void check_elem_set
 
 ELEMSET *take_member_set      /* returns reference, not value */
 (     MPL *mpl,
-      const SET *set,               /* not changed */
+      SET *set,                     /* maybe updated */
       const TUPLE *tuple            /* not changed */
 )
 {     MEMBER *memb;
       ELEMSET *refer;
+#if 0
+      if(set->code_valid != mpl->last_code_valid)
+      {
+          /* we need to check for changes */
+          clear_set(mpl, set);
+          set->code_valid = mpl->last_code_valid;
+      }
+#endif
       /* find member in the set array */
       memb = find_member(mpl, set->array, tuple);
       if (memb != NULL)
@@ -3020,11 +3029,19 @@ err:              error(mpl, "%s%s = %.*g not %s %.*g; see (%d)",
 
 double take_member_num
 (     MPL *mpl,
-      const PARAMETER *par,         /* not changed */
+      PARAMETER *par,               /* maybe updated */
       const TUPLE *tuple            /* not changed */
 )
 {     MEMBER *memb;
       double value;
+#if 0
+      if(par->code_valid != mpl->last_code_valid)
+      {
+          /* we need to check for changes */
+          clear_parameter(mpl, par);
+          par->code_valid = mpl->last_code_valid;
+      }
+#endif
       /* find member in the parameter array */
       memb = find_member(mpl, par->array, tuple);
       if (memb != NULL)
@@ -3233,11 +3250,19 @@ void check_value_sym
 
 SYMBOL take_member_sym       /* returns value, not reference */
 (     MPL *mpl,
-      const PARAMETER *par,         /* not changed */
+      PARAMETER *par,               /* maybe updated */
       const TUPLE *tuple            /* not changed */
 )
 {     MEMBER *memb;
       SYMBOL value;
+#if 0
+      if(par->code_valid != mpl->last_code_valid)
+      {
+          /* we need to check for changes */
+          clear_parameter(mpl, par);
+          par->code_valid = mpl->last_code_valid;
+      }
+#endif
       /* find member in the parameter array */
       memb = find_member(mpl, par->array, tuple);
       if (memb != NULL)
@@ -3533,8 +3558,14 @@ static int whole_var_func(MPL *mpl, void *info)
 }
 
 void eval_whole_var(MPL *mpl, VARIABLE *var)
-{     loop_within_domain(mpl, var->domain, var, whole_var_func);
-      return;
+{
+    if(var->code_valid != mpl->last_code_valid)
+    {
+        clear_array(mpl, var->array);
+        var->code_valid = mpl->last_code_valid;
+    }
+    loop_within_domain(mpl, var->domain, var, whole_var_func);
+    return;
 }
 
 /*----------------------------------------------------------------------
@@ -3722,8 +3753,14 @@ static int whole_con_func(MPL *mpl, void *info)
 }
 
 void eval_whole_con(MPL *mpl, CONSTRAINT *con)
-{     loop_within_domain(mpl, con->domain, con, whole_con_func);
-      return;
+{
+    if(con->code_valid != mpl->last_code_valid)
+    {
+        clear_array(mpl, con->array);
+        con->code_valid = mpl->last_code_valid;
+    }
+    loop_within_domain(mpl, con->domain, con, whole_con_func);
+    return;
 }
 
 /*----------------------------------------------------------------------
@@ -3812,11 +3849,12 @@ double eval_numeric(MPL *mpl, CODE *code)
             code->valid = 0;
             delete_value(mpl, code->type, &code->value);
           }
-      }
-      /* if resultant value is valid, no evaluation is needed */
-      if (code->valid)
-      {  value = code->value.num;
-         goto done;
+          else
+          {
+            /* if resultant value is valid, no evaluation is needed */
+            value = code->value.num;
+            goto done;
+          }
       }
       /* evaluate pseudo-code recursively */
       switch (code->op)
@@ -5691,6 +5729,42 @@ void clean_table(MPL *mpl, TABLE *tab)
 /**********************************************************************/
 
 /*----------------------------------------------------------------------
+-- execute_solve - execute solve statement.
+--
+-- This routine executes specified solve statement. */
+
+void execute_solve(MPL *mpl, SOLVE *solve)
+{
+    int ret;
+    if(mpl->solve_callback)
+    {
+        PROBLEM *saved_prob, *prob;
+        STATEMENT *elm;
+        saved_prob = mpl->current_problem;
+        if(solve->prob)
+        {
+            mpl->current_problem = solve->prob;
+            prob = solve->prob;
+        }
+        else prob = mpl->current_problem;
+        if(prob->list)
+        {
+            saved_prob = mpl->current_problem;
+
+            for (elm = prob->list; elm != NULL; elm = elm->next)
+            {
+                execute_statement(mpl, elm);
+            }
+            clean_build_problem(mpl);
+            build_problem(mpl);
+            mpl->flag_p = 0;
+            ret = mpl->solve_callback(mpl, solve->type, mpl->solve_callback_udata);
+        }
+        mpl->current_problem = saved_prob;
+    }
+}
+
+/*----------------------------------------------------------------------
 -- execute_let - execute let statement.
 --
 -- This routine executes specified let statement. */
@@ -5723,9 +5797,11 @@ static int let_func(MPL *mpl, void *info)
          case A_INTEGER:
          case A_BINARY:
             memb->value.num = dvalue;
+            check_value_num(mpl, par, tuple, dvalue);
             break;
          case A_SYMBOLIC:
             memb->value.sym = svalue;
+            check_value_sym(mpl, par, tuple, svalue);
             break;
          default:
             xassert(par != par);
@@ -6008,6 +6084,13 @@ static void display_code(MPL *mpl, CODE *code)
 static void eval_whole_set_statement(MPL *mpl, SET *set)
 {
     MEMBER *memb;
+/*
+    if(set->code_valid != mpl->last_code_valid)
+    {
+        clear_array(mpl, set->array);
+        set->code_valid = mpl->last_code_valid;
+    }
+*/
     if (set->assign != NULL)
     {  /* the set has assignment expression; evaluate all its
           members over entire domain */
@@ -6034,6 +6117,13 @@ static void eval_whole_set_statement(MPL *mpl, SET *set)
 static void eval_whole_param_statemtnt(MPL *mpl, PARAMETER *par)
 {
     MEMBER *memb;
+/*
+    if(par->code_valid != mpl->last_code_valid)
+    {
+        clear_array(mpl, par->array);
+        par->code_valid = mpl->last_code_valid;
+    }
+*/
     if (par->assign != NULL)
     {  /* the parameter has an assignment expression; evaluate
           all its member over entire domain */
@@ -6114,7 +6204,7 @@ static int display_func(MPL *mpl, void *info)
          else if (entry->type == A_PROBLEM)
          {  /* model problem */
             PROBLEM *prob = entry->u.prob;
-            PROBLEM_ELEMENT *elm;
+            STATEMENT *elm;
             write_text(mpl, "problem %s%s", prob->name, prob->list ? ":" : "");
             for (elm = prob->list; elm != NULL; elm = elm->next)
             {
@@ -6423,34 +6513,53 @@ void clean_printf(MPL *mpl, PRINTF *prt)
       return;
 }
 
+/*----------------------------------------------------------------------
+-- clear_parameter - clear data from a parameter.
+--
+-- This routine clears all data for the specified parameter. */
+
+void clear_parameter(MPL *mpl, PARAMETER *par)
+{
+    MEMBER *memb;
+    par->data = 0;
+    /* delete content array */
+    for (memb = par->array->head; memb != NULL; memb = memb->next)
+    {
+        delete_value(mpl, par->array->type, &memb->value);
+    }
+    clear_array(mpl, par->array);
+}
+
+/*----------------------------------------------------------------------
+-- clear_set - clear data from a set.
+--
+-- This routine clears all data for the specified set. */
+
+void clear_set(MPL *mpl, SET *set)
+{
+    MEMBER *memb;
+    set->data = 0;
+    /* delete content array */
+    for (memb = set->array->head; memb != NULL; memb = memb->next)
+    {
+        clear_array(mpl, memb->value.set);
+        delete_value(mpl, set->array->type, &memb->value);
+    }
+    clear_array(mpl, set->array);
+}
+
 static void clear_local_decl(MPL *mpl, STATEMENT *list)
 {
     STATEMENT *stmt;
-    MEMBER *memb;
     for (stmt = list; stmt != NULL; stmt = stmt->next)
     {
         if(stmt->type == A_PARAMETER)
         {
-            PARAMETER *par = stmt->u.par;
-            par->data = 0;
-            /* delete content array */
-            for (memb = par->array->head; memb != NULL; memb = memb->next)
-            {
-                delete_value(mpl, par->array->type, &memb->value);
-            }
-            clear_array(mpl, par->array);
+            clear_parameter(mpl, stmt->u.par);
         }
         else if(stmt->type == A_SET)
         {
-            SET *set = stmt->u.set;
-            set->data = 0;
-            /* delete content array */
-            for (memb = set->array->head; memb != NULL; memb = memb->next)
-            {
-                clear_array(mpl, memb->value.set);
-                delete_value(mpl, set->array->type, &memb->value);
-            }
-            clear_array(mpl, set->array);
+            clear_set(mpl, stmt->u.set);
         }
     }
 }
@@ -6466,7 +6575,8 @@ static int for_func(MPL *mpl, void *info)
       STATEMENT *stmt, *save;
       int has_local_decl = 0;
       save = mpl->stmt;
-      for (stmt = fur->list; stmt != NULL; stmt = stmt->next)
+      stmt = fur->list;
+      while ( stmt != NULL )
       {
          if(!has_local_decl && (stmt->type == A_PARAMETER || stmt->type == A_SET))
             has_local_decl = 1;
@@ -6480,6 +6590,12 @@ static int for_func(MPL *mpl, void *info)
              fur->do_continue = 0;
              break;
          }
+         /* if we are in the last statement we need
+            check if we are in a repeat/for loop ? */
+         if(stmt->next == NULL && fur->domain == NULL)
+             stmt = fur->list; /* repeat loop */
+         else
+            stmt = stmt->next; /* for loop */
       }
       if(has_local_decl)
       {
@@ -6643,6 +6759,7 @@ void execute_statement(MPL *mpl, STATEMENT *stmt)
              mpl->current_problem = stmt->u.prob;
              break;
          case A_SOLVE:
+             execute_solve(mpl, stmt->u.slv);
              break;
          case A_LET:
             execute_let(mpl, stmt->u.let);

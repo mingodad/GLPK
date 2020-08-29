@@ -3011,10 +3011,12 @@ PROBLEM *problem_statement(MPL *mpl)
           while(mpl->token == T_NAME) {
               AVLNODE *node = avl_find_node(mpl->tree, mpl->image);
               if (!node) error(mpl, "unknown name '%s'", mpl->image);
-              STATEMENT stmt;
-              stmt.type = avl_get_node_type(node);
-              stmt.u.var = (VARIABLE*)avl_get_node_link(node);
-              add_problem_element(mpl, &stmt);
+              STATEMENT *stmt = alloc(STATEMENT);
+              stmt->next = NULL;
+              stmt->line = 0;
+              stmt->type = avl_get_node_type(node);
+              stmt->u.var = (VARIABLE*)avl_get_node_link(node);
+              add_problem_element(mpl, stmt);
               get_token(mpl /* name */);
               if(mpl->token != T_COMMA) break;
               get_token(mpl /* , */);
@@ -3066,6 +3068,7 @@ SET *set_statement(MPL *mpl)
       strcpy(set->name, mpl->image);
       set->alias = NULL;
       set->dim = 0;
+      set->code_valid = mpl->last_code_valid;
       set->domain = NULL;
       set->dimen = 0;
       set->within = NULL;
@@ -3318,6 +3321,7 @@ PARAMETER *parameter_statement(MPL *mpl)
       par->dim = 0;
       par->domain = NULL;
       par->type = A_NUMERIC;
+      par->code_valid = mpl->last_code_valid;
       par->cond = NULL;
       par->in = NULL;
       par->assign = NULL;
@@ -3577,6 +3581,7 @@ VARIABLE *variable_statement(MPL *mpl)
       var->dim = 0;
       var->domain = NULL;
       var->type = A_NUMERIC;
+      var->code_valid = mpl->last_code_valid;
       var->lbnd = NULL;
       var->ubnd = NULL;
       var->array = NULL;
@@ -3771,6 +3776,7 @@ CONSTRAINT *constraint_statement(MPL *mpl)
       con->dim = 0;
       con->domain = NULL;
       con->type = A_CONSTRAINT;
+      con->code_valid = mpl->last_code_valid;
       con->code = NULL;
       con->lbnd = NULL;
       con->ubnd = NULL;
@@ -3972,6 +3978,7 @@ CONSTRAINT *objective_statement(MPL *mpl)
       obj->dim = 0;
       obj->domain = NULL;
       obj->type = type;
+      obj->code_valid = mpl->last_code_valid;
       obj->code = NULL;
       obj->lbnd = NULL;
       obj->ubnd = NULL;
@@ -4355,6 +4362,18 @@ SOLVE *solve_statement(MPL *mpl)
           if(!node || avl_get_node_type(node) != A_PROBLEM)
             error(mpl, "%s is not a problem name", mpl->image);
           solve->prob = (PROBLEM *)avl_get_node_link(node);
+          get_token(mpl /* name */);
+      }
+      /* solve type */
+      if (mpl->token == T_NAME) {
+          if(strcmp(mpl->image, "lp") == 0)
+              solve->type = A_PROBLEM_LP;
+          else if(strcmp(mpl->image, "mip") == 0)
+              solve->type = A_PROBLEM_MIP;
+          else if(strcmp(mpl->image, "ip") == 0)
+              solve->type = A_PROBLEM_IP;
+          else
+              error(mpl, "unknown solve option %s, valid options are lp/mip/ip", mpl->image);
           get_token(mpl /* name */);
       }
       /* semicolon must follow solve statement */

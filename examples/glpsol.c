@@ -975,6 +975,50 @@ static int parse_cmdline(struct csa *csa, int argc, char *argv[])
 typedef struct { double rhs, pi; } v_data;
 typedef struct { double low, cap, cost, x; } a_data;
 
+static int solve_callback(glp_tran *tran, int sol_type, void *udata)
+{
+    int ret, psol_type = GLP_SOL;
+    struct csa *csa = (struct csa *)udata;
+    printf("Solve callback called\n");
+    /* build the problem instance from the model */
+    glp_mpl_build_prob(csa->tran, csa->prob);
+    glp_sort_matrix(csa->prob);
+
+    //glp_scale_prob(csa->prob, GLP_SF_AUTO);
+    //glp_set_bfcp(csa->prob, &csa->bfcp);
+
+    switch(sol_type)
+    {
+        case 0:
+            glp_simplex(csa->prob, &csa->smcp);
+            if (!(glp_get_status(csa->prob) == GLP_OPT ||
+                  glp_get_status(csa->prob) == GLP_FEAS))
+               ret = -1;
+            psol_type = GLP_SOL;
+            break;
+        case 1:
+            glp_intopt(csa->prob, &csa->iocp);
+            if (!(glp_mip_status(csa->prob) == GLP_OPT ||
+                  glp_mip_status(csa->prob) == GLP_FEAS))
+               ret = -1;
+            psol_type = GLP_MIP;
+            break;
+        case 2:
+            glp_interior(csa->prob, &csa->iptcp);
+            if (!(glp_ipt_status(csa->prob) == GLP_OPT ||
+                  glp_ipt_status(csa->prob) == GLP_FEAS))
+               ret = -1;
+            psol_type = GLP_IPT;
+            break;
+        default:
+            printf("Unknown solution type %d\n", sol_type);
+            return -1;
+    }
+    ret = glp_mpl_postsolve(csa->tran, csa->prob, psol_type);
+    if (ret != 0) printf("Error on postsolving model\n");
+    return 0;
+}
+
 #ifndef __WOE__
 int main(int argc, char *argv[])
 #else
@@ -1141,6 +1185,7 @@ err1:    {  xprintf("MPS file processing error\n");
          csa->tran = glp_mpl_alloc_wksp();
          glp_mpl_set_genall(csa->tran, csa->gen_all);
          glp_mpl_set_show_delta(csa->tran, csa->show_delta);
+         glp_mpl_set_solve_callback(csa->tran, solve_callback, csa);
          /* set seed value */
          if (csa->seed == 0x80000000)
 #if 0 /* 10/VI-2013 */
@@ -1165,7 +1210,6 @@ err2:    {  xprintf("MathProg model processing error\n");
          /* generate the model */
          if (glp_mpl_generate(csa->tran, csa->out_dpy)) goto err2;
          if (csa->genonly) goto done;
-build_again:
          /* build the problem instance from the model */
          glp_mpl_build_prob(csa->tran, csa->prob);
       }
@@ -1503,7 +1547,6 @@ skip: /* postsolve the model, if necessary */
             ret = EXIT_FAILURE;
             goto done;
          }
-         if(glp_mpl_waiting_solve(csa->tran)) goto build_again;
       }
       /*--------------------------------------------------------------*/
       /* write problem solution in printable format, if required */

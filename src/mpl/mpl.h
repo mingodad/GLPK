@@ -147,6 +147,8 @@ enum eGLP_TRAN_PHASE {
     GLP_TRAN_PHASE_SOLVE,  /* model processing waiting solver */
 };
 
+typedef int (*glp_solve_callback)(MPL *mpl, int sol_type, void *udata);
+
 #if 0 /* 22/I-2013 */
 struct MPL
 #else
@@ -282,6 +284,10 @@ struct glp_tran
       int last_code_valid;
       /* this is used to globally invalidate cached values,
          this value is used in CODE.valid */
+      void *solve_callback_udata;
+      glp_solve_callback solve_callback;
+      /* user provided callback to solve the problem,
+       it's called when a solve statement is executed */
       /*--------------------------------------------------------------*/
       /* common segment */
       DMP *strings;
@@ -661,6 +667,16 @@ STATEMENT *simple_statement(MPL *mpl, int spec);
 #define model_section _glp_mpl_model_section
 void model_section(MPL *mpl);
 /* parse model section */
+
+#define solve_callback_set _glp_mpl_solve_callback_set
+void solve_callback_set(MPL *mpl, glp_solve_callback solve_cb, void *user_data);
+/* set the solve callback that will be called when a solve
+   statement is executed, the user_data pointer is passed
+   back */
+
+#define solve_callback_get _glp_mpl_solve_callback_get
+glp_solve_callback solve_callback_get(MPL *mpl, void **user_data);
+/* get the existing solve callback and user data */
 
 /**********************************************************************/
 /* * *                  PROCESSING DATA SECTION                   * * */
@@ -1633,6 +1649,7 @@ struct SET
          (note that the model set itself is an array of elemental sets,
          which are its members; so, don't confuse this dimension with
          dimension of the model set); always non-zero */
+      int code_valid;
       DOMAIN *domain;
       /* subscript domain; NULL for 0-dimensional set */
       WITHIN *within;
@@ -1683,7 +1700,7 @@ void check_elem_set
 #define take_member_set _glp_mpl_take_member_set
 ELEMSET *take_member_set      /* returns reference, not value */
 (     MPL *mpl,
-      const SET *set,               /* not changed */
+      SET *set,                     /* maybe updated */
       const TUPLE *tuple            /* not changed */
 );
 /* obtain elemental set assigned to set member */
@@ -1704,6 +1721,10 @@ void eval_whole_set(MPL *mpl, SET *set);
 void clean_set(MPL *mpl, SET *set);
 /* clean model set */
 
+#define clear_set _glp_mpl_clear_set
+void clear_set(MPL *mpl, SET *set);
+/* clear (remove all data) model set */
+
 #define get_size_set _glp_mpl_get_size_set
 int get_size_set(MPL *mpl, SET *set);
 /* get the size of a model set */
@@ -1712,31 +1733,13 @@ int get_size_set(MPL *mpl, SET *set);
 /* * *                      MODEL PROBLEM                      * * */
 /**********************************************************************/
 
-struct PROBLEM_ELEMENT
-{     /* display list entry */
-      int type;
-      /* item type:
-         A_MINIMIZE  - model objective
-         A_MAXIMIZE  - model objective
-         A_VARIABLE   - model variable
-         A_CONSTRAINT - model constraint/objective */
-      union
-      {
-         VARIABLE *var;
-         CONSTRAINT *con;
-      } u;
-      /* element included in the problem */
-      PROBLEM_ELEMENT *next;
-      /* the next entry */
-};
-
 struct PROBLEM
 {     /* model problem */
       char *name;
       /* symbolic name; cannot be NULL */
       char *alias;
       /* alias; NULL means alias is not specified */
-      PROBLEM_ELEMENT *list;
+      STATEMENT *list;
       int type;
       /* parameter type:
          A_PROBLEM_LP  - linear
@@ -1755,6 +1758,12 @@ void clean_problem(MPL *mpl, PROBLEM *prob);
 /**********************************************************************/
 /* * *                      MODEL SOLVE                      * * */
 /**********************************************************************/
+
+enum {
+    A_PROBLEM_LP,
+    A_PROBLEM_MIP,
+    A_PROBLEM_IP
+};
 
 struct SOLVE
 {     /* model solve */
@@ -1796,6 +1805,7 @@ struct PARAMETER
          A_INTEGER  - integer
          A_BINARY   - binary
          A_SYMBOLIC - symbolic */
+      int code_valid;
       DOMAIN *domain;
       /* subscript domain; NULL for 0-dimensional parameter */
       CONDITION *cond;
@@ -1844,7 +1854,7 @@ void check_value_num
 #define take_member_num _glp_mpl_take_member_num
 double take_member_num
 (     MPL *mpl,
-      const PARAMETER *par,         /* not changed */
+      PARAMETER *par,               /* maybe updated */
       const TUPLE *tuple            /* not changed */
 );
 /* obtain numeric value assigned to parameter member */
@@ -1869,7 +1879,7 @@ void check_value_sym
 #define take_member_sym _glp_mpl_take_member_sym
 SYMBOL take_member_sym       /* returns value, not reference */
 (     MPL *mpl,
-      const PARAMETER *par,         /* not changed */
+      PARAMETER *par,               /* maybe updated */
       const TUPLE *tuple            /* not changed */
 );
 /* obtain symbolic value assigned to parameter member */
@@ -1890,6 +1900,10 @@ void eval_whole_par(MPL *mpl, PARAMETER *par);
 void clean_parameter(MPL *mpl, PARAMETER *par);
 /* clean model parameter */
 
+#define clear_parameter _glp_mpl_clear_parameter
+void clear_parameter(MPL *mpl, PARAMETER *par);
+/* clear (remove all data) model parameter */
+
 /**********************************************************************/
 /* * *                      MODEL VARIABLES                       * * */
 /**********************************************************************/
@@ -1908,6 +1922,7 @@ struct VARIABLE
          A_NUMERIC - continuous
          A_INTEGER - integer
          A_BINARY  - binary */
+      int code_valid;
       DOMAIN *domain;
       /* subscript domain; NULL for 0-dimensional variable */
       CODE *lbnd;
@@ -1964,6 +1979,7 @@ struct CONSTRAINT
          A_CONSTRAINT - constraint
          A_MINIMIZE   - objective (minimization)
          A_MAXIMIZE   - objective (maximization) */
+      int code_valid;
       DOMAIN *domain;
       /* subscript domain; NULL for 0-dimensional constraint */
       CODE *code;
@@ -2499,7 +2515,8 @@ struct PRINTF1
 struct FOR
 {     /* for statement */
       DOMAIN *domain;
-      /* subscript domain; cannot be NULL */
+      /* subscript domain; cannot be NULL for 'for' loops
+         but should be NULL for 'repeat' loops */
       STATEMENT *list;
       /* linked list of model statements within this for statement in
          the original order */
@@ -2580,6 +2597,10 @@ void clean_check(MPL *mpl, CHECK *chk);
 void execute_let(MPL *mpl, LET_STMT *let);
 /* execute let statement */
 
+#define execute_solve _glp_mpl_execute_solve
+void execute_solve(MPL *mpl, SOLVE *solve);
+/* execute solve statement */
+
 #define clean_let _glp_mpl_clean_let
 void clean_let(MPL *mpl, LET_STMT *let);
 /* clean let statement */
@@ -2647,6 +2668,10 @@ void generate_model(MPL *mpl);
 #define build_problem _glp_mpl_build_problem
 void build_problem(MPL *mpl);
 /* build problem instance */
+
+#define clean_build_problem _glp_mpl_clean_build_problem
+void clean_build_problem(MPL *mpl);
+/* clean problem instance */
 
 #define postsolve_model _glp_mpl_postsolve_model
 void postsolve_model(MPL *mpl);

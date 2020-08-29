@@ -877,6 +877,12 @@ int glp_mpl_read_data(glp_tran *tran, const char *fname);
 int glp_mpl_generate(glp_tran *tran, const char *fname);
 /* generate the model */
 
+typedef int (*glp_solve_callback)(glp_tran *mpl, int sol_type, void *udata);
+void glp_mpl_set_solve_callback(glp_tran *tran, glp_solve_callback solve_cb, void *udata);
+/* set the solve callback that will be called when a solve
+   statement is executed, the user_data pointer is passed
+   back */
+
 int glp_mpl_set_genall(glp_tran *tran, int bflag);
 /* set the gen_all option, pre generate all entities in the model
    return the previous value */

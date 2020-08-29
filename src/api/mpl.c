@@ -82,6 +82,12 @@ int glp_mpl_generate(glp_tran *tran, const char *fname)
       return ret;
 }
 
+void glp_mpl_set_solve_callback(glp_tran *tran, glp_solve_callback solve_cb, void *udata)
+{
+    tran->solve_callback = solve_cb;
+    tran->solve_callback_udata = udata;
+}
+
 int glp_mpl_set_genall(glp_tran *tran, int bflag)
 {
     int rc = tran->gen_all;

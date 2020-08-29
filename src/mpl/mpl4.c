@@ -159,22 +159,10 @@ void alloc_content(MPL *mpl)
 
 void generate_model(MPL *mpl)
 {     STATEMENT *stmt;
-      PROBLEM_ELEMENT *elm;
       xassert(!mpl->flag_p);
-/*
-      if(mpl->stmt && mpl->stmt->type == A_SOLVE) {
-          if(mpl->stmt->u.slv->prob) {
-            for (elm = mpl->stmt->u.slv->prob->list; elm != NULL; elm = elm->next)
-            {
-                execute_statement(mpl, stmt);
-            }
-            return;
-          }
-      }
-*/
       for (stmt = mpl->model; stmt != NULL; stmt = stmt->next)
       {  execute_statement(mpl, stmt);
-         if (mpl->stmt->type == A_SOLVE) break;
+         if (!mpl->solve_callback && mpl->stmt->type == A_SOLVE) break;
       }
       mpl->stmt = stmt;
       return;
@@ -187,7 +175,7 @@ void generate_model(MPL *mpl)
 -- which corresponds to the generated model. */
 
 void build_problem(MPL *mpl)
-{     STATEMENT *stmt;
+{     STATEMENT *stmt, *stmt_list;
       MEMBER *memb;
       VARIABLE *v;
       CONSTRAINT *c;
@@ -197,9 +185,10 @@ void build_problem(MPL *mpl)
       xassert(mpl->n == 0);
       xassert(mpl->row == NULL);
       xassert(mpl->col == NULL);
+      stmt_list = mpl->current_problem ? mpl->current_problem->list : mpl->model;
 #ifndef XASSERT_DISABLED
       /* check that all elemental variables has zero column numbers */
-      for (stmt = mpl->model; stmt != NULL; stmt = stmt->next)
+      for (stmt = stmt_list; stmt != NULL; stmt = stmt->next)
       {  if (stmt->type == A_VARIABLE)
          {  v = stmt->u.var;
             for (memb = v->array->head; memb != NULL; memb = memb->next)
@@ -208,7 +197,7 @@ void build_problem(MPL *mpl)
       }
 #endif
       /* assign row numbers to elemental constraints and objectives */
-      for (stmt = mpl->model; stmt != NULL; stmt = stmt->next)
+      for (stmt = stmt_list; stmt != NULL; stmt = stmt->next)
       {  if (stmt->type == A_CONSTRAINT)
          {  c = stmt->u.con;
             for (memb = c->array->head; memb != NULL; memb = memb->next)
@@ -224,7 +213,7 @@ void build_problem(MPL *mpl)
          }
       }
       /* assign column numbers to marked elemental variables */
-      for (stmt = mpl->model; stmt != NULL; stmt = stmt->next)
+      for (stmt = stmt_list; stmt != NULL; stmt = stmt->next)
       {  if (stmt->type == A_VARIABLE)
          {  v = stmt->u.var;
             for (memb = v->array->head; memb != NULL; memb = memb->next)
@@ -235,7 +224,7 @@ void build_problem(MPL *mpl)
       /* build list of rows */
       mpl->row = xcalloc(1+mpl->m, sizeof(ELEMCON *));
       for (i = 1; i <= mpl->m; i++) mpl->row[i] = NULL;
-      for (stmt = mpl->model; stmt != NULL; stmt = stmt->next)
+      for (stmt = stmt_list; stmt != NULL; stmt = stmt->next)
       {  if (stmt->type == A_CONSTRAINT)
          {  c = stmt->u.con;
             for (memb = c->array->head; memb != NULL; memb = memb->next)
@@ -252,7 +241,7 @@ void build_problem(MPL *mpl)
       /* build list of columns */
       mpl->col = xcalloc(1+mpl->n, sizeof(ELEMVAR *));
       for (j = 1; j <= mpl->n; j++) mpl->col[j] = NULL;
-      for (stmt = mpl->model; stmt != NULL; stmt = stmt->next)
+      for (stmt = stmt_list; stmt != NULL; stmt = stmt->next)
       {  if (stmt->type == A_VARIABLE)
          {  v = stmt->u.var;
             for (memb = v->array->head; memb != NULL; memb = memb->next)
@@ -271,6 +260,45 @@ void build_problem(MPL *mpl)
 }
 
 /*----------------------------------------------------------------------
+-- clean_build_problem - clean problem instance.
+--
+-- This routine cleans lists of rows and columns for problem instance,
+-- which corresponds to the generated model. */
+
+void clean_build_problem(MPL *mpl)
+{
+#ifndef XASSERT_DISABLED
+      STATEMENT *stmt, *stmt_list;
+      MEMBER *memb;
+      VARIABLE *v;
+      CONSTRAINT *c;
+      stmt_list = mpl->current_problem ? mpl->current_problem->list : mpl->model;
+      /* check that all elemental variables has zero column numbers */
+      for (stmt = stmt_list; stmt != NULL; stmt = stmt->next)
+      {  if (stmt->type == A_VARIABLE)
+         {  v = stmt->u.var;
+            for (memb = v->array->head; memb != NULL; memb = memb->next)
+               memb->value.var->j = 0;
+         }
+         else if (stmt->type == A_CONSTRAINT)
+         {  c = stmt->u.con;
+            for (memb = c->array->head; memb != NULL; memb = memb->next)
+            {
+               memb->value.con->i = 0;
+            }
+         }
+      }
+#endif
+
+      if (mpl->row != NULL) xfree(mpl->row);
+      if (mpl->col != NULL) xfree(mpl->col);
+      mpl->m = 0;
+      mpl->n = 0;
+      mpl->row = NULL;
+      mpl->col = NULL;
+}
+
+/*----------------------------------------------------------------------
 -- postsolve_model - postsolve model.
 --
 -- This routine executes the model statements which follow the solve
@@ -280,14 +308,13 @@ void postsolve_model(MPL *mpl)
 {     STATEMENT *stmt;
       xassert(!mpl->flag_p);
       mpl->flag_p = 1;
-      stmt = (mpl->stmt->type == A_SOLVE) ? mpl->stmt->next : mpl->stmt;
-      for (; stmt != NULL; stmt = stmt->next) {
+
+      /* if user registered a solve callback we'll resume on returning from it */
+      if(mpl->solve_callback) return;
+
+      for (stmt = mpl->stmt; stmt != NULL; stmt = stmt->next)
          execute_statement(mpl, stmt);
-         if (stmt->type == A_SOLVE) {
-             mpl->flag_p = 0;
-             return;
-         }
-      }
+
       mpl->stmt = NULL;
       return;
 }
@@ -612,6 +639,8 @@ MPL *mpl_initialize(void)
       mpl->current_for_loop = NULL;
       mpl->current_problem = NULL;
       mpl->last_code_valid = 1;
+      mpl->solve_callback_udata = NULL;
+      mpl->solve_callback = NULL;
       /* common segment */
       mpl->str_intern = kh_init(kh_str);
       mpl->strings = dmp_create_poolx(sizeof(STRING));
@@ -655,6 +684,22 @@ MPL *mpl_initialize(void)
       mpl->show_delta = 0;
       mpl->add_missing_param_values = 0;
       return mpl;
+}
+
+/*----------------------------------------------------------------------
+-- solve_callback_set - set the solve callback and user data.
+-- */
+
+void solve_callback_set(MPL *mpl, glp_solve_callback solve_cb, void *user_data)
+{
+    mpl->solve_callback = solve_cb;
+    mpl->solve_callback_udata = user_data;
+}
+
+glp_solve_callback solve_callback_get(MPL *mpl, void **user_data)
+{
+    if(user_data) *user_data = mpl->solve_callback_udata;
+    return mpl->solve_callback;
 }
 
 /*----------------------------------------------------------------------
@@ -844,7 +889,7 @@ int mpl_generate(MPL *mpl, char *file)
       generate_model(mpl);
       flush_output(mpl);
       /* build problem instance */
-      build_problem(mpl);
+      if(!mpl->solve_callback || !mpl->flag_s) build_problem(mpl);
       /* generation phase has been finished */
       xprintf("Model has been successfully generated\n");
 done: /* return to the calling program */
@@ -1515,8 +1560,7 @@ void mpl_terminate(MPL *mpl)
       xfree(mpl->sym_buf);
       xfree(mpl->tup_buf);
       rng_delete_rand(mpl->rand);
-      if (mpl->row != NULL) xfree(mpl->row);
-      if (mpl->col != NULL) xfree(mpl->col);
+      clean_build_problem(mpl);
       if (mpl->in_fp != NULL) glp_close(mpl->in_fp);
       if (mpl->out_fp != NULL && mpl->out_fp != (void *)stdout)
          glp_close(mpl->out_fp);
