@@ -225,7 +225,7 @@ void glp_mpl_build_prob(glp_tran *tran, glp_prob *prob)
 
 int glp_mpl_postsolve(glp_tran *tran, glp_prob *prob, int sol)
 {     /* postsolve the model */
-      int i, j, m, n, stat, ret;
+      int i, j, m, n, stat, ret, has_shift;
       double prim, dual;
       if (!(tran->phase == GLP_TRAN_PHASE_GENERATE && !tran->flag_p))
          xerror("glp_mpl_postsolve: invalid call sequence\n");
@@ -241,20 +241,30 @@ int glp_mpl_postsolve(glp_tran *tran, glp_prob *prob, int sol)
       {  ret = 0;
          goto done;
       }
+      has_shift = glp_get_obj_shift(prob) != 0.0;
       for (i = 1; i <= m; i++)
       {  if (sol == GLP_SOL)
          {  stat = glp_get_row_stat(prob, i);
-            prim = glp_get_row_prim(prob, i);
+            if(i == 1 && has_shift)
+                prim = glp_get_obj_val(prob);
+            else
+                prim = glp_get_row_prim(prob, i);
             dual = glp_get_row_dual(prob, i);
          }
          else if (sol == GLP_IPT)
          {  stat = 0;
-            prim = glp_ipt_row_prim(prob, i);
+            if(i == 1 && has_shift)
+                prim = glp_ipt_obj_val(prob);
+            else
+                prim = glp_ipt_row_prim(prob, i);
             dual = glp_ipt_row_dual(prob, i);
          }
          else if (sol == GLP_MIP)
          {  stat = 0;
-            prim = glp_mip_row_val(prob, i);
+            if(i == 1 && has_shift)
+                prim = glp_mip_obj_val(prob);
+            else
+                prim = glp_mip_row_val(prob, i);
             dual = 0.0;
          }
          else

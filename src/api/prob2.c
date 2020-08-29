@@ -387,6 +387,25 @@ double glp_get_obj_coef(glp_prob *lp, int j)
       return j == 0 ? lp->c0 : lp->col[j]->coef;
 }
 
+/***********************************************************************
+*  NAME
+*
+*  glp_get_obj_shift - retrieve obj. shift or constant term
+*
+*  SYNOPSIS
+*
+*  double glp_get_obj_shift(glp_prob *lp);
+*
+*  RETURNS
+*
+*  The routine glp_get_obj_shift returns the objective shift
+*  of the specified problem object. */
+
+double glp_get_obj_shift(glp_prob *lp)
+{
+      return lp->c0;
+}
+
 #ifdef CSL_MULTI_OBJECTIVE
 /***********************************************************************
 *  NAME

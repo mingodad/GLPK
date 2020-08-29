@@ -47,7 +47,7 @@ param price {WIDTHS} default 0;
 var Use {WIDTHS} integer >= 0;
 
 minimize Reduced_Cost:
-   /*1*/ - sum {i in WIDTHS} price[i] * Use[i];
+   1 - sum {i in WIDTHS} price[i] * Use[i];
 
 subject to Width_Limit:
    sum {i in WIDTHS} i * Use[i] <= roll_width;
@@ -71,7 +71,7 @@ for {1..4} {
 
    solve Pattern_Gen mip;
    display Reduced_Cost, Use;
-   if Reduced_Cost < -1.00001 then {
+   if Reduced_Cost < -0.00001 then {
       let nPAT := nPAT + 1;
       let {i in WIDTHS} nbr[i,nPAT] := Use[i];
       #display nPAT;

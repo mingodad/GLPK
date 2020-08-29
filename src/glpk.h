@@ -437,6 +437,9 @@ double glp_get_col_ub(glp_prob *P, int j);
 double glp_get_obj_coef(glp_prob *P, int j);
 /* retrieve obj. coefficient or constant term */
 
+double glp_get_obj_shift(glp_prob *P);
+/* retrieve obj. shift constant term */
+
 #ifdef CSL_MULTI_OBJECTIVE
 double glp_get_multiobj_coef(glp_prob *P, int objno, int j);
 /* retrieve extra obj coefficient of constant term */
