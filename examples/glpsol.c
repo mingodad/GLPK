@@ -161,6 +161,7 @@ struct csa
 #endif
       int show_delta;
       int gen_all;
+      int solve_callback_used;
 };
 
 static int str2int(const char *s, int *x)
@@ -980,6 +981,8 @@ static int solve_callback(glp_tran *tran, int sol_type, void *udata)
     int ret, psol_type = GLP_SOL;
     struct csa *csa = (struct csa *)udata;
     printf("Solve callback called\n");
+    if(!csa->solve_callback_used)
+        csa->solve_callback_used = 1;
     /* build the problem instance from the model */
     glp_mpl_build_prob(csa->tran, csa->prob);
     glp_sort_matrix(csa->prob);
@@ -1088,6 +1091,7 @@ int __cdecl main(int argc, char *argv[])
 #endif
       csa->show_delta = 0;
       csa->gen_all = 0;
+      csa->solve_callback_used = 0;
       /* parse command-line parameters */
       ret = parse_cmdline(csa, argc, argv);
       if (ret < 0)
@@ -1518,7 +1522,7 @@ err2:    {  xprintf("MathProg model processing error\n");
 #endif
       /*--------------------------------------------------------------*/
 skip: /* postsolve the model, if necessary */
-      if (csa->tran != NULL)
+      if (csa->tran != NULL && !csa->solve_callback_used)
       {  if (csa->solution == SOL_BASIC)
          {  if (!(glp_get_status(csa->prob) == GLP_OPT ||
                   glp_get_status(csa->prob) == GLP_FEAS))

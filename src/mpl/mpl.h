@@ -286,6 +286,7 @@ struct glp_tran
          this value is used in CODE.valid */
       void *solve_callback_udata;
       glp_solve_callback solve_callback;
+      int solve_callback_called;
       /* user provided callback to solve the problem,
        it's called when a solve statement is executed */
       /*--------------------------------------------------------------*/
@@ -1961,6 +1962,10 @@ void eval_whole_var(MPL *mpl, VARIABLE *var);
 void clean_variable(MPL *mpl, VARIABLE *var);
 /* clean model variable */
 
+#define clear_variable _glp_mpl_clear_variable
+void clear_variable(MPL *mpl, VARIABLE *var);
+/* clear (remove all data) model variable */
+
 /**********************************************************************/
 /* * *              MODEL CONSTRAINTS AND OBJECTIVES              * * */
 /**********************************************************************/
@@ -2019,6 +2024,10 @@ void eval_whole_con(MPL *mpl, CONSTRAINT *con);
 #define clean_constraint _glp_mpl_clean_constraint
 void clean_constraint(MPL *mpl, CONSTRAINT *con);
 /* clean model constraint */
+
+#define clear_constraint _glp_mpl_clear_constraint
+void clear_constraint(MPL *mpl, CONSTRAINT *con);
+/* clear (remove all data) model constraint */
 
 /**********************************************************************/
 /* * *                        DATA TABLES                         * * */
@@ -2670,7 +2679,7 @@ void build_problem(MPL *mpl);
 /* build problem instance */
 
 #define clean_build_problem _glp_mpl_clean_build_problem
-void clean_build_problem(MPL *mpl);
+void clean_build_problem(MPL *mpl, int skipResetColsRows);
 /* clean problem instance */
 
 #define postsolve_model _glp_mpl_postsolve_model

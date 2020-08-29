@@ -162,7 +162,7 @@ void generate_model(MPL *mpl)
       xassert(!mpl->flag_p);
       for (stmt = mpl->model; stmt != NULL; stmt = stmt->next)
       {  execute_statement(mpl, stmt);
-         if (!mpl->solve_callback && mpl->stmt->type == A_SOLVE) break;
+         if (mpl->stmt->type == A_SOLVE && !mpl->solve_callback_called) break;
       }
       mpl->stmt = stmt;
       return;
@@ -265,9 +265,11 @@ void build_problem(MPL *mpl)
 -- This routine cleans lists of rows and columns for problem instance,
 -- which corresponds to the generated model. */
 
-void clean_build_problem(MPL *mpl)
+void clean_build_problem(MPL *mpl, int skipResetColsRows)
 {
 #ifndef XASSERT_DISABLED
+    if(!skipResetColsRows)
+    {
       STATEMENT *stmt, *stmt_list;
       MEMBER *memb;
       VARIABLE *v;
@@ -288,6 +290,7 @@ void clean_build_problem(MPL *mpl)
             }
          }
       }
+    }
 #endif
 
       if (mpl->row != NULL) xfree(mpl->row);
@@ -310,7 +313,7 @@ void postsolve_model(MPL *mpl)
       mpl->flag_p = 1;
 
       /* if user registered a solve callback we'll resume on returning from it */
-      if(mpl->solve_callback) return;
+      if(mpl->solve_callback_called) return;
 
       for (stmt = mpl->stmt; stmt != NULL; stmt = stmt->next)
          execute_statement(mpl, stmt);
@@ -641,6 +644,7 @@ MPL *mpl_initialize(void)
       mpl->last_code_valid = 1;
       mpl->solve_callback_udata = NULL;
       mpl->solve_callback = NULL;
+      mpl->solve_callback_called = 0;
       /* common segment */
       mpl->str_intern = kh_init(kh_str);
       mpl->strings = dmp_create_poolx(sizeof(STRING));
@@ -889,7 +893,7 @@ int mpl_generate(MPL *mpl, char *file)
       generate_model(mpl);
       flush_output(mpl);
       /* build problem instance */
-      if(!mpl->solve_callback || !mpl->flag_s) build_problem(mpl);
+      if(!mpl->solve_callback_called || !mpl->flag_s) build_problem(mpl);
       /* generation phase has been finished */
       xprintf("Model has been successfully generated\n");
 done: /* return to the calling program */
@@ -1560,7 +1564,7 @@ void mpl_terminate(MPL *mpl)
       xfree(mpl->sym_buf);
       xfree(mpl->tup_buf);
       rng_delete_rand(mpl->rand);
-      clean_build_problem(mpl);
+      clean_build_problem(mpl, 1);
       if (mpl->in_fp != NULL) glp_close(mpl->in_fp);
       if (mpl->out_fp != NULL && mpl->out_fp != (void *)stdout)
          glp_close(mpl->out_fp);

@@ -3561,7 +3561,7 @@ void eval_whole_var(MPL *mpl, VARIABLE *var)
 {
     if(var->code_valid != mpl->last_code_valid)
     {
-        clear_array(mpl, var->array);
+        clear_variable(mpl, var);
         var->code_valid = mpl->last_code_valid;
     }
     loop_within_domain(mpl, var->domain, var, whole_var_func);
@@ -3756,7 +3756,7 @@ void eval_whole_con(MPL *mpl, CONSTRAINT *con)
 {
     if(con->code_valid != mpl->last_code_valid)
     {
-        clear_array(mpl, con->array);
+        clear_constraint(mpl, con);
         con->code_valid = mpl->last_code_valid;
     }
     loop_within_domain(mpl, con->domain, con, whole_con_func);
@@ -5747,7 +5747,7 @@ void execute_solve(MPL *mpl, SOLVE *solve)
             prob = solve->prob;
         }
         else prob = mpl->current_problem;
-        if(prob->list)
+        if(prob && prob->list)
         {
             saved_prob = mpl->current_problem;
 
@@ -5755,10 +5755,11 @@ void execute_solve(MPL *mpl, SOLVE *solve)
             {
                 execute_statement(mpl, elm);
             }
-            clean_build_problem(mpl);
+            clean_build_problem(mpl, 0);
             build_problem(mpl);
             mpl->flag_p = 0;
             ret = mpl->solve_callback(mpl, solve->type, mpl->solve_callback_udata);
+            mpl->solve_callback_called = 1;
         }
         mpl->current_problem = saved_prob;
     }
@@ -6511,6 +6512,41 @@ void clean_printf(MPL *mpl, PRINTF *prt)
       clean_code(mpl, prt->fname);
 #endif
       return;
+}
+
+/*----------------------------------------------------------------------
+-- clear_variable - clear data from a variable.
+--
+-- This routine clears all data for the specified variable. */
+
+void clear_variable(MPL *mpl, VARIABLE *var)
+{
+    MEMBER *memb;
+    /* delete content array */
+    for (memb = var->array->head; memb != NULL; memb = memb->next)
+    {
+        dmp_free_atom(mpl->elemvars, memb->value.var, sizeof(ELEMVAR));
+        delete_value(mpl, var->array->type, &memb->value);
+    }
+    clear_array(mpl, var->array);
+}
+
+/*----------------------------------------------------------------------
+-- clear_constraint - clear data from a constraint.
+--
+-- This routine clears all data for the specified constraint. */
+
+void clear_constraint(MPL *mpl, CONSTRAINT *con)
+{
+    MEMBER *memb;
+    /* delete content array */
+    for (memb = con->array->head; memb != NULL; memb = memb->next)
+    {
+        delete_formula(mpl, memb->value.con->form);
+        dmp_free_atom(mpl->elemcons, memb->value.con, sizeof(ELEMCON));
+        delete_value(mpl, con->array->type, &memb->value);
+    }
+    clear_array(mpl, con->array);
 }
 
 /*----------------------------------------------------------------------
