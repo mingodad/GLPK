@@ -75,11 +75,18 @@ repeat {
    else break;
 }
 
-check {j in PATTERNS : j <= nPAT_top}: sum {i in WIDTHS} i * nbr[i,j] <= roll_width;
+if nPAT_top < nPAT then
+{
+	check {j in PATTERNS : j <= nPAT_top}: sum {i in WIDTHS} i * nbr[i,j] <= roll_width;
 
-solve/*.mip*/ Cutting_Opt;
-display Number, Cut;
-#solve Pattern_Gen;
+	solve/*.mip*/ Cutting_Opt;
+	display Number, Cut;
+}
+else
+{
+	printf "!!!!!*****\n***** %s\n!!!!!*****\n",
+		"Failed to get a solution, try increase parameter nWidthX value";
+}
 
 data;
 /*
