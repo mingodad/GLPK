@@ -990,23 +990,31 @@ static int solve_callback(glp_tran *tran, int sol_type, void *udata)
     //glp_scale_prob(csa->prob, GLP_SF_AUTO);
     //glp_set_bfcp(csa->prob, &csa->bfcp);
 
+    if(sol_type == 0) /*A_PROBLEM_AUTO*/
+    {
+        if(glp_get_num_int(csa->prob) + glp_get_num_bin(csa->prob) > 0)
+            sol_type = 2; /*A_PROBLEM_MIP*/
+        else
+            sol_type = 1; /*A_PROBLEM_LP*/
+    }
+
     switch(sol_type)
     {
-        case 0:
+        case 1: /*A_PROBLEM_LP*/
             glp_simplex(csa->prob, &csa->smcp);
             if (!(glp_get_status(csa->prob) == GLP_OPT ||
                   glp_get_status(csa->prob) == GLP_FEAS))
                ret = -1;
             psol_type = GLP_SOL;
             break;
-        case 1:
+        case 2: /*A_PROBLEM_MIP*/
             glp_intopt(csa->prob, &csa->iocp);
             if (!(glp_mip_status(csa->prob) == GLP_OPT ||
                   glp_mip_status(csa->prob) == GLP_FEAS))
                ret = -1;
             psol_type = GLP_MIP;
             break;
-        case 2:
+        case 3: /*A_PROBLEM_IP*/
             glp_interior(csa->prob, &csa->iptcp);
             if (!(glp_ipt_status(csa->prob) == GLP_OPT ||
                   glp_ipt_status(csa->prob) == GLP_FEAS))
@@ -1213,7 +1221,7 @@ err2:    {  xprintf("MathProg model processing error\n");
          }
          /* generate the model */
          if (glp_mpl_generate(csa->tran, csa->out_dpy)) goto err2;
-         if (csa->genonly) goto done;
+         if (csa->genonly || csa->solve_callback_used) goto done;
          /* build the problem instance from the model */
          glp_mpl_build_prob(csa->tran, csa->prob);
       }

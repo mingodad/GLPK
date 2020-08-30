@@ -4356,24 +4356,29 @@ SOLVE *solve_statement(MPL *mpl)
       solve = alloc(SOLVE);
       solve->prob = NULL;
       solve->type = 0;
+      /* solve type */
+      if (mpl->token == T_POINT) {
+        get_token(mpl /* . */);
+        if (mpl->token == T_NAME) {
+            if(strcmp(mpl->image, "lp") == 0)
+                solve->type = A_PROBLEM_LP;
+            else if(strcmp(mpl->image, "mip") == 0)
+                solve->type = A_PROBLEM_MIP;
+            else if(strcmp(mpl->image, "ip") == 0)
+                solve->type = A_PROBLEM_IP;
+            else
+                error(mpl, "unknown solve option %s, valid options are lp/mip/ip", mpl->image);
+            get_token(mpl /* name */);
+        }
+        else
+            error(mpl, "solve option expected, valid options are lp/mip/ip");
+      }
       /* there is a problem ? */
       if (mpl->token == T_NAME) {
           AVLNODE *node = avl_find_node(mpl->tree, mpl->image);
           if(!node || avl_get_node_type(node) != A_PROBLEM)
             error(mpl, "%s is not a problem name", mpl->image);
           solve->prob = (PROBLEM *)avl_get_node_link(node);
-          get_token(mpl /* name */);
-      }
-      /* solve type */
-      if (mpl->token == T_NAME) {
-          if(strcmp(mpl->image, "lp") == 0)
-              solve->type = A_PROBLEM_LP;
-          else if(strcmp(mpl->image, "mip") == 0)
-              solve->type = A_PROBLEM_MIP;
-          else if(strcmp(mpl->image, "ip") == 0)
-              solve->type = A_PROBLEM_IP;
-          else
-              error(mpl, "unknown solve option %s, valid options are lp/mip/ip", mpl->image);
           get_token(mpl /* name */);
       }
       /* semicolon must follow solve statement */

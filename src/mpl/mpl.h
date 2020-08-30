@@ -1761,6 +1761,7 @@ void clean_problem(MPL *mpl, PROBLEM *prob);
 /**********************************************************************/
 
 enum {
+    A_PROBLEM_AUTO,
     A_PROBLEM_LP,
     A_PROBLEM_MIP,
     A_PROBLEM_IP
