@@ -80,7 +80,14 @@ if nPAT_top < nPAT then
 	check {j in PATTERNS : j <= nPAT_top}: sum {i in WIDTHS} i * nbr[i,j] <= roll_width;
 
 	solve/*.mip*/ Cutting_Opt;
-	display Number, Cut;
+	display Number; #, Cut, nbr;
+	for{j in PATTERNS : j <= nPAT_top && Cut[j] > 0}{
+		printf "Pattern { ";
+		for{i in WIDTHS: nbr[i,j] > 0}{
+			printf "%dx%d ", nbr[i,j], i;
+		}
+		printf "} x %g\n", Cut[j];
+	}
 }
 else
 {
@@ -140,4 +147,59 @@ param orders :=
 	[2150]	18
 	[2200]	20;
 
+/*
+param roll_width := 10000;
+param nWidthX := 4;
+param: WIDTHS: orders :=
+	7496 72
+	7312 1
+	7311 85
+	7229 88
+	7194 10
+	7115 59
+	6514 81
+	6464 51
+	6421 16
+	6297 40
+	6296 58
+	6232 20
+	6223 18
+	6040 79
+	5720 43
+	5580 51
+	5561 52
+	5487 50
+	5276 27
+	5238 64
+	4904 87
+	4759 90
+	4515 59
+	4304 56
+	4138 39
+	4068 29
+	4035 30
+	3806 60
+	3735 91
+	3676 81
+	3543 91
+	3392 39
+	3366 2
+	2868 33
+	2865 25
+	2429 14
+	2283 56
+	2144 34
+	2058 83
+	1870 68
+	1797 54
+	1742 22
+	1644 23
+	1284 33
+	1276 19
+	1258 86
+	1072 85
+	1018 19
+	803 20
+	287 107;
+*/
 end;
