@@ -5739,8 +5739,9 @@ void execute_solve(MPL *mpl, SOLVE *solve)
     if(mpl->solve_callback)
     {
         PROBLEM *saved_prob, *prob;
-        STATEMENT *elm;
+        STATEMENT *elm, *saved_stmt;
         saved_prob = mpl->current_problem;
+        saved_stmt = mpl->stmt;
         if(solve->prob)
         {
             mpl->current_problem = solve->prob;
@@ -5754,6 +5755,17 @@ void execute_solve(MPL *mpl, SOLVE *solve)
             for (elm = prob->list; elm != NULL; elm = elm->next)
             {
                 execute_statement(mpl, elm);
+                if(elm->type == A_CONSTRAINT)
+                {
+                    mpl->stmt = elm;
+                    xprintf("Generating %s...%s", elm->u.con->name,
+                            mpl->show_delta ? "" : "\n");
+                    eval_whole_con(mpl, elm->u.con);
+                    if(mpl->show_delta) {
+                        xprintf(", %d elements\n", elm->u.con->array->size);
+                        glp_show_mem_usage();
+                    }
+                }
             }
             clean_build_problem(mpl, 0);
             build_problem(mpl);
@@ -5762,6 +5774,7 @@ void execute_solve(MPL *mpl, SOLVE *solve)
             mpl->solve_callback_called = 1;
         }
         mpl->current_problem = saved_prob;
+        mpl->stmt = saved_stmt;
     }
 }
 
@@ -6770,6 +6783,8 @@ void execute_statement(MPL *mpl, STATEMENT *stmt)
             }
             break;
          case A_CONSTRAINT:
+            /* if we have problem definitions and registered callback skip generation */
+            if(!mpl->gen_all && mpl->current_problem && mpl->solve_callback) break;
             xprintf("Generating %s...%s", stmt->u.con->name,
                     mpl->show_delta ? "" : "\n");
             eval_whole_con(mpl, stmt->u.con);
