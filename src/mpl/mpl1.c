@@ -4819,6 +4819,8 @@ void break_continue_statement(MPL *mpl)
     if (mpl->token != T_SEMICOLON)
        error(mpl, "syntax error in break statement");
     get_token(mpl /* ; */);
+    /* to check if we are in a repeat loop without a break */
+    mpl->current_for_loop->do_break = -2;
 }
 
 /*----------------------------------------------------------------------
@@ -5002,10 +5004,15 @@ STATEMENT *simple_statement(MPL *mpl, int spec)
       else if (is_keyword(mpl, "for"))
       {  stmt->type = A_FOR;
          stmt->u.fur = for_statement(mpl, 0);
+         /* used to check reapeat */
+         stmt->u.fur->do_break = 0;
       }
       else if (is_keyword(mpl, "repeat"))
       {  stmt->type = A_REPEAT;
          stmt->u.fur = for_statement(mpl, 1);
+         if(!stmt->u.fur->do_break)
+             error(mpl, "'repeat' statement without a break is an infinite loop");
+         stmt->u.fur->do_break = 0;
       }
       else if (is_keyword(mpl, "break"))
       {  stmt->type = A_BREAK;
