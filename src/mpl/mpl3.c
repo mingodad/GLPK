@@ -5804,6 +5804,9 @@ static int let_func(MPL *mpl, void *info)
       memb = find_member(mpl, par->array, tuple);
       if (!memb)
       {
+          if(par->domain && eval_within_domain(mpl, par->domain,
+                  tuple, NULL, null_func))
+              out_of_domain(mpl, par->name, tuple);
           memb = add_member(mpl, par->array, copy_tuple(mpl, tuple));
       }
       switch (par->type)
