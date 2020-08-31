@@ -899,6 +899,10 @@ int glp_mpl_set_add_missing_param_values(glp_tran *tran, int bflag);
    with missing values and a default option by default
    calculates it every unless this option is set to non zero */
 
+int glp_mpl_set_msg_lev(glp_tran *tran, int msg_lev);
+/* set the message level (verbosity)
+   return the previous value */
+
 void glp_mpl_build_prob(glp_tran *tran, glp_prob *prob);
 /* build LP/MIP problem instance from the model */
 

@@ -162,6 +162,7 @@ struct csa
       int show_delta;
       int gen_all;
       int solve_callback_used;
+      int quiet;
 };
 
 static int str2int(const char *s, int *x)
@@ -270,6 +271,7 @@ static void print_help(const char *my_name)
       xprintf("   --genall          pre generate all model entities\n");
       xprintf("   --showdelta       show time/memory delta usage\n");
       xprintf("   --genonly         only generate the model\n");
+      xprintf("   --quiet           only display error messages\n");
       xprintf("   --name probname   change problem name to probname\n");
 #if 1 /* 18/I-2018 */
       xprintf("   --hide            remove all symbolic names from prob"
@@ -621,6 +623,8 @@ static int parse_cmdline(struct csa *csa, int argc, char *argv[])
             csa->check = 1;
          else if (p("--genall"))
             csa->gen_all = 1;
+         else if (p("--quiet"))
+            csa->quiet = 1;
          else if (p("--showdelta"))
             csa->show_delta = 1;
          else if (p("--genonly"))
@@ -980,7 +984,8 @@ static int solve_callback(glp_tran *tran, int sol_type, void *udata)
 {
     int ret, psol_type = GLP_SOL;
     struct csa *csa = (struct csa *)udata;
-    printf("Solve callback called\n");
+    if(!csa->quiet)
+        xprintf("Solve callback called\n");
     if(!csa->solve_callback_used)
         csa->solve_callback_used = 1;
     /* build the problem instance from the model */
@@ -1100,6 +1105,7 @@ int __cdecl main(int argc, char *argv[])
       csa->show_delta = 0;
       csa->gen_all = 0;
       csa->solve_callback_used = 0;
+      csa->quiet = 0;
       /* parse command-line parameters */
       ret = parse_cmdline(csa, argc, argv);
       if (ret < 0)
@@ -1109,6 +1115,11 @@ int __cdecl main(int argc, char *argv[])
       if (ret > 0)
       {  ret = EXIT_FAILURE;
          goto done;
+      }
+      if(csa->quiet)
+      {
+          //glp_term_out(0);
+          csa->smcp.msg_lev = csa->iptcp.msg_lev = csa->iocp.msg_lev = GLP_MSG_OFF;
       }
       /*--------------------------------------------------------------*/
       /* remove all output files specified in the command line */
@@ -1195,6 +1206,8 @@ err1:    {  xprintf("MPS file processing error\n");
       {  int k;
          /* allocate the translator workspace */
          csa->tran = glp_mpl_alloc_wksp();
+         if(csa->quiet)
+            glp_mpl_set_msg_lev(csa->tran, GLP_MSG_ERR);
          glp_mpl_set_genall(csa->tran, csa->gen_all);
          glp_mpl_set_show_delta(csa->tran, csa->show_delta);
          glp_mpl_set_solve_callback(csa->tran, solve_callback, csa);

@@ -375,6 +375,17 @@ struct glp_tran
       int show_delta;
       /* flag to show time/memory delta usage */
       int add_missing_param_values;
+      /* flag to indicate if missing values for params with default value
+         should be added or calculated every time */
+      int msg_lev;
+      /* indicate how much verbosity we want */
+#ifndef GLP_MSG_OFF /* should match values in glpk.h */
+#define GLP_MSG_OFF        0  /* no output */
+#define GLP_MSG_ERR        1  /* warning and error messages only */
+#define GLP_MSG_ON         2  /* normal output */
+#define GLP_MSG_ALL        3  /* full output */
+#define GLP_MSG_DBG        4  /* debug output */
+#endif
 };
 
 /**********************************************************************/

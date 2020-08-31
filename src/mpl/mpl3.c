@@ -2767,7 +2767,8 @@ static void saturate_set(MPL *mpl, SET *set)
       MEMBER *elem, *memb;
       TUPLE *tuple, *work[MAX_TUPLE_DIM];
       int i;
-      xprintf("Generating %s...\n", set->name);
+      if (mpl->msg_lev >= GLP_MSG_ON)
+        xprintf("Generating %s...\n", set->name);
       eval_whole_set(mpl, gadget->set);
       /* gadget set must have exactly one member */
       xassert(gadget->set->array != NULL);
@@ -5758,7 +5759,8 @@ void execute_solve(MPL *mpl, SOLVE *solve)
                 if(elm->type == A_CONSTRAINT)
                 {
                     mpl->stmt = elm;
-                    xprintf("Generating %s...%s", elm->u.con->name,
+                    if (mpl->show_delta || mpl->msg_lev >= GLP_MSG_ON)
+                        xprintf("Generating %s...%s", elm->u.con->name,
                             mpl->show_delta ? "" : "\n");
                     eval_whole_con(mpl, elm->u.con);
                     if(mpl->show_delta) {
@@ -6788,7 +6790,8 @@ void execute_statement(MPL *mpl, STATEMENT *stmt)
          case A_CONSTRAINT:
             /* if we have problem definitions and registered callback skip generation */
             if(!mpl->gen_all && mpl->current_problem && mpl->solve_callback) break;
-            xprintf("Generating %s...%s", stmt->u.con->name,
+            if (mpl->show_delta || mpl->msg_lev >= GLP_MSG_ON)
+                xprintf("Generating %s...%s", stmt->u.con->name,
                     mpl->show_delta ? "" : "\n");
             eval_whole_con(mpl, stmt->u.con);
             if(mpl->show_delta) {
@@ -6797,15 +6800,18 @@ void execute_statement(MPL *mpl, STATEMENT *stmt)
             }
             break;
          case A_TABLE:
-            switch (stmt->u.tab->type)
-            {  case A_INPUT:
-                  xprintf("Reading %s...\n", stmt->u.tab->name);
-                  break;
-               case A_OUTPUT:
-                  xprintf("Writing %s...\n", stmt->u.tab->name);
-                  break;
-               default:
-                  xassert(stmt != stmt);
+            if (mpl->msg_lev >= GLP_MSG_ON)
+            {
+                switch (stmt->u.tab->type)
+                {  case A_INPUT:
+                      xprintf("Reading %s...\n", stmt->u.tab->name);
+                      break;
+                   case A_OUTPUT:
+                      xprintf("Writing %s...\n", stmt->u.tab->name);
+                      break;
+                   default:
+                      xassert(stmt != stmt);
+                }
             }
             execute_table(mpl, stmt->u.tab);
             break;
@@ -6819,12 +6825,14 @@ void execute_statement(MPL *mpl, STATEMENT *stmt)
             execute_let(mpl, stmt->u.let);
             break;
          case A_CHECK:
-            xprintf("Checking (line %d)...\n", stmt->line);
+            if (mpl->msg_lev >= GLP_MSG_ON)
+                xprintf("Checking (line %d)...\n", stmt->line);
             execute_check(mpl, stmt->u.chk);
             break;
          case A_DISPLAY:
-            write_text(mpl, "Display statement at line %d\n",
-               stmt->line);
+            if (mpl->msg_lev >= GLP_MSG_ON)
+                write_text(mpl, "Display statement at line %d\n",
+                    stmt->line);
             execute_display(mpl, stmt->u.dpy);
             break;
          case A_PRINTF:

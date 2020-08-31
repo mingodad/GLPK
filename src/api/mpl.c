@@ -109,6 +109,13 @@ int glp_mpl_set_add_missing_param_values(glp_tran *tran, int bflag)
     return rc;
 }
 
+int glp_mpl_set_msg_lev(glp_tran *tran, int msg_lev)
+{
+    int rc = tran->msg_lev;
+    tran->msg_lev = msg_lev;
+    return rc;
+}
+
 void glp_mpl_build_prob(glp_tran *tran, glp_prob *prob)
 {     /* build LP/MIP problem instance from the model */
       int m, n, i, j, t, kind, type, len, *ind;

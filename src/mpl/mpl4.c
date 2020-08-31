@@ -687,6 +687,7 @@ MPL *mpl_initialize(void)
       mpl->gen_all = 0;
       mpl->show_delta = 0;
       mpl->add_missing_param_values = 0;
+      mpl->msg_lev = GLP_MSG_ON;
       return mpl;
 }
 
@@ -752,7 +753,8 @@ int mpl_read_model(MPL *mpl, char *file, int skip_data)
       if (setjmp(mpl->jump)) goto done;
       /* translate model section */
       mpl->phase = GLP_TRAN_PHASE_MODEL;
-      xprintf("Reading model section from %s...\n", file);
+      if (mpl->msg_lev >= GLP_MSG_ON)
+        xprintf("Reading model section from %s...\n", file);
       open_input(mpl, file);
       model_section(mpl);
       if (mpl->model == NULL)
@@ -776,13 +778,16 @@ int mpl_read_model(MPL *mpl, char *file, int skip_data)
          get_token(mpl /* ; */);
          /* translate data section */
          mpl->phase = GLP_TRAN_PHASE_DATA;
-         xprintf("Reading data section from %s...\n", file);
+         if (mpl->msg_lev >= GLP_MSG_ON)
+            xprintf("Reading data section from %s...\n", file);
          data_section(mpl);
       }
       /* process end statement */
       end_statement(mpl);
-skip: xprintf("%d line%s were read\n",
-         mpl->line, mpl->line == 1 ? "" : "s");
+skip:
+      if (mpl->msg_lev >= GLP_MSG_ON)
+        xprintf("%d line%s were read\n",
+            mpl->line, mpl->line == 1 ? "" : "s");
       close_input(mpl);
 done: /* return to the calling program */
       return mpl->phase;
@@ -827,7 +832,8 @@ int mpl_read_data(MPL *mpl, char *file)
       if (setjmp(mpl->jump)) goto done;
       /* process data section */
       mpl->phase = GLP_TRAN_PHASE_DATA;
-      xprintf("Reading data section from %s...\n", file);
+      if (mpl->msg_lev >= GLP_MSG_ON)
+        xprintf("Reading data section from %s...\n", file);
       mpl->flag_d = 1;
       open_input(mpl, file);
       /* in this case the keyword 'data' is optional */
@@ -840,8 +846,9 @@ int mpl_read_data(MPL *mpl, char *file)
       data_section(mpl);
       /* process end statement */
       end_statement(mpl);
-      xprintf("%d line%s were read\n",
-         mpl->line, mpl->line == 1 ? "" : "s");
+      if (mpl->msg_lev >= GLP_MSG_ON)
+        xprintf("%d line%s were read\n",
+            mpl->line, mpl->line == 1 ? "" : "s");
       close_input(mpl);
 done: /* return to the calling program */
       return mpl->phase;
@@ -895,7 +902,8 @@ int mpl_generate(MPL *mpl, char *file)
       /* build problem instance */
       if(!mpl->solve_callback_called || !mpl->flag_s) build_problem(mpl);
       /* generation phase has been finished */
-      xprintf("Model has been successfully generated\n");
+      if (mpl->msg_lev >= GLP_MSG_ON)
+        xprintf("Model has been successfully generated\n");
 done: /* return to the calling program */
       return mpl->phase;
 }
@@ -1485,7 +1493,8 @@ int mpl_postsolve(MPL *mpl)
       postsolve_model(mpl);
       flush_output(mpl);
       /* postsolving phase has been finished */
-      xprintf("Model has been successfully processed\n");
+      if (mpl->msg_lev >= GLP_MSG_ON)
+        xprintf("Model has been successfully processed\n");
 done: /* return to the calling program */
       return mpl->phase;
 }
