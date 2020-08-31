@@ -8,14 +8,14 @@ set PATTERNS := 1..nPAT;
 set WIDTHS;
 
 param orders {WIDTHS} > 0;
-param nbr {WIDTHS,PATTERNS} integer >= 0;
+param nbr {WIDTHS,PATTERNS} integer, >= 0, default 0;
 
 let nPAT := nWidthX * card(WIDTHS);
 let nPAT_top := 0;
 for {i in WIDTHS} {
    let nPAT_top := nPAT_top + 1;
    let nbr[i,nPAT_top] := floor (roll_width/i);
-   let {i2 in WIDTHS: i2 <> i} nbr[i2,nPAT_top] := 0;
+   #let {i2 in WIDTHS: i2 <> i} nbr[i2,nPAT_top] := 0;
 }
 #display nPAT, nPAT_top;
 #display nbr;
@@ -93,8 +93,7 @@ if nPAT_top < nPAT then
 		printf "}\n";
 	}
 	param waste_length := (Number * roll_width) - total_length;
-	printf "Rolls\n";
-	printf "%4d rolls, waste %d -> %g%%\n", Number, waste_length, (waste_length / (Number * roll_width)) * 100;
+	printf "Total\n%4d rolls of %g, waste %d -> %g%%\n", Number, roll_width, waste_length, (waste_length / (Number * roll_width)) * 100;
 }
 else
 {
