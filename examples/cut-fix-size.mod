@@ -1,7 +1,4 @@
 
-problem Cutting_Opt;
-# ----------------------------------------
-
 param nWidthX integer >= 0, default 0;
 param nPAT integer >= 0, default 0;
 param nPAT_top integer >= 0, default 0;
@@ -25,6 +22,9 @@ for {i in WIDTHS} {
 
 check {j in PATTERNS : j <= nPAT_top}: sum {i in WIDTHS} i * nbr[i,j] <= roll_width;
 
+problem Cutting_Opt;
+# ----------------------------------------
+
 var Cut {PATTERNS} integer >= 0;
 
 minimize Number: sum {j in PATTERNS : j <= nPAT_top} Cut[j];
@@ -46,6 +46,7 @@ minimize Reduced_Cost:
 subject to Width_Limit:
    sum {i in WIDTHS} i * Use[i] <= roll_width;
 
+/*
 problem Mix : Cut, Reduced_Cost;
 
 problem Pattern_Gen;
@@ -56,16 +57,16 @@ if nPAT > 0 then {
 }
 
 display Cutting_Opt, Pattern_Gen, Mix;
-
+*/
 repeat {
 #for {1..4} {
-   display nPAT, nPAT_top;
+   #display nPAT, nPAT_top;
    solve.lp Cutting_Opt;
    let {i in WIDTHS} price[i] := Fill[i].dual;
    #display price;
 
    solve/*.mip*/ Pattern_Gen;
-   display Reduced_Cost, Use;
+   #display Reduced_Cost, Use;
    if Reduced_Cost < -0.00001 and nPAT_top < nPAT then
    {
       let nPAT_top := nPAT_top + 1;
@@ -80,14 +81,20 @@ if nPAT_top < nPAT then
 	check {j in PATTERNS : j <= nPAT_top}: sum {i in WIDTHS} i * nbr[i,j] <= roll_width;
 
 	solve/*.mip*/ Cutting_Opt;
-	display Number; #, Cut, nbr;
+	#display Number; #, Cut, nbr;
+	param total_length := 0;
+	printf "Patterns\n";
 	for{j in PATTERNS : j <= nPAT_top && Cut[j] > 0}{
-		printf "Pattern { ";
+		printf "%4d x { ", Cut[j];
 		for{i in WIDTHS: nbr[i,j] > 0}{
 			printf "%dx%d ", nbr[i,j], i;
+			let total_length := total_length + (Cut[j] * (nbr[i,j] * i));
 		}
-		printf "} x %g\n", Cut[j];
+		printf "}\n";
 	}
+	param waste_length := (Number * roll_width) - total_length;
+	printf "Rolls\n";
+	printf "%4d rolls, waste %d -> %g%%\n", Number, waste_length, (waste_length / (Number * roll_width)) * 100;
 }
 else
 {
