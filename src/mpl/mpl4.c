@@ -87,13 +87,13 @@ void alloc_content_for_stmt(MPL *mpl, STATEMENT *stmt)
       {  switch (stmt->type)
          {  case A_SET:
                /* model set */
-               xassert(stmt->u.set->array == NULL);
+               if(stmt->u.set->array) return;
                stmt->u.set->array = create_array(mpl, A_ELEMSET,
                   stmt->u.set->dim);
                break;
             case A_PARAMETER:
                /* model parameter */
-               xassert(stmt->u.par->array == NULL);
+               if(stmt->u.par->array) return;
                switch (stmt->u.par->type)
                {  case A_NUMERIC:
                   case A_INTEGER:
@@ -111,13 +111,13 @@ void alloc_content_for_stmt(MPL *mpl, STATEMENT *stmt)
                break;
             case A_VARIABLE:
                /* model variable */
-               xassert(stmt->u.var->array == NULL);
+               if(stmt->u.var->array) return;
                stmt->u.var->array = create_array(mpl, A_ELEMVAR,
                   stmt->u.var->dim);
                break;
             case A_CONSTRAINT:
                /* model constraint/objective */
-               xassert(stmt->u.con->array == NULL);
+               if(stmt->u.con->array) return;
                stmt->u.con->array = create_array(mpl, A_ELEMCON,
                   stmt->u.con->dim);
                break;
@@ -378,29 +378,33 @@ void clean_model(MPL *mpl)
 -- This routine opens the input text file for scanning. */
 
 void open_input(MPL *mpl, char *file)
-{     mpl->line = 0;
-      mpl->c = '\n';
-      mpl->token = 0;
-      mpl->imlen = 0;
-      mpl->image[0] = '\0';
-      mpl->value = 0.0;
-      mpl->b_token = T_EOF;
-      mpl->b_imlen = 0;
-      mpl->b_image[0] = '\0';
-      mpl->b_value = 0.0;
-      mpl->f_dots = 0;
-      mpl->f_scan = 0;
-      mpl->f_token = 0;
-      mpl->f_imlen = 0;
-      mpl->f_image[0] = '\0';
-      mpl->f_value = 0.0;
-      memset(mpl->context, ' ', CONTEXT_SIZE);
-      mpl->c_ptr = 0;
-      xassert(mpl->in_fp == NULL);
-      mpl->in_fp = glp_open(file, "r");
-      if (mpl->in_fp == NULL)
+{
+      if(++mpl->nested_input > MAX_NESTED_INPUT)
+          error(mpl, "max number of recursive file inclusion reached");
+      glp_input_file_st *sin = mpl->scan_input;
+      sin->line = 0;
+      sin->c = '\n';
+      sin->token = 0;
+      sin->imlen = 0;
+      sin->image[0] = '\0';
+      sin->value = 0.0;
+      sin->b_token = T_EOF;
+      sin->b_imlen = 0;
+      sin->b_image[0] = '\0';
+      sin->b_value = 0.0;
+      sin->f_dots = 0;
+      sin->f_scan = 0;
+      sin->f_token = 0;
+      sin->f_imlen = 0;
+      sin->f_image[0] = '\0';
+      sin->f_value = 0.0;
+      memset(sin->context, ' ', CONTEXT_SIZE);
+      sin->c_ptr = 0;
+      xassert(sin->in_fp == NULL);
+      sin->in_fp = glp_open(file, "r");
+      if (sin->in_fp == NULL)
          error(mpl, "unable to open %s - %s", file, get_err_msg());
-      mpl->in_file = file;
+      sin->in_file = file;
       /* scan the very first character */
       get_char(mpl);
       /* scan the very first token */
@@ -416,11 +420,11 @@ void open_input(MPL *mpl, char *file)
 
 int read_char(MPL *mpl)
 {     int c;
-      xassert(mpl->in_fp != NULL);
-      c = glp_getc(mpl->in_fp);
+      xassert(mpl->scan_input->in_fp != NULL);
+      c = glp_getc(mpl->scan_input->in_fp);
       if (c < 0)
-      {  if (glp_ioerr(mpl->in_fp))
-            error(mpl, "read error on %s - %s", mpl->in_file,
+      {  if (glp_ioerr(mpl->scan_input->in_fp))
+            error(mpl, "read error on %s - %s", mpl->scan_input->in_file,
                get_err_msg());
          c = EOF;
       }
@@ -433,10 +437,11 @@ int read_char(MPL *mpl)
 -- This routine closes the input text file. */
 
 void close_input(MPL *mpl)
-{     xassert(mpl->in_fp != NULL);
-      glp_close(mpl->in_fp);
-      mpl->in_fp = NULL;
-      mpl->in_file = NULL;
+{     xassert(mpl->scan_input->in_fp != NULL);
+      glp_close(mpl->scan_input->in_fp);
+      mpl->scan_input->in_fp = NULL;
+      mpl->scan_input->in_file = NULL;
+      --mpl->nested_input;
       return;
 }
 
@@ -534,8 +539,8 @@ void error(MPL *mpl, char *fmt, ...)
          case GLP_TRAN_PHASE_DATA:
             /* translation phase */
             xprintf("%s:%d: %s\n",
-               mpl->in_file == NULL ? "(unknown)" : mpl->in_file,
-               mpl->line, msg);
+               mpl->scan_input->in_file == NULL ? "(unknown)" : mpl->scan_input->in_file,
+               mpl->scan_input->line, msg);
             print_context(mpl);
             break;
          case GLP_TRAN_PHASE_GENERATE:
@@ -570,8 +575,8 @@ void warning(MPL *mpl, char *fmt, ...)
          case GLP_TRAN_PHASE_DATA:
             /* translation phase */
             xprintf("%s:%d: warning: %s\n",
-               mpl->in_file == NULL ? "(unknown)" : mpl->in_file,
-               mpl->line, msg);
+               mpl->scan_input->in_file == NULL ? "(unknown)" : mpl->scan_input->in_file,
+               mpl->scan_input->line, msg);
             break;
          case GLP_TRAN_PHASE_GENERATE:
             /* generation/postsolve phase */
@@ -602,32 +607,53 @@ void warning(MPL *mpl, char *fmt, ...)
 --
 -- The routine returns a pointer to the database created. */
 
+glp_input_file_st *mpl_new_scan_input(MPL *mpl)
+{
+      glp_input_file_st *sin = xmalloc(sizeof(glp_input_file_st));
+      sin->line = 0;
+      sin->c = 0;
+      sin->token = 0;
+      sin->imlen = 0;
+      sin->image = xcalloc(MAX_LENGTH+1, sizeof(char));
+      sin->image[0] = '\0';
+      sin->value = 0.0;
+      sin->b_token = 0;
+      sin->b_imlen = 0;
+      sin->b_image = xcalloc(MAX_LENGTH+1, sizeof(char));
+      sin->b_image[0] = '\0';
+      sin->b_value = 0.0;
+      sin->f_dots = 0;
+      sin->f_scan = 0;
+      sin->f_token = 0;
+      sin->f_imlen = 0;
+      sin->f_image = xcalloc(MAX_LENGTH+1, sizeof(char));
+      sin->f_image[0] = '\0';
+      sin->f_value = 0.0;
+      sin->context = xcalloc(CONTEXT_SIZE, sizeof(char));
+      memset(sin->context, ' ', CONTEXT_SIZE);
+      sin->c_ptr = 0;
+      sin->in_fp = NULL;
+      sin->in_file = NULL;
+      return sin;
+}
+
+void mpl_free_scan_input(MPL *mpl, glp_input_file_st *sin)
+{
+      /* delete the translator database */
+      xfree(mpl->scan_input->image);
+      xfree(mpl->scan_input->b_image);
+      xfree(mpl->scan_input->f_image);
+      xfree(mpl->scan_input->context);
+      if (mpl->scan_input->in_fp != NULL) glp_close(mpl->scan_input->in_fp);
+      xfree(sin);
+}
+
 MPL *mpl_initialize(void)
 {     MPL *mpl;
       mpl = xmalloc(sizeof(MPL));
       /* scanning segment */
-      mpl->line = 0;
-      mpl->c = 0;
-      mpl->token = 0;
-      mpl->imlen = 0;
-      mpl->image = xcalloc(MAX_LENGTH+1, sizeof(char));
-      mpl->image[0] = '\0';
-      mpl->value = 0.0;
-      mpl->b_token = 0;
-      mpl->b_imlen = 0;
-      mpl->b_image = xcalloc(MAX_LENGTH+1, sizeof(char));
-      mpl->b_image[0] = '\0';
-      mpl->b_value = 0.0;
-      mpl->f_dots = 0;
-      mpl->f_scan = 0;
-      mpl->f_token = 0;
-      mpl->f_imlen = 0;
-      mpl->f_image = xcalloc(MAX_LENGTH+1, sizeof(char));
-      mpl->f_image[0] = '\0';
-      mpl->f_value = 0.0;
-      mpl->context = xcalloc(CONTEXT_SIZE, sizeof(char));
-      memset(mpl->context, ' ', CONTEXT_SIZE);
-      mpl->c_ptr = 0;
+      mpl->scan_input = mpl_new_scan_input(mpl);
+      mpl->nested_input = 0;
       mpl->flag_d = 0;
       mpl->nested_scope = 0;
       /* translating segment */
@@ -672,8 +698,6 @@ MPL *mpl_initialize(void)
       mpl->row = NULL;
       mpl->col = NULL;
       /* input/output segment */
-      mpl->in_fp = NULL;
-      mpl->in_file = NULL;
       mpl->out_fp = NULL;
       mpl->out_file = NULL;
       mpl->prt_fp = NULL;
@@ -762,7 +786,7 @@ int mpl_read_model(MPL *mpl, char *file, int skip_data)
       /* save name of the input text file containing model section for
          error diagnostics during the generation phase */
       mpl->mod_file = xcalloc(strlen(file)+1, sizeof(char));
-      strcpy(mpl->mod_file, mpl->in_file);
+      strcpy(mpl->mod_file, mpl->scan_input->in_file);
       /* allocate content arrays for all model objects */
       alloc_content(mpl);
       /* optional data section may begin with the keyword 'data' */
@@ -773,7 +797,7 @@ int mpl_read_model(MPL *mpl, char *file, int skip_data)
          }
          mpl->flag_d = 1;
          get_token(mpl /* data */);
-         if (mpl->token != T_SEMICOLON)
+         if (mpl->scan_input->token != T_SEMICOLON)
             error(mpl, "semicolon missing where expected");
          get_token(mpl /* ; */);
          /* translate data section */
@@ -787,7 +811,7 @@ int mpl_read_model(MPL *mpl, char *file, int skip_data)
 skip:
       if (mpl->msg_lev >= GLP_MSG_ON)
         xprintf("%d line%s were read\n",
-            mpl->line, mpl->line == 1 ? "" : "s");
+            mpl->scan_input->line, mpl->scan_input->line == 1 ? "" : "s");
       close_input(mpl);
 done: /* return to the calling program */
       return mpl->phase;
@@ -839,7 +863,7 @@ int mpl_read_data(MPL *mpl, char *file)
       /* in this case the keyword 'data' is optional */
       if (is_literal(mpl, "data"))
       {  get_token(mpl /* data */);
-         if (mpl->token != T_SEMICOLON)
+         if (mpl->scan_input->token != T_SEMICOLON)
             error(mpl, "semicolon missing where expected");
          get_token(mpl /* ; */);
       }
@@ -848,7 +872,7 @@ int mpl_read_data(MPL *mpl, char *file)
       end_statement(mpl);
       if (mpl->msg_lev >= GLP_MSG_ON)
         xprintf("%d line%s were read\n",
-            mpl->line, mpl->line == 1 ? "" : "s");
+            mpl->scan_input->line, mpl->scan_input->line == 1 ? "" : "s");
       close_input(mpl);
 done: /* return to the calling program */
       return mpl->phase;
@@ -1554,11 +1578,6 @@ void mpl_terminate(MPL *mpl)
          default:
             xassert(mpl != mpl);
       }
-      /* delete the translator database */
-      xfree(mpl->image);
-      xfree(mpl->b_image);
-      xfree(mpl->f_image);
-      xfree(mpl->context);
       dmp_delete_pool(mpl->pool);
       avl_delete_tree(mpl->tree);
       clean_string_interned(mpl);
@@ -1574,7 +1593,6 @@ void mpl_terminate(MPL *mpl)
       xfree(mpl->tup_buf);
       rng_delete_rand(mpl->rand);
       clean_build_problem(mpl, 1);
-      if (mpl->in_fp != NULL) glp_close(mpl->in_fp);
       if (mpl->out_fp != NULL && mpl->out_fp != (void *)stdout)
          glp_close(mpl->out_fp);
       if (mpl->out_file != NULL) xfree(mpl->out_file);
@@ -1582,6 +1600,7 @@ void mpl_terminate(MPL *mpl)
       if (mpl->prt_file != NULL) xfree(mpl->prt_file);
       if (mpl->mod_file != NULL) xfree(mpl->mod_file);
       xfree(mpl->mpl_buf);
+      mpl_free_scan_input(mpl, mpl->scan_input);
       xfree(mpl);
       return;
 }

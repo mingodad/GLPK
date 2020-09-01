@@ -36,18 +36,18 @@
 
 void enter_context(MPL *mpl)
 {     char *image, *s;
-      if (mpl->token == T_EOF)
+      if (mpl->scan_input->token == T_EOF)
          image = "_|_";
-      else if (mpl->token == T_STRING)
+      else if (mpl->scan_input->token == T_STRING)
          image = "'...'";
       else
-         image = mpl->image;
-      xassert(0 <= mpl->c_ptr && mpl->c_ptr < CONTEXT_SIZE);
-      mpl->context[mpl->c_ptr++] = ' ';
-      if (mpl->c_ptr == CONTEXT_SIZE) mpl->c_ptr = 0;
+         image = mpl->scan_input->image;
+      xassert(0 <= mpl->scan_input->c_ptr && mpl->scan_input->c_ptr < CONTEXT_SIZE);
+      mpl->scan_input->context[mpl->scan_input->c_ptr++] = ' ';
+      if (mpl->scan_input->c_ptr == CONTEXT_SIZE) mpl->scan_input->c_ptr = 0;
       for (s = image; *s != '\0'; s++)
-      {  mpl->context[mpl->c_ptr++] = *s;
-         if (mpl->c_ptr == CONTEXT_SIZE) mpl->c_ptr = 0;
+      {  mpl->scan_input->context[mpl->scan_input->c_ptr++] = *s;
+         if (mpl->scan_input->c_ptr == CONTEXT_SIZE) mpl->scan_input->c_ptr = 0;
       }
       return;
 }
@@ -59,14 +59,14 @@ void enter_context(MPL *mpl)
 
 void print_context(MPL *mpl)
 {     int c;
-      while (mpl->c_ptr > 0)
-      {  mpl->c_ptr--;
-         c = mpl->context[0];
-         memmove(mpl->context, mpl->context+1, CONTEXT_SIZE-1);
-         mpl->context[CONTEXT_SIZE-1] = (char)c;
+      while (mpl->scan_input->c_ptr > 0)
+      {  mpl->scan_input->c_ptr--;
+         c = mpl->scan_input->context[0];
+         memmove(mpl->scan_input->context, mpl->scan_input->context+1, CONTEXT_SIZE-1);
+         mpl->scan_input->context[CONTEXT_SIZE-1] = (char)c;
       }
-      xprintf("Context: %s%.*s\n", mpl->context[0] == ' ' ? "" : "...",
-         CONTEXT_SIZE, mpl->context);
+      xprintf("Context: %s%.*s\n", mpl->scan_input->context[0] == ' ' ? "" : "...",
+         CONTEXT_SIZE, mpl->scan_input->context);
       return;
 }
 
@@ -78,12 +78,12 @@ void print_context(MPL *mpl)
 
 void get_char(MPL *mpl)
 {     int c;
-      if (mpl->c == EOF) goto done;
-      if (mpl->c == '\n') mpl->line++;
+      if (mpl->scan_input->c == EOF) goto done;
+      if (mpl->scan_input->c == '\n') mpl->scan_input->line++;
       c = read_char(mpl);
       if (c == EOF)
-      {  if (mpl->c == '\n')
-            mpl->line--;
+      {  if (mpl->scan_input->c == '\n')
+            mpl->scan_input->line--;
          else
             warning(mpl, "final NL missing before end of file");
       }
@@ -95,7 +95,7 @@ void get_char(MPL *mpl)
       {  enter_context(mpl);
          error(mpl, "control character 0x%02X not allowed", c);
       }
-      mpl->c = c;
+      mpl->scan_input->c = c;
 done: return;
 }
 
@@ -106,18 +106,18 @@ done: return;
 -- then scans a next character. */
 
 void append_char(MPL *mpl)
-{     xassert(0 <= mpl->imlen && mpl->imlen <= MAX_LENGTH);
-      if (mpl->imlen == MAX_LENGTH)
-      {  switch (mpl->token)
+{     xassert(0 <= mpl->scan_input->imlen && mpl->scan_input->imlen <= MAX_LENGTH);
+      if (mpl->scan_input->imlen == MAX_LENGTH)
+      {  switch (mpl->scan_input->token)
          {  case T_NAME:
                enter_context(mpl);
-               error(mpl, "symbolic name %s... too long", mpl->image);
+               error(mpl, "symbolic name %s... too long", mpl->scan_input->image);
             case T_SYMBOL:
                enter_context(mpl);
-               error(mpl, "symbol %s... too long", mpl->image);
+               error(mpl, "symbol %s... too long", mpl->scan_input->image);
             case T_NUMBER:
                enter_context(mpl);
-               error(mpl, "numeric literal %s... too long", mpl->image);
+               error(mpl, "numeric literal %s... too long", mpl->scan_input->image);
             case T_STRING:
                enter_context(mpl);
                error(mpl, "string literal too long");
@@ -125,8 +125,8 @@ void append_char(MPL *mpl)
                xassert(mpl != mpl);
          }
       }
-      mpl->image[mpl->imlen++] = (char)mpl->c;
-      mpl->image[mpl->imlen] = '\0';
+      mpl->scan_input->image[mpl->scan_input->imlen++] = (char)mpl->scan_input->c;
+      mpl->scan_input->image[mpl->scan_input->imlen] = '\0';
       get_char(mpl);
       return;
 }
@@ -139,172 +139,172 @@ void append_char(MPL *mpl)
 
 void get_token(MPL *mpl)
 {     /* save the current token */
-      mpl->b_token = mpl->token;
-      mpl->b_imlen = mpl->imlen;
-      strcpy(mpl->b_image, mpl->image);
-      mpl->b_value = mpl->value;
+      mpl->scan_input->b_token = mpl->scan_input->token;
+      mpl->scan_input->b_imlen = mpl->scan_input->imlen;
+      strcpy(mpl->scan_input->b_image, mpl->scan_input->image);
+      mpl->scan_input->b_value = mpl->scan_input->value;
       /* if the next token is already scanned, make it current */
-      if (mpl->f_scan)
-      {  mpl->f_scan = 0;
-         mpl->token = mpl->f_token;
-         mpl->imlen = mpl->f_imlen;
-         strcpy(mpl->image, mpl->f_image);
-         mpl->value = mpl->f_value;
+      if (mpl->scan_input->f_scan)
+      {  mpl->scan_input->f_scan = 0;
+         mpl->scan_input->token = mpl->scan_input->f_token;
+         mpl->scan_input->imlen = mpl->scan_input->f_imlen;
+         strcpy(mpl->scan_input->image, mpl->scan_input->f_image);
+         mpl->scan_input->value = mpl->scan_input->f_value;
          goto done;
       }
 loop: /* nothing has been scanned so far */
-      mpl->token = 0;
-      mpl->imlen = 0;
-      mpl->image[0] = '\0';
-      mpl->value = 0.0;
+      mpl->scan_input->token = 0;
+      mpl->scan_input->imlen = 0;
+      mpl->scan_input->image[0] = '\0';
+      mpl->scan_input->value = 0.0;
       /* skip any uninteresting characters */
-      while (mpl->c == ' ' || mpl->c == '\n') get_char(mpl);
+      while (mpl->scan_input->c == ' ' || mpl->scan_input->c == '\n') get_char(mpl);
       /* recognize and construct the token */
-      if (mpl->c == EOF)
+      if (mpl->scan_input->c == EOF)
       {  /* end-of-file reached */
-         mpl->token = T_EOF;
+         mpl->scan_input->token = T_EOF;
       }
-      else if (mpl->c == '#')
+      else if (mpl->scan_input->c == '#')
       {  /* comment; skip anything until end-of-line */
-         while (mpl->c != '\n' && mpl->c != EOF) get_char(mpl);
+         while (mpl->scan_input->c != '\n' && mpl->scan_input->c != EOF) get_char(mpl);
          goto loop;
       }
-      else if (!mpl->flag_d && (isalpha(mpl->c) || mpl->c == '_'))
+      else if (!mpl->flag_d && (isalpha(mpl->scan_input->c) || mpl->scan_input->c == '_'))
       {  /* symbolic name or reserved keyword */
-         mpl->token = T_NAME;
-         while (isalnum(mpl->c) || mpl->c == '_') append_char(mpl);
-         if (strcmp(mpl->image, "and") == 0)
-            mpl->token = T_AND;
-         else if (strcmp(mpl->image, "by") == 0)
-            mpl->token = T_BY;
-         else if (strcmp(mpl->image, "cross") == 0)
-            mpl->token = T_CROSS;
-         else if (strcmp(mpl->image, "diff") == 0)
-            mpl->token = T_DIFF;
-         else if (strcmp(mpl->image, "div") == 0)
-            mpl->token = T_DIV;
-         else if (strcmp(mpl->image, "else") == 0)
-            mpl->token = T_ELSE;
-         else if (strcmp(mpl->image, "if") == 0)
-            mpl->token = T_IF;
-         else if (strcmp(mpl->image, "in") == 0)
-            mpl->token = T_IN;
+         mpl->scan_input->token = T_NAME;
+         while (isalnum(mpl->scan_input->c) || mpl->scan_input->c == '_') append_char(mpl);
+         if (strcmp(mpl->scan_input->image, "and") == 0)
+            mpl->scan_input->token = T_AND;
+         else if (strcmp(mpl->scan_input->image, "by") == 0)
+            mpl->scan_input->token = T_BY;
+         else if (strcmp(mpl->scan_input->image, "cross") == 0)
+            mpl->scan_input->token = T_CROSS;
+         else if (strcmp(mpl->scan_input->image, "diff") == 0)
+            mpl->scan_input->token = T_DIFF;
+         else if (strcmp(mpl->scan_input->image, "div") == 0)
+            mpl->scan_input->token = T_DIV;
+         else if (strcmp(mpl->scan_input->image, "else") == 0)
+            mpl->scan_input->token = T_ELSE;
+         else if (strcmp(mpl->scan_input->image, "if") == 0)
+            mpl->scan_input->token = T_IF;
+         else if (strcmp(mpl->scan_input->image, "in") == 0)
+            mpl->scan_input->token = T_IN;
 #if 1 /* 21/VII-2006 */
-         else if (strcmp(mpl->image, "Infinity") == 0)
-            mpl->token = T_INFINITY;
+         else if (strcmp(mpl->scan_input->image, "Infinity") == 0)
+            mpl->scan_input->token = T_INFINITY;
 #endif
-         else if (strcmp(mpl->image, "inter") == 0)
-            mpl->token = T_INTER;
-         else if (strcmp(mpl->image, "less") == 0)
-            mpl->token = T_LESS;
-         else if (strcmp(mpl->image, "mod") == 0)
-            mpl->token = T_MOD;
-         else if (strcmp(mpl->image, "not") == 0)
-            mpl->token = T_NOT;
-         else if (strcmp(mpl->image, "or") == 0)
-            mpl->token = T_OR;
-         else if (strcmp(mpl->image, "s") == 0 && mpl->c == '.')
-         {  mpl->token = T_SPTP;
+         else if (strcmp(mpl->scan_input->image, "inter") == 0)
+            mpl->scan_input->token = T_INTER;
+         else if (strcmp(mpl->scan_input->image, "less") == 0)
+            mpl->scan_input->token = T_LESS;
+         else if (strcmp(mpl->scan_input->image, "mod") == 0)
+            mpl->scan_input->token = T_MOD;
+         else if (strcmp(mpl->scan_input->image, "not") == 0)
+            mpl->scan_input->token = T_NOT;
+         else if (strcmp(mpl->scan_input->image, "or") == 0)
+            mpl->scan_input->token = T_OR;
+         else if (strcmp(mpl->scan_input->image, "s") == 0 && mpl->scan_input->c == '.')
+         {  mpl->scan_input->token = T_SPTP;
             append_char(mpl);
-            if (mpl->c != 't')
+            if (mpl->scan_input->c != 't')
 sptp:       {  enter_context(mpl);
                error(mpl, "keyword s.t. incomplete");
             }
             append_char(mpl);
-            if (mpl->c != '.') goto sptp;
+            if (mpl->scan_input->c != '.') goto sptp;
             append_char(mpl);
          }
-         else if (strcmp(mpl->image, "symdiff") == 0)
-            mpl->token = T_SYMDIFF;
-         else if (strcmp(mpl->image, "then") == 0)
-            mpl->token = T_THEN;
-         else if (strcmp(mpl->image, "union") == 0)
-            mpl->token = T_UNION;
-         else if (strcmp(mpl->image, "within") == 0)
-            mpl->token = T_WITHIN;
+         else if (strcmp(mpl->scan_input->image, "symdiff") == 0)
+            mpl->scan_input->token = T_SYMDIFF;
+         else if (strcmp(mpl->scan_input->image, "then") == 0)
+            mpl->scan_input->token = T_THEN;
+         else if (strcmp(mpl->scan_input->image, "union") == 0)
+            mpl->scan_input->token = T_UNION;
+         else if (strcmp(mpl->scan_input->image, "within") == 0)
+            mpl->scan_input->token = T_WITHIN;
       }
-      else if (!mpl->flag_d && isdigit(mpl->c))
+      else if (!mpl->flag_d && isdigit(mpl->scan_input->c))
       {  /* numeric literal */
-         mpl->token = T_NUMBER;
+         mpl->scan_input->token = T_NUMBER;
          /* scan integer part */
-         while (isdigit(mpl->c)) append_char(mpl);
+         while (isdigit(mpl->scan_input->c)) append_char(mpl);
          /* scan optional fractional part */
-         if (mpl->c == '.')
+         if (mpl->scan_input->c == '.')
          {  append_char(mpl);
-            if (mpl->c == '.')
+            if (mpl->scan_input->c == '.')
             {  /* hmm, it is not the fractional part, it is dots that
                   follow the integer part */
-               mpl->imlen--;
-               mpl->image[mpl->imlen] = '\0';
-               mpl->f_dots = 1;
+               mpl->scan_input->imlen--;
+               mpl->scan_input->image[mpl->scan_input->imlen] = '\0';
+               mpl->scan_input->f_dots = 1;
                goto conv;
             }
-frac:       while (isdigit(mpl->c)) append_char(mpl);
+frac:       while (isdigit(mpl->scan_input->c)) append_char(mpl);
          }
          /* scan optional decimal exponent */
-         if (mpl->c == 'e' || mpl->c == 'E')
+         if (mpl->scan_input->c == 'e' || mpl->scan_input->c == 'E')
          {  append_char(mpl);
-            if (mpl->c == '+' || mpl->c == '-') append_char(mpl);
-            if (!isdigit(mpl->c))
+            if (mpl->scan_input->c == '+' || mpl->scan_input->c == '-') append_char(mpl);
+            if (!isdigit(mpl->scan_input->c))
             {  enter_context(mpl);
-               error(mpl, "numeric literal %s incomplete", mpl->image);
+               error(mpl, "numeric literal %s incomplete", mpl->scan_input->image);
             }
-            while (isdigit(mpl->c)) append_char(mpl);
+            while (isdigit(mpl->scan_input->c)) append_char(mpl);
          }
          /* there must be no letter following the numeric literal */
-         if (isalpha(mpl->c) || mpl->c == '_')
+         if (isalpha(mpl->scan_input->c) || mpl->scan_input->c == '_')
          {  enter_context(mpl);
             error(mpl, "symbol %s%c... should be enclosed in quotes",
-               mpl->image, mpl->c);
+               mpl->scan_input->image, mpl->scan_input->c);
          }
 conv:    /* convert numeric literal to floating-point */
-         if (str2num(mpl->image, &mpl->value))
+         if (str2num(mpl->scan_input->image, &mpl->scan_input->value))
 err:     {  enter_context(mpl);
             error(mpl, "cannot convert numeric literal %s to floating-p"
-               "oint number", mpl->image);
+               "oint number", mpl->scan_input->image);
          }
       }
-      else if (mpl->c == '\'' || mpl->c == '"')
+      else if (mpl->scan_input->c == '\'' || mpl->scan_input->c == '"')
       {  /* character string */
-         int quote = mpl->c;
-         mpl->token = T_STRING;
+         int quote = mpl->scan_input->c;
+         mpl->scan_input->token = T_STRING;
          get_char(mpl);
          for (;;)
-         {  if (mpl->c == '\n' || mpl->c == EOF)
+         {  if (mpl->scan_input->c == '\n' || mpl->scan_input->c == EOF)
             {  enter_context(mpl);
                error(mpl, "unexpected end of line; string literal incom"
                   "plete");
             }
-            if (mpl->c == quote)
+            if (mpl->scan_input->c == quote)
             {  get_char(mpl);
-               if (mpl->c != quote) break;
+               if (mpl->scan_input->c != quote) break;
             }
             append_char(mpl);
          }
       }
-      else if (!mpl->flag_d && mpl->c == '+')
-         mpl->token = T_PLUS, append_char(mpl);
-      else if (!mpl->flag_d && mpl->c == '-')
-         mpl->token = T_MINUS, append_char(mpl);
-      else if (mpl->c == '*')
-      {  mpl->token = T_ASTERISK, append_char(mpl);
-         if (mpl->c == '*')
-            mpl->token = T_POWER, append_char(mpl);
+      else if (!mpl->flag_d && mpl->scan_input->c == '+')
+         mpl->scan_input->token = T_PLUS, append_char(mpl);
+      else if (!mpl->flag_d && mpl->scan_input->c == '-')
+         mpl->scan_input->token = T_MINUS, append_char(mpl);
+      else if (mpl->scan_input->c == '*')
+      {  mpl->scan_input->token = T_ASTERISK, append_char(mpl);
+         if (mpl->scan_input->c == '*')
+            mpl->scan_input->token = T_POWER, append_char(mpl);
       }
-      else if (mpl->c == '/')
-      {  mpl->token = T_SLASH, append_char(mpl);
-         if (mpl->c == '*')
+      else if (mpl->scan_input->c == '/')
+      {  mpl->scan_input->token = T_SLASH, append_char(mpl);
+         if (mpl->scan_input->c == '*')
          {  /* comment sequence */
             get_char(mpl);
             for (;;)
-            {  if (mpl->c == EOF)
+            {  if (mpl->scan_input->c == EOF)
                {  /* do not call enter_context at this point */
                   error(mpl, "unexpected end of file; comment sequence "
                      "incomplete");
                }
-               else if (mpl->c == '*')
+               else if (mpl->scan_input->c == '*')
                {  get_char(mpl);
-                  if (mpl->c == '/') break;
+                  if (mpl->scan_input->c == '/') break;
                }
                else
                   get_char(mpl);
@@ -313,99 +313,99 @@ err:     {  enter_context(mpl);
             goto loop;
          }
       }
-      else if (mpl->c == '^')
-         mpl->token = T_POWER, append_char(mpl);
-      else if (mpl->c == '<')
-      {  mpl->token = T_LT, append_char(mpl);
-         if (mpl->c == '=')
-            mpl->token = T_LE, append_char(mpl);
-         else if (mpl->c == '>')
-            mpl->token = T_NE, append_char(mpl);
+      else if (mpl->scan_input->c == '^')
+         mpl->scan_input->token = T_POWER, append_char(mpl);
+      else if (mpl->scan_input->c == '<')
+      {  mpl->scan_input->token = T_LT, append_char(mpl);
+         if (mpl->scan_input->c == '=')
+            mpl->scan_input->token = T_LE, append_char(mpl);
+         else if (mpl->scan_input->c == '>')
+            mpl->scan_input->token = T_NE, append_char(mpl);
 #if 1 /* 11/II-2008 */
-         else if (mpl->c == '-')
-            mpl->token = T_INPUT, append_char(mpl);
+         else if (mpl->scan_input->c == '-')
+            mpl->scan_input->token = T_INPUT, append_char(mpl);
 #endif
       }
-      else if (mpl->c == '=')
-      {  mpl->token = T_EQ, append_char(mpl);
-         if (mpl->c == '=') append_char(mpl);
+      else if (mpl->scan_input->c == '=')
+      {  mpl->scan_input->token = T_EQ, append_char(mpl);
+         if (mpl->scan_input->c == '=') append_char(mpl);
       }
-      else if (mpl->c == '>')
-      {  mpl->token = T_GT, append_char(mpl);
-         if (mpl->c == '=')
-            mpl->token = T_GE, append_char(mpl);
+      else if (mpl->scan_input->c == '>')
+      {  mpl->scan_input->token = T_GT, append_char(mpl);
+         if (mpl->scan_input->c == '=')
+            mpl->scan_input->token = T_GE, append_char(mpl);
 #if 1 /* 14/VII-2006 */
-         else if (mpl->c == '>')
-            mpl->token = T_APPEND, append_char(mpl);
+         else if (mpl->scan_input->c == '>')
+            mpl->scan_input->token = T_APPEND, append_char(mpl);
 #endif
       }
-      else if (mpl->c == '!')
-      {  mpl->token = T_NOT, append_char(mpl);
-         if (mpl->c == '=')
-            mpl->token = T_NE, append_char(mpl);
+      else if (mpl->scan_input->c == '!')
+      {  mpl->scan_input->token = T_NOT, append_char(mpl);
+         if (mpl->scan_input->c == '=')
+            mpl->scan_input->token = T_NE, append_char(mpl);
       }
-      else if (mpl->c == '&')
-      {  mpl->token = T_CONCAT, append_char(mpl);
-         if (mpl->c == '&')
-            mpl->token = T_AND, append_char(mpl);
+      else if (mpl->scan_input->c == '&')
+      {  mpl->scan_input->token = T_CONCAT, append_char(mpl);
+         if (mpl->scan_input->c == '&')
+            mpl->scan_input->token = T_AND, append_char(mpl);
       }
-      else if (mpl->c == '|')
-      {  mpl->token = T_BAR, append_char(mpl);
-         if (mpl->c == '|')
-            mpl->token = T_OR, append_char(mpl);
+      else if (mpl->scan_input->c == '|')
+      {  mpl->scan_input->token = T_BAR, append_char(mpl);
+         if (mpl->scan_input->c == '|')
+            mpl->scan_input->token = T_OR, append_char(mpl);
       }
-      else if (!mpl->flag_d && mpl->c == '.')
-      {  mpl->token = T_POINT, append_char(mpl);
-         if (mpl->f_dots)
+      else if (!mpl->flag_d && mpl->scan_input->c == '.')
+      {  mpl->scan_input->token = T_POINT, append_char(mpl);
+         if (mpl->scan_input->f_dots)
          {  /* dots; the first dot was read on the previous call to the
                scanner, so the current character is the second dot */
-            mpl->token = T_DOTS;
-            mpl->imlen = 2;
-            strcpy(mpl->image, "..");
-            mpl->f_dots = 0;
+            mpl->scan_input->token = T_DOTS;
+            mpl->scan_input->imlen = 2;
+            strcpy(mpl->scan_input->image, "..");
+            mpl->scan_input->f_dots = 0;
          }
-         else if (mpl->c == '.')
-            mpl->token = T_DOTS, append_char(mpl);
-         else if (isdigit(mpl->c))
+         else if (mpl->scan_input->c == '.')
+            mpl->scan_input->token = T_DOTS, append_char(mpl);
+         else if (isdigit(mpl->scan_input->c))
          {  /* numeric literal that begins with the decimal point */
-            mpl->token = T_NUMBER, append_char(mpl);
+            mpl->scan_input->token = T_NUMBER, append_char(mpl);
             goto frac;
          }
       }
-      else if (mpl->c == ',')
-         mpl->token = T_COMMA, append_char(mpl);
-      else if (mpl->c == ':')
-      {  mpl->token = T_COLON, append_char(mpl);
-         if (mpl->c == '=')
-            mpl->token = T_ASSIGN, append_char(mpl);
+      else if (mpl->scan_input->c == ',')
+         mpl->scan_input->token = T_COMMA, append_char(mpl);
+      else if (mpl->scan_input->c == ':')
+      {  mpl->scan_input->token = T_COLON, append_char(mpl);
+         if (mpl->scan_input->c == '=')
+            mpl->scan_input->token = T_ASSIGN, append_char(mpl);
       }
-      else if (mpl->c == ';')
-         mpl->token = T_SEMICOLON, append_char(mpl);
-      else if (mpl->c == '(')
-         mpl->token = T_LEFT, append_char(mpl);
-      else if (mpl->c == ')')
-         mpl->token = T_RIGHT, append_char(mpl);
-      else if (mpl->c == '[')
-         mpl->token = T_LBRACKET, append_char(mpl);
-      else if (mpl->c == ']')
-         mpl->token = T_RBRACKET, append_char(mpl);
-      else if (mpl->c == '{')
-         mpl->token = T_LBRACE, append_char(mpl);
-      else if (mpl->c == '}')
-         mpl->token = T_RBRACE, append_char(mpl);
+      else if (mpl->scan_input->c == ';')
+         mpl->scan_input->token = T_SEMICOLON, append_char(mpl);
+      else if (mpl->scan_input->c == '(')
+         mpl->scan_input->token = T_LEFT, append_char(mpl);
+      else if (mpl->scan_input->c == ')')
+         mpl->scan_input->token = T_RIGHT, append_char(mpl);
+      else if (mpl->scan_input->c == '[')
+         mpl->scan_input->token = T_LBRACKET, append_char(mpl);
+      else if (mpl->scan_input->c == ']')
+         mpl->scan_input->token = T_RBRACKET, append_char(mpl);
+      else if (mpl->scan_input->c == '{')
+         mpl->scan_input->token = T_LBRACE, append_char(mpl);
+      else if (mpl->scan_input->c == '}')
+         mpl->scan_input->token = T_RBRACE, append_char(mpl);
 #if 1 /* 11/II-2008 */
-      else if (mpl->c == '~')
-         mpl->token = T_TILDE, append_char(mpl);
+      else if (mpl->scan_input->c == '~')
+         mpl->scan_input->token = T_TILDE, append_char(mpl);
 #endif
-      else if (isalnum(mpl->c) || strchr("+-._", mpl->c) != NULL)
+      else if (isalnum(mpl->scan_input->c) || strchr("+-._", mpl->scan_input->c) != NULL)
       {  /* symbol */
          xassert(mpl->flag_d);
-         mpl->token = T_SYMBOL;
-         while (isalnum(mpl->c) || strchr("+-._", mpl->c) != NULL)
+         mpl->scan_input->token = T_SYMBOL;
+         while (isalnum(mpl->scan_input->c) || strchr("+-._", mpl->scan_input->c) != NULL)
             append_char(mpl);
-         switch (str2num(mpl->image, &mpl->value))
+         switch (str2num(mpl->scan_input->image, &mpl->scan_input->value))
          {  case 0:
-               mpl->token = T_NUMBER;
+               mpl->scan_input->token = T_NUMBER;
                break;
             case 1:
                goto err;
@@ -417,7 +417,7 @@ err:     {  enter_context(mpl);
       }
       else
       {  enter_context(mpl);
-         error(mpl, "character %c not allowed", mpl->c);
+         error(mpl, "character %c not allowed", mpl->scan_input->c);
       }
       /* enter the current token into the context queue */
       enter_context(mpl);
@@ -428,6 +428,19 @@ done: return;
 }
 
 /*----------------------------------------------------------------------
+-- expect_token - check current and scan next token from input text file.
+--
+-- This routine check current and scans a next token from the input text file using the
+-- standard finite automation technique. */
+
+void expect_token(MPL *mpl, int token)
+{
+    if(mpl->scan_input->token != token)
+        error(mpl, "token expected %d but got %d", token, mpl->scan_input->token);
+    get_token(mpl);
+}
+
+/*----------------------------------------------------------------------
 -- unget_token - return current token back to input stream.
 --
 -- This routine returns the current token back to the input stream, so
@@ -435,17 +448,17 @@ done: return;
 
 void unget_token(MPL *mpl)
 {     /* save the current token, which becomes the next one */
-      xassert(!mpl->f_scan);
-      mpl->f_scan = 1;
-      mpl->f_token = mpl->token;
-      mpl->f_imlen = mpl->imlen;
-      strcpy(mpl->f_image, mpl->image);
-      mpl->f_value = mpl->value;
+      xassert(!mpl->scan_input->f_scan);
+      mpl->scan_input->f_scan = 1;
+      mpl->scan_input->f_token = mpl->scan_input->token;
+      mpl->scan_input->f_imlen = mpl->scan_input->imlen;
+      strcpy(mpl->scan_input->f_image, mpl->scan_input->image);
+      mpl->scan_input->f_value = mpl->scan_input->value;
       /* restore the previous token, which becomes the current one */
-      mpl->token = mpl->b_token;
-      mpl->imlen = mpl->b_imlen;
-      strcpy(mpl->image, mpl->b_image);
-      mpl->value = mpl->b_value;
+      mpl->scan_input->token = mpl->scan_input->b_token;
+      mpl->scan_input->imlen = mpl->scan_input->b_imlen;
+      strcpy(mpl->scan_input->image, mpl->scan_input->b_image);
+      mpl->scan_input->value = mpl->scan_input->b_value;
       return;
 }
 
@@ -457,7 +470,7 @@ void unget_token(MPL *mpl)
 
 int is_keyword(MPL *mpl, char *keyword)
 {     return
-         mpl->token == T_NAME && strcmp(mpl->image, keyword) == 0;
+         mpl->scan_input->token == T_NAME && strcmp(mpl->scan_input->image, keyword) == 0;
 }
 
 /*----------------------------------------------------------------------
@@ -468,23 +481,23 @@ int is_keyword(MPL *mpl, char *keyword)
 
 int is_reserved(MPL *mpl)
 {     return
-         mpl->token == T_AND && mpl->image[0] == 'a' ||
-         mpl->token == T_BY ||
-         mpl->token == T_CROSS ||
-         mpl->token == T_DIFF ||
-         mpl->token == T_DIV ||
-         mpl->token == T_ELSE ||
-         mpl->token == T_IF ||
-         mpl->token == T_IN ||
-         mpl->token == T_INTER ||
-         mpl->token == T_LESS ||
-         mpl->token == T_MOD ||
-         mpl->token == T_NOT && mpl->image[0] == 'n' ||
-         mpl->token == T_OR && mpl->image[0] == 'o' ||
-         mpl->token == T_SYMDIFF ||
-         mpl->token == T_THEN ||
-         mpl->token == T_UNION ||
-         mpl->token == T_WITHIN;
+         mpl->scan_input->token == T_AND && mpl->scan_input->image[0] == 'a' ||
+         mpl->scan_input->token == T_BY ||
+         mpl->scan_input->token == T_CROSS ||
+         mpl->scan_input->token == T_DIFF ||
+         mpl->scan_input->token == T_DIV ||
+         mpl->scan_input->token == T_ELSE ||
+         mpl->scan_input->token == T_IF ||
+         mpl->scan_input->token == T_IN ||
+         mpl->scan_input->token == T_INTER ||
+         mpl->scan_input->token == T_LESS ||
+         mpl->scan_input->token == T_MOD ||
+         mpl->scan_input->token == T_NOT && mpl->scan_input->image[0] == 'n' ||
+         mpl->scan_input->token == T_OR && mpl->scan_input->image[0] == 'o' ||
+         mpl->scan_input->token == T_SYMDIFF ||
+         mpl->scan_input->token == T_THEN ||
+         mpl->scan_input->token == T_UNION ||
+         mpl->scan_input->token == T_WITHIN;
 }
 
 /*----------------------------------------------------------------------
@@ -800,8 +813,8 @@ CODE *make_ternary(MPL *mpl, int op, CODE *x, CODE *y, CODE *z,
 CODE *numeric_literal(MPL *mpl)
 {     CODE *code;
       OPERANDS arg;
-      xassert(mpl->token == T_NUMBER);
-      arg.num = mpl->value;
+      xassert(mpl->scan_input->token == T_NUMBER);
+      arg.num = mpl->scan_input->value;
       code = make_code(mpl, O_NUMBER, &arg, A_NUMERIC, 0);
       get_token(mpl /* <numeric literal> */);
       return code;
@@ -817,9 +830,9 @@ CODE *numeric_literal(MPL *mpl)
 CODE *string_literal(MPL *mpl)
 {     CODE *code;
       OPERANDS arg;
-      xassert(mpl->token == T_STRING);
-      arg.str = dmp_get_atomv(mpl->pool, strlen(mpl->image)+1);
-      strcpy(arg.str, mpl->image);
+      xassert(mpl->scan_input->token == T_STRING);
+      arg.str = dmp_get_atomv(mpl->pool, strlen(mpl->scan_input->image)+1);
+      strcpy(arg.str, mpl->scan_input->image);
       code = make_code(mpl, O_STRING, &arg, A_SYMBOLIC, 0);
       get_token(mpl /* <string literal> */);
       return code;
@@ -899,9 +912,9 @@ ARG_LIST *subscript_list(MPL *mpl)
          /* and append it to the subscript list */
          list = expand_arg_list(mpl, list, x);
          /* check a token that follows the subscript expression */
-         if (mpl->token == T_COMMA)
+         if (mpl->scan_input->token == T_COMMA)
             get_token(mpl /* , */);
-         else if (mpl->token == T_RBRACKET)
+         else if (mpl->scan_input->token == T_RBRACKET)
             break;
          else
             error(mpl, "syntax error in subscript list");
@@ -946,10 +959,10 @@ CODE *object_reference(MPL *mpl)
       char *name;
       int dim, suff;
       /* find the object in the symbolic name table */
-      xassert(mpl->token == T_NAME);
-      node = avl_find_node(mpl->tree, mpl->image);
+      xassert(mpl->scan_input->token == T_NAME);
+      node = avl_find_node(mpl->tree, mpl->scan_input->image);
       if (node == NULL)
-         error(mpl, "%s not defined", mpl->image);
+         error(mpl, "%s not defined", mpl->scan_input->image);
       /* check the object type and obtain its dimension */
       switch (avl_get_node_type(node))
       {  case A_INDEX:
@@ -991,7 +1004,7 @@ CODE *object_reference(MPL *mpl)
       }
       get_token(mpl /* <symbolic name> */);
       /* parse optional subscript list */
-      if (mpl->token == T_LBRACKET)
+      if (mpl->scan_input->token == T_LBRACKET)
       {  /* subscript list is specified */
          if (dim == 0)
             error(mpl, "%s cannot be subscripted", name);
@@ -1000,7 +1013,7 @@ CODE *object_reference(MPL *mpl)
          if (dim != arg_list_len(mpl, list))
             error(mpl, "%s must have %d subscript%s rather than %d",
                name, dim, dim == 1 ? "" : "s", arg_list_len(mpl, list));
-         xassert(mpl->token == T_RBRACKET);
+         xassert(mpl->scan_input->token == T_RBRACKET);
          get_token(mpl /* ] */);
       }
       else
@@ -1014,25 +1027,25 @@ CODE *object_reference(MPL *mpl)
          suff = DOT_NONE;
       else
          suff = DOT_VAL;
-      if (mpl->token == T_POINT)
+      if (mpl->scan_input->token == T_POINT)
       {  get_token(mpl /* . */);
-         if (mpl->token != T_NAME)
+         if (mpl->scan_input->token != T_NAME)
             error(mpl, "invalid use of period");
          if (!(avl_get_node_type(node) == A_VARIABLE ||
                avl_get_node_type(node) == A_CONSTRAINT))
             error(mpl, "%s cannot have a suffix", name);
-         if (strcmp(mpl->image, "lb") == 0)
+         if (strcmp(mpl->scan_input->image, "lb") == 0)
             suff = DOT_LB;
-         else if (strcmp(mpl->image, "ub") == 0)
+         else if (strcmp(mpl->scan_input->image, "ub") == 0)
             suff = DOT_UB;
-         else if (strcmp(mpl->image, "status") == 0)
+         else if (strcmp(mpl->scan_input->image, "status") == 0)
             suff = DOT_STATUS;
-         else if (strcmp(mpl->image, "val") == 0)
+         else if (strcmp(mpl->scan_input->image, "val") == 0)
             suff = DOT_VAL;
-         else if (strcmp(mpl->image, "dual") == 0)
+         else if (strcmp(mpl->scan_input->image, "dual") == 0)
             suff = DOT_DUAL;
          else
-            error(mpl, "suffix .%s invalid", mpl->image);
+            error(mpl, "suffix .%s invalid", mpl->scan_input->image);
          get_token(mpl /* suffix */);
       }
       /* generate pseudo-code to take value of the object */
@@ -1184,69 +1197,69 @@ CODE *function_reference(MPL *mpl)
       int op;
       char func[15+1];
       /* determine operation code */
-      xassert(mpl->token == T_NAME);
-      if (strcmp(mpl->image, "abs") == 0)
+      xassert(mpl->scan_input->token == T_NAME);
+      if (strcmp(mpl->scan_input->image, "abs") == 0)
          op = O_ABS;
-      else if (strcmp(mpl->image, "ceil") == 0)
+      else if (strcmp(mpl->scan_input->image, "ceil") == 0)
          op = O_CEIL;
-      else if (strcmp(mpl->image, "floor") == 0)
+      else if (strcmp(mpl->scan_input->image, "floor") == 0)
          op = O_FLOOR;
-      else if (strcmp(mpl->image, "exp") == 0)
+      else if (strcmp(mpl->scan_input->image, "exp") == 0)
          op = O_EXP;
-      else if (strcmp(mpl->image, "log") == 0)
+      else if (strcmp(mpl->scan_input->image, "log") == 0)
          op = O_LOG;
-      else if (strcmp(mpl->image, "log10") == 0)
+      else if (strcmp(mpl->scan_input->image, "log10") == 0)
          op = O_LOG10;
-      else if (strcmp(mpl->image, "sqrt") == 0)
+      else if (strcmp(mpl->scan_input->image, "sqrt") == 0)
          op = O_SQRT;
-      else if (strcmp(mpl->image, "sin") == 0)
+      else if (strcmp(mpl->scan_input->image, "sin") == 0)
          op = O_SIN;
-      else if (strcmp(mpl->image, "cos") == 0)
+      else if (strcmp(mpl->scan_input->image, "cos") == 0)
          op = O_COS;
-      else if (strcmp(mpl->image, "tan") == 0)
+      else if (strcmp(mpl->scan_input->image, "tan") == 0)
          op = O_TAN;
-      else if (strcmp(mpl->image, "atan") == 0)
+      else if (strcmp(mpl->scan_input->image, "atan") == 0)
          op = O_ATAN;
-      else if (strcmp(mpl->image, "min") == 0)
+      else if (strcmp(mpl->scan_input->image, "min") == 0)
          op = O_MIN;
-      else if (strcmp(mpl->image, "max") == 0)
+      else if (strcmp(mpl->scan_input->image, "max") == 0)
          op = O_MAX;
-      else if (strcmp(mpl->image, "round") == 0)
+      else if (strcmp(mpl->scan_input->image, "round") == 0)
          op = O_ROUND;
-      else if (strcmp(mpl->image, "trunc") == 0)
+      else if (strcmp(mpl->scan_input->image, "trunc") == 0)
          op = O_TRUNC;
-      else if (strcmp(mpl->image, "Irand224") == 0)
+      else if (strcmp(mpl->scan_input->image, "Irand224") == 0)
          op = O_IRAND224;
-      else if (strcmp(mpl->image, "Uniform01") == 0)
+      else if (strcmp(mpl->scan_input->image, "Uniform01") == 0)
          op = O_UNIFORM01;
-      else if (strcmp(mpl->image, "Uniform") == 0)
+      else if (strcmp(mpl->scan_input->image, "Uniform") == 0)
          op = O_UNIFORM;
-      else if (strcmp(mpl->image, "Normal01") == 0)
+      else if (strcmp(mpl->scan_input->image, "Normal01") == 0)
          op = O_NORMAL01;
-      else if (strcmp(mpl->image, "Normal") == 0)
+      else if (strcmp(mpl->scan_input->image, "Normal") == 0)
          op = O_NORMAL;
-      else if (strcmp(mpl->image, "card") == 0)
+      else if (strcmp(mpl->scan_input->image, "card") == 0)
          op = O_CARD;
-      else if (strcmp(mpl->image, "length") == 0)
+      else if (strcmp(mpl->scan_input->image, "length") == 0)
          op = O_LENGTH;
-      else if (strcmp(mpl->image, "substr") == 0)
+      else if (strcmp(mpl->scan_input->image, "substr") == 0)
          op = O_SUBSTR;
-      else if (strcmp(mpl->image, "str2time") == 0)
+      else if (strcmp(mpl->scan_input->image, "str2time") == 0)
          op = O_STR2TIME;
-      else if (strcmp(mpl->image, "time2str") == 0)
+      else if (strcmp(mpl->scan_input->image, "time2str") == 0)
          op = O_TIME2STR;
-      else if (strcmp(mpl->image, "gmtime") == 0)
+      else if (strcmp(mpl->scan_input->image, "gmtime") == 0)
          op = O_GMTIME;
-      else if (strcmp(mpl->image, "version") == 0)
+      else if (strcmp(mpl->scan_input->image, "version") == 0)
          op = O_VERSION;
       else
-         error(mpl, "function %s unknown", mpl->image);
+         error(mpl, "function %s unknown", mpl->scan_input->image);
       /* save symbolic name of the function */
-      strcpy(func, mpl->image);
+      strcpy(func, mpl->scan_input->image);
       xassert(strlen(func) < sizeof(func));
       get_token(mpl /* <symbolic name> */);
       /* check the left parenthesis that follows the function name */
-      xassert(mpl->token == T_LEFT);
+      xassert(mpl->scan_input->token == T_LEFT);
       get_token(mpl /* ( */);
       /* parse argument list */
       if (op == O_MIN || op == O_MAX)
@@ -1258,9 +1271,9 @@ CODE *function_reference(MPL *mpl)
             arg.list = expand_arg_list(mpl, arg.list,
                numeric_argument(mpl, func));
             /* check a token that follows the argument */
-            if (mpl->token == T_COMMA)
+            if (mpl->scan_input->token == T_COMMA)
                get_token(mpl /* , */);
-            else if (mpl->token == T_RIGHT)
+            else if (mpl->scan_input->token == T_RIGHT)
                break;
             else
                error(mpl, "syntax error in argument list for %s", func);
@@ -1269,7 +1282,7 @@ CODE *function_reference(MPL *mpl)
       else if (op == O_IRAND224 || op == O_UNIFORM01 || op ==
          O_NORMAL01 || op == O_GMTIME || op == O_VERSION)
       {  /* Irand224, Uniform01, Normal01, gmtime need no arguments */
-         if (mpl->token != T_RIGHT)
+         if (mpl->scan_input->token != T_RIGHT)
             error(mpl, "%s needs no arguments", func);
       }
       else if (op == O_UNIFORM || op == O_NORMAL)
@@ -1277,9 +1290,9 @@ CODE *function_reference(MPL *mpl)
          /* parse the first argument */
          arg.arg.x = numeric_argument(mpl, func);
          /* check a token that follows the first argument */
-         if (mpl->token == T_COMMA)
+         if (mpl->scan_input->token == T_COMMA)
             ;
-         else if (mpl->token == T_RIGHT)
+         else if (mpl->scan_input->token == T_RIGHT)
             error(mpl, "%s needs two arguments", func);
          else
             error(mpl, "syntax error in argument for %s", func);
@@ -1287,9 +1300,9 @@ CODE *function_reference(MPL *mpl)
          /* parse the second argument */
          arg.arg.y = numeric_argument(mpl, func);
          /* check a token that follows the second argument */
-         if (mpl->token == T_COMMA)
+         if (mpl->scan_input->token == T_COMMA)
             error(mpl, "%s needs two argument", func);
-         else if (mpl->token == T_RIGHT)
+         else if (mpl->scan_input->token == T_RIGHT)
             ;
          else
             error(mpl, "syntax error in argument for %s", func);
@@ -1299,7 +1312,7 @@ CODE *function_reference(MPL *mpl)
          /* parse the first argument */
          arg.arg.x = numeric_argument(mpl, func);
          /* parse the second argument, if specified */
-         if (mpl->token == T_COMMA)
+         if (mpl->scan_input->token == T_COMMA)
          {  switch (op)
             {  case O_ATAN:  op = O_ATAN2;  break;
                case O_ROUND: op = O_ROUND2; break;
@@ -1310,9 +1323,9 @@ CODE *function_reference(MPL *mpl)
             arg.arg.y = numeric_argument(mpl, func);
          }
          /* check a token that follows the last argument */
-         if (mpl->token == T_COMMA)
+         if (mpl->scan_input->token == T_COMMA)
             error(mpl, "%s needs one or two arguments", func);
-         else if (mpl->token == T_RIGHT)
+         else if (mpl->scan_input->token == T_RIGHT)
             ;
          else
             error(mpl, "syntax error in argument for %s", func);
@@ -1322,9 +1335,9 @@ CODE *function_reference(MPL *mpl)
          /* parse the first argument */
          arg.arg.x = symbolic_argument(mpl, func);
          /* check a token that follows the first argument */
-         if (mpl->token == T_COMMA)
+         if (mpl->scan_input->token == T_COMMA)
             ;
-         else if (mpl->token == T_RIGHT)
+         else if (mpl->scan_input->token == T_RIGHT)
             error(mpl, "%s needs two or three arguments", func);
          else
             error(mpl, "syntax error in argument for %s", func);
@@ -1332,15 +1345,15 @@ CODE *function_reference(MPL *mpl)
          /* parse the second argument */
          arg.arg.y = numeric_argument(mpl, func);
          /* parse the third argument, if specified */
-         if (mpl->token == T_COMMA)
+         if (mpl->scan_input->token == T_COMMA)
          {  op = O_SUBSTR3;
             get_token(mpl /* , */);
             arg.arg.z = numeric_argument(mpl, func);
          }
          /* check a token that follows the last argument */
-         if (mpl->token == T_COMMA)
+         if (mpl->scan_input->token == T_COMMA)
             error(mpl, "%s needs two or three arguments", func);
-         else if (mpl->token == T_RIGHT)
+         else if (mpl->scan_input->token == T_RIGHT)
             ;
          else
             error(mpl, "syntax error in argument for %s", func);
@@ -1350,9 +1363,9 @@ CODE *function_reference(MPL *mpl)
          /* parse the first argument */
          arg.arg.x = symbolic_argument(mpl, func);
          /* check a token that follows the first argument */
-         if (mpl->token == T_COMMA)
+         if (mpl->scan_input->token == T_COMMA)
             ;
-         else if (mpl->token == T_RIGHT)
+         else if (mpl->scan_input->token == T_RIGHT)
             error(mpl, "%s needs two arguments", func);
          else
             error(mpl, "syntax error in argument for %s", func);
@@ -1360,9 +1373,9 @@ CODE *function_reference(MPL *mpl)
          /* parse the second argument */
          arg.arg.y = symbolic_argument(mpl, func);
          /* check a token that follows the second argument */
-         if (mpl->token == T_COMMA)
+         if (mpl->scan_input->token == T_COMMA)
             error(mpl, "%s needs two argument", func);
-         else if (mpl->token == T_RIGHT)
+         else if (mpl->scan_input->token == T_RIGHT)
             ;
          else
             error(mpl, "syntax error in argument for %s", func);
@@ -1372,9 +1385,9 @@ CODE *function_reference(MPL *mpl)
          /* parse the first argument */
          arg.arg.x = numeric_argument(mpl, func);
          /* check a token that follows the first argument */
-         if (mpl->token == T_COMMA)
+         if (mpl->scan_input->token == T_COMMA)
             ;
-         else if (mpl->token == T_RIGHT)
+         else if (mpl->scan_input->token == T_RIGHT)
             error(mpl, "%s needs two arguments", func);
          else
             error(mpl, "syntax error in argument for %s", func);
@@ -1382,9 +1395,9 @@ CODE *function_reference(MPL *mpl)
          /* parse the second argument */
          arg.arg.y = symbolic_argument(mpl, func);
          /* check a token that follows the second argument */
-         if (mpl->token == T_COMMA)
+         if (mpl->scan_input->token == T_COMMA)
             error(mpl, "%s needs two argument", func);
-         else if (mpl->token == T_RIGHT)
+         else if (mpl->scan_input->token == T_RIGHT)
             ;
          else
             error(mpl, "syntax error in argument for %s", func);
@@ -1398,9 +1411,9 @@ CODE *function_reference(MPL *mpl)
          else
             arg.arg.x = numeric_argument(mpl, func);
          /* check a token that follows the argument */
-         if (mpl->token == T_COMMA)
+         if (mpl->scan_input->token == T_COMMA)
             error(mpl, "%s needs one argument", func);
-         else if (mpl->token == T_RIGHT)
+         else if (mpl->scan_input->token == T_RIGHT)
             ;
          else
             error(mpl, "syntax error in argument for %s", func);
@@ -1411,7 +1424,7 @@ CODE *function_reference(MPL *mpl)
       else
          code = make_code(mpl, op, &arg, A_NUMERIC, 0);
       /* the reference ends with the right parenthesis */
-      xassert(mpl->token == T_RIGHT);
+      xassert(mpl->scan_input->token == T_RIGHT);
       get_token(mpl /* ) */);
       return code;
 }
@@ -1535,7 +1548,7 @@ CODE *expression_list(MPL *mpl)
       OPERANDS arg;
       struct { char *name; CODE *code; } list[1+max_dim];
       int flag_x, next_token, dim, j, slice = 0;
-      xassert(mpl->token == T_LEFT);
+      xassert(mpl->scan_input->token == T_LEFT);
       /* the flag, which allows recognizing undeclared symbolic names
          as dummy indices, will be automatically reset by get_token(),
          so save it before scanning the next token */
@@ -1547,17 +1560,17 @@ CODE *expression_list(MPL *mpl)
             error(mpl, "too many components within parentheses");
          /* current component of <expression list> can be either dummy
             index or expression */
-         if (mpl->token == T_NAME)
+         if (mpl->scan_input->token == T_NAME)
          {  /* symbolic name is recognized as dummy index only if:
                the flag, which allows that, is set, and
                the name is followed by comma or right parenthesis, and
                the name is undeclared */
             get_token(mpl /* <symbolic name> */);
-            next_token = mpl->token;
+            next_token = mpl->scan_input->token;
             unget_token(mpl);
             if (!(flag_x &&
                   (next_token == T_COMMA || next_token == T_RIGHT) &&
-                  avl_find_node(mpl->tree, mpl->image) == NULL))
+                  avl_find_node(mpl->tree, mpl->scan_input->image) == NULL))
             {  /* this is not dummy index */
                goto expr;
             }
@@ -1565,14 +1578,14 @@ CODE *expression_list(MPL *mpl)
                symbolic names */
             for (j = 1; j < dim; j++)
             {  if (list[j].name != NULL && strcmp(list[j].name,
-                  mpl->image) == 0)
+                  mpl->scan_input->image) == 0)
                   error(mpl, "duplicate dummy index %s not allowed",
-                     mpl->image);
+                     mpl->scan_input->image);
             }
             /* current component of <expression list> is dummy index */
             list[dim].name
-               = dmp_get_atomv(mpl->pool, strlen(mpl->image)+1);
-            strcpy(list[dim].name, mpl->image);
+               = dmp_get_atomv(mpl->pool, strlen(mpl->scan_input->image)+1);
+            strcpy(list[dim].name, mpl->scan_input->image);
             list[dim].code = NULL;
             get_token(mpl /* <symbolic name> */);
             /* <expression list> is a slice, because at least one dummy
@@ -1581,7 +1594,7 @@ CODE *expression_list(MPL *mpl)
             /* note that the context ( <dummy index> ) is not allowed,
                i.e. in this case <primary expression> is considered as
                a parenthesized expression */
-            if (dim == 1 && mpl->token == T_RIGHT)
+            if (dim == 1 && mpl->scan_input->token == T_RIGHT)
                error(mpl, "%s not defined", list[dim].name);
          }
          else
@@ -1591,7 +1604,7 @@ expr:    {  /* current component of <expression list> is expression */
                not the very first expression, entire <expression list>
                is n-tuple or slice, in which case the current expression
                should be converted to symbolic type, if necessary */
-            if (mpl->token == T_COMMA || dim > 1)
+            if (mpl->scan_input->token == T_COMMA || dim > 1)
             {  if (code->type == A_NUMERIC)
                   code = make_unary(mpl, O_CVTSYM, code, A_SYMBOLIC, 0);
                /* now the expression must be of symbolic type */
@@ -1603,9 +1616,9 @@ expr:    {  /* current component of <expression list> is expression */
             list[dim].code = code;
          }
          /* check a token that follows the current component */
-         if (mpl->token == T_COMMA)
+         if (mpl->scan_input->token == T_COMMA)
             get_token(mpl /* , */);
-         else if (mpl->token == T_RIGHT)
+         else if (mpl->scan_input->token == T_RIGHT)
             break;
          else
             error(mpl, "right parenthesis missing where expected");
@@ -1634,11 +1647,11 @@ expr:    {  /* current component of <expression list> is expression */
       get_token(mpl /* ) */);
       /* if <primary expression> is a slice, there must be the keyword
          'in', which follows the right parenthesis */
-      if (slice && mpl->token != T_IN)
+      if (slice && mpl->scan_input->token != T_IN)
          error(mpl, "keyword in missing where expected");
       /* if the slice flag is set and there is the keyword 'in', which
          follows <primary expression>, the latter must be a slice */
-      if (flag_x && mpl->token == T_IN && !slice)
+      if (flag_x && mpl->scan_input->token == T_IN && !slice)
       {  if (dim == 1)
             error(mpl, "syntax error in indexing expression");
          else
@@ -1686,9 +1699,9 @@ CODE *literal_set(MPL *mpl, CODE *code)
          /* append the current expression to the member list */
          arg.list = expand_arg_list(mpl, arg.list, code);
          /* check a token that follows the current expression */
-         if (mpl->token == T_COMMA)
+         if (mpl->scan_input->token == T_COMMA)
             get_token(mpl /* , */);
-         else if (mpl->token == T_RBRACE)
+         else if (mpl->scan_input->token == T_RBRACE)
             break;
          else
             error(mpl, "syntax error in literal set");
@@ -1727,9 +1740,9 @@ DOMAIN *indexing_expression(MPL *mpl)
       DOMAIN_BLOCK *block;
       DOMAIN_SLOT *slot;
       CODE *code;
-      xassert(mpl->token == T_LBRACE);
+      xassert(mpl->scan_input->token == T_LBRACE);
       get_token(mpl /* { */);
-      if (mpl->token == T_RBRACE)
+      if (mpl->scan_input->token == T_RBRACE)
          error(mpl, "empty indexing expression not allowed");
       /* create domain to be constructed */
       domain = create_domain(mpl);
@@ -1741,17 +1754,17 @@ DOMAIN *indexing_expression(MPL *mpl)
          /* pseudo-code for <basic expression> is not generated yet */
          code = NULL;
          /* check a token, which <indexing element> begins with */
-         if (mpl->token == T_NAME)
+         if (mpl->scan_input->token == T_NAME)
          {  /* it is a symbolic name */
             int next_token;
             char *name;
             /* symbolic name is recognized as dummy index only if it is
                followed by the keyword 'in' and not declared */
             get_token(mpl /* <symbolic name> */);
-            next_token = mpl->token;
+            next_token = mpl->scan_input->token;
             unget_token(mpl);
             if (!(next_token == T_IN &&
-                  avl_find_node(mpl->tree, mpl->image) == NULL))
+                  avl_find_node(mpl->tree, mpl->scan_input->image) == NULL))
             {  /* this is not dummy index; the symbolic name begins an
                   expression, which is either <basic expression> or the
                   very first <member expression> in <literal set> */
@@ -1760,17 +1773,17 @@ DOMAIN *indexing_expression(MPL *mpl)
             /* create domain block with one slot, which is assigned the
                dummy index */
             block = create_block(mpl);
-            name = dmp_get_atomv(mpl->pool, strlen(mpl->image)+1);
-            strcpy(name, mpl->image);
+            name = dmp_get_atomv(mpl->pool, strlen(mpl->scan_input->image)+1);
+            strcpy(name, mpl->scan_input->image);
             append_slot(mpl, block, name, NULL);
             get_token(mpl /* <symbolic name> */);
             /* the keyword 'in' is already checked above */
-            xassert(mpl->token == T_IN);
+            xassert(mpl->scan_input->token == T_IN);
             get_token(mpl /* in */);
             /* <basic expression> that follows the keyword 'in' will be
                parsed below */
          }
-         else if (mpl->token == T_LEFT)
+         else if (mpl->scan_input->token == T_LEFT)
          {  /* it is the left parenthesis; parse expression that begins
                with this parenthesis (the flag is set in order to allow
                recognizing slices; see the routine expression_list) */
@@ -1787,7 +1800,7 @@ DOMAIN *indexing_expression(MPL *mpl)
             code = NULL; /* <basic expression> is not parsed yet */
             /* the keyword 'in' following the slice is already checked
                by expression_list() */
-            xassert(mpl->token == T_IN);
+            xassert(mpl->scan_input->token == T_IN);
             get_token(mpl /* in */);
             /* <basic expression> that follows the keyword 'in' will be
                parsed below */
@@ -1853,15 +1866,15 @@ expr:    /* parse expression that follows either the keyword 'in' (in
             avl_set_node_link(node, (void *)slot);
          }
          /* check a token that follows <indexing element> */
-         if (mpl->token == T_COMMA)
+         if (mpl->scan_input->token == T_COMMA)
             get_token(mpl /* , */);
-         else if (mpl->token == T_COLON || mpl->token == T_RBRACE)
+         else if (mpl->scan_input->token == T_COLON || mpl->scan_input->token == T_RBRACE)
             break;
          else
             error(mpl, "syntax error in indexing expression");
       }
       /* parse <logical expression> that follows the colon */
-      if (mpl->token == T_COLON)
+      if (mpl->scan_input->token == T_COLON)
       {  get_token(mpl /* : */);
          code = expression_13(mpl);
          /* convert the expression to logical type, if necessary */
@@ -1875,7 +1888,7 @@ expr:    /* parse expression that follows either the keyword 'in' (in
          xassert(code->dim == 0);
          domain->code = code;
          /* the right brace must follow the logical expression */
-         if (mpl->token != T_RBRACE)
+         if (mpl->scan_input->token != T_RBRACE)
             error(mpl, "syntax error in indexing expression");
       }
       get_token(mpl /* } */);
@@ -1955,28 +1968,28 @@ CODE *iterated_expression(MPL *mpl)
       int op;
       char opstr[8];
       /* determine operation code */
-      xassert(mpl->token == T_NAME);
-      if (strcmp(mpl->image, "sum") == 0)
+      xassert(mpl->scan_input->token == T_NAME);
+      if (strcmp(mpl->scan_input->image, "sum") == 0)
          op = O_SUM;
-      else if (strcmp(mpl->image, "prod") == 0)
+      else if (strcmp(mpl->scan_input->image, "prod") == 0)
          op = O_PROD;
-      else if (strcmp(mpl->image, "min") == 0)
+      else if (strcmp(mpl->scan_input->image, "min") == 0)
          op = O_MINIMUM;
-      else if (strcmp(mpl->image, "max") == 0)
+      else if (strcmp(mpl->scan_input->image, "max") == 0)
          op = O_MAXIMUM;
-      else if (strcmp(mpl->image, "forall") == 0)
+      else if (strcmp(mpl->scan_input->image, "forall") == 0)
          op = O_FORALL;
-      else if (strcmp(mpl->image, "exists") == 0)
+      else if (strcmp(mpl->scan_input->image, "exists") == 0)
          op = O_EXISTS;
-      else if (strcmp(mpl->image, "setof") == 0)
+      else if (strcmp(mpl->scan_input->image, "setof") == 0)
          op = O_SETOF;
       else
-         error(mpl, "operator %s unknown", mpl->image);
-      strcpy(opstr, mpl->image);
+         error(mpl, "operator %s unknown", mpl->scan_input->image);
+      strcpy(opstr, mpl->scan_input->image);
       xassert(strlen(opstr) < sizeof(opstr));
       get_token(mpl /* <symbolic name> */);
       /* check the left brace that follows the operator name */
-      xassert(mpl->token == T_LBRACE);
+      xassert(mpl->scan_input->token == T_LBRACE);
       /* parse indexing expression that controls iterating */
       arg.loop.domain = indexing_expression(mpl);
       /* parse "integrand" expression and generate pseudo-code */
@@ -2071,10 +2084,10 @@ int domain_arity(MPL *mpl, DOMAIN *domain)
 CODE *set_expression(MPL *mpl)
 {     CODE *code;
       OPERANDS arg;
-      xassert(mpl->token == T_LBRACE);
+      xassert(mpl->scan_input->token == T_LBRACE);
       get_token(mpl /* { */);
       /* check a token that follows the left brace */
-      if (mpl->token == T_RBRACE)
+      if (mpl->scan_input->token == T_RBRACE)
       {  /* it is the right brace, so the resultant is an empty set of
             dimension 1 */
          arg.list = NULL;
@@ -2112,7 +2125,7 @@ CODE *set_expression(MPL *mpl)
 
 CODE *branched_expression(MPL *mpl)
 {     CODE *code, *x, *y, *z;
-      xassert(mpl->token == T_IF);
+      xassert(mpl->scan_input->token == T_IF);
       get_token(mpl /* if */);
       /* parse <logical expression> that follows 'if' */
       x = expression_13(mpl);
@@ -2126,7 +2139,7 @@ CODE *branched_expression(MPL *mpl)
          error(mpl, "expression following if has invalid type");
       xassert(x->dim == 0);
       /* the keyword 'then' must follow the logical expression */
-      if (mpl->token != T_THEN)
+      if (mpl->scan_input->token != T_THEN)
          error(mpl, "keyword then missing where expected");
       get_token(mpl /* then */);
       /* parse <expression> that follows 'then' and check its type */
@@ -2137,7 +2150,7 @@ CODE *branched_expression(MPL *mpl)
       /* if the expression that follows the keyword 'then' is elemental
          set, the keyword 'else' cannot be omitted; otherwise else-part
          is optional */
-      if (mpl->token != T_ELSE)
+      if (mpl->scan_input->token != T_ELSE)
       {  if (y->type == A_ELEMSET)
             error(mpl, "keyword else missing where expected");
          z = NULL;
@@ -2206,12 +2219,12 @@ skip: /* generate pseudo-code to perform branching */
 
 CODE *primary_expression(MPL *mpl)
 {     CODE *code;
-      if (mpl->token == T_NUMBER)
+      if (mpl->scan_input->token == T_NUMBER)
       {  /* parse numeric literal */
          code = numeric_literal(mpl);
       }
 #if 1 /* 21/VII-2006 */
-      else if (mpl->token == T_INFINITY)
+      else if (mpl->scan_input->token == T_INFINITY)
       {  /* parse "infinity" */
          OPERANDS arg;
          arg.num = DBL_MAX;
@@ -2219,14 +2232,14 @@ CODE *primary_expression(MPL *mpl)
          get_token(mpl /* Infinity */);
       }
 #endif
-      else if (mpl->token == T_STRING)
+      else if (mpl->scan_input->token == T_STRING)
       {  /* parse string literal */
          code = string_literal(mpl);
       }
-      else if (mpl->token == T_NAME)
+      else if (mpl->scan_input->token == T_NAME)
       {  int next_token;
          get_token(mpl /* <symbolic name> */);
-         next_token = mpl->token;
+         next_token = mpl->scan_input->token;
          unget_token(mpl);
          /* check a token that follows <symbolic name> */
          switch (next_token)
@@ -2248,21 +2261,21 @@ CODE *primary_expression(MPL *mpl)
                break;
          }
       }
-      else if (mpl->token == T_LEFT)
+      else if (mpl->scan_input->token == T_LEFT)
       {  /* parse parenthesized expression */
          code = expression_list(mpl);
       }
-      else if (mpl->token == T_LBRACE)
+      else if (mpl->scan_input->token == T_LBRACE)
       {  /* parse set expression */
          code = set_expression(mpl);
       }
-      else if (mpl->token == T_IF)
+      else if (mpl->scan_input->token == T_IF)
       {  /* parse conditional expression */
          code = branched_expression(mpl);
       }
       else if (is_reserved(mpl))
       {  /* other reserved keywords cannot be used here */
-         error(mpl, "invalid use of reserved keyword %s", mpl->image);
+         error(mpl, "invalid use of reserved keyword %s", mpl->scan_input->image);
       }
       else
          error(mpl, "syntax error in expression");
@@ -2330,15 +2343,15 @@ CODE *expression_1(MPL *mpl)
 {     CODE *x, *y;
       char opstr[8];
       x = expression_0(mpl);
-      if (mpl->token == T_POWER)
-      {  strcpy(opstr, mpl->image);
+      if (mpl->scan_input->token == T_POWER)
+      {  strcpy(opstr, mpl->scan_input->image);
          xassert(strlen(opstr) < sizeof(opstr));
          if (x->type == A_SYMBOLIC)
             x = make_unary(mpl, O_CVTNUM, x, A_NUMERIC, 0);
          if (x->type != A_NUMERIC)
             error_preceding(mpl, opstr);
          get_token(mpl /* ^ | ** */);
-         if (mpl->token == T_PLUS || mpl->token == T_MINUS)
+         if (mpl->scan_input->token == T_PLUS || mpl->scan_input->token == T_MINUS)
             y = expression_2(mpl);
          else
             y = expression_1(mpl);
@@ -2362,7 +2375,7 @@ CODE *expression_1(MPL *mpl)
 
 CODE *expression_2(MPL *mpl)
 {     CODE *x;
-      if (mpl->token == T_PLUS)
+      if (mpl->scan_input->token == T_PLUS)
       {  get_token(mpl /* + */);
          x = expression_1(mpl);
          if (x->type == A_SYMBOLIC)
@@ -2371,7 +2384,7 @@ CODE *expression_2(MPL *mpl)
             error_following(mpl, "+");
          x = make_unary(mpl, O_PLUS, x, x->type, 0);
       }
-      else if (mpl->token == T_MINUS)
+      else if (mpl->scan_input->token == T_MINUS)
       {  get_token(mpl /* - */);
          x = expression_1(mpl);
          if (x->type == A_SYMBOLIC)
@@ -2400,7 +2413,7 @@ CODE *expression_3(MPL *mpl)
 {     CODE *x, *y;
       x = expression_2(mpl);
       for (;;)
-      {  if (mpl->token == T_ASTERISK)
+      {  if (mpl->scan_input->token == T_ASTERISK)
          {  if (x->type == A_SYMBOLIC)
                x = make_unary(mpl, O_CVTNUM, x, A_NUMERIC, 0);
             if (!(x->type == A_NUMERIC || x->type == A_FORMULA))
@@ -2418,7 +2431,7 @@ CODE *expression_3(MPL *mpl)
             else
                x = make_binary(mpl, O_MUL, x, y, A_FORMULA, 0);
          }
-         else if (mpl->token == T_SLASH)
+         else if (mpl->scan_input->token == T_SLASH)
          {  if (x->type == A_SYMBOLIC)
                x = make_unary(mpl, O_CVTNUM, x, A_NUMERIC, 0);
             if (!(x->type == A_NUMERIC || x->type == A_FORMULA))
@@ -2434,7 +2447,7 @@ CODE *expression_3(MPL *mpl)
             else
                x = make_binary(mpl, O_DIV, x, y, A_FORMULA, 0);
          }
-         else if (mpl->token == T_DIV)
+         else if (mpl->scan_input->token == T_DIV)
          {  if (x->type == A_SYMBOLIC)
                x = make_unary(mpl, O_CVTNUM, x, A_NUMERIC, 0);
             if (x->type != A_NUMERIC)
@@ -2447,7 +2460,7 @@ CODE *expression_3(MPL *mpl)
                error_following(mpl, "div");
             x = make_binary(mpl, O_IDIV, x, y, A_NUMERIC, 0);
          }
-         else if (mpl->token == T_MOD)
+         else if (mpl->scan_input->token == T_MOD)
          {  if (x->type == A_SYMBOLIC)
                x = make_unary(mpl, O_CVTNUM, x, A_NUMERIC, 0);
             if (x->type != A_NUMERIC)
@@ -2480,7 +2493,7 @@ CODE *expression_4(MPL *mpl)
 {     CODE *x, *y;
       x = expression_3(mpl);
       for (;;)
-      {  if (mpl->token == T_PLUS)
+      {  if (mpl->scan_input->token == T_PLUS)
          {  if (x->type == A_SYMBOLIC)
                x = make_unary(mpl, O_CVTNUM, x, A_NUMERIC, 0);
             if (!(x->type == A_NUMERIC || x->type == A_FORMULA))
@@ -2497,7 +2510,7 @@ CODE *expression_4(MPL *mpl)
                y = make_unary(mpl, O_CVTLFM, y, A_FORMULA, 0);
             x = make_binary(mpl, O_ADD, x, y, x->type, 0);
          }
-         else if (mpl->token == T_MINUS)
+         else if (mpl->scan_input->token == T_MINUS)
          {  if (x->type == A_SYMBOLIC)
                x = make_unary(mpl, O_CVTNUM, x, A_NUMERIC, 0);
             if (!(x->type == A_NUMERIC || x->type == A_FORMULA))
@@ -2514,7 +2527,7 @@ CODE *expression_4(MPL *mpl)
                y = make_unary(mpl, O_CVTLFM, y, A_FORMULA, 0);
             x = make_binary(mpl, O_SUB, x, y, x->type, 0);
          }
-         else if (mpl->token == T_LESS)
+         else if (mpl->scan_input->token == T_LESS)
          {  if (x->type == A_SYMBOLIC)
                x = make_unary(mpl, O_CVTNUM, x, A_NUMERIC, 0);
             if (x->type != A_NUMERIC)
@@ -2545,7 +2558,7 @@ CODE *expression_5(MPL *mpl)
 {     CODE *x, *y;
       x = expression_4(mpl);
       for (;;)
-      {  if (mpl->token == T_CONCAT)
+      {  if (mpl->scan_input->token == T_CONCAT)
          {  if (x->type == A_NUMERIC)
                x = make_unary(mpl, O_CVTSYM, x, A_SYMBOLIC, 0);
             if (x->type != A_SYMBOLIC)
@@ -2577,7 +2590,7 @@ CODE *expression_5(MPL *mpl)
 CODE *expression_6(MPL *mpl)
 {     CODE *x, *y, *z;
       x = expression_5(mpl);
-      if (mpl->token == T_DOTS)
+      if (mpl->scan_input->token == T_DOTS)
       {  if (x->type == A_SYMBOLIC)
             x = make_unary(mpl, O_CVTNUM, x, A_NUMERIC, 0);
          if (x->type != A_NUMERIC)
@@ -2588,7 +2601,7 @@ CODE *expression_6(MPL *mpl)
             y = make_unary(mpl, O_CVTNUM, y, A_NUMERIC, 0);
          if (y->type != A_NUMERIC)
             error_following(mpl, "..");
-         if (mpl->token == T_BY)
+         if (mpl->scan_input->token == T_BY)
          {  get_token(mpl /* by */);
             z = expression_5(mpl);
             if (z->type == A_SYMBOLIC)
@@ -2615,7 +2628,7 @@ CODE *expression_7(MPL *mpl)
 {     CODE *x, *y;
       x = expression_6(mpl);
       for (;;)
-      {  if (mpl->token == T_CROSS)
+      {  if (mpl->scan_input->token == T_CROSS)
          {  if (x->type != A_ELEMSET)
                error_preceding(mpl, "cross");
             get_token(mpl /* cross */);
@@ -2643,7 +2656,7 @@ CODE *expression_8(MPL *mpl)
 {     CODE *x, *y;
       x = expression_7(mpl);
       for (;;)
-      {  if (mpl->token == T_INTER)
+      {  if (mpl->scan_input->token == T_INTER)
          {  if (x->type != A_ELEMSET)
                error_preceding(mpl, "inter");
             get_token(mpl /* inter */);
@@ -2674,7 +2687,7 @@ CODE *expression_9(MPL *mpl)
 {     CODE *x, *y;
       x = expression_8(mpl);
       for (;;)
-      {  if (mpl->token == T_UNION)
+      {  if (mpl->scan_input->token == T_UNION)
          {  if (x->type != A_ELEMSET)
                error_preceding(mpl, "union");
             get_token(mpl /* union */);
@@ -2685,7 +2698,7 @@ CODE *expression_9(MPL *mpl)
                error_dimension(mpl, "union", x->dim, y->dim);
             x = make_binary(mpl, O_UNION, x, y, A_ELEMSET, x->dim);
          }
-         else if (mpl->token == T_DIFF)
+         else if (mpl->scan_input->token == T_DIFF)
          {  if (x->type != A_ELEMSET)
                error_preceding(mpl, "diff");
             get_token(mpl /* diff */);
@@ -2696,7 +2709,7 @@ CODE *expression_9(MPL *mpl)
                error_dimension(mpl, "diff", x->dim, y->dim);
             x = make_binary(mpl, O_DIFF, x, y, A_ELEMSET, x->dim);
          }
-         else if (mpl->token == T_SYMDIFF)
+         else if (mpl->scan_input->token == T_SYMDIFF)
          {  if (x->type != A_ELEMSET)
                error_preceding(mpl, "symdiff");
             get_token(mpl /* symdiff */);
@@ -2729,7 +2742,7 @@ CODE *expression_10(MPL *mpl)
       char opstr[16];
       x = expression_9(mpl);
       strcpy(opstr, "");
-      switch (mpl->token)
+      switch (mpl->scan_input->token)
       {  case T_LT:
             op = O_LT; break;
          case T_LE:
@@ -2747,11 +2760,11 @@ CODE *expression_10(MPL *mpl)
          case T_WITHIN:
             op = O_WITHIN; break;
          case T_NOT:
-            strcpy(opstr, mpl->image);
+            strcpy(opstr, mpl->scan_input->image);
             get_token(mpl /* not | ! */);
-            if (mpl->token == T_IN)
+            if (mpl->scan_input->token == T_IN)
                op = O_NOTIN;
-            else if (mpl->token == T_WITHIN)
+            else if (mpl->scan_input->token == T_WITHIN)
                op = O_NOTWITHIN;
             else
                error(mpl, "invalid use of %s", opstr);
@@ -2760,7 +2773,7 @@ CODE *expression_10(MPL *mpl)
          default:
             goto done;
       }
-      strcat(opstr, mpl->image);
+      strcat(opstr, mpl->scan_input->image);
       xassert(strlen(opstr) < sizeof(opstr));
       switch (op)
       {  case O_EQ:
@@ -2847,8 +2860,8 @@ done: return x;
 CODE *expression_11(MPL *mpl)
 {     CODE *x;
       char opstr[8];
-      if (mpl->token == T_NOT)
-      {  strcpy(opstr, mpl->image);
+      if (mpl->scan_input->token == T_NOT)
+      {  strcpy(opstr, mpl->scan_input->image);
          xassert(strlen(opstr) < sizeof(opstr));
          get_token(mpl /* not | ! */);
          x = expression_10(mpl);
@@ -2879,8 +2892,8 @@ CODE *expression_12(MPL *mpl)
       char opstr[8];
       x = expression_11(mpl);
       for (;;)
-      {  if (mpl->token == T_AND)
-         {  strcpy(opstr, mpl->image);
+      {  if (mpl->scan_input->token == T_AND)
+         {  strcpy(opstr, mpl->scan_input->image);
             xassert(strlen(opstr) < sizeof(opstr));
             if (x->type == A_SYMBOLIC)
                x = make_unary(mpl, O_CVTNUM, x, A_NUMERIC, 0);
@@ -2918,8 +2931,8 @@ CODE *expression_13(MPL *mpl)
       char opstr[8];
       x = expression_12(mpl);
       for (;;)
-      {  if (mpl->token == T_OR)
-         {  strcpy(opstr, mpl->image);
+      {  if (mpl->scan_input->token == T_OR)
+         {  strcpy(opstr, mpl->scan_input->image);
             xassert(strlen(opstr) < sizeof(opstr));
             if (x->type == A_SYMBOLIC)
                x = make_unary(mpl, O_CVTNUM, x, A_NUMERIC, 0);
@@ -2962,40 +2975,40 @@ PROBLEM *problem_statement(MPL *mpl)
       xassert(is_keyword(mpl, "problem"));
       get_token(mpl /* problem */);
       /* symbolic name must follow the keyword 'problem' */
-      if (mpl->token == T_NAME)
+      if (mpl->scan_input->token == T_NAME)
          ;
       else if (is_reserved(mpl))
-         error(mpl, "invalid use of reserved keyword %s", mpl->image);
+         error(mpl, "invalid use of reserved keyword %s", mpl->scan_input->image);
       else
          error(mpl, "symbolic name missing where expected");
       /* there must be no other object with the same name */
-      node = avl_find_node(mpl->tree, mpl->image);
+      node = avl_find_node(mpl->tree, mpl->scan_input->image);
       if (node) {
           if(avl_get_node_type(node) == A_PROBLEM) {
               get_token(mpl /* <symbolic name> */);
-              if(mpl->token != T_SEMICOLON)
+              if(mpl->scan_input->token != T_SEMICOLON)
                   error(mpl, "problem statement using an existing name do not accept paramenters");
               get_token(mpl /* ; */);
               prob = (PROBLEM*)avl_get_node_link(node);
               mpl->current_problem = prob;
               return prob;
           }
-          else error(mpl, "%s already in use", mpl->image);
+          else error(mpl, "%s already in use", mpl->scan_input->image);
       }
       else if(mpl->nested_scope)
           error(mpl, "problem creation not allowed here");
       /* create model problem */
       prob = alloc(PROBLEM);
-      prob->name = dmp_get_atomv(mpl->pool, strlen(mpl->image)+1);
-      strcpy(prob->name, mpl->image);
+      prob->name = dmp_get_atomv(mpl->pool, strlen(mpl->scan_input->image)+1);
+      strcpy(prob->name, mpl->scan_input->image);
       prob->alias = NULL;
       prob->list = NULL;
       prob->type = 0;
       get_token(mpl /* <symbolic name> */);
       /* parse optional alias */
-      if (mpl->token == T_STRING)
-      {  prob->alias = dmp_get_atomv(mpl->pool, strlen(mpl->image)+1);
-         strcpy(prob->alias, mpl->image);
+      if (mpl->scan_input->token == T_STRING)
+      {  prob->alias = dmp_get_atomv(mpl->pool, strlen(mpl->scan_input->image)+1);
+         strcpy(prob->alias, mpl->scan_input->image);
          get_token(mpl /* <string literal> */);
       }
       /* include the problem name in the symbolic names table */
@@ -3006,11 +3019,11 @@ PROBLEM *problem_statement(MPL *mpl)
       }
       mpl->current_problem = prob;
       /* the colon must precede the first element */
-      if (mpl->token == T_COLON) {
+      if (mpl->scan_input->token == T_COLON) {
           get_token(mpl /* : */);
-          while(mpl->token == T_NAME) {
-              AVLNODE *node = avl_find_node(mpl->tree, mpl->image);
-              if (!node) error(mpl, "unknown name '%s'", mpl->image);
+          while(mpl->scan_input->token == T_NAME) {
+              AVLNODE *node = avl_find_node(mpl->tree, mpl->scan_input->image);
+              if (!node) error(mpl, "unknown name '%s'", mpl->scan_input->image);
               STATEMENT *stmt = alloc(STATEMENT);
               stmt->next = NULL;
               stmt->line = 0;
@@ -3018,14 +3031,118 @@ PROBLEM *problem_statement(MPL *mpl)
               stmt->u.var = (VARIABLE*)avl_get_node_link(node);
               add_problem_element(mpl, stmt);
               get_token(mpl /* name */);
-              if(mpl->token != T_COMMA) break;
+              if(mpl->scan_input->token != T_COMMA) break;
               get_token(mpl /* , */);
           }
       }
       /* the problem statement has been completely parsed */
-      xassert(mpl->token == T_SEMICOLON);
+      xassert(mpl->scan_input->token == T_SEMICOLON);
       get_token(mpl /* ; */);
       return prob;
+}
+
+/*----------------------------------------------------------------------
+-- model_statement - parse model statement.
+--
+-- This routine parses model statement using the syntax:
+--
+-- <model statement> ::= model <string file_name>;
+-- <string file_name> ::= <empty>
+-- <string file_name> ::= <string literal>
+--
+ */
+
+void model_statement(MPL *mpl)
+{
+      char *file_name = NULL;
+      xassert(is_keyword(mpl, "model"));
+      get_token(mpl /* model */);
+      if(mpl->nested_scope)
+          error(mpl, "model not allowed in nested scopes");
+      /* parse optional file name */
+      if (mpl->scan_input->token == T_STRING)
+      {  file_name = dmp_get_atomv(mpl->pool, strlen(mpl->scan_input->image)+1);
+         strcpy(file_name, mpl->scan_input->image);
+         get_token(mpl /* <string literal> */);
+      }
+      /* the problem statement has been completely parsed */
+      if (mpl->scan_input->token != T_SEMICOLON)
+         error(mpl, "semicolon missing where expected");
+      get_token(mpl /* ; */);
+
+      if(file_name) {
+          glp_input_file_st *saved_scan_input = mpl->scan_input;
+          mpl->scan_input = mpl_new_scan_input(mpl);
+          open_input(mpl, file_name);
+          model_section(mpl);
+          close_input(mpl);
+          mpl_free_scan_input(mpl, mpl->scan_input);
+          mpl->scan_input = saved_scan_input;
+      }
+}
+
+/*----------------------------------------------------------------------
+-- data_statement - parse data statement.
+--
+-- This routine parses data statement using the syntax:
+--
+-- <model statement> ::= data <string file_name>;
+-- <string file_name> ::= <empty>
+-- <string file_name> ::= <string literal>
+--
+ */
+
+int data_statement(MPL *mpl)
+{
+      char *file_name = NULL;
+      xassert(is_keyword(mpl, "data"));
+      get_token(mpl /* data */);
+      if(mpl->nested_scope)
+          error(mpl, "data not allowed in nested scopes");
+      /* parse optional file name */
+      if (mpl->scan_input->token == T_STRING)
+      {  file_name = dmp_get_atomv(mpl->pool, strlen(mpl->scan_input->image)+1);
+         strcpy(file_name, mpl->scan_input->image);
+         get_token(mpl /* <string literal> */);
+      }
+      else
+      {
+          /* if no filename is provided we do nothing here */
+          unget_token(mpl);
+      }
+      if(file_name) {
+          /* the data statement has been completely parsed */
+          if (mpl->scan_input->token != T_SEMICOLON)
+            error(mpl, "semicolon missing where expected");
+          get_token(mpl /* ; */);
+          alloc_content(mpl);
+          /* process data file */
+          if (mpl->msg_lev >= GLP_MSG_ON)
+            xprintf("Reading data section from %s...\n", file_name);
+          mpl->phase = GLP_TRAN_PHASE_DATA;
+          mpl->flag_d = 1;
+          glp_input_file_st *saved_scan_input = mpl->scan_input;
+          mpl->scan_input = mpl_new_scan_input(mpl);
+          open_input(mpl, file_name);
+          /* in this case the keyword 'data' is optional */
+          if (is_literal(mpl, "data"))
+          {  get_token(mpl /* data */);
+               if (mpl->scan_input->token != T_SEMICOLON)
+                  error(mpl, "semicolon missing where expected");
+               get_token(mpl /* ; */);
+          }
+          data_section(mpl);
+          if (mpl->msg_lev >= GLP_MSG_ON)
+            xprintf("%d line%s were read\n",
+              mpl->scan_input->line, mpl->scan_input->line == 1 ? "" : "s");
+          close_input(mpl);
+          mpl_free_scan_input(mpl, mpl->scan_input);
+          mpl->scan_input = saved_scan_input;
+          mpl->phase = GLP_TRAN_PHASE_MODEL;
+          mpl->flag_d = 0;
+          return 1;
+      }
+      return 0;
 }
 
 /*----------------------------------------------------------------------
@@ -3053,19 +3170,19 @@ SET *set_statement(MPL *mpl)
       xassert(is_keyword(mpl, "set"));
       get_token(mpl /* set */);
       /* symbolic name must follow the keyword 'set' */
-      if (mpl->token == T_NAME)
+      if (mpl->scan_input->token == T_NAME)
          ;
       else if (is_reserved(mpl))
-         error(mpl, "invalid use of reserved keyword %s", mpl->image);
+         error(mpl, "invalid use of reserved keyword %s", mpl->scan_input->image);
       else
          error(mpl, "symbolic name missing where expected");
       /* there must be no other object with the same name */
-      if (avl_find_node(mpl->tree, mpl->image) != NULL)
-         error(mpl, "%s multiply declared", mpl->image);
+      if (avl_find_node(mpl->tree, mpl->scan_input->image) != NULL)
+         error(mpl, "%s multiply declared", mpl->scan_input->image);
       /* create model set */
       set = alloc(SET);
-      set->name = dmp_get_atomv(mpl->pool, strlen(mpl->image)+1);
-      strcpy(set->name, mpl->image);
+      set->name = dmp_get_atomv(mpl->pool, strlen(mpl->scan_input->image)+1);
+      strcpy(set->name, mpl->scan_input->image);
       set->alias = NULL;
       set->dim = 0;
       set->code_valid = mpl->last_code_valid;
@@ -3080,13 +3197,13 @@ SET *set_statement(MPL *mpl)
       set->array = NULL;
       get_token(mpl /* <symbolic name> */);
       /* parse optional alias */
-      if (mpl->token == T_STRING)
-      {  set->alias = dmp_get_atomv(mpl->pool, strlen(mpl->image)+1);
-         strcpy(set->alias, mpl->image);
+      if (mpl->scan_input->token == T_STRING)
+      {  set->alias = dmp_get_atomv(mpl->pool, strlen(mpl->scan_input->image)+1);
+         strcpy(set->alias, mpl->scan_input->image);
          get_token(mpl /* <string literal> */);
       }
       /* parse optional indexing expression */
-      if (mpl->token == T_LBRACE)
+      if (mpl->scan_input->token == T_LBRACE)
       {  set->domain = indexing_expression(mpl);
          set->dim = domain_arity(mpl, set->domain);
       }
@@ -3098,19 +3215,19 @@ SET *set_statement(MPL *mpl)
       }
       /* parse the list of optional attributes */
       for (;;)
-      {  if (mpl->token == T_COMMA)
+      {  if (mpl->scan_input->token == T_COMMA)
             get_token(mpl /* , */);
-         else if (mpl->token == T_SEMICOLON)
+         else if (mpl->scan_input->token == T_SEMICOLON)
             break;
          if (is_keyword(mpl, "dimen"))
          {  /* dimension of set members */
             int dimen;
             get_token(mpl /* dimen */);
-            if (!(mpl->token == T_NUMBER &&
-                  1.0 <= mpl->value && mpl->value <= MAX_TUPLE_DIM &&
-                  floor(mpl->value) == mpl->value))
+            if (!(mpl->scan_input->token == T_NUMBER &&
+                  1.0 <= mpl->scan_input->value && mpl->scan_input->value <= MAX_TUPLE_DIM &&
+                  floor(mpl->scan_input->value) == mpl->scan_input->value))
                error(mpl, "dimension must be integer between 1 and %d", MAX_TUPLE_DIM);
-            dimen = (int)(mpl->value + 0.5);
+            dimen = (int)(mpl->scan_input->value + 0.5);
             if (dimen_used)
                error(mpl, "at most one dimension attribute allowed");
             if (set->dimen > 0)
@@ -3120,10 +3237,10 @@ SET *set_statement(MPL *mpl)
             dimen_used = 1;
             get_token(mpl /* <numeric literal> */);
          }
-         else if (mpl->token == T_WITHIN || mpl->token == T_IN)
+         else if (mpl->scan_input->token == T_WITHIN || mpl->scan_input->token == T_IN)
          {  /* restricting superset */
             WITHIN *within, *temp;
-            if (mpl->token == T_IN && !mpl->as_within)
+            if (mpl->scan_input->token == T_IN && !mpl->as_within)
             {  warning(mpl, "keyword in understood as within");
                mpl->as_within = 1;
             }
@@ -3153,7 +3270,7 @@ SET *set_statement(MPL *mpl)
                   "mension %d rather than %d",
                   set->dimen, within->code->dim);
          }
-         else if (mpl->token == T_ASSIGN)
+         else if (mpl->scan_input->token == T_ASSIGN)
          {  /* assignment expression */
             if (!(set->assign == NULL && set->option == NULL &&
                   set->gadget == NULL))
@@ -3198,35 +3315,35 @@ err:           error(mpl, "at most one := or default/data allowed");
             get_token(mpl /* data */);
             set->gadget = gadget = alloc(GADGET);
             /* set name must follow the keyword 'data' */
-            if (mpl->token == T_NAME)
+            if (mpl->scan_input->token == T_NAME)
                ;
             else if (is_reserved(mpl))
                error(mpl, "invalid use of reserved keyword %s",
-                  mpl->image);
+                  mpl->scan_input->image);
             else
                error(mpl, "set name missing where expected");
             /* find the set in the symbolic name table */
-            node = avl_find_node(mpl->tree, mpl->image);
+            node = avl_find_node(mpl->tree, mpl->scan_input->image);
             if (node == NULL)
-               error(mpl, "%s not defined", mpl->image);
+               error(mpl, "%s not defined", mpl->scan_input->image);
             if (avl_get_node_type(node) != A_SET)
-err1:          error(mpl, "%s not a plain set", mpl->image);
+err1:          error(mpl, "%s not a plain set", mpl->scan_input->image);
             gadget->set = avl_get_node_link(node);
             if (gadget->set->dim != 0) goto err1;
             if (gadget->set == set)
                error(mpl, "set cannot be initialized by itself");
             /* check and set dimensions */
             if (set->dim >= gadget->set->dimen)
-err2:          error(mpl, "dimension of %s too small", mpl->image);
+err2:          error(mpl, "dimension of %s too small", mpl->scan_input->image);
             if (set->dimen == 0)
                set->dimen = gadget->set->dimen - set->dim;
             if (set->dim + set->dimen > gadget->set->dimen)
                goto err2;
             else if (set->dim + set->dimen < gadget->set->dimen)
-               error(mpl, "dimension of %s too big", mpl->image);
+               error(mpl, "dimension of %s too big", mpl->scan_input->image);
             get_token(mpl /* set name */);
             /* left parenthesis must follow the set name */
-            if (mpl->token == T_LEFT)
+            if (mpl->scan_input->token == T_LEFT)
                get_token(mpl /* ( */);
             else
                error(mpl, "left parenthesis missing where expected");
@@ -3234,9 +3351,9 @@ err2:          error(mpl, "dimension of %s too small", mpl->image);
             for (k = 0; k < gadget->set->dimen; k++) fff[k] = 0;
             k = 0;
             for (;;)
-            {  if (mpl->token != T_NUMBER)
+            {  if (mpl->scan_input->token != T_NUMBER)
                   error(mpl, "component number missing where expected");
-               if (str2int(mpl->image, &i) != 0)
+               if (str2int(mpl->scan_input->image, &i) != 0)
 err3:             error(mpl, "component number must be integer between "
                      "1 and %d", gadget->set->dimen);
                if (!(1 <= i && i <= gadget->set->dimen)) goto err3;
@@ -3245,9 +3362,9 @@ err3:             error(mpl, "component number must be integer between "
                gadget->ind[k++] = i, fff[i-1] = 1;
                xassert(k <= gadget->set->dimen);
                get_token(mpl /* number */);
-               if (mpl->token == T_COMMA)
+               if (mpl->scan_input->token == T_COMMA)
                   get_token(mpl /* , */);
-               else if (mpl->token == T_RIGHT)
+               else if (mpl->scan_input->token == T_RIGHT)
                   break;
                else
                   error(mpl, "syntax error in data attribute");
@@ -3270,7 +3387,7 @@ err3:             error(mpl, "component number must be integer between "
       /* if dimension of set members is still unknown, set it to 1 */
       if (set->dimen == 0) set->dimen = 1;
       /* the set statement has been completely parsed */
-      xassert(mpl->token == T_SEMICOLON);
+      xassert(mpl->scan_input->token == T_SEMICOLON);
       get_token(mpl /* ; */);
       return set;
 }
@@ -3304,19 +3421,19 @@ PARAMETER *parameter_statement(MPL *mpl)
       xassert(is_keyword(mpl, "param"));
       get_token(mpl /* param */);
       /* symbolic name must follow the keyword 'param' */
-      if (mpl->token == T_NAME)
+      if (mpl->scan_input->token == T_NAME)
          ;
       else if (is_reserved(mpl))
-         error(mpl, "invalid use of reserved keyword %s", mpl->image);
+         error(mpl, "invalid use of reserved keyword %s", mpl->scan_input->image);
       else
          error(mpl, "symbolic name missing where expected");
       /* there must be no other object with the same name */
-      if (avl_find_node(mpl->tree, mpl->image) != NULL)
-         error(mpl, "%s multiply declared", mpl->image);
+      if (avl_find_node(mpl->tree, mpl->scan_input->image) != NULL)
+         error(mpl, "%s multiply declared", mpl->scan_input->image);
       /* create model parameter */
       par = alloc(PARAMETER);
-      par->name = dmp_get_atomv(mpl->pool, strlen(mpl->image)+1);
-      strcpy(par->name, mpl->image);
+      par->name = dmp_get_atomv(mpl->pool, strlen(mpl->scan_input->image)+1);
+      strcpy(par->name, mpl->scan_input->image);
       par->alias = NULL;
       par->dim = 0;
       par->domain = NULL;
@@ -3332,13 +3449,13 @@ PARAMETER *parameter_statement(MPL *mpl)
       par->array = NULL;
       get_token(mpl /* <symbolic name> */);
       /* parse optional alias */
-      if (mpl->token == T_STRING)
-      {  par->alias = dmp_get_atomv(mpl->pool, strlen(mpl->image)+1);
-         strcpy(par->alias, mpl->image);
+      if (mpl->scan_input->token == T_STRING)
+      {  par->alias = dmp_get_atomv(mpl->pool, strlen(mpl->scan_input->image)+1);
+         strcpy(par->alias, mpl->scan_input->image);
          get_token(mpl /* <string literal> */);
       }
       /* parse optional indexing expression */
-      if (mpl->token == T_LBRACE)
+      if (mpl->scan_input->token == T_LBRACE)
       {  par->domain = indexing_expression(mpl);
          par->dim = domain_arity(mpl, par->domain);
       }
@@ -3350,9 +3467,9 @@ PARAMETER *parameter_statement(MPL *mpl)
       }
       /* parse the list of optional attributes */
       for (;;)
-      {  if (mpl->token == T_COMMA)
+      {  if (mpl->scan_input->token == T_COMMA)
             get_token(mpl /* , */);
-         else if (mpl->token == T_SEMICOLON)
+         else if (mpl->scan_input->token == T_SEMICOLON)
             break;
          if (is_keyword(mpl, "integer"))
          {  if (integer_used)
@@ -3396,30 +3513,30 @@ bin:     {  if (binary_used)
             symbolic_used = 1;
             get_token(mpl /* symbolic */);
          }
-         else if (mpl->token == T_LT || mpl->token == T_LE ||
-                  mpl->token == T_EQ || mpl->token == T_GE ||
-                  mpl->token == T_GT || mpl->token == T_NE)
+         else if (mpl->scan_input->token == T_LT || mpl->scan_input->token == T_LE ||
+                  mpl->scan_input->token == T_EQ || mpl->scan_input->token == T_GE ||
+                  mpl->scan_input->token == T_GT || mpl->scan_input->token == T_NE)
          {  /* restricting condition */
             CONDITION *cond, *temp;
             char opstr[8];
             /* create new restricting condition list entry and append
                it to the conditions list */
             cond = alloc(CONDITION);
-            switch (mpl->token)
+            switch (mpl->scan_input->token)
             {  case T_LT:
-                  cond->rho = O_LT, strcpy(opstr, mpl->image); break;
+                  cond->rho = O_LT, strcpy(opstr, mpl->scan_input->image); break;
                case T_LE:
-                  cond->rho = O_LE, strcpy(opstr, mpl->image); break;
+                  cond->rho = O_LE, strcpy(opstr, mpl->scan_input->image); break;
                case T_EQ:
-                  cond->rho = O_EQ, strcpy(opstr, mpl->image); break;
+                  cond->rho = O_EQ, strcpy(opstr, mpl->scan_input->image); break;
                case T_GE:
-                  cond->rho = O_GE, strcpy(opstr, mpl->image); break;
+                  cond->rho = O_GE, strcpy(opstr, mpl->scan_input->image); break;
                case T_GT:
-                  cond->rho = O_GT, strcpy(opstr, mpl->image); break;
+                  cond->rho = O_GT, strcpy(opstr, mpl->scan_input->image); break;
                case T_NE:
-                  cond->rho = O_NE, strcpy(opstr, mpl->image); break;
+                  cond->rho = O_NE, strcpy(opstr, mpl->scan_input->image); break;
                default:
-                  xassert(mpl->token != mpl->token);
+                  xassert(mpl->scan_input->token != mpl->scan_input->token);
             }
             xassert(strlen(opstr) < sizeof(opstr));
             cond->code = NULL;
@@ -3454,10 +3571,10 @@ bin:     {  if (binary_used)
                cond->code = make_unary(mpl, O_CVTSYM, cond->code,
                   A_SYMBOLIC, 0);
          }
-         else if (mpl->token == T_IN || mpl->token == T_WITHIN)
+         else if (mpl->scan_input->token == T_IN || mpl->scan_input->token == T_WITHIN)
          {  /* restricting superset */
             WITHIN *in, *temp;
-            if (mpl->token == T_WITHIN && !mpl->as_in)
+            if (mpl->scan_input->token == T_WITHIN && !mpl->as_in)
             {  warning(mpl, "keyword within understood as in");
                mpl->as_in = 1;
             }
@@ -3483,7 +3600,7 @@ bin:     {  if (binary_used)
                error(mpl, "set expression following in must have dimens"
                   "ion 1 rather than %d", in->code->dim);
          }
-         else if (mpl->token == T_ASSIGN)
+         else if (mpl->scan_input->token == T_ASSIGN)
          {  /* assignment expression */
             if (!(par->assign == NULL && par->option == NULL))
 err:           error(mpl, "at most one := or default allowed");
@@ -3532,7 +3649,7 @@ err:           error(mpl, "at most one := or default allowed");
       /* close the domain scope */
       if (par->domain != NULL) close_scope(mpl, par->domain);
       /* the parameter statement has been completely parsed */
-      xassert(mpl->token == T_SEMICOLON);
+      xassert(mpl->scan_input->token == T_SEMICOLON);
       get_token(mpl /* ; */);
       return par;
 }
@@ -3564,19 +3681,19 @@ VARIABLE *variable_statement(MPL *mpl)
          error(mpl, "variable statement must precede solve statement");
       get_token(mpl /* var */);
       /* symbolic name must follow the keyword 'var' */
-      if (mpl->token == T_NAME)
+      if (mpl->scan_input->token == T_NAME)
          ;
       else if (is_reserved(mpl))
-         error(mpl, "invalid use of reserved keyword %s", mpl->image);
+         error(mpl, "invalid use of reserved keyword %s", mpl->scan_input->image);
       else
          error(mpl, "symbolic name missing where expected");
       /* there must be no other object with the same name */
-      if (avl_find_node(mpl->tree, mpl->image) != NULL)
-         error(mpl, "%s multiply declared", mpl->image);
+      if (avl_find_node(mpl->tree, mpl->scan_input->image) != NULL)
+         error(mpl, "%s multiply declared", mpl->scan_input->image);
       /* create model variable */
       var = alloc(VARIABLE);
-      var->name = dmp_get_atomv(mpl->pool, strlen(mpl->image)+1);
-      strcpy(var->name, mpl->image);
+      var->name = dmp_get_atomv(mpl->pool, strlen(mpl->scan_input->image)+1);
+      strcpy(var->name, mpl->scan_input->image);
       var->alias = NULL;
       var->dim = 0;
       var->domain = NULL;
@@ -3587,13 +3704,13 @@ VARIABLE *variable_statement(MPL *mpl)
       var->array = NULL;
       get_token(mpl /* <symbolic name> */);
       /* parse optional alias */
-      if (mpl->token == T_STRING)
-      {  var->alias = dmp_get_atomv(mpl->pool, strlen(mpl->image)+1);
-         strcpy(var->alias, mpl->image);
+      if (mpl->scan_input->token == T_STRING)
+      {  var->alias = dmp_get_atomv(mpl->pool, strlen(mpl->scan_input->image)+1);
+         strcpy(var->alias, mpl->scan_input->image);
          get_token(mpl /* <string literal> */);
       }
       /* parse optional indexing expression */
-      if (mpl->token == T_LBRACE)
+      if (mpl->scan_input->token == T_LBRACE)
       {  var->domain = indexing_expression(mpl);
          var->dim = domain_arity(mpl, var->domain);
       }
@@ -3605,9 +3722,9 @@ VARIABLE *variable_statement(MPL *mpl)
       }
       /* parse the list of optional attributes */
       for (;;)
-      {  if (mpl->token == T_COMMA)
+      {  if (mpl->scan_input->token == T_COMMA)
             get_token(mpl /* , */);
-         else if (mpl->token == T_SEMICOLON)
+         else if (mpl->scan_input->token == T_SEMICOLON)
             break;
          if (is_keyword(mpl, "integer"))
          {  if (integer_used)
@@ -3632,7 +3749,7 @@ bin:     {  if (binary_used)
          }
          else if (is_keyword(mpl, "symbolic"))
             error(mpl, "variable cannot be symbolic");
-         else if (mpl->token == T_GE)
+         else if (mpl->scan_input->token == T_GE)
          {  /* lower bound */
             if (var->lbnd != NULL)
             {  if (var->lbnd == var->ubnd)
@@ -3651,7 +3768,7 @@ bin:     {  if (binary_used)
                error(mpl, "expression following >= has invalid type");
             xassert(var->lbnd->dim == 0);
          }
-         else if (mpl->token == T_LE)
+         else if (mpl->scan_input->token == T_LE)
          {  /* upper bound */
             if (var->ubnd != NULL)
             {  if (var->ubnd == var->lbnd)
@@ -3670,7 +3787,7 @@ bin:     {  if (binary_used)
                error(mpl, "expression following <= has invalid type");
             xassert(var->ubnd->dim == 0);
          }
-         else if (mpl->token == T_EQ)
+         else if (mpl->scan_input->token == T_EQ)
          {  /* fixed value */
             char opstr[8];
             if (!(var->lbnd == NULL && var->ubnd == NULL))
@@ -3683,7 +3800,7 @@ bin:     {  if (binary_used)
                   error(mpl, "both upper bound and fixed value not allo"
                      "wed");
             }
-            strcpy(opstr, mpl->image);
+            strcpy(opstr, mpl->scan_input->image);
             xassert(strlen(opstr) < sizeof(opstr));
             get_token(mpl /* = | == */);
             /* parse an expression that specifies the fixed value */
@@ -3698,8 +3815,8 @@ bin:     {  if (binary_used)
             /* indicate that the variable is fixed, not bounded */
             var->ubnd = var->lbnd;
          }
-         else if (mpl->token == T_LT || mpl->token == T_GT ||
-                  mpl->token == T_NE)
+         else if (mpl->scan_input->token == T_LT || mpl->scan_input->token == T_GT ||
+                  mpl->scan_input->token == T_NE)
             error(mpl, "strict bound not allowed");
          else
             error(mpl, "syntax error in variable statement");
@@ -3707,7 +3824,7 @@ bin:     {  if (binary_used)
       /* close the domain scope */
       if (var->domain != NULL) close_scope(mpl, var->domain);
       /* the variable statement has been completely parsed */
-      xassert(mpl->token == T_SEMICOLON);
+      xassert(mpl->scan_input->token == T_SEMICOLON);
       get_token(mpl /* ; */);
       return var;
 }
@@ -3756,22 +3873,22 @@ CONSTRAINT *constraint_statement(MPL *mpl)
             error(mpl, "keyword subj to incomplete");
          get_token(mpl /* to */);
       }
-      else if (mpl->token == T_SPTP)
+      else if (mpl->scan_input->token == T_SPTP)
          get_token(mpl /* s.t. */);
       /* the current token must be symbolic name of constraint */
-      if (mpl->token == T_NAME)
+      if (mpl->scan_input->token == T_NAME)
          ;
       else if (is_reserved(mpl))
-         error(mpl, "invalid use of reserved keyword %s", mpl->image);
+         error(mpl, "invalid use of reserved keyword %s", mpl->scan_input->image);
       else
          error(mpl, "symbolic name missing where expected");
       /* there must be no other object with the same name */
-      if (avl_find_node(mpl->tree, mpl->image) != NULL)
-         error(mpl, "%s multiply declared", mpl->image);
+      if (avl_find_node(mpl->tree, mpl->scan_input->image) != NULL)
+         error(mpl, "%s multiply declared", mpl->scan_input->image);
       /* create model constraint */
       con = alloc(CONSTRAINT);
-      con->name = dmp_get_atomv(mpl->pool, strlen(mpl->image)+1);
-      strcpy(con->name, mpl->image);
+      con->name = dmp_get_atomv(mpl->pool, strlen(mpl->scan_input->image)+1);
+      strcpy(con->name, mpl->scan_input->image);
       con->alias = NULL;
       con->dim = 0;
       con->domain = NULL;
@@ -3783,13 +3900,13 @@ CONSTRAINT *constraint_statement(MPL *mpl)
       con->array = NULL;
       get_token(mpl /* <symbolic name> */);
       /* parse optional alias */
-      if (mpl->token == T_STRING)
-      {  con->alias = dmp_get_atomv(mpl->pool, strlen(mpl->image)+1);
-         strcpy(con->alias, mpl->image);
+      if (mpl->scan_input->token == T_STRING)
+      {  con->alias = dmp_get_atomv(mpl->pool, strlen(mpl->scan_input->image)+1);
+         strcpy(con->alias, mpl->scan_input->image);
          get_token(mpl /* <string literal> */);
       }
       /* parse optional indexing expression */
-      if (mpl->token == T_LBRACE)
+      if (mpl->scan_input->token == T_LBRACE)
       {  con->domain = indexing_expression(mpl);
          con->dim = domain_arity(mpl, con->domain);
       }
@@ -3800,7 +3917,7 @@ CONSTRAINT *constraint_statement(MPL *mpl)
          avl_set_node_link(node, (void *)con);
       }
       /* the colon must precede the first expression */
-      if (mpl->token != T_COLON)
+      if (mpl->scan_input->token != T_COLON)
          error(mpl, "colon missing where expected");
       get_token(mpl /* : */);
       /* parse the first expression */
@@ -3811,8 +3928,8 @@ CONSTRAINT *constraint_statement(MPL *mpl)
          error(mpl, "expression following colon has invalid type");
       xassert(first->dim == 0);
       /* relational operator must follow the first expression */
-      if (mpl->token == T_COMMA) get_token(mpl /* , */);
-      switch (mpl->token)
+      if (mpl->scan_input->token == T_COMMA) get_token(mpl /* , */);
+      switch (mpl->scan_input->token)
       {  case T_LE:
          case T_GE:
          case T_EQ:
@@ -3826,8 +3943,8 @@ CONSTRAINT *constraint_statement(MPL *mpl)
          default:
             goto err;
       }
-      rho = mpl->token;
-      strcpy(opstr, mpl->image);
+      rho = mpl->scan_input->token;
+      strcpy(opstr, mpl->scan_input->image);
       xassert(strlen(opstr) < sizeof(opstr));
       get_token(mpl /* rho */);
       /* parse the second expression */
@@ -3838,16 +3955,16 @@ CONSTRAINT *constraint_statement(MPL *mpl)
          error(mpl, "expression following %s has invalid type", opstr);
       xassert(second->dim == 0);
       /* check a token that follow the second expression */
-      if (mpl->token == T_COMMA)
+      if (mpl->scan_input->token == T_COMMA)
       {  get_token(mpl /* , */);
-         if (mpl->token == T_SEMICOLON) goto err;
+         if (mpl->scan_input->token == T_SEMICOLON) goto err;
       }
-      if (mpl->token == T_LT || mpl->token == T_LE ||
-          mpl->token == T_EQ || mpl->token == T_GE ||
-          mpl->token == T_GT || mpl->token == T_NE)
+      if (mpl->scan_input->token == T_LT || mpl->scan_input->token == T_LE ||
+          mpl->scan_input->token == T_EQ || mpl->scan_input->token == T_GE ||
+          mpl->scan_input->token == T_GT || mpl->scan_input->token == T_NE)
       {  /* it is another relational operator, therefore the constraint
             is double inequality */
-         if (rho == T_EQ || mpl->token != rho)
+         if (rho == T_EQ || mpl->scan_input->token != rho)
             error(mpl, "double inequality must be ... <= ... <= ... or "
                "... >= ... >= ...");
          /* the first expression cannot be linear form */
@@ -3927,7 +4044,7 @@ CONSTRAINT *constraint_statement(MPL *mpl)
          }
       }
       /* the constraint statement has been completely parsed */
-      if (mpl->token != T_SEMICOLON)
+      if (mpl->scan_input->token != T_SEMICOLON)
 err:     error(mpl, "syntax error in constraint statement");
       get_token(mpl /* ; */);
       return con;
@@ -3961,19 +4078,19 @@ CONSTRAINT *objective_statement(MPL *mpl)
          error(mpl, "objective statement must precede solve statement");
       get_token(mpl /* minimize | maximize */);
       /* symbolic name must follow the verb 'minimize' or 'maximize' */
-      if (mpl->token == T_NAME)
+      if (mpl->scan_input->token == T_NAME)
          ;
       else if (is_reserved(mpl))
-         error(mpl, "invalid use of reserved keyword %s", mpl->image);
+         error(mpl, "invalid use of reserved keyword %s", mpl->scan_input->image);
       else
          error(mpl, "symbolic name missing where expected");
       /* there must be no other object with the same name */
-      if (avl_find_node(mpl->tree, mpl->image) != NULL)
-         error(mpl, "%s multiply declared", mpl->image);
+      if (avl_find_node(mpl->tree, mpl->scan_input->image) != NULL)
+         error(mpl, "%s multiply declared", mpl->scan_input->image);
       /* create model objective */
       obj = alloc(CONSTRAINT);
-      obj->name = dmp_get_atomv(mpl->pool, strlen(mpl->image)+1);
-      strcpy(obj->name, mpl->image);
+      obj->name = dmp_get_atomv(mpl->pool, strlen(mpl->scan_input->image)+1);
+      strcpy(obj->name, mpl->scan_input->image);
       obj->alias = NULL;
       obj->dim = 0;
       obj->domain = NULL;
@@ -3985,13 +4102,13 @@ CONSTRAINT *objective_statement(MPL *mpl)
       obj->array = NULL;
       get_token(mpl /* <symbolic name> */);
       /* parse optional alias */
-      if (mpl->token == T_STRING)
-      {  obj->alias = dmp_get_atomv(mpl->pool, strlen(mpl->image)+1);
-         strcpy(obj->alias, mpl->image);
+      if (mpl->scan_input->token == T_STRING)
+      {  obj->alias = dmp_get_atomv(mpl->pool, strlen(mpl->scan_input->image)+1);
+         strcpy(obj->alias, mpl->scan_input->image);
          get_token(mpl /* <string literal> */);
       }
       /* parse optional indexing expression */
-      if (mpl->token == T_LBRACE)
+      if (mpl->scan_input->token == T_LBRACE)
       {  obj->domain = indexing_expression(mpl);
          obj->dim = domain_arity(mpl, obj->domain);
       }
@@ -4002,7 +4119,7 @@ CONSTRAINT *objective_statement(MPL *mpl)
          avl_set_node_link(node, (void *)obj);
       }
       /* the colon must precede the objective expression */
-      if (mpl->token != T_COLON)
+      if (mpl->scan_input->token != T_COLON)
          error(mpl, "colon missing where expected");
       get_token(mpl /* : */);
       /* parse the objective expression */
@@ -4017,7 +4134,7 @@ CONSTRAINT *objective_statement(MPL *mpl)
       /* close the domain scope */
       if (obj->domain != NULL) close_scope(mpl, obj->domain);
       /* the objective statement has been completely parsed */
-      if (mpl->token != T_SEMICOLON)
+      if (mpl->scan_input->token != T_SEMICOLON)
          error(mpl, "syntax error in objective statement");
       get_token(mpl /* ; */);
       return obj;
@@ -4070,30 +4187,30 @@ TABLE *table_statement(MPL *mpl)
       xassert(is_keyword(mpl, "table"));
       get_token(mpl /* solve */);
       /* symbolic name must follow the keyword table */
-      if (mpl->token == T_NAME)
+      if (mpl->scan_input->token == T_NAME)
          ;
       else if (is_reserved(mpl))
-         error(mpl, "invalid use of reserved keyword %s", mpl->image);
+         error(mpl, "invalid use of reserved keyword %s", mpl->scan_input->image);
       else
          error(mpl, "symbolic name missing where expected");
       /* there must be no other object with the same name */
-      if (avl_find_node(mpl->tree, mpl->image) != NULL)
-         error(mpl, "%s multiply declared", mpl->image);
+      if (avl_find_node(mpl->tree, mpl->scan_input->image) != NULL)
+         error(mpl, "%s multiply declared", mpl->scan_input->image);
       /* create data table */
       tab = alloc(TABLE);
-      tab->name = dmp_get_atomv(mpl->pool, strlen(mpl->image)+1);
-      strcpy(tab->name, mpl->image);
+      tab->name = dmp_get_atomv(mpl->pool, strlen(mpl->scan_input->image)+1);
+      strcpy(tab->name, mpl->scan_input->image);
       get_token(mpl /* <symbolic name> */);
       /* parse optional alias */
-      if (mpl->token == T_STRING)
-      {  tab->alias = dmp_get_atomv(mpl->pool, strlen(mpl->image)+1);
-         strcpy(tab->alias, mpl->image);
+      if (mpl->scan_input->token == T_STRING)
+      {  tab->alias = dmp_get_atomv(mpl->pool, strlen(mpl->scan_input->image)+1);
+         strcpy(tab->alias, mpl->scan_input->image);
          get_token(mpl /* <string literal> */);
       }
       else
          tab->alias = NULL;
       /* parse optional indexing expression */
-      if (mpl->token == T_LBRACE)
+      if (mpl->scan_input->token == T_LBRACE)
       {  /* this is output table */
          tab->type = A_OUTPUT;
          tab->u.out.domain = indexing_expression(mpl);
@@ -4114,8 +4231,8 @@ TABLE *table_statement(MPL *mpl)
       {  /* create argument list entry */
          arg = alloc(TABARG);
          /* parse argument expression */
-         if (mpl->token == T_COMMA || mpl->token == T_COLON ||
-             mpl->token == T_SEMICOLON)
+         if (mpl->scan_input->token == T_COMMA || mpl->scan_input->token == T_COLON ||
+             mpl->scan_input->token == T_SEMICOLON)
             error(mpl, "argument expression missing where expected");
          arg->code = expression_5(mpl);
          /* convert the result to symbolic type, if necessary */
@@ -4133,14 +4250,14 @@ TABLE *table_statement(MPL *mpl)
             last_arg->next = arg;
          last_arg = arg;
          /* argument expression has been parsed */
-         if (mpl->token == T_COMMA)
+         if (mpl->scan_input->token == T_COMMA)
             get_token(mpl /* , */);
-         else if (mpl->token == T_COLON || mpl->token == T_SEMICOLON)
+         else if (mpl->scan_input->token == T_COLON || mpl->scan_input->token == T_SEMICOLON)
             break;
       }
       xassert(tab->arg != NULL);
       /* argument list must end with colon */
-      if (mpl->token == T_COLON)
+      if (mpl->scan_input->token == T_COLON)
          get_token(mpl /* : */);
       else
          error(mpl, "colon missing where expected");
@@ -4152,31 +4269,31 @@ TABLE *table_statement(MPL *mpl)
       }
 input_table:
       /* parse optional set name */
-      if (mpl->token == T_NAME)
-      {  node = avl_find_node(mpl->tree, mpl->image);
+      if (mpl->scan_input->token == T_NAME)
+      {  node = avl_find_node(mpl->tree, mpl->scan_input->image);
          if (node == NULL)
-            error(mpl, "%s not defined", mpl->image);
+            error(mpl, "%s not defined", mpl->scan_input->image);
          if (avl_get_node_type(node) != A_SET)
-            error(mpl, "%s not a set", mpl->image);
+            error(mpl, "%s not a set", mpl->scan_input->image);
          tab->u.in.set = (SET *)avl_get_node_link(node);
          if (tab->u.in.set->assign != NULL)
-            error(mpl, "%s needs no data", mpl->image);
+            error(mpl, "%s needs no data", mpl->scan_input->image);
          if (tab->u.in.set->dim != 0)
-            error(mpl, "%s must be a simple set", mpl->image);
+            error(mpl, "%s must be a simple set", mpl->scan_input->image);
          get_token(mpl /* <symbolic name> */);
-         if (mpl->token == T_INPUT)
+         if (mpl->scan_input->token == T_INPUT)
             get_token(mpl /* <- */);
          else
             error(mpl, "delimiter <- missing where expected");
       }
       else if (is_reserved(mpl))
-         error(mpl, "invalid use of reserved keyword %s", mpl->image);
+         error(mpl, "invalid use of reserved keyword %s", mpl->scan_input->image);
       else
          tab->u.in.set = NULL;
       /* parse field list */
       tab->u.in.fld = last_fld = NULL;
       nflds = 0;
-      if (mpl->token == T_LBRACKET)
+      if (mpl->scan_input->token == T_LBRACKET)
          get_token(mpl /* [ */);
       else
          error(mpl, "field list missing where expected");
@@ -4184,15 +4301,15 @@ input_table:
       {  /* create field list entry */
          fld = alloc(TABFLD);
          /* parse field name */
-         if (mpl->token == T_NAME)
+         if (mpl->scan_input->token == T_NAME)
             ;
          else if (is_reserved(mpl))
             error(mpl,
-               "invalid use of reserved keyword %s", mpl->image);
+               "invalid use of reserved keyword %s", mpl->scan_input->image);
          else
             error(mpl, "field name missing where expected");
-         fld->name = dmp_get_atomv(mpl->pool, strlen(mpl->image)+1);
-         strcpy(fld->name, mpl->image);
+         fld->name = dmp_get_atomv(mpl->pool, strlen(mpl->scan_input->image)+1);
+         strcpy(fld->name, mpl->scan_input->image);
          get_token(mpl /* <symbolic name> */);
          /* add the entry to the end of the list */
          fld->next = NULL;
@@ -4203,9 +4320,9 @@ input_table:
          last_fld = fld;
          nflds++;
          /* field name has been parsed */
-         if (mpl->token == T_COMMA)
+         if (mpl->scan_input->token == T_COMMA)
             get_token(mpl /* , */);
-         else if (mpl->token == T_RBRACKET)
+         else if (mpl->scan_input->token == T_RBRACKET)
             break;
          else
             error(mpl, "syntax error in field list");
@@ -4218,43 +4335,43 @@ input_table:
       get_token(mpl /* ] */);
       /* parse optional input list */
       tab->u.in.list = last_in = NULL;
-      while (mpl->token == T_COMMA)
+      while (mpl->scan_input->token == T_COMMA)
       {  get_token(mpl /* , */);
          /* create input list entry */
          in = alloc(TABIN);
          /* parse parameter name */
-         if (mpl->token == T_NAME)
+         if (mpl->scan_input->token == T_NAME)
             ;
          else if (is_reserved(mpl))
             error(mpl,
-               "invalid use of reserved keyword %s", mpl->image);
+               "invalid use of reserved keyword %s", mpl->scan_input->image);
          else
             error(mpl, "parameter name missing where expected");
-         node = avl_find_node(mpl->tree, mpl->image);
+         node = avl_find_node(mpl->tree, mpl->scan_input->image);
          if (node == NULL)
-            error(mpl, "%s not defined", mpl->image);
+            error(mpl, "%s not defined", mpl->scan_input->image);
          if (avl_get_node_type(node) != A_PARAMETER)
-            error(mpl, "%s not a parameter", mpl->image);
+            error(mpl, "%s not a parameter", mpl->scan_input->image);
          in->par = (PARAMETER *)avl_get_node_link(node);
          if (in->par->dim != nflds)
             error(mpl, "%s must have %d subscript%s rather than %d",
-               mpl->image, nflds, nflds == 1 ? "" : "s", in->par->dim);
+               mpl->scan_input->image, nflds, nflds == 1 ? "" : "s", in->par->dim);
          if (in->par->assign != NULL)
-            error(mpl, "%s needs no data", mpl->image);
+            error(mpl, "%s needs no data", mpl->scan_input->image);
          get_token(mpl /* <symbolic name> */);
          /* parse optional field name */
-         if (mpl->token == T_TILDE)
+         if (mpl->scan_input->token == T_TILDE)
          {  get_token(mpl /* ~ */);
             /* parse field name */
-            if (mpl->token == T_NAME)
+            if (mpl->scan_input->token == T_NAME)
                ;
             else if (is_reserved(mpl))
                error(mpl,
-                  "invalid use of reserved keyword %s", mpl->image);
+                  "invalid use of reserved keyword %s", mpl->scan_input->image);
             else
                error(mpl, "field name missing where expected");
-            xassert(strlen(mpl->image) < sizeof(name));
-            strcpy(name, mpl->image);
+            xassert(strlen(mpl->scan_input->image) < sizeof(name));
+            strcpy(name, mpl->scan_input->image);
             get_token(mpl /* <symbolic name> */);
          }
          else
@@ -4281,28 +4398,28 @@ output_table:
       {  /* create output list entry */
          out = alloc(TABOUT);
          /* parse expression */
-         if (mpl->token == T_COMMA || mpl->token == T_SEMICOLON)
+         if (mpl->scan_input->token == T_COMMA || mpl->scan_input->token == T_SEMICOLON)
             error(mpl, "expression missing where expected");
-         if (mpl->token == T_NAME)
-         {  xassert(strlen(mpl->image) < sizeof(name));
-            strcpy(name, mpl->image);
+         if (mpl->scan_input->token == T_NAME)
+         {  xassert(strlen(mpl->scan_input->image) < sizeof(name));
+            strcpy(name, mpl->scan_input->image);
          }
          else
             name[0] = '\0';
          out->code = expression_5(mpl);
          /* parse optional field name */
-         if (mpl->token == T_TILDE)
+         if (mpl->scan_input->token == T_TILDE)
          {  get_token(mpl /* ~ */);
             /* parse field name */
-            if (mpl->token == T_NAME)
+            if (mpl->scan_input->token == T_NAME)
                ;
             else if (is_reserved(mpl))
                error(mpl,
-                  "invalid use of reserved keyword %s", mpl->image);
+                  "invalid use of reserved keyword %s", mpl->scan_input->image);
             else
                error(mpl, "field name missing where expected");
-            xassert(strlen(mpl->image) < sizeof(name));
-            strcpy(name, mpl->image);
+            xassert(strlen(mpl->scan_input->image) < sizeof(name));
+            strcpy(name, mpl->scan_input->image);
             get_token(mpl /* <symbolic name> */);
          }
          /* assign field name */
@@ -4318,9 +4435,9 @@ output_table:
             last_out->next = out;
          last_out = out;
          /* output item has been parsed */
-         if (mpl->token == T_COMMA)
+         if (mpl->scan_input->token == T_COMMA)
             get_token(mpl /* , */);
-         else if (mpl->token == T_SEMICOLON)
+         else if (mpl->scan_input->token == T_SEMICOLON)
             break;
          else
             error(mpl, "syntax error in output list");
@@ -4329,7 +4446,7 @@ output_table:
       close_scope(mpl,tab->u.out.domain);
 end_of_table:
       /* the table statement must end with semicolon */
-      if (mpl->token != T_SEMICOLON)
+      if (mpl->scan_input->token != T_SEMICOLON)
          error(mpl, "syntax error in table statement");
       get_token(mpl /* ; */);
       return tab;
@@ -4357,32 +4474,32 @@ SOLVE *solve_statement(MPL *mpl)
       solve->prob = NULL;
       solve->type = 0;
       /* solve type */
-      if (mpl->token == T_POINT) {
+      if (mpl->scan_input->token == T_POINT) {
         get_token(mpl /* . */);
-        if (mpl->token == T_NAME) {
-            if(strcmp(mpl->image, "lp") == 0)
+        if (mpl->scan_input->token == T_NAME) {
+            if(strcmp(mpl->scan_input->image, "lp") == 0)
                 solve->type = A_PROBLEM_LP;
-            else if(strcmp(mpl->image, "mip") == 0)
+            else if(strcmp(mpl->scan_input->image, "mip") == 0)
                 solve->type = A_PROBLEM_MIP;
-            else if(strcmp(mpl->image, "ip") == 0)
+            else if(strcmp(mpl->scan_input->image, "ip") == 0)
                 solve->type = A_PROBLEM_IP;
             else
-                error(mpl, "unknown solve option %s, valid options are lp/mip/ip", mpl->image);
+                error(mpl, "unknown solve option %s, valid options are lp/mip/ip", mpl->scan_input->image);
             get_token(mpl /* name */);
         }
         else
             error(mpl, "solve option expected, valid options are lp/mip/ip");
       }
       /* there is a problem ? */
-      if (mpl->token == T_NAME) {
-          AVLNODE *node = avl_find_node(mpl->tree, mpl->image);
+      if (mpl->scan_input->token == T_NAME) {
+          AVLNODE *node = avl_find_node(mpl->tree, mpl->scan_input->image);
           if(!node || avl_get_node_type(node) != A_PROBLEM)
-            error(mpl, "%s is not a problem name", mpl->image);
+            error(mpl, "%s is not a problem name", mpl->scan_input->image);
           solve->prob = (PROBLEM *)avl_get_node_link(node);
           get_token(mpl /* name */);
       }
       /* semicolon must follow solve statement */
-      if (mpl->token != T_SEMICOLON)
+      if (mpl->scan_input->token != T_SEMICOLON)
          error(mpl, "syntax error in solve statement");
       get_token(mpl /* ; */);
       return solve;
@@ -4408,15 +4525,15 @@ CHECK *check_statement(MPL *mpl)
       chk->code = NULL;
       get_token(mpl /* check */);
       /* parse optional indexing expression */
-      if (mpl->token == T_LBRACE)
+      if (mpl->scan_input->token == T_LBRACE)
       {  chk->domain = indexing_expression(mpl);
 #if 0
-         if (mpl->token != T_COLON)
+         if (mpl->scan_input->token != T_COLON)
             error(mpl, "colon missing where expected");
 #endif
       }
       /* skip optional colon */
-      if (mpl->token == T_COLON) get_token(mpl /* : */);
+      if (mpl->scan_input->token == T_COLON) get_token(mpl /* : */);
       /* parse logical expression */
       chk->code = expression_13(mpl);
       if (chk->code->type != A_LOGICAL)
@@ -4425,7 +4542,7 @@ CHECK *check_statement(MPL *mpl)
       /* close the domain scope */
       if (chk->domain != NULL) close_scope(mpl, chk->domain);
       /* the check statement has been completely parsed */
-      if (mpl->token != T_SEMICOLON)
+      if (mpl->scan_input->token != T_SEMICOLON)
          error(mpl, "syntax error in check statement");
       get_token(mpl /* ; */);
       return chk;
@@ -4452,16 +4569,16 @@ LET_STMT *let_statement(MPL *mpl)
       let->assign = NULL;
       get_token(mpl /* let */);
       /* parse optional indexing expression */
-      if (mpl->token == T_LBRACE)
+      if (mpl->scan_input->token == T_LBRACE)
       {  let->domain = indexing_expression(mpl);
 #if 0
-         if (mpl->token != T_COLON)
+         if (mpl->scan_input->token != T_COLON)
             error(mpl, "colon missing where expected");
 #endif
       }
       /* skip optional colon */
-      if (mpl->token == T_COLON) get_token(mpl /* : */);
-      if (mpl->token != T_NAME)
+      if (mpl->scan_input->token == T_COLON) get_token(mpl /* : */);
+      if (mpl->scan_input->token != T_NAME)
           error(mpl, "existing model element missing");
       let->par = object_reference(mpl);
       switch (let->par->op)
@@ -4471,7 +4588,7 @@ LET_STMT *let_statement(MPL *mpl)
           default:
               error(mpl, "only parameter allowed here");
       }
-      if (mpl->token != T_ASSIGN)
+      if (mpl->scan_input->token != T_ASSIGN)
           error(mpl, ":= assignment token expected");
       get_token(mpl /* := */);
       /* parse an expression that follows ':=' */
@@ -4493,7 +4610,7 @@ LET_STMT *let_statement(MPL *mpl)
       /* close the domain scope */
       if (let->domain != NULL) close_scope(mpl, let->domain);
       /* the check statement has been completely parsed */
-      if (mpl->token != T_SEMICOLON)
+      if (mpl->scan_input->token != T_SEMICOLON)
          error(mpl, "syntax error in check statement");
       get_token(mpl /* ; */);
       return let;
@@ -4533,10 +4650,10 @@ DISPLAY *display_statement(MPL *mpl)
       dpy->list = last_entry = NULL;
       get_token(mpl /* display */);
       /* parse optional indexing expression */
-      if (mpl->token == T_LBRACE)
+      if (mpl->scan_input->token == T_LBRACE)
          dpy->domain = indexing_expression(mpl);
       /* skip optional colon */
-      if (mpl->token == T_COLON) get_token(mpl /* : */);
+      if (mpl->scan_input->token == T_COLON) get_token(mpl /* : */);
       /* parse display list */
       for (;;)
       {  /* create new display entry */
@@ -4550,20 +4667,20 @@ DISPLAY *display_statement(MPL *mpl)
             last_entry->next = entry;
          last_entry = entry;
          /* parse display entry */
-         if (mpl->token == T_NAME)
+         if (mpl->scan_input->token == T_NAME)
          {  AVLNODE *node;
             int next_token;
             get_token(mpl /* <symbolic name> */);
-            next_token = mpl->token;
+            next_token = mpl->scan_input->token;
             unget_token(mpl);
             if (!(next_token == T_COMMA || next_token == T_SEMICOLON))
             {  /* symbolic name begins expression */
                goto expr;
             }
             /* display entry is dummy index or model object */
-            node = avl_find_node(mpl->tree, mpl->image);
+            node = avl_find_node(mpl->tree, mpl->scan_input->image);
             if (node == NULL)
-               error(mpl, "%s not defined", mpl->image);
+               error(mpl, "%s not defined", mpl->scan_input->image);
             entry->type = avl_get_node_type(node);
             switch (avl_get_node_type(node))
             {  case A_INDEX:
@@ -4604,7 +4721,7 @@ expr:    {  /* display entry is expression */
             entry->u.code = expression_13(mpl);
          }
          /* check a token that follows the entry parsed */
-         if (mpl->token == T_COMMA)
+         if (mpl->scan_input->token == T_COMMA)
             get_token(mpl /* , */);
          else
             break;
@@ -4612,7 +4729,7 @@ expr:    {  /* display entry is expression */
       /* close the domain scope */
       if (dpy->domain != NULL) close_scope(mpl, dpy->domain);
       /* the display statement has been completely parsed */
-      if (mpl->token != T_SEMICOLON)
+      if (mpl->scan_input->token != T_SEMICOLON)
          error(mpl, "syntax error in display statement");
       get_token(mpl /* ; */);
       return dpy;
@@ -4648,15 +4765,15 @@ PRINTF *printf_statement(MPL *mpl)
       prt->list = last_entry = NULL;
       get_token(mpl /* printf */);
       /* parse optional indexing expression */
-      if (mpl->token == T_LBRACE)
+      if (mpl->scan_input->token == T_LBRACE)
       {  prt->domain = indexing_expression(mpl);
 #if 0
-         if (mpl->token != T_COLON)
+         if (mpl->scan_input->token != T_COLON)
             error(mpl, "colon missing where expected");
 #endif
       }
       /* skip optional colon */
-      if (mpl->token == T_COLON) get_token(mpl /* : */);
+      if (mpl->scan_input->token == T_COLON) get_token(mpl /* : */);
       /* parse expression for format string */
       prt->fmt = expression_5(mpl);
       /* convert it to symbolic type, if necessary */
@@ -4666,7 +4783,7 @@ PRINTF *printf_statement(MPL *mpl)
       if (prt->fmt->type != A_SYMBOLIC)
          error(mpl, "format expression has invalid type");
       /* parse printf list */
-      while (mpl->token == T_COMMA)
+      while (mpl->scan_input->token == T_COMMA)
       {  get_token(mpl /* , */);
          /* create new printf entry */
          entry = alloc(PRINTF1);
@@ -4691,8 +4808,8 @@ PRINTF *printf_statement(MPL *mpl)
 #if 1 /* 14/VII-2006 */
       /* parse optional redirection */
       prt->fname = NULL, prt->app = 0;
-      if (mpl->token == T_GT || mpl->token == T_APPEND)
-      {  prt->app = (mpl->token == T_APPEND);
+      if (mpl->scan_input->token == T_GT || mpl->scan_input->token == T_APPEND)
+      {  prt->app = (mpl->scan_input->token == T_APPEND);
          get_token(mpl /* > or >> */);
          /* parse expression for file name string */
          prt->fname = expression_5(mpl);
@@ -4706,7 +4823,7 @@ PRINTF *printf_statement(MPL *mpl)
       }
 #endif
       /* the printf statement has been completely parsed */
-      if (mpl->token != T_SEMICOLON)
+      if (mpl->scan_input->token != T_SEMICOLON)
          error(mpl, "syntax error in printf statement");
       get_token(mpl /* ; */);
       return prt;
@@ -4718,7 +4835,7 @@ static STATEMENT *parse_compound_statement(MPL *mpl)
     list = last_stmt = NULL;
     get_token(mpl /* { */);
     ++mpl->nested_scope;
-    while (mpl->token != T_RBRACE)
+    while (mpl->scan_input->token != T_RBRACE)
     {  /* parse statement */
        stmt = simple_statement(mpl, 1);
        /* and append it to the end of the statement list */
@@ -4784,14 +4901,14 @@ FOR *for_statement(MPL *mpl, int is_repeat)
       get_token(mpl /* for/repeat */);
       if(!is_repeat) {
         /* parse indexing expression */
-        if (mpl->token != T_LBRACE)
+        if (mpl->scan_input->token != T_LBRACE)
            error(mpl, "indexing expression missing where expected");
         fur->domain = indexing_expression(mpl);
         /* skip optional colon */
-        if (mpl->token == T_COLON) get_token(mpl /* : */);
+        if (mpl->scan_input->token == T_COLON) get_token(mpl /* : */);
       }
       /* parse for statement body */
-      if (mpl->token != T_LBRACE)
+      if (mpl->scan_input->token != T_LBRACE)
       {  /* parse simple statement */
          fur->list = simple_statement(mpl, 1);
       }
@@ -4816,7 +4933,7 @@ void break_continue_statement(MPL *mpl)
         error(mpl, "break/continue keywords expected");
     get_token(mpl /* break/continue */);
     /* the break/continue statement has been completely parsed */
-    if (mpl->token != T_SEMICOLON)
+    if (mpl->scan_input->token != T_SEMICOLON)
        error(mpl, "syntax error in break statement");
     get_token(mpl /* ; */);
     /* to check if we are in a repeat loop without a break */
@@ -4842,18 +4959,18 @@ void break_continue_statement(MPL *mpl)
 
 IF_STMT *if_statement(MPL *mpl)
 {     IF_STMT *if_stmt;
-      xassert(mpl->token == T_IF);
+      xassert(mpl->scan_input->token == T_IF);
       /* create for descriptor */
       if_stmt = alloc(IF_STMT);
       if_stmt->true_list = if_stmt->else_list = NULL;
       get_token(mpl /* if */);
       /* parse logical expression */
       if_stmt->code = expression_13(mpl);
-      if(mpl->token != T_THEN)
+      if(mpl->scan_input->token != T_THEN)
           error(mpl, "'then' keyword expected");
       get_token(mpl /* then */);
       /* parse true statement body */
-      if (mpl->token != T_LBRACE)
+      if (mpl->scan_input->token != T_LBRACE)
       {  /* parse simple statement */
          if_stmt->true_list = simple_statement(mpl, 1);
       }
@@ -4861,11 +4978,11 @@ IF_STMT *if_statement(MPL *mpl)
           if_stmt->true_list = parse_compound_statement(mpl);
       close_scope_remove_decl(mpl, if_stmt->true_list);
 
-      if(mpl->token == T_ELSE)
+      if(mpl->scan_input->token == T_ELSE)
       {
         get_token(mpl /* else */);
         /* parse else statement body */
-        if (mpl->token != T_LBRACE)
+        if (mpl->scan_input->token != T_LBRACE)
         {  /* parse simple statement */
            if_stmt->else_list = simple_statement(mpl, 1);
         }
@@ -4888,7 +5005,7 @@ void end_statement(MPL *mpl)
 {     if (!mpl->flag_d && is_keyword(mpl, "end") ||
            mpl->flag_d && is_literal(mpl, "end"))
       {  get_token(mpl /* end */);
-         if (mpl->token == T_SEMICOLON)
+         if (mpl->scan_input->token == T_SEMICOLON)
             get_token(mpl /* ; */);
          else
             warning(mpl, "no semicolon following end statement; missing"
@@ -4897,7 +5014,7 @@ void end_statement(MPL *mpl)
       else
          warning(mpl, "unexpected end of file; missing end statement in"
             "serted");
-      if (mpl->token != T_EOF)
+      if (mpl->scan_input->token != T_EOF)
          warning(mpl, "some text detected beyond end statement; text ig"
             "nored");
       return;
@@ -4924,12 +5041,12 @@ void end_statement(MPL *mpl)
 STATEMENT *simple_statement(MPL *mpl, int spec)
 {     STATEMENT *stmt;
 #if 0
-      if (mpl->token == T_LBRACE)
+      if (mpl->scan_input->token == T_LBRACE)
       {
           ++mpl->nested_scope;
           get_token(mpl /* { */);
       }
-      else if (mpl->token == T_RBRACE)
+      else if (mpl->scan_input->token == T_RBRACE)
       {
           if(mpl->nested_scope == 0)
               error(mpl, "unmatched scope closing");
@@ -4938,7 +5055,7 @@ STATEMENT *simple_statement(MPL *mpl, int spec)
       }
 #endif
       stmt = alloc(STATEMENT);
-      stmt->line = mpl->line;
+      stmt->line = mpl->scan_input->line;
       stmt->next = NULL;
       if (is_keyword(mpl, "set"))
       {  if (spec && !mpl->nested_scope)
@@ -4961,7 +5078,7 @@ STATEMENT *simple_statement(MPL *mpl, int spec)
       }
       else if (is_keyword(mpl, "subject") ||
                is_keyword(mpl, "subj") ||
-               mpl->token == T_SPTP)
+               mpl->scan_input->token == T_SPTP)
       {  if (spec)
             error(mpl, "constraint statement not allowed here");
          stmt->type = A_CONSTRAINT;
@@ -5022,7 +5139,7 @@ STATEMENT *simple_statement(MPL *mpl, int spec)
       {  stmt->type = A_CONTINUE;
          break_continue_statement(mpl);
       }
-      else if (mpl->token == T_IF)
+      else if (mpl->scan_input->token == T_IF)
       {  stmt->type = A_IF;
          stmt->u.if_stmt = if_statement(mpl);
       }
@@ -5034,14 +5151,14 @@ STATEMENT *simple_statement(MPL *mpl, int spec)
       {  stmt->type = A_LET;
          stmt->u.let = let_statement(mpl);
       }
-      else if (mpl->token == T_NAME)
+      else if (mpl->scan_input->token == T_NAME)
       {  if (spec)
             error(mpl, "constraint statement not allowed here");
          stmt->type = A_CONSTRAINT;
          stmt->u.con = constraint_statement(mpl);
       }
       else if (is_reserved(mpl))
-         error(mpl, "invalid use of reserved keyword %s", mpl->image);
+         error(mpl, "invalid use of reserved keyword %s", mpl->scan_input->image);
       else
          error(mpl, "syntax error in model section");
       return stmt;
@@ -5060,11 +5177,24 @@ STATEMENT *simple_statement(MPL *mpl, int spec)
 
 void model_section(MPL *mpl)
 {     STATEMENT *stmt, *last_stmt;
-      xassert(mpl->model == NULL);
-      last_stmt = NULL;
-      while (!(mpl->token == T_EOF || is_keyword(mpl, "data") ||
-               is_keyword(mpl, "end")))
+      xassert(mpl->model == NULL || mpl->nested_input > 1);
+      for(last_stmt = mpl->model; last_stmt && last_stmt->next; last_stmt = last_stmt->next);
+
+      while (mpl->scan_input->token != T_EOF)
       {  /* parse statement */
+         if(is_keyword(mpl, "end")) break;
+         else if(is_keyword(mpl, "data"))
+         {
+             if(data_statement(mpl)) continue;
+             break;
+         }
+         else if(is_keyword(mpl, "model"))
+         {
+             model_statement(mpl);
+             /* actualize our last_stmt */
+             for(; last_stmt && last_stmt->next; last_stmt = last_stmt->next);
+             continue;
+         }
          stmt = simple_statement(mpl, 0);
          /* and append it to the end of the statement list */
          if (last_stmt == NULL)

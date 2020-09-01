@@ -38,6 +38,7 @@ typedef struct MPL MPL;
 #else
 typedef struct glp_tran MPL;
 #endif
+typedef struct glp_input_file_st glp_input_file_st;
 typedef char STRING;
 typedef struct SYMBOL SYMBOL;
 typedef struct TUPLE TUPLE;
@@ -85,6 +86,8 @@ typedef struct PROBLEM PROBLEM;
 typedef struct PROBLEM_ELEMENT PROBLEM_ELEMENT;
 typedef struct SOLVE SOLVE;
 typedef struct LET_STMT LET_STMT;
+typedef struct DATA_STMT DATA_STMT;
+typedef struct MODEL_STMT MODEL_STMT;
 
 /**********************************************************************/
 /* * *                    TRANSLATOR DATABASE                     * * */
@@ -123,6 +126,8 @@ typedef struct LET_STMT LET_STMT;
 #define A_PROBLEM       131   /* problem statement */
 #define A_LET           132   /* let statement */
 #define A_REPEAT        133   /* repeat statement */
+#define A_MODEL         134   /* model statement */
+#define A_DATA          135   /* data statement */
 
 #define MAX_LENGTH 100
 /* maximal length of any symbolic value (this includes symbolic names,
@@ -147,22 +152,7 @@ enum eGLP_TRAN_PHASE {
     GLP_TRAN_PHASE_SOLVE,  /* model processing waiting solver */
 };
 
-typedef int (*glp_solve_callback)(MPL *mpl, int sol_type, void *udata);
-
-#if 0 /* 22/I-2013 */
-struct MPL
-#else
-struct glp_tran
-#endif
-{     /* translator database */
-      /*--------------------------------------------------------------*/
-      /* scanning segment */
-      int line;
-      /* number of the current text line */
-      int c;
-      /* the current character or EOF */
-      int token;
-      /* the current token: */
+/* Tokens */
 #define T_EOF           201   /* end of file */
 #define T_NAME          202   /* symbolic name (model section only) */
 #define T_SYMBOL        203   /* symbol (data section only) */
@@ -215,6 +205,19 @@ struct glp_tran
 #define T_APPEND        250   /* >> */
 #define T_TILDE         251   /* ~ */
 #define T_INPUT         252   /* <- */
+
+typedef int (*glp_solve_callback)(MPL *mpl, int sol_type, void *udata);
+
+#define MAX_NESTED_INPUT 20
+
+struct glp_input_file_st
+{
+      int line;
+      /* number of the current text line */
+      int c;
+      /* the current character or EOF */
+      int token;
+      /* the current token: */
       int imlen;
       /* length of the current token */
       char *image; /* char image[MAX_LENGTH+1]; */
@@ -246,6 +249,24 @@ struct glp_tran
       /* context circular queue (not null-terminated!) */
       int c_ptr;
       /* pointer to the current position in the context queue */
+      glp_file *in_fp;
+      /* stream assigned to the input text file */
+      char *in_file;
+      /* name of the input text file */
+};
+
+#if 0 /* 22/I-2013 */
+struct MPL
+#else
+struct glp_tran
+#endif
+{     /* translator database */
+      /*--------------------------------------------------------------*/
+      /* scanning segment */
+      glp_input_file_st *scan_input;
+      /* info about the input file been used as input */
+      int nested_input;
+      /* keep track of recursive parsing input files */
       int flag_d;
       /* if this flag is set, the data section is being processed */
       int nested_scope;
@@ -340,10 +361,6 @@ struct glp_tran
          of the problem, 1 <= j <= n */
       /*--------------------------------------------------------------*/
       /* input/output segment */
-      glp_file *in_fp;
-      /* stream assigned to the input text file */
-      char *in_file;
-      /* name of the input text file */
       glp_file *out_fp;
       /* stream assigned to the output text file used to write all data
          produced by display and printf statements; NULL means the data
@@ -414,6 +431,10 @@ void append_char(MPL *mpl);
 #define get_token _glp_mpl_get_token
 void get_token(MPL *mpl);
 /* scan next token from input text file */
+
+#define expect_token _glp_mpl_expect_token
+void expect_token(MPL *mpl, int token);
+/* check current and scan next token from input text file */
 
 #define unget_token _glp_mpl_unget_token
 void unget_token(MPL *mpl);
@@ -2763,6 +2784,14 @@ void warning(MPL *mpl, char *fmt, ...);
 #define mpl_initialize _glp_mpl_initialize
 MPL *mpl_initialize(void);
 /* create and initialize translator database */
+
+#define mpl_new_scan_input _glp_mpl_new_scan_input
+glp_input_file_st *mpl_new_scan_input(MPL *mpl);
+/* create a scan input structure */
+
+#define mpl_free_scan_input _glp_mpl_free_scan_input
+void mpl_free_scan_input(MPL *mpl, glp_input_file_st *sin);
+/* free a scan input structure */
 
 #define mpl_read_model _glp_mpl_read_model
 int mpl_read_model(MPL *mpl, char *file, int skip_data);

@@ -5772,8 +5772,8 @@ void execute_solve(MPL *mpl, SOLVE *solve)
             clean_build_problem(mpl, 0);
             build_problem(mpl);
             mpl->flag_p = 0;
-            ret = mpl->solve_callback(mpl, solve->type, mpl->solve_callback_udata);
             mpl->solve_callback_called = 1;
+            ret = mpl->solve_callback(mpl, solve->type, mpl->solve_callback_udata);
         }
         mpl->current_problem = saved_prob;
         mpl->stmt = saved_stmt;

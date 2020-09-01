@@ -143,7 +143,7 @@ void delete_slice
 
 int is_number(MPL *mpl)
 {     return
-         mpl->token == T_NUMBER;
+         mpl->scan_input->token == T_NUMBER;
 }
 
 /*----------------------------------------------------------------------
@@ -154,9 +154,9 @@ int is_number(MPL *mpl)
 
 int is_symbol(MPL *mpl)
 {     return
-         mpl->token == T_NUMBER ||
-         mpl->token == T_SYMBOL ||
-         mpl->token == T_STRING;
+         mpl->scan_input->token == T_NUMBER ||
+         mpl->scan_input->token == T_SYMBOL ||
+         mpl->scan_input->token == T_STRING;
 }
 
 /*----------------------------------------------------------------------
@@ -170,7 +170,7 @@ int is_symbol(MPL *mpl)
 
 int is_literal(MPL *mpl, char *literal)
 {     return
-         is_symbol(mpl) && strcmp(mpl->image, literal) == 0;
+         is_symbol(mpl) && strcmp(mpl->scan_input->image, literal) == 0;
 }
 
 /*----------------------------------------------------------------------
@@ -182,7 +182,7 @@ int is_literal(MPL *mpl, char *literal)
 double read_number(MPL *mpl)
 {     double num;
       xassert(is_number(mpl));
-      num = mpl->value;
+      num = mpl->scan_input->value;
       get_token(mpl /* <number> */);
       return num;
 }
@@ -197,9 +197,9 @@ SYMBOL read_symbol(MPL *mpl)
 {     SYMBOL sym;
       xassert(is_symbol(mpl));
       if (is_number(mpl))
-         sym = create_symbol_num(mpl, mpl->value);
+         sym = create_symbol_num(mpl, mpl->scan_input->value);
       else
-         sym = create_symbol_str(mpl, create_string(mpl, mpl->image));
+         sym = create_symbol_str(mpl, create_string(mpl, mpl->scan_input->image));
       get_token(mpl /* <symbol> */);
       return sym;
 }
@@ -227,7 +227,7 @@ SLICE *read_slice
 {     SLICE *slice;
       int close;
       xassert(name != NULL);
-      switch (mpl->token)
+      switch (mpl->scan_input->token)
       {  case T_LBRACKET:
             close = T_RBRACKET;
             break;
@@ -247,7 +247,7 @@ SLICE *read_slice
       {  /* the current token must be a symbol or asterisk */
          if (is_symbol(mpl))
             slice = expand_slice(mpl, slice, read_symbol(mpl));
-         else if (mpl->token == T_ASTERISK)
+         else if (mpl->scan_input->token == T_ASTERISK)
          {  slice = expand_slice(mpl, slice, symbol_null());
             get_token(mpl /* * */);
          }
@@ -255,9 +255,9 @@ SLICE *read_slice
             error(mpl, "number, symbol, or asterisk missing where expec"
                "ted");
          /* check a token that follows the symbol */
-         if (mpl->token == T_COMMA)
+         if (mpl->scan_input->token == T_COMMA)
             get_token(mpl /* , */);
-         else if (mpl->token == close)
+         else if (mpl->scan_input->token == close)
             break;
          else
             error(mpl, "syntax error in slice");
@@ -367,7 +367,7 @@ void simple_format
          /* append the symbol to the n-tuple */
          tuple = expand_tuple(mpl, tuple, sym);
          /* skip optional comma *between* <symbols> */
-         if (temp->next != NULL && mpl->token == T_COMMA)
+         if (temp->next != NULL && mpl->scan_input->token == T_COMMA)
             get_token(mpl /* , */);
       }
       /* add constructed n-tuple to elemental set */
@@ -418,7 +418,7 @@ void matrix_format
       /* read the matrix heading that contains column symbols (there
          may be no columns at all) */
       list = create_slice(mpl);
-      while (mpl->token != T_ASSIGN)
+      while (mpl->scan_input->token != T_ASSIGN)
       {  /* read column symbol and append it to the column list */
          if (!is_symbol(mpl))
             error(mpl, "number, symbol, or := missing where expected");
@@ -518,13 +518,13 @@ void set_data(MPL *mpl)
       if (!is_symbol(mpl))
          error(mpl, "set name missing where expected");
       /* select the set to saturate it with data */
-      set = select_set(mpl, mpl->image);
+      set = select_set(mpl, mpl->scan_input->image);
       if(mpl->show_delta) xprintf("Reading set %s...", set->name);
       get_token(mpl /* <symbolic name> */);
       /* read optional subscript list, which identifies member of the
          set to be read */
       tuple = create_tuple(mpl);
-      if (mpl->token == T_LBRACKET)
+      if (mpl->scan_input->token == T_LBRACKET)
       {  /* subscript list is specified */
          if (set->dim == 0)
             error(mpl, "%s cannot be subscripted", set->name);
@@ -534,9 +534,9 @@ void set_data(MPL *mpl)
          {  if (!is_symbol(mpl))
                error(mpl, "number or symbol missing where expected");
             tuple = expand_tuple(mpl, tuple, read_symbol(mpl));
-            if (mpl->token == T_COMMA)
+            if (mpl->scan_input->token == T_COMMA)
                get_token(mpl /* , */);
-            else if (mpl->token == T_RBRACKET)
+            else if (mpl->scan_input->token == T_RBRACKET)
                break;
             else
                error(mpl, "syntax error in subscript list");
@@ -564,13 +564,13 @@ void set_data(MPL *mpl)
       /* read zero or more data assignments */
       for (;;)
       {  /* skip optional comma */
-         if (mpl->token == T_COMMA) get_token(mpl /* , */);
+         if (mpl->scan_input->token == T_COMMA) get_token(mpl /* , */);
          /* process assignment element */
-         if (mpl->token == T_ASSIGN)
+         if (mpl->scan_input->token == T_ASSIGN)
          {  /* assignment ligature is non-significant element */
             get_token(mpl /* := */);
          }
-         else if (mpl->token == T_LEFT)
+         else if (mpl->scan_input->token == T_LEFT)
          {  /* left parenthesis begins either new slice or "transpose"
                indicator */
             int is_tr;
@@ -592,7 +592,7 @@ void set_data(MPL *mpl)
          {  /* number or symbol begins data in the simple format */
             simple_format(mpl, set, memb, slice);
          }
-         else if (mpl->token == T_COLON)
+         else if (mpl->scan_input->token == T_COLON)
          {  /* colon begins data in the matrix format */
             if (slice_arity(mpl, slice) != 2)
 err1:          error(mpl, "slice currently used must specify 2 asterisk"
@@ -601,7 +601,7 @@ err1:          error(mpl, "slice currently used must specify 2 asterisk"
             /* read elemental set data in the matrix format */
             matrix_format(mpl, set, memb, slice, tr);
          }
-         else if (mpl->token == T_LEFT)
+         else if (mpl->scan_input->token == T_LEFT)
 left:    {  /* left parenthesis begins the "transpose" indicator, which
                is followed by data in the matrix format */
             get_token(mpl /* ( */);
@@ -609,16 +609,16 @@ left:    {  /* left parenthesis begins the "transpose" indicator, which
 err2:          error(mpl, "transpose indicator (tr) incomplete");
             if (slice_arity(mpl, slice) != 2) goto err1;
             get_token(mpl /* tr */);
-            if (mpl->token != T_RIGHT) goto err2;
+            if (mpl->scan_input->token != T_RIGHT) goto err2;
             get_token(mpl /* ) */);
             /* in this case the colon is optional */
-            if (mpl->token == T_COLON) get_token(mpl /* : */);
+            if (mpl->scan_input->token == T_COLON) get_token(mpl /* : */);
             /* set the "transpose" indicator */
             tr = 1;
             /* read elemental set data in the matrix format */
             matrix_format(mpl, set, memb, slice, tr);
          }
-         else if (mpl->token == T_SEMICOLON)
+         else if (mpl->scan_input->token == T_SEMICOLON)
          {  /* semicolon terminates the data block */
             get_token(mpl /* ; */);
             break;
@@ -769,7 +769,7 @@ void plain_format
          /* append the symbol to the subscript list */
          tuple = expand_tuple(mpl, tuple, sym);
          /* skip optional comma */
-         if (mpl->token == T_COMMA) get_token(mpl /* , */);
+         if (mpl->scan_input->token == T_COMMA) get_token(mpl /* , */);
       }
       /* read value and assign it to new parameter member */
       if (!is_symbol(mpl))
@@ -820,7 +820,7 @@ void tabular_format
       /* read the table heading that contains column symbols (the table
          may have no columns) */
       list = create_slice(mpl);
-      while (mpl->token != T_ASSIGN)
+      while (mpl->scan_input->token != T_ASSIGN)
       {  /* read column symbol and append it to the column list */
          if (!is_symbol(mpl))
             error(mpl, "number, symbol, or := missing where expected");
@@ -925,11 +925,11 @@ void tabbing_format
       /* read the optional <prefix> */
       if (is_symbol(mpl))
       {  get_token(mpl /* <symbol> */);
-         next_token = mpl->token;
+         next_token = mpl->scan_input->token;
          unget_token(mpl /* <symbol> */);
          if (next_token == T_COLON)
          {  /* select the set to saturate it with data */
-            set = select_set(mpl, mpl->image);
+            set = select_set(mpl, mpl->scan_input->image);
             /* the set must be simple (i.e. not set of sets) */
             if (set->dim != 0)
                error(mpl, "%s must be a simple set", set->name);
@@ -943,21 +943,21 @@ void tabbing_format
                create_elemset(mpl, set->dimen);
             last_name = set->name, dim = set->dimen;
             get_token(mpl /* <symbol> */);
-            xassert(mpl->token == T_COLON);
+            xassert(mpl->scan_input->token == T_COLON);
             get_token(mpl /* : */);
          }
       }
       /* read the table heading that contains parameter names */
       list = create_slice(mpl);
-      while (mpl->token != T_ASSIGN)
+      while (mpl->scan_input->token != T_ASSIGN)
       {  /* there must be symbolic name of parameter */
          if (!is_symbol(mpl))
             error(mpl, "parameter name or := missing where expected");
          /* select the parameter to saturate it with data */
-         par = select_parameter(mpl, mpl->image);
+         par = select_parameter(mpl, mpl->scan_input->image);
          /* the parameter must be subscripted */
          if (par->dim == 0)
-            error(mpl, "%s not a subscripted parameter", mpl->image);
+            error(mpl, "%s not a subscripted parameter", mpl->scan_input->image);
          /* the set (if specified) and all the parameters in the data
             block must have identical dimension */
          if (dim != 0 && par->dim != dim)
@@ -976,13 +976,13 @@ void tabbing_format
          last_name = par->name, dim = par->dim;
          get_token(mpl /* <symbol> */);
          /* skip optional comma */
-         if (mpl->token == T_COMMA) get_token(mpl /* , */);
+         if (mpl->scan_input->token == T_COMMA) get_token(mpl /* , */);
       }
       if (slice_dimen(mpl, list) == 0)
          error(mpl, "at least one parameter name required");
       get_token(mpl /* := */);
       /* skip optional comma */
-      if (mpl->token == T_COMMA) get_token(mpl /* , */);
+      if (mpl->scan_input->token == T_COMMA) get_token(mpl /* , */);
       /* read rows that contain tabbing data */
       while (is_symbol(mpl))
       {  /* read subscript list */
@@ -999,7 +999,7 @@ void tabbing_format
             /* read and append j-th subscript to the n-tuple */
             tuple = expand_tuple(mpl, tuple, read_symbol(mpl));
             /* skip optional comma *between* <symbols> */
-            if (j < dim && mpl->token == T_COMMA)
+            if (j < dim && mpl->scan_input->token == T_COMMA)
                get_token(mpl /* , */);
          }
          /* if the set is specified, add to it new n-tuple, which is a
@@ -1008,7 +1008,7 @@ void tabbing_format
             check_then_add(mpl, set->array->head->value.set,
                copy_tuple(mpl, tuple));
          /* skip optional comma between <symbol> and <value> */
-         if (mpl->token == T_COMMA) get_token(mpl /* , */);
+         if (mpl->scan_input->token == T_COMMA) get_token(mpl /* , */);
          /* read values accordingly to the column list */
          for (col = list; col != NULL; col = col->next)
          {  /* if the token is single point, no value is provided */
@@ -1030,13 +1030,13 @@ void tabbing_format
             read_value(mpl, (PARAMETER *)nanbox_to_pointer(col->sym.sym), copy_tuple(mpl,
                tuple));
             /* skip optional comma preceding the next value */
-            if (col->next != NULL && mpl->token == T_COMMA)
+            if (col->next != NULL && mpl->scan_input->token == T_COMMA)
                get_token(mpl /* , */);
          }
          /* delete the original subscript list */
          delete_tuple(mpl, tuple);
          /* skip optional comma (only if there is next data group) */
-         if (mpl->token == T_COMMA)
+         if (mpl->scan_input->token == T_COMMA)
          {  get_token(mpl /* , */);
             if (!is_symbol(mpl)) unget_token(mpl /* , */);
          }
@@ -1086,15 +1086,15 @@ void parameter_data(MPL *mpl)
          altval = read_symbol(mpl);
          /* if the default value follows the keyword 'param', the next
             token must be only the colon */
-         if (mpl->token != T_COLON)
+         if (mpl->scan_input->token != T_COLON)
             error(mpl, "colon missing where expected");
       }
       /* being used after the keyword 'param' or the optional default
          value the colon begins data in the tabbing format */
-      if (mpl->token == T_COLON)
+      if (mpl->scan_input->token == T_COLON)
       {  get_token(mpl /* : */);
          /* skip optional comma */
-         if (mpl->token == T_COMMA) get_token(mpl /* , */);
+         if (mpl->scan_input->token == T_COMMA) get_token(mpl /* , */);
          /* read parameter data in the tabbing format */
          if(mpl->show_delta) xprintf("Reading tabbing parameter ...\n");
          tabbing_format(mpl, altval);
@@ -1102,7 +1102,7 @@ void parameter_data(MPL *mpl)
             always copied, so delete the original symbol */
          if (!symbol_is_null(altval)) delete_symbol(mpl, altval);
          /* the next token must be only semicolon */
-         if (mpl->token != T_SEMICOLON)
+         if (mpl->scan_input->token != T_SEMICOLON)
             error(mpl, "symbol, number, or semicolon missing where expe"
                "cted");
          get_token(mpl /* ; */);
@@ -1113,7 +1113,7 @@ void parameter_data(MPL *mpl)
       if (!is_symbol(mpl))
          error(mpl, "parameter name missing where expected");
       /* select the parameter to saturate it with data */
-      par = select_parameter(mpl, mpl->image);
+      par = select_parameter(mpl, mpl->scan_input->image);
       if(mpl->show_delta) xprintf("Reading parameter %s...", par->name);
       get_token(mpl /* <symbol> */);
       /* read optional default value */
@@ -1130,13 +1130,13 @@ void parameter_data(MPL *mpl)
       /* read zero or more data assignments */
       for (;;)
       {  /* skip optional comma */
-         if (mpl->token == T_COMMA) get_token(mpl /* , */);
+         if (mpl->scan_input->token == T_COMMA) get_token(mpl /* , */);
          /* process current assignment */
-         if (mpl->token == T_ASSIGN)
+         if (mpl->scan_input->token == T_ASSIGN)
          {  /* assignment ligature is non-significant element */
             get_token(mpl /* := */);
          }
-         else if (mpl->token == T_LBRACKET)
+         else if (mpl->scan_input->token == T_LBRACKET)
          {  /* left bracket begins new slice; delete the current slice
                and read new one */
             delete_slice(mpl, slice);
@@ -1148,7 +1148,7 @@ void parameter_data(MPL *mpl)
          {  /* number or symbol begins data in the plain format */
             plain_format(mpl, par, slice);
          }
-         else if (mpl->token == T_COLON)
+         else if (mpl->scan_input->token == T_COLON)
          {  /* colon begins data in the tabular format */
             if (par->dim == 0)
 err1:          error(mpl, "%s not a subscripted parameter",
@@ -1160,7 +1160,7 @@ err2:          error(mpl, "slice currently used must specify 2 asterisk"
             /* read parameter data in the tabular format */
             tabular_format(mpl, par, slice, tr);
          }
-         else if (mpl->token == T_LEFT)
+         else if (mpl->scan_input->token == T_LEFT)
          {  /* left parenthesis begins the "transpose" indicator, which
                is followed by data in the tabular format */
             get_token(mpl /* ( */);
@@ -1169,16 +1169,16 @@ err3:          error(mpl, "transpose indicator (tr) incomplete");
             if (par->dim == 0) goto err1;
             if (slice_arity(mpl, slice) != 2) goto err2;
             get_token(mpl /* tr */);
-            if (mpl->token != T_RIGHT) goto err3;
+            if (mpl->scan_input->token != T_RIGHT) goto err3;
             get_token(mpl /* ) */);
             /* in this case the colon is optional */
-            if (mpl->token == T_COLON) get_token(mpl /* : */);
+            if (mpl->scan_input->token == T_COLON) get_token(mpl /* : */);
             /* set the "transpose" indicator */
             tr = 1;
             /* read parameter data in the tabular format */
             tabular_format(mpl, par, slice, tr);
          }
-         else if (mpl->token == T_SEMICOLON)
+         else if (mpl->scan_input->token == T_SEMICOLON)
          {  /* semicolon terminates the data block */
             get_token(mpl /* ; */);
             break;
@@ -1210,7 +1210,7 @@ done:
 -- the end of file. */
 
 void data_section(MPL *mpl)
-{     while (!(mpl->token == T_EOF || is_literal(mpl, "end")))
+{     while (!(mpl->scan_input->token == T_EOF || is_literal(mpl, "end")))
       {  if (is_literal(mpl, "set"))
             set_data(mpl);
          else if (is_literal(mpl, "param"))
