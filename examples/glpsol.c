@@ -1061,59 +1061,97 @@ static int solve_callback(glp_tran *tran, int sol_type, void *udata)
         delete_lp(lp);
     }
     else
-    {
 #endif
-    /* build the problem instance from the model */
-    glp_mpl_build_prob(csa->tran, csa->prob);
-    glp_sort_matrix(csa->prob);
-
-    //glp_scale_prob(csa->prob, GLP_SF_AUTO);
-    //glp_set_bfcp(csa->prob, &csa->bfcp);
-
-    if(sol_type == 0) /*A_PROBLEM_AUTO*/
+#ifdef WITH_CBC
+    if(csa->with_cbc)
     {
-        if(glp_get_num_int(csa->prob) + glp_get_num_bin(csa->prob) > 0)
-            sol_type = 2; /*A_PROBLEM_MIP*/
-        else
-            sol_type = 1; /*A_PROBLEM_LP*/
-    }
-
-    switch(sol_type)
-    {
-        case 1: /*A_PROBLEM_LP*/
-            glp_simplex(csa->prob, &csa->smcp);
-            if (!(glp_get_status(csa->prob) == GLP_OPT ||
-                  glp_get_status(csa->prob) == GLP_FEAS))
-               ret = -1;
-            psol_type = GLP_SOL;
-            break;
-        case 2: /*A_PROBLEM_MIP*/
-            glp_intopt(csa->prob, &csa->iocp);
-            if (!(glp_mip_status(csa->prob) == GLP_OPT ||
-                  glp_mip_status(csa->prob) == GLP_FEAS))
-               ret = -1;
-            psol_type = GLP_MIP;
-            break;
-        case 3: /*A_PROBLEM_IP*/
-            glp_interior(csa->prob, &csa->iptcp);
-            if (!(glp_ipt_status(csa->prob) == GLP_OPT ||
-                  glp_ipt_status(csa->prob) == GLP_FEAS))
-               ret = -1;
-            psol_type = GLP_IPT;
-            break;
-        default:
-            printf("Unknown solution type %d\n", sol_type);
+        int i;
+        /* build the problem instance from the model */
+        Cbc_Model *lp = glp_cbc_mpl_build_prob(tran);
+        if(!lp)
+        {
+            printf("Error on building the problem\n");
             return -1;
+        }
+        if(csa->quiet)
+            Cbc_setLogLevel(lp, 0);
+        switch(sol_type)
+        {
+            case 1: /*A_PROBLEM_LP*/
+                Cbc_setSolveRelax(lp, 1);
+            case 0: /*A_PROBLEM_AUTO*/
+            case 2: /*A_PROBLEM_MIP*/
+            case 3: /*A_PROBLEM_IP*/
+                //print_lp(lp);
+                ret = Cbc_solve(lp);
+                if (ret)
+                   ret = -1;
+                break;
+            default:
+                printf("Unknown solution type %d\n", 0);
+                return -1;
+        }
+        if(ret)
+        {
+            printf("Solver reported a problem\n");
+            Cbc_deleteModel(lp);
+            return ret;
+        }
+        ret = glp_lpsolve_mpl_postsolve(csa->tran, lp, psol_type);
+        Cbc_deleteModel(lp);
     }
-    if(ret)
-    {
-        printf("Solver reported a problem\n");
-        return ret;
-    }
-    ret = glp_mpl_postsolve(csa->tran, csa->prob, psol_type);
-#ifdef WITH_LPSOLVE
-    }
+    else
 #endif
+    {
+        /* build the problem instance from the model */
+        glp_mpl_build_prob(csa->tran, csa->prob);
+        glp_sort_matrix(csa->prob);
+
+        //glp_scale_prob(csa->prob, GLP_SF_AUTO);
+        //glp_set_bfcp(csa->prob, &csa->bfcp);
+
+        if(sol_type == 0) /*A_PROBLEM_AUTO*/
+        {
+            if(glp_get_num_int(csa->prob) + glp_get_num_bin(csa->prob) > 0)
+                sol_type = 2; /*A_PROBLEM_MIP*/
+            else
+                sol_type = 1; /*A_PROBLEM_LP*/
+        }
+
+        switch(sol_type)
+        {
+            case 1: /*A_PROBLEM_LP*/
+                glp_simplex(csa->prob, &csa->smcp);
+                if (!(glp_get_status(csa->prob) == GLP_OPT ||
+                      glp_get_status(csa->prob) == GLP_FEAS))
+                   ret = -1;
+                psol_type = GLP_SOL;
+                break;
+            case 2: /*A_PROBLEM_MIP*/
+                glp_intopt(csa->prob, &csa->iocp);
+                if (!(glp_mip_status(csa->prob) == GLP_OPT ||
+                      glp_mip_status(csa->prob) == GLP_FEAS))
+                   ret = -1;
+                psol_type = GLP_MIP;
+                break;
+            case 3: /*A_PROBLEM_IP*/
+                glp_interior(csa->prob, &csa->iptcp);
+                if (!(glp_ipt_status(csa->prob) == GLP_OPT ||
+                      glp_ipt_status(csa->prob) == GLP_FEAS))
+                   ret = -1;
+                psol_type = GLP_IPT;
+                break;
+            default:
+                printf("Unknown solution type %d\n", sol_type);
+                return -1;
+        }
+        if(ret)
+        {
+            printf("Solver reported a problem\n");
+            return ret;
+        }
+        ret = glp_mpl_postsolve(csa->tran, csa->prob, psol_type);
+    }
 
     if (ret != 0) printf("Error on postsolving model\n");
     return ret;
