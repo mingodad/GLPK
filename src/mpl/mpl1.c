@@ -3144,6 +3144,8 @@ int data_statement(MPL *mpl)
       }
       mpl->phase = GLP_TRAN_PHASE_MODEL;
       mpl->flag_d = 0;
+      if(is_literal(mpl, "end"))
+          mpl->scan_input->token = T_NAME; /*overwrite for model section*/
       return 1;
 }
 
