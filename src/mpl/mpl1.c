@@ -3060,10 +3060,17 @@ void model_statement(MPL *mpl)
       if(mpl->nested_scope)
           error(mpl, "model not allowed in nested scopes");
       /* parse optional file name */
-      if (mpl->scan_input->token == T_STRING)
-      {  file_name = dmp_get_atomv(mpl->pool, strlen(mpl->scan_input->image)+1);
-         strcpy(file_name, mpl->scan_input->image);
-         get_token(mpl /* <string literal> */);
+      switch(mpl->scan_input->token)
+      {
+          case T_STRING:
+            file_name = dmp_get_atomv(mpl->pool, strlen(mpl->scan_input->image)+1);
+            strcpy(file_name, mpl->scan_input->image);
+            get_token(mpl /* <string literal> */);
+            break;
+          case T_SEMICOLON:
+            break;
+          default:
+              error(mpl, "file name as literal string or semicolon expected");
       }
       /* the problem statement has been completely parsed */
       if (mpl->scan_input->token != T_SEMICOLON)
@@ -3103,20 +3110,31 @@ int data_statement(MPL *mpl)
       if(mpl->nested_scope)
           error(mpl, "data not allowed in nested scopes");
       /* parse optional file name */
-      if (mpl->scan_input->token == T_STRING)
-      {  file_name = dmp_get_atomv(mpl->pool, strlen(mpl->scan_input->image)+1);
-         strcpy(file_name, mpl->scan_input->image);
-         get_token(mpl /* <string literal> */);
+      switch(mpl->scan_input->token)
+      {
+          case T_STRING:
+            file_name = dmp_get_atomv(mpl->pool, strlen(mpl->scan_input->image)+1);
+            strcpy(file_name, mpl->scan_input->image);
+            get_token(mpl /* <string literal> */);
+            break;
+          case T_SEMICOLON:
+            break;
+          default:
+              error(mpl, "file name as literal string or semicolon expected");
       }
       /* the data statement has been completely parsed */
       if (mpl->scan_input->token != T_SEMICOLON)
         error(mpl, "semicolon missing where expected");
       /* it's important to set mpl->flag_d before the next get_token call */
-      mpl->phase = GLP_TRAN_PHASE_DATA;
-      mpl->flag_d = 1;
+      if(!file_name) {
+        mpl->phase = GLP_TRAN_PHASE_DATA;
+        mpl->flag_d = 1;
+      }
       get_token(mpl /* ; */);
 
       if(file_name) {
+          mpl->phase = GLP_TRAN_PHASE_DATA;
+          mpl->flag_d = 1;
           alloc_content(mpl);
           /* process data file */
           if (mpl->msg_lev >= GLP_MSG_ON)
