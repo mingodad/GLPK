@@ -1209,12 +1209,25 @@ done:
 -- Reading data section is terminated by either the keyword 'end' or
 -- the end of file. */
 
-void data_section(MPL *mpl)
+void data_section(MPL *mpl, int in_mod_file)
 {     while (!(mpl->scan_input->token == T_EOF || is_literal(mpl, "end")))
       {  if (is_literal(mpl, "set"))
             set_data(mpl);
          else if (is_literal(mpl, "param"))
             parameter_data(mpl);
+         else if (in_mod_file && is_literal(mpl, "model"))
+         {
+              get_token(mpl /* model */);
+              /* the data statement has been completely parsed */
+              if (mpl->scan_input->token != T_SEMICOLON)
+                error(mpl, "semicolon missing where expected");
+              /* it's important to set mpl->flag_d before the next
+                 get_token call */
+              mpl->phase = GLP_TRAN_PHASE_MODEL;
+              mpl->flag_d = 0;
+              get_token(mpl /* ; */);
+              return;
+         }
          else
             error(mpl, "syntax error in data section");
       }

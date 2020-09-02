@@ -875,7 +875,7 @@ void parameter_data(MPL *mpl);
 /* read parameter data */
 
 #define data_section _glp_mpl_data_section
-void data_section(MPL *mpl);
+void data_section(MPL *mpl, int in_mod_file);
 /* read data section */
 
 /**********************************************************************/

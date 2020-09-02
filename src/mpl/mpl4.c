@@ -804,7 +804,7 @@ int mpl_read_model(MPL *mpl, char *file, int skip_data)
          mpl->phase = GLP_TRAN_PHASE_DATA;
          if (mpl->msg_lev >= GLP_MSG_ON)
             xprintf("Reading data section from %s...\n", file);
-         data_section(mpl);
+         data_section(mpl, 0);
       }
       /* process end statement */
       end_statement(mpl);
@@ -867,7 +867,7 @@ int mpl_read_data(MPL *mpl, char *file)
             error(mpl, "semicolon missing where expected");
          get_token(mpl /* ; */);
       }
-      data_section(mpl);
+      data_section(mpl, 0);
       /* process end statement */
       end_statement(mpl);
       if (mpl->msg_lev >= GLP_MSG_ON)

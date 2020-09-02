@@ -3070,6 +3070,8 @@ void model_statement(MPL *mpl)
          error(mpl, "semicolon missing where expected");
       get_token(mpl /* ; */);
 
+      mpl->phase = GLP_TRAN_PHASE_MODEL;
+      mpl->flag_d = 0;
       if(file_name) {
           glp_input_file_st *saved_scan_input = mpl->scan_input;
           mpl->scan_input = mpl_new_scan_input(mpl);
@@ -3094,6 +3096,7 @@ void model_statement(MPL *mpl)
 
 int data_statement(MPL *mpl)
 {
+      glp_input_file_st *saved_scan_input;
       char *file_name = NULL;
       xassert(is_keyword(mpl, "data"));
       get_token(mpl /* data */);
@@ -3105,23 +3108,20 @@ int data_statement(MPL *mpl)
          strcpy(file_name, mpl->scan_input->image);
          get_token(mpl /* <string literal> */);
       }
-      else
-      {
-          /* if no filename is provided we do nothing here */
-          unget_token(mpl);
-      }
+      /* the data statement has been completely parsed */
+      if (mpl->scan_input->token != T_SEMICOLON)
+        error(mpl, "semicolon missing where expected");
+      /* it's important to set mpl->flag_d before the next get_token call */
+      mpl->phase = GLP_TRAN_PHASE_DATA;
+      mpl->flag_d = 1;
+      get_token(mpl /* ; */);
+
       if(file_name) {
-          /* the data statement has been completely parsed */
-          if (mpl->scan_input->token != T_SEMICOLON)
-            error(mpl, "semicolon missing where expected");
-          get_token(mpl /* ; */);
           alloc_content(mpl);
           /* process data file */
           if (mpl->msg_lev >= GLP_MSG_ON)
             xprintf("Reading data section from %s...\n", file_name);
-          mpl->phase = GLP_TRAN_PHASE_DATA;
-          mpl->flag_d = 1;
-          glp_input_file_st *saved_scan_input = mpl->scan_input;
+          saved_scan_input = mpl->scan_input;
           mpl->scan_input = mpl_new_scan_input(mpl);
           open_input(mpl, file_name);
           /* in this case the keyword 'data' is optional */
@@ -3131,18 +3131,20 @@ int data_statement(MPL *mpl)
                   error(mpl, "semicolon missing where expected");
                get_token(mpl /* ; */);
           }
-          data_section(mpl);
-          if (mpl->msg_lev >= GLP_MSG_ON)
+      }
+      alloc_content(mpl);
+      data_section(mpl, file_name ? 0 : 1);
+      if (mpl->msg_lev >= GLP_MSG_ON)
             xprintf("%d line%s were read\n",
               mpl->scan_input->line, mpl->scan_input->line == 1 ? "" : "s");
+      if(file_name) {
           close_input(mpl);
           mpl_free_scan_input(mpl, mpl->scan_input);
           mpl->scan_input = saved_scan_input;
-          mpl->phase = GLP_TRAN_PHASE_MODEL;
-          mpl->flag_d = 0;
-          return 1;
       }
-      return 0;
+      mpl->phase = GLP_TRAN_PHASE_MODEL;
+      mpl->flag_d = 0;
+      return 1;
 }
 
 /*----------------------------------------------------------------------
@@ -5178,8 +5180,9 @@ STATEMENT *simple_statement(MPL *mpl, int spec)
 void model_section(MPL *mpl)
 {     STATEMENT *stmt, *last_stmt;
       xassert(mpl->model == NULL || mpl->nested_input > 1);
-      for(last_stmt = mpl->model; last_stmt && last_stmt->next; last_stmt = last_stmt->next);
-
+#define SET_STMT_TO_MODEL_LAST(s) \
+      for(s = mpl->model; s && s->next; s = s->next)
+      SET_STMT_TO_MODEL_LAST(last_stmt);
       while (mpl->scan_input->token != T_EOF)
       {  /* parse statement */
          if(is_keyword(mpl, "end")) break;
@@ -5192,7 +5195,7 @@ void model_section(MPL *mpl)
          {
              model_statement(mpl);
              /* actualize our last_stmt */
-             for(; last_stmt && last_stmt->next; last_stmt = last_stmt->next);
+             SET_STMT_TO_MODEL_LAST(last_stmt);
              continue;
          }
          stmt = simple_statement(mpl, 0);
