@@ -2920,11 +2920,12 @@ void clean_set(MPL *mpl, SET *set)
 
 int get_size_set(MPL *mpl, SET *set)
 {
+    MEMBER *memb;
     xassert(set != NULL);
     int set_sz = 0;
     if(set->domain) set_sz = set->array->size;
     else {
-        for(MEMBER *memb=set->array->head; memb != NULL; memb=memb->next)
+        for(memb=set->array->head; memb != NULL; memb=memb->next)
             set_sz = (set_sz ? set_sz : 1) * memb->value.set->size;
     }
     return set_sz;
