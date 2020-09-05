@@ -22,6 +22,8 @@ Here is a brief of changes made to GLPK 4.65 distribution:
 * Add the if/then/else statements
 * Add the break/continue statements
 
+You can test it online here https://meimporta.eu/myglpk-ext
+
 To get the best performance configure like:
 
 CFLAGS="-g -O3 -march=native -ffp-contract=off -DWITH_SPLAYTREE -DNDEBUG -flto" ./configure
