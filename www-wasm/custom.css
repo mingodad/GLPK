@@ -1,0 +1,130 @@
+body {
+    font-family: 'Crimson Text', serif;
+    /*background: #fcfbf3;*/
+    font-weight: normal;
+    font-size: 18px;
+    line-height: 1.6;
+    --red: #c30706;
+}
+
+.red {
+    color: var(--red);
+}
+/*
+a {
+    color: black;
+    font-weight: normal;
+    text-decoration: underline;
+    text-decoration-color: var(--red);
+    text-decoration-style: solid;
+    text-decoration-thickness: .125em;
+}
+
+a:hover {
+    text-decoration-style: dotted;
+}
+*/
+h1 {
+    font-family: 'EB Garamond', serif;
+    text-align: center;
+    font-weight: 400;
+    font-size: 3em;
+}
+
+@media (max-width: 768px) {
+    h1 {
+        font-size: 2em;
+    }
+}
+
+h2 {
+    margin-top: 3em;
+    text-align: center;
+    text-transform: uppercase;
+    letter-spacing: 0.25em;
+    font-weight: 400;
+    font-size: 1.3em;
+}
+
+h2::before, h2::after {
+    content: "  ❧";
+    display: inline-block;
+}
+
+h2::before {
+    transform: scale(-1, 1);
+}
+
+h3 {
+    margin-top: 1.5em;
+    text-align: center;
+    font-weight: 700;
+    font-size: 20px;
+}
+
+h4 {
+    text-align: center;
+    font-weight: 400;
+    font-size: 1.3em;
+    text-transform: lowercase;
+    font-variant: small-caps;
+    letter-spacing: 0.15em;
+}
+
+h5 {
+    text-align: center;
+    font-weight: 400;
+    font-weight: 400;
+    font-style: italic;
+    font-size: 1em;
+}
+
+.run-in-sidehead {
+    float: left;
+    padding-right: 1em;
+    text-transform: lowercase;
+    letter-spacing: 0.15em;
+    font-weight: 400;
+    font-variant: small-caps;
+    font-size: 1.35em;
+    line-height: 0.64em;
+}
+
+.drop-cap {
+    display: block;
+    float: left;
+    color: #dfdfdf;
+    text-align: top;
+    font-size: 3.1em;
+    line-height: 0.8em;
+}
+
+p {
+    text-align: justify;
+}
+
+blockquote {
+    padding-right: 2em;
+    padding-left: 2em;
+    font-size: 0.9em;
+}
+
+.container,
+.content {
+    margin: 3em auto;
+    max-width: 90%;/*600px;*/
+}
+
+button {
+    font-family: 'EB Garamond', serif;
+    font-weight: normal;
+    font-size: 24px;
+}
+
+textarea {
+    font-family: DejaVu Sans Mono, Menlo, Consolas, Monaco, Lucida Console, Liberation Mono, Bitstream Vera Sans Mono, Courier New, monospace;
+}
+
+textarea.sansserif {
+    font-family: serif;
+}

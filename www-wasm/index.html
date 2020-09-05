@@ -1,0 +1,154 @@
+<!doctype html>
+<html lang="en-us">
+  <head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Glpk with experimental extensions in Your Browser</title>
+    <!--<link href='https://fonts.googleapis.com/css?family=EB+Garamond' rel='stylesheet' type='text/css' />-->
+    <!--<link href="https://fonts.googleapis.com/css2?family=Crimson+Text:ital,wght@0,400;0,600;1,400;1,600&display=swap" rel="stylesheet">-->
+    <link rel="stylesheet" type="text/css" href="custom.css" />
+    <link rel="stylesheet" type="text/css" href="common.css" />
+    <link rel="stylesheet" href="xterm.js/dist/xterm.css" />
+    <script src="jquery-3.3.1.min.js"></script>
+    <script src="xterm.js/dist/xterm.js"></script>
+    <script src="xterm.js/dist/addons/fit/fit.js"></script>
+  </head>
+  <body>
+  <div class="container">
+    <h1><span class="red">G</span>lpk with <span class="red">Experimental Extensions</span> in <span class="red">Y</span>our <span class="red">B</span>rowser</h1>
+    This page runs experimental <a href="https://en.wikibooks.org/wiki/GLPK/Using_GLPSOL">Glpsol</a> from <a href="https://github.com/mingodad/GLPK">this GLPK repository</a> in the browser.
+    It lets you solve optimization problems written in <a href="https://en.wikibooks.org/wiki/GLPK/GMPL_(MathProg)">GMPL modelling language</a>. Both linear programming and integer programming is supported.
+
+    <p>
+    Select a model (you can edit then) and press <strong>[run glpsol]</strong> button:
+    	<select id="model-select">
+	<option>assign.mod</option>
+	<option>bpp.mod</option>
+	<option>cal.mod</option>
+	<option>cf12a.mod</option>
+	<option>cf12b.mod</option>
+	<option>cflsq.mod</option>
+	<option>color.mod</option>
+	<option>cpp.mod</option>
+	<option>crypto.mod</option>
+	<option>dea.mod</option>
+	<option>diet.mod</option>
+	<option>dist.mod</option>
+	<option>egypt.mod</option>
+	<option>fctp.mod</option>
+	<option>food2.mod</option>
+	<option>food.mod</option>
+	<option>gap.mod</option>
+	<option>graceful.mod</option>
+	<option>graph.mod</option>
+	<option>hashi.mod</option>
+	<option>huge.mod</option>
+	<option>jssp.mod</option>
+	<option>magic.mod</option>
+	<option>maxcut.mod</option>
+	<option>maxflow.mod</option>
+	<option>mfasp.mod</option>
+	<option>mfvsp.mod</option>
+	<option>min01ks.mod</option>
+	<option>misp.mod</option>
+	<option>money.mod</option>
+	<option>mvcp.mod</option>
+	<option>numbrix.mod</option>
+	<option>pentomino.mod</option>
+	<option>planarity.mod</option>
+	<option>plan.mod</option>
+	<option>powpl25h.mod</option>
+	<option>powplant.mod</option>
+	<option>prod.mod</option>
+	<option>qfit.mod</option>
+	<option>queens.mod</option>
+	<option>sat.mod</option>
+	<option>shiftcov.mod</option>
+	<option>shikaku.mod</option>
+	<option>sorting.mod</option>
+	<option>spp.mod</option>
+	<option>stigler.mod</option>
+	<option>sudoku.mod</option>
+	<option>tas.mod</option>
+	<option>tiling.mod</option>
+	<option>todd.mod</option>
+	<option>toto.mod</option>
+	<option>train.mod</option>
+	<option>transp.mod</option>
+	<option>tsp.mod</option>
+	<option>wolfra6d.mod</option>
+	<option>xyacfs.mod</option>
+	<option>yacfs.mod</option>
+	<option>zebra.mod</option>
+	</select>
+    	<select id="model-ext-select">
+	<option>extended examples</option>
+	<option>cal-if.mod</option>
+	<option>cut-fix-size.mod</option>
+	<option>hashi-if.mod</option>
+	<option>numbrix-if.mod</option>
+	<option>pentomino-if.mod</option>
+	<option>shikaku-if.mod</option>
+	</select>
+    </p>
+    <textarea id="input" rows="8"></textarea>
+
+<select name="glpsol-options" id="glpsol-options" >
+    <option value="">Command line arguments:</option>
+    <option value="help">--help</option>
+    <option value="run">--math input_file</option>
+    <option value="run-quiet">--quiet --math input_file</option>
+</select>
+    <input type="text" value="--math input_file" id="command_line" /></span>&nbsp; (Try --help to see options.)<br />
+
+    <p>
+      <input type="button" value="run glpsol" id="start_button" onclick="start_program();" /> ***Some models can take a long time or use much memory, you can reload the page to restart.
+      <div id="status">Loading Webassembly in the background...</div>
+    </p>
+
+    <p>
+    </div>
+
+    <div id="terminal" class="output"></div>
+
+    <div class="container">
+    <script>
+        var term = new Terminal({cursorBlink: true, scrollback: 10000});
+        term.open(document.getElementById('terminal'));
+        term.fit();
+        term.textarea.onkeydown = function (e) {
+          console.log('User pressed key with keyCode: ', e.keyCode);
+        }
+    </script>
+    </p>
+   <p>This page is based on <a href="https://www.strandmark.net/wasm/glpk.html">Glpk in Your Browser</a>, and the compilation to wasm was based on this repository <a href="https://github.com/PetterS/monolith">github.com/PetterS/monolith</a></p>
+
+    <script type="text/javascript">
+      // Hack to disable Emscripten’s hijacking of the keyboard.
+      document.addEventListener = function(a, b) {};
+      function loadModelFromUrl() {
+          var url = "examples/" + $(this).val(); // get selected value
+          //alert (url);
+	  $.get(url, function(data) {
+			$("#input").val(data);
+		}, 'text').fail(function(){
+			alert('Failed to load : ' + url );
+		});
+          return false;
+      }
+      $('#model-select').on('change', loadModelFromUrl);
+      $('#model-ext-select').on('change', loadModelFromUrl);
+      $('#model-select').change();
+       $('#glpsol-options').on('change', function(){
+		if(this.selectedIndex > 0) {
+			$('#command_line').val(this.options[this.selectedIndex].text);
+			this.selectedIndex = 0;
+		}
+       });
+    </script>
+    <script type="text/javascript" src="glpsol.js"></script>
+    <script type="text/javascript" src="custom_start_program.js"></script>
+  </div>
+  </body>
+</html>
