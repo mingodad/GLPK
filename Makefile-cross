@@ -1,0 +1,395 @@
+build-type ?=debug
+
+BASE_FOLDER=.
+#BASE_FOLDER=$(shell echo $$PWD)
+#$(warning "BASE_FOLDER=${BASE_FOLDER}")
+SRC_FOLDER=$(BASE_FOLDER)/src
+OBJDIR := obj/$(build-type)
+OBJDIR_C := $(OBJDIR)/c
+OBJDIR_CXX := $(OBJDIR)/cxx
+
+#declared empty to incrementally add to it bellow
+CFLAGS =
+CXXFLAGS =
+LDFLAGS =
+LIBDIR =
+LIB =
+INC =
+xPLATFORM=Dev.
+#end empty declarations
+
+HOST_OSTYPE := $(shell uname -s)
+#$(warning "HOST_OSTYPE=${HOST_OSTYPE}")
+
+HOST_ARCH := $(shell uname -m)
+#$(warning "HOST_ARCH=${HOST_ARCH}")
+
+#ifneq ($(findstring "64", $(HOST_ARCH)), "")
+#	TARGET_BITS64=1
+#endif
+
+#ifneq ($(findstring "32", $(HOST_ARCH)), "")
+#	TARGET_BITS32=1
+#endif
+
+ifeq ($(findstring debug, $(build-type)), debug)
+	CFLAG_OPT := -g -DWITH_SPLAYTREE
+endif
+
+ifeq ($(findstring release, $(build-type)), release)
+	#CFLAG_OPT := -O2 -DNDEBUG=1
+	CFLAG_OPT := -g -O3 -flto -DWITH_SPLAYTREE -DNDEBUG
+	LDFLAGS += -s
+	ifndef PPCLE
+		CFLAG_OPT +=  -march=native -ffp-contract=off
+	endif
+endif
+
+exe_prg_src := examples/glpsol.c
+exe_prg := glpsol-$(build-type)
+
+CC = gcc
+CXX = g++
+
+INC +=  \
+	-I$(SRC_FOLDER) \
+	-I$(SRC_FOLDER)/amd \
+	-I$(SRC_FOLDER)/api \
+	-I$(SRC_FOLDER)/bflib \
+	-I$(SRC_FOLDER)/colamd \
+	-I$(SRC_FOLDER)/draft \
+	-I$(SRC_FOLDER)/env \
+	-I$(SRC_FOLDER)/intopt \
+	-I$(SRC_FOLDER)/minisat \
+	-I$(SRC_FOLDER)/misc \
+	-I$(SRC_FOLDER)/mpl \
+	-I$(SRC_FOLDER)/npp \
+	-I$(SRC_FOLDER)/proxy \
+	-I$(SRC_FOLDER)/simplex \
+	-I$(SRC_FOLDER)/zlib
+
+LIBDIR +=  -L$(BASE_FOLDER)/lib
+LIB +=  -lm
+
+ifdef WIN32
+EXE_EXT = ".exe"
+LIB +=  -lws2_32 -lole32 -lrpcrt4
+else
+LIB +=  -ldl
+ifndef LOCAL-ZLIB
+LIB +=  -lz
+endif
+endif
+
+ifeq ($(findstring emscripten, $(build-type)), emscripten)
+	EXE_EXT = ".bc"
+endif
+
+.DEFAULT_GOAL := $(exe_prg)$(EXE_EXT)
+
+LDFLAGS +=  $(LIB)
+CFLAGS += $(INC) $(CFLAG_OPT) -Wall -fno-strict-aliasing -Wno-write-strings
+CXXFLAGS += -fno-exceptions -fno-rtti
+
+ifdef WITH-OLD-GCC
+#CFLAGS +=
+endif
+
+ifdef WIN32
+CFLAGS += -DWIN32 -DINET_ATON
+endif
+
+ifeq ($(findstring mingw, $(build-type)), mingw)
+	xPLATFORM +=Windows
+endif
+
+ifeq ($(findstring linux, $(build-type)), linux)
+	xPLATFORM +=Linux
+endif
+
+ifeq ($(findstring emscripten, $(build-type)), emscripten)
+	xPLATFORM +=Emscripten
+	CFLAGS += -s FORCE_FILESYSTEM=1
+endif
+
+ifeq ($(findstring darwin, $(build-type)), darwin)
+	xPLATFORM +=Darwin
+endif
+
+ifdef TARGET_BITS32
+	CFLAGS += -m32
+	xPLATFORM += 32
+endif
+
+ifdef TARGET_BITS64
+ifdef TARGET_AIX
+	CFLAGS += -maix64
+else
+	CFLAGS += -m64
+endif
+	xPLATFORM += 64
+endif
+
+ifdef ENABLE_LTO
+	CFLAGS += -flto
+endif
+
+#CFLAGS +=
+
+SOURCES_C= #declared empty to incrementally add bellow
+SOURCES_CXX= #declared empty to incrementally add bellow
+SOURCES= #declared empty to incrementally add bellow
+
+SOURCES_C += \
+	$(SRC_FOLDER)/amd/amd_1.c \
+	$(SRC_FOLDER)/amd/amd_2.c \
+	$(SRC_FOLDER)/amd/amd_aat.c \
+	$(SRC_FOLDER)/amd/amd_control.c \
+	$(SRC_FOLDER)/amd/amd_defaults.c \
+	$(SRC_FOLDER)/amd/amd_dump.c \
+	$(SRC_FOLDER)/amd/amd_info.c \
+	$(SRC_FOLDER)/amd/amd_order.c \
+	$(SRC_FOLDER)/amd/amd_post_tree.c \
+	$(SRC_FOLDER)/amd/amd_postorder.c \
+	$(SRC_FOLDER)/amd/amd_preprocess.c \
+	$(SRC_FOLDER)/amd/amd_valid.c \
+	$(SRC_FOLDER)/api/advbas.c \
+	$(SRC_FOLDER)/api/asnhall.c \
+	$(SRC_FOLDER)/api/asnlp.c \
+	$(SRC_FOLDER)/api/asnokalg.c \
+	$(SRC_FOLDER)/api/ckasn.c \
+	$(SRC_FOLDER)/api/ckcnf.c \
+	$(SRC_FOLDER)/api/cplex.c \
+	$(SRC_FOLDER)/api/cpp.c \
+	$(SRC_FOLDER)/api/cpxbas.c \
+	$(SRC_FOLDER)/api/graph.c \
+	$(SRC_FOLDER)/api/gridgen.c \
+	$(SRC_FOLDER)/api/intfeas1.c \
+	$(SRC_FOLDER)/api/maxffalg.c \
+	$(SRC_FOLDER)/api/maxflp.c \
+	$(SRC_FOLDER)/api/mcflp.c \
+	$(SRC_FOLDER)/api/mcfokalg.c \
+	$(SRC_FOLDER)/api/mcfrelax.c \
+	$(SRC_FOLDER)/api/minisat1.c \
+	$(SRC_FOLDER)/api/mpl.c \
+	$(SRC_FOLDER)/api/mps.c \
+	$(SRC_FOLDER)/api/netgen.c \
+	$(SRC_FOLDER)/api/npp.c \
+	$(SRC_FOLDER)/api/pript.c \
+	$(SRC_FOLDER)/api/prmip.c \
+	$(SRC_FOLDER)/api/prob1.c \
+	$(SRC_FOLDER)/api/prob2.c \
+	$(SRC_FOLDER)/api/prob3.c \
+	$(SRC_FOLDER)/api/prob4.c \
+	$(SRC_FOLDER)/api/prob5.c \
+	$(SRC_FOLDER)/api/prrngs.c \
+	$(SRC_FOLDER)/api/prsol.c \
+	$(SRC_FOLDER)/api/rdasn.c \
+	$(SRC_FOLDER)/api/rdcc.c \
+	$(SRC_FOLDER)/api/rdcnf.c \
+	$(SRC_FOLDER)/api/rdipt.c \
+	$(SRC_FOLDER)/api/rdmaxf.c \
+	$(SRC_FOLDER)/api/rdmcf.c \
+	$(SRC_FOLDER)/api/rdmip.c \
+	$(SRC_FOLDER)/api/rdprob.c \
+	$(SRC_FOLDER)/api/rdsol.c \
+	$(SRC_FOLDER)/api/rmfgen.c \
+	$(SRC_FOLDER)/api/strong.c \
+	$(SRC_FOLDER)/api/topsort.c \
+	$(SRC_FOLDER)/api/weak.c \
+	$(SRC_FOLDER)/api/wcliqex.c \
+	$(SRC_FOLDER)/api/wrasn.c \
+	$(SRC_FOLDER)/api/wrcc.c \
+	$(SRC_FOLDER)/api/wrcnf.c \
+	$(SRC_FOLDER)/api/wript.c \
+	$(SRC_FOLDER)/api/wrmaxf.c \
+	$(SRC_FOLDER)/api/wrmcf.c \
+	$(SRC_FOLDER)/api/wrmip.c \
+	$(SRC_FOLDER)/api/wrprob.c \
+	$(SRC_FOLDER)/api/wrsol.c \
+	$(SRC_FOLDER)/bflib/btf.c \
+	$(SRC_FOLDER)/bflib/btfint.c \
+	$(SRC_FOLDER)/bflib/fhv.c \
+	$(SRC_FOLDER)/bflib/fhvint.c \
+	$(SRC_FOLDER)/bflib/ifu.c \
+	$(SRC_FOLDER)/bflib/luf.c \
+	$(SRC_FOLDER)/bflib/lufint.c \
+	$(SRC_FOLDER)/bflib/scf.c \
+	$(SRC_FOLDER)/bflib/scfint.c \
+	$(SRC_FOLDER)/bflib/sgf.c \
+	$(SRC_FOLDER)/bflib/sva.c \
+	$(SRC_FOLDER)/colamd/colamd.c \
+	$(SRC_FOLDER)/draft/bfd.c \
+	$(SRC_FOLDER)/draft/bfx.c \
+	$(SRC_FOLDER)/draft/glpapi06.c \
+	$(SRC_FOLDER)/draft/glpapi07.c \
+	$(SRC_FOLDER)/draft/glpapi08.c \
+	$(SRC_FOLDER)/draft/glpapi09.c \
+	$(SRC_FOLDER)/draft/glpapi10.c \
+	$(SRC_FOLDER)/draft/glpapi12.c \
+	$(SRC_FOLDER)/draft/glpapi13.c \
+	$(SRC_FOLDER)/draft/glphbm.c \
+	$(SRC_FOLDER)/draft/glpios01.c \
+	$(SRC_FOLDER)/draft/glpios02.c \
+	$(SRC_FOLDER)/draft/glpios03.c \
+	$(SRC_FOLDER)/draft/glpios07.c \
+	$(SRC_FOLDER)/draft/glpios09.c \
+	$(SRC_FOLDER)/draft/glpios11.c \
+	$(SRC_FOLDER)/draft/glpios12.c \
+	$(SRC_FOLDER)/draft/glpipm.c \
+	$(SRC_FOLDER)/draft/glpmat.c \
+	$(SRC_FOLDER)/draft/glprgr.c \
+	$(SRC_FOLDER)/draft/glpscl.c \
+	$(SRC_FOLDER)/draft/glpspm.c \
+	$(SRC_FOLDER)/draft/glpssx01.c \
+	$(SRC_FOLDER)/draft/glpssx02.c \
+	$(SRC_FOLDER)/draft/lux.c \
+	$(SRC_FOLDER)/env/alloc.c \
+	$(SRC_FOLDER)/env/dlsup.c \
+	$(SRC_FOLDER)/env/env.c \
+	$(SRC_FOLDER)/env/error.c \
+	$(SRC_FOLDER)/env/stdc.c \
+	$(SRC_FOLDER)/env/stdout.c \
+	$(SRC_FOLDER)/env/stream.c \
+	$(SRC_FOLDER)/env/time.c \
+	$(SRC_FOLDER)/env/tls.c \
+	$(SRC_FOLDER)/intopt/cfg.c \
+	$(SRC_FOLDER)/intopt/cfg1.c \
+	$(SRC_FOLDER)/intopt/cfg2.c \
+	$(SRC_FOLDER)/intopt/clqcut.c \
+	$(SRC_FOLDER)/intopt/covgen.c \
+	$(SRC_FOLDER)/intopt/fpump.c \
+	$(SRC_FOLDER)/intopt/gmicut.c \
+	$(SRC_FOLDER)/intopt/gmigen.c \
+	$(SRC_FOLDER)/intopt/mirgen.c \
+	$(SRC_FOLDER)/intopt/spv.c \
+	$(SRC_FOLDER)/minisat/minisat.c \
+	$(SRC_FOLDER)/misc/avl.c \
+	$(SRC_FOLDER)/misc/splaytree.c \
+	$(SRC_FOLDER)/misc/bignum.c \
+	$(SRC_FOLDER)/misc/dimacs.c \
+	$(SRC_FOLDER)/misc/dmp.c \
+	$(SRC_FOLDER)/misc/ffalg.c \
+	$(SRC_FOLDER)/misc/fp2rat.c \
+	$(SRC_FOLDER)/misc/fvs.c \
+	$(SRC_FOLDER)/misc/gcd.c \
+	$(SRC_FOLDER)/misc/jd.c \
+	$(SRC_FOLDER)/misc/keller.c \
+	$(SRC_FOLDER)/misc/ks.c \
+	$(SRC_FOLDER)/misc/mc13d.c \
+	$(SRC_FOLDER)/misc/mc21a.c \
+	$(SRC_FOLDER)/misc/mt1.c \
+	$(SRC_FOLDER)/misc/mygmp.c \
+	$(SRC_FOLDER)/misc/okalg.c \
+	$(SRC_FOLDER)/misc/qmd.c \
+	$(SRC_FOLDER)/misc/relax4.c \
+	$(SRC_FOLDER)/misc/rng.c \
+	$(SRC_FOLDER)/misc/rng1.c \
+	$(SRC_FOLDER)/misc/round2n.c \
+	$(SRC_FOLDER)/misc/str2int.c \
+	$(SRC_FOLDER)/misc/str2num.c \
+	$(SRC_FOLDER)/misc/strspx.c \
+	$(SRC_FOLDER)/misc/strtrim.c \
+	$(SRC_FOLDER)/misc/triang.c \
+	$(SRC_FOLDER)/misc/wclique.c \
+	$(SRC_FOLDER)/misc/wclique1.c \
+	$(SRC_FOLDER)/mpl/mpl1.c \
+	$(SRC_FOLDER)/mpl/mpl2.c \
+	$(SRC_FOLDER)/mpl/mpl3.c \
+	$(SRC_FOLDER)/mpl/mpl4.c \
+	$(SRC_FOLDER)/mpl/mpl5.c \
+	$(SRC_FOLDER)/mpl/mpl6.c \
+	$(SRC_FOLDER)/mpl/mplsql.c \
+	$(SRC_FOLDER)/npp/npp1.c \
+	$(SRC_FOLDER)/npp/npp2.c \
+	$(SRC_FOLDER)/npp/npp3.c \
+	$(SRC_FOLDER)/npp/npp4.c \
+	$(SRC_FOLDER)/npp/npp5.c \
+	$(SRC_FOLDER)/npp/npp6.c \
+	$(SRC_FOLDER)/proxy/proxy.c \
+	$(SRC_FOLDER)/proxy/proxy1.c \
+	$(SRC_FOLDER)/simplex/spxat.c \
+	$(SRC_FOLDER)/simplex/spxchuzc.c \
+	$(SRC_FOLDER)/simplex/spxchuzr.c \
+	$(SRC_FOLDER)/simplex/spxlp.c \
+	$(SRC_FOLDER)/simplex/spxnt.c \
+	$(SRC_FOLDER)/simplex/spxprim.c \
+	$(SRC_FOLDER)/simplex/spxprob.c \
+	$(SRC_FOLDER)/simplex/spychuzc.c \
+	$(SRC_FOLDER)/simplex/spychuzr.c \
+	$(SRC_FOLDER)/simplex/spydual.c \
+	$(SRC_FOLDER)/zlib/adler32.c \
+	$(SRC_FOLDER)/zlib/compress.c \
+	$(SRC_FOLDER)/zlib/crc32.c \
+	$(SRC_FOLDER)/zlib/deflate.c \
+	$(SRC_FOLDER)/zlib/gzclose.c \
+	$(SRC_FOLDER)/zlib/gzlib.c \
+	$(SRC_FOLDER)/zlib/gzread.c \
+	$(SRC_FOLDER)/zlib/gzwrite.c \
+	$(SRC_FOLDER)/zlib/inffast.c \
+	$(SRC_FOLDER)/zlib/inflate.c \
+	$(SRC_FOLDER)/zlib/inftrees.c \
+	$(SRC_FOLDER)/zlib/trees.c \
+	$(SRC_FOLDER)/zlib/uncompr.c \
+	$(SRC_FOLDER)/zlib/zio.c \
+	$(SRC_FOLDER)/zlib/zutil.c
+
+#SOURCES_CXX +=
+
+ifeq ($(findstring mingw, $(CC)), mingw)
+#CFLAGS += -DMSpc -DXECTIM
+#SOURCES_CXX +=
+else
+#SOURCES_CXX +=
+endif
+
+ifeq ($(findstring emscripten, $(build-type)), emscripten)
+#CFLAGS +=
+else
+#SOURCES_C +=
+endif
+
+
+ifdef TARGET_BITS64
+endif
+
+
+CFLAGS += \
+	-DSQ_USE_MKSTEMP=1 \
+	-DSQ_USE_LOCALTIME_R=1
+
+ifneq ($(findstring, Linux, $(HOST_OSTYPE)), "")
+ifndef WIN32
+ifndef DARWIN
+ifndef PPCLE
+LDFLAGS +=  -lrt
+ifndef NO-UUID
+LDFLAGS +=  -luuid
+endif
+endif
+endif
+endif
+endif
+
+SOURCES_PROG =  $(SOURCES_C) $(SOURCES_CXX)
+
+OBJECTS_C = $(addprefix $(OBJDIR_C)/, $(SOURCES_C:.c=.o))
+OBJECTS_CXX = $(addprefix $(OBJDIR_CXX)/, $(SOURCES_CXX:.c=.o))
+
+OBJECTS_PROG = $(OBJECTS_C) $(OBJECTS_CXX)
+
+#ensure that directories exists
+ensure-dir = -mkdir -p $(patsubst %/,%,$(dir $(1:%/=%)))
+
+
+$(OBJDIR_C)/%.o: $(BASE_FOLDER)/%.c
+	$(call ensure-dir, $@)
+	$(CC) -c -o $@ $< $(CFLAGS)
+
+$(OBJDIR_CXX)/%.o: $(BASE_FOLDER)/%.c
+	$(call ensure-dir, $@)
+	$(CXX) -c -o $@ $< $(CFLAGS) $(CXXFLAGS)
+
+$(exe_prg)$(EXE_EXT): $(OBJECTS_PROG)
+	$(CC) $(CFLAGS) -o $@ $(exe_prg_src) $(OBJECTS_PROG) $(LIBDIR) $(LDFLAGS)
+	#$(AR) rcs lib$(exe_prg).a $(OBJECTS)
