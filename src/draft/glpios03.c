@@ -822,7 +822,8 @@ static void remove_cuts(glp_tree *T)
          xprintf("%d inactive cut(s) removed\n", cnt);
 #endif
          xfree(num);
-         xassert(glp_factorize(T->mip) == 0);
+         i = glp_factorize(T->mip);
+         xassert(i == 0);
       }
       return;
 }
