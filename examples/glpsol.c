@@ -200,7 +200,7 @@ static int str2num(const char *s, glp_double *x)
       t = strtod(s, &endptr);
       if (*endptr != '\0')
          return 2;
-      if (!(-DBL_MAX <= t && t <= +DBL_MAX))
+      if (!(-GLP_DBL_MAX <= t && t <= +GLP_DBL_MAX))
          return 1;
       *x = t;
 #if 0

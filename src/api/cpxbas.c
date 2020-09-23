@@ -136,7 +136,7 @@ static void cpx_basis(glp_prob *lp)
          if (gamma < temp) gamma = temp;
       }
       /* compute cmax */
-      cmax = (gamma == 0.0 ? 1.0 : 1000.0 * gamma);
+      cmax = (gamma == 0.0 ? 1.0 : GLP_DBL_THOUSAND * gamma);
       /* compute final penalty for all structural variables within sets
          C2, C3, and C4 */
       switch (glp_get_obj_dir(lp))
@@ -176,7 +176,7 @@ static void cpx_basis(glp_prob *lp)
             I[i] = 0;
             r[i] = 0;
          }
-         v[i] = +DBL_MAX;
+         v[i] = +GLP_DBL_MAX;
       }
       /*** STEP 2 ***/
       for (k = 1; k <= n2+n3+n4; k++)

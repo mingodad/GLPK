@@ -1000,7 +1000,7 @@ void mpq_set_d(mpq_t x, glp_double val)
       int s, n, d, j;
       glp_double f;
       mpz_t temp;
-      xassert(-DBL_MAX <= val && val <= +DBL_MAX);
+      xassert(-GLP_DBL_MAX <= val && val <= +GLP_DBL_MAX);
       mpq_set_si(x, 0, 1);
       if (val > 0.0)
          s = +1;

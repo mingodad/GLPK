@@ -109,7 +109,7 @@ void spx_eval_beta(SPXLP *lp, glp_double beta[/*1+m*/])
       {  k = head[m+j]; /* x[k] = xN[j] */
          /* f[j] := active bound of xN[j] */
          fj = flag[j] ? u[k] : l[k];
-         if (fj == 0.0 || fj == -DBL_MAX)
+         if (fj == 0.0 || fj == -GLP_DBL_MAX)
          {  /* either xN[j] has zero active bound or it is unbounded;
              * in the latter case its value is assumed to be zero */
             continue;
@@ -171,7 +171,7 @@ glp_double spx_eval_obj(SPXLP *lp, const glp_double beta[/*1+m*/])
       {  k = head[m+j]; /* x[k] = xN[j] */
          /* f[j] := active bound of xN[j] */
          fj = flag[j] ? u[k] : l[k];
-         if (fj == 0.0 || fj == -DBL_MAX)
+         if (fj == 0.0 || fj == -GLP_DBL_MAX)
          {  /* either xN[j] has zero active bound or it is unbounded;
              * in the latter case its value is assumed to be zero */
             continue;
@@ -470,7 +470,7 @@ void spx_update_beta(SPXLP *lp, glp_double beta[/*1+m*/], int p,
          xassert(1 <= q && q <= n-m);
          /* xN[q] should be double-bounded variable */
          k = head[m+q]; /* x[k] = xN[q] */
-         xassert(l[k] != -DBL_MAX && u[k] != +DBL_MAX && l[k] != u[k]);
+         xassert(l[k] != -GLP_DBL_MAX && u[k] != +GLP_DBL_MAX && l[k] != u[k]);
          /* determine delta xN[q] */
          if (flag[q])
          {  /* xN[q] goes from its upper bound to its lower bound */
@@ -489,12 +489,12 @@ void spx_update_beta(SPXLP *lp, glp_double beta[/*1+m*/], int p,
          k = head[p]; /* x[k] = xB[p] */
          if (p_flag)
          {  /* xB[p] goes to its upper bound */
-            xassert(l[k] != u[k] && u[k] != +DBL_MAX);
+            xassert(l[k] != u[k] && u[k] != +GLP_DBL_MAX);
             delta_p = u[k] - beta[p];
          }
-         else if (l[k] == -DBL_MAX)
+         else if (l[k] == -GLP_DBL_MAX)
          {  /* unbounded xB[p] becomes non-basic (unusual case) */
-            xassert(u[k] == +DBL_MAX);
+            xassert(u[k] == +GLP_DBL_MAX);
             delta_p = 0.0 - beta[p];
          }
          else
@@ -508,12 +508,12 @@ void spx_update_beta(SPXLP *lp, glp_double beta[/*1+m*/], int p,
          k = head[m+q]; /* x[k] = xN[q] */
          if (flag[q])
          {  /* xN[q] has its upper bound active */
-            xassert(l[k] != u[k] && u[k] != +DBL_MAX);
+            xassert(l[k] != u[k] && u[k] != +GLP_DBL_MAX);
             beta[p] = u[k] + delta_q;
          }
-         else if (l[k] == -DBL_MAX)
+         else if (l[k] == -GLP_DBL_MAX)
          {  /* xN[q] is non-basic unbounded variable */
-            xassert(u[k] == +DBL_MAX);
+            xassert(u[k] == +GLP_DBL_MAX);
             beta[p] = 0.0 + delta_q;
          }
          else
@@ -555,7 +555,7 @@ void spx_update_beta_s(SPXLP *lp, glp_double beta[/*1+m*/], int p,
          xassert(1 <= q && q <= n-m);
          /* xN[q] should be double-bounded variable */
          k = head[m+q]; /* x[k] = xN[q] */
-         xassert(l[k] != -DBL_MAX && u[k] != +DBL_MAX && l[k] != u[k]);
+         xassert(l[k] != -GLP_DBL_MAX && u[k] != +GLP_DBL_MAX && l[k] != u[k]);
          /* determine delta xN[q] */
          if (flag[q])
          {  /* xN[q] goes from its upper bound to its lower bound */
@@ -574,12 +574,12 @@ void spx_update_beta_s(SPXLP *lp, glp_double beta[/*1+m*/], int p,
          k = head[p]; /* x[k] = xB[p] */
          if (p_flag)
          {  /* xB[p] goes to its upper bound */
-            xassert(l[k] != u[k] && u[k] != +DBL_MAX);
+            xassert(l[k] != u[k] && u[k] != +GLP_DBL_MAX);
             delta_p = u[k] - beta[p];
          }
-         else if (l[k] == -DBL_MAX)
+         else if (l[k] == -GLP_DBL_MAX)
          {  /* unbounded xB[p] becomes non-basic (unusual case) */
-            xassert(u[k] == +DBL_MAX);
+            xassert(u[k] == +GLP_DBL_MAX);
             delta_p = 0.0 - beta[p];
          }
          else
@@ -593,12 +593,12 @@ void spx_update_beta_s(SPXLP *lp, glp_double beta[/*1+m*/], int p,
          k = head[m+q]; /* x[k] = xN[q] */
          if (flag[q])
          {  /* xN[q] has its upper bound active */
-            xassert(l[k] != u[k] && u[k] != +DBL_MAX);
+            xassert(l[k] != u[k] && u[k] != +GLP_DBL_MAX);
             beta[p] = u[k] + delta_q;
          }
-         else if (l[k] == -DBL_MAX)
+         else if (l[k] == -GLP_DBL_MAX)
          {  /* xN[q] is non-basic unbounded variable */
-            xassert(u[k] == +DBL_MAX);
+            xassert(u[k] == +GLP_DBL_MAX);
             beta[p] = 0.0 + delta_q;
          }
          else
@@ -761,7 +761,7 @@ void spx_change_basis(SPXLP *lp, int p, int p_flag, int q)
          xassert(1 <= q && q <= n-m);
          /* xN[q] should be double-bounded variable */
          k = head[m+q]; /* x[k] = xN[q] */
-         xassert(l[k] != -DBL_MAX && u[k] != +DBL_MAX && l[k] != u[k]);
+         xassert(l[k] != -GLP_DBL_MAX && u[k] != +GLP_DBL_MAX && l[k] != u[k]);
          /* change active bound flag */
          flag[q] = 1 - flag[q];
       }
@@ -773,7 +773,7 @@ void spx_change_basis(SPXLP *lp, int p, int p_flag, int q)
          k = head[p]; /* xB[p] = x[k] */
          if (p_flag)
          {  /* xB[p] goes to its upper bound */
-            xassert(l[k] != u[k] && u[k] != +DBL_MAX);
+            xassert(l[k] != u[k] && u[k] != +GLP_DBL_MAX);
          }
          /* swap xB[p] and xN[q] in the basis */
          head[p] = head[m+q], head[m+q] = k;

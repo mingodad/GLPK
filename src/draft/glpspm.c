@@ -599,7 +599,7 @@ int spm_write_mat(const SPM *A, const char *fname)
          /* walk through elements of i-th row */
          for (e = A->row[i]; e != NULL; e = e->r_next)
          {  /* row index, column index, element value */
-            fprintf(fp, "%d %d %.*g\n", e->i, e->j, DBL_DIG, e->val);
+            fprintf(fp, "%d %d %.*" GLP_DBL_FMT_G "\n", e->i, e->j, GLP_DBL_DIG, e->val);
          }
       }
       fflush(fp);

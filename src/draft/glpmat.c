@@ -813,7 +813,7 @@ int chol_numeric(int n,
          if (ukk > 0.0)
             U_diag[k] = ukk = sqrt(ukk);
          else
-            U_diag[k] = ukk = DBL_MAX, count++;
+            U_diag[k] = ukk = GLP_DBL_MAX, count++;
          /* (work) := (transformed k-th row) */
          beg = U_ptr[k], end = U_ptr[k+1];
          for (t = beg; t < end; t++)

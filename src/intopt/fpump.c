@@ -173,7 +173,7 @@ pass: /* next pass starts here */
          xprintf("Pass %d\n", npass);
       /* initialize minimal distance between the basic point and the
          rounded one obtained during this pass */
-      dist = DBL_MAX;
+      dist = GLP_DBL_MAX;
       /* reset failure count (the number of succeeded iterations failed
          to improve the distance) */
       nfail = 0;
@@ -339,7 +339,7 @@ skip: /* check if the time limit has been exhausted */
          }
       }
       /* the basic solution is fractional */
-      if (dist == DBL_MAX ||
+      if (dist == GLP_DBL_MAX ||
           lp->obj_val <= dist - 1e-6 * (1.0 + dist))
       {  /* the distance is reducing */
          nfail = 0, dist = lp->obj_val;

@@ -97,10 +97,10 @@ frac: /* scan optional fraction part */
             return 2;
       }
       /* check for overflow */
-      if (!(-DBL_MAX <= val && val <= +DBL_MAX))
+      if (!(-GLP_DBL_MAX <= val && val <= +GLP_DBL_MAX))
          return 1;
       /* check for underflow */
-      if (-DBL_MIN < val && val < +DBL_MIN)
+      if (-GLP_DBL_MIN < val && val < +GLP_DBL_MIN)
          val = 0.0;
       /* conversion has been done */
       *val_ = val;

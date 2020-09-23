@@ -69,7 +69,7 @@ int glp_write_ccdata(glp_graph *G, int v_wgt, const char *fname)
          {  v = G->v[i];
             memcpy(&w, (char *)v->data + v_wgt, sizeof(glp_double));
             if (w != 1.0)
-               xfprintf(fp, "n %d %.*g\n", i, DBL_DIG, w), count++;
+               xfprintf(fp, "n %d %.*" GLP_DBL_FMT_G "\n", i, GLP_DBL_DIG, w), count++;
          }
       }
       for (i = 1; i <= G->nv; i++)

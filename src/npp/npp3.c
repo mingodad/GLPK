@@ -82,7 +82,7 @@ int npp_empty_row(NPP *npp, NPPROW *p)
       if (p->lb > +eps || p->ub < -eps)
          return 1;
       /* replace the row by equivalent free (unbounded) row */
-      p->lb = -DBL_MAX, p->ub = +DBL_MAX;
+      p->lb = -GLP_DBL_MAX, p->ub = +GLP_DBL_MAX;
       /* and process it */
       npp_free_row(npp, p);
       return 0;
@@ -187,26 +187,26 @@ int npp_empty_col(NPP *npp, NPPCOL *q)
       /* the column must be empty */
       xassert(q->ptr == NULL);
       /* check dual feasibility */
-      if (q->coef > +eps && q->lb == -DBL_MAX)
+      if (q->coef > +eps && q->lb == -GLP_DBL_MAX)
          return 1;
-      if (q->coef < -eps && q->ub == +DBL_MAX)
+      if (q->coef < -eps && q->ub == +GLP_DBL_MAX)
          return 1;
       /* create transformation stack entry */
       info = npp_push_tse(npp,
          rcv_empty_col, sizeof(struct empty_col));
       info->q = q->j;
       /* fix the column */
-      if (q->lb == -DBL_MAX && q->ub == +DBL_MAX)
+      if (q->lb == -GLP_DBL_MAX && q->ub == +GLP_DBL_MAX)
       {  /* free column */
          info->stat = GLP_NF;
          q->lb = q->ub = 0.0;
       }
-      else if (q->ub == +DBL_MAX)
+      else if (q->ub == +GLP_DBL_MAX)
 lo:   {  /* column with lower bound */
          info->stat = GLP_NL;
          q->ub = q->lb;
       }
-      else if (q->lb == -DBL_MAX)
+      else if (q->lb == -GLP_DBL_MAX)
 up:   {  /* column with upper bound */
          info->stat = GLP_NU;
          q->lb = q->ub;
@@ -302,7 +302,7 @@ int npp_implied_value(NPP *npp, NPPCOL *q, glp_double s)
             return 2;
       }
       /* check current column lower bound */
-      if (q->lb != -DBL_MAX)
+      if (q->lb != -GLP_DBL_MAX)
       {  eps = (q->is_int ? 1e-5 : 1e-5 + 1e-8 * fabs(q->lb));
          if (s < q->lb - eps) return 1;
          /* if s[q] is close to l[q], fix column at its lower bound
@@ -313,7 +313,7 @@ int npp_implied_value(NPP *npp, NPPCOL *q, glp_double s)
          }
       }
       /* check current column upper bound */
-      if (q->ub != +DBL_MAX)
+      if (q->ub != +GLP_DBL_MAX)
       {  eps = (q->is_int ? 1e-5 : 1e-5 + 1e-8 * fabs(q->ub));
          if (s > q->ub + eps) return 1;
          /* if s[q] is close to u[q], fix column at its upper bound
@@ -555,7 +555,7 @@ int npp_implied_lower(NPP *npp, NPPCOL *q, glp_double l)
       /* column must not be fixed */
       xassert(q->lb < q->ub);
       /* implied lower bound must be finite */
-      xassert(l != -DBL_MAX);
+      xassert(l != -GLP_DBL_MAX);
       /* if column is integral, round up l'[q] */
       if (q->is_int)
       {  nint = floor(l + 0.5);
@@ -565,7 +565,7 @@ int npp_implied_lower(NPP *npp, NPPCOL *q, glp_double l)
             l = ceil(l);
       }
       /* check current column lower bound */
-      if (q->lb != -DBL_MAX)
+      if (q->lb != -GLP_DBL_MAX)
       {  eps = (q->is_int ? 1e-3 : 1e-3 + 1e-6 * fabs(q->lb));
          if (l < q->lb + eps)
          {  ret = 0; /* redundant */
@@ -573,7 +573,7 @@ int npp_implied_lower(NPP *npp, NPPCOL *q, glp_double l)
          }
       }
       /* check current column upper bound */
-      if (q->ub != +DBL_MAX)
+      if (q->ub != +GLP_DBL_MAX)
       {  eps = (q->is_int ? 1e-5 : 1e-5 + 1e-8 * fabs(q->ub));
          if (l > q->ub + eps)
          {  ret = 4; /* infeasible */
@@ -587,7 +587,7 @@ int npp_implied_lower(NPP *npp, NPPCOL *q, glp_double l)
          }
       }
       /* check if column lower bound changes significantly */
-      if (q->lb == -DBL_MAX)
+      if (q->lb == -GLP_DBL_MAX)
          ret = 2; /* significantly */
       else if (q->is_int && l > q->lb + 0.5)
          ret = 2; /* significantly */
@@ -667,7 +667,7 @@ int npp_implied_upper(NPP *npp, NPPCOL *q, glp_double u)
       /* column must not be fixed */
       xassert(q->lb < q->ub);
       /* implied upper bound must be finite */
-      xassert(u != +DBL_MAX);
+      xassert(u != +GLP_DBL_MAX);
       /* if column is integral, round down u'[q] */
       if (q->is_int)
       {  nint = floor(u + 0.5);
@@ -677,7 +677,7 @@ int npp_implied_upper(NPP *npp, NPPCOL *q, glp_double u)
             u = floor(u);
       }
       /* check current column upper bound */
-      if (q->ub != +DBL_MAX)
+      if (q->ub != +GLP_DBL_MAX)
       {  eps = (q->is_int ? 1e-3 : 1e-3 + 1e-6 * fabs(q->ub));
          if (u > q->ub - eps)
          {  ret = 0; /* redundant */
@@ -685,7 +685,7 @@ int npp_implied_upper(NPP *npp, NPPCOL *q, glp_double u)
          }
       }
       /* check current column lower bound */
-      if (q->lb != -DBL_MAX)
+      if (q->lb != -GLP_DBL_MAX)
       {  eps = (q->is_int ? 1e-5 : 1e-5 + 1e-8 * fabs(q->lb));
          if (u < q->lb - eps)
          {  ret = 4; /* infeasible */
@@ -699,7 +699,7 @@ int npp_implied_upper(NPP *npp, NPPCOL *q, glp_double u)
          }
       }
       /* check if column upper bound changes significantly */
-      if (q->ub == +DBL_MAX)
+      if (q->ub == +GLP_DBL_MAX)
          ret = 2; /* significantly */
       else if (q->is_int && u < q->ub - 0.5)
          ret = 2; /* significantly */
@@ -890,7 +890,7 @@ int npp_ineq_singlet(NPP *npp, NPPROW *p)
       int lb_changed, ub_changed;
       glp_double ll, uu;
       /* the row must be singleton inequality constraint */
-      xassert(p->lb != -DBL_MAX || p->ub != +DBL_MAX);
+      xassert(p->lb != -GLP_DBL_MAX || p->ub != +GLP_DBL_MAX);
       xassert(p->lb < p->ub);
       xassert(p->ptr != NULL && p->ptr->r_next == NULL);
       /* compute implied column bounds */
@@ -898,15 +898,15 @@ int npp_ineq_singlet(NPP *npp, NPPROW *p)
       q = apq->col;
       xassert(q->lb < q->ub);
       if (apq->val > 0.0)
-      {  ll = (p->lb == -DBL_MAX ? -DBL_MAX : p->lb / apq->val);
-         uu = (p->ub == +DBL_MAX ? +DBL_MAX : p->ub / apq->val);
+      {  ll = (p->lb == -GLP_DBL_MAX ? -GLP_DBL_MAX : p->lb / apq->val);
+         uu = (p->ub == +GLP_DBL_MAX ? +GLP_DBL_MAX : p->ub / apq->val);
       }
       else
-      {  ll = (p->ub == +DBL_MAX ? -DBL_MAX : p->ub / apq->val);
-         uu = (p->lb == -DBL_MAX ? +DBL_MAX : p->lb / apq->val);
+      {  ll = (p->ub == +GLP_DBL_MAX ? -GLP_DBL_MAX : p->ub / apq->val);
+         uu = (p->lb == -GLP_DBL_MAX ? +GLP_DBL_MAX : p->lb / apq->val);
       }
       /* process implied column lower bound */
-      if (ll == -DBL_MAX)
+      if (ll == -GLP_DBL_MAX)
          lb_changed = 0;
       else
       {  lb_changed = npp_implied_lower(npp, q, ll);
@@ -914,7 +914,7 @@ int npp_ineq_singlet(NPP *npp, NPPROW *p)
          if (lb_changed == 4) return 4; /* infeasible */
       }
       /* process implied column upper bound */
-      if (uu == +DBL_MAX)
+      if (uu == +GLP_DBL_MAX)
          ub_changed = 0;
       else if (lb_changed == 3)
       {  /* column was fixed on its upper bound due to l'[q] = u[q] */
@@ -929,7 +929,7 @@ int npp_ineq_singlet(NPP *npp, NPPROW *p)
       /* if neither lower nor upper column bound was changed, the row
          is originally redundant and can be replaced by free row */
       if (!lb_changed && !ub_changed)
-      {  p->lb = -DBL_MAX, p->ub = +DBL_MAX;
+      {  p->lb = -GLP_DBL_MAX, p->ub = +GLP_DBL_MAX;
          npp_free_row(npp, p);
          return 0;
       }
@@ -1016,8 +1016,8 @@ nu:      {  /* column q is non-basic with upper bound active */
          {  /* column q is non-basic and fixed; note, however, that in
                in the original problem it is non-fixed */
             if (lambda > +1e-7)
-            {  if (info->apq > 0.0 && info->lb != -DBL_MAX ||
-                   info->apq < 0.0 && info->ub != +DBL_MAX ||
+            {  if (info->apq > 0.0 && info->lb != -GLP_DBL_MAX ||
+                   info->apq < 0.0 && info->ub != +GLP_DBL_MAX ||
                   !info->lb_changed)
                {  /* either corresponding bound of row p exists or
                      column q remains non-basic with its original lower
@@ -1027,8 +1027,8 @@ nu:      {  /* column q is non-basic with upper bound active */
                }
             }
             if (lambda < -1e-7)
-            {  if (info->apq > 0.0 && info->ub != +DBL_MAX ||
-                   info->apq < 0.0 && info->lb != -DBL_MAX ||
+            {  if (info->apq > 0.0 && info->ub != +GLP_DBL_MAX ||
+                   info->apq < 0.0 && info->lb != -GLP_DBL_MAX ||
                   !info->ub_changed)
                {  /* either corresponding bound of row p exists or
                      column q remains non-basic with its original upper
@@ -1044,15 +1044,15 @@ nu:      {  /* column q is non-basic with upper bound active */
                can make row p active on its existing bound and column q
                basic; pi[p] will have wrong sign, but it also will be
                close to zero (rarus casus of dual degeneracy) */
-            if (info->lb != -DBL_MAX && info->ub == +DBL_MAX)
+            if (info->lb != -GLP_DBL_MAX && info->ub == +GLP_DBL_MAX)
             {  /* row lower bound exists, but upper bound doesn't */
                npp->r_stat[info->p] = GLP_NL;
             }
-            else if (info->lb == -DBL_MAX && info->ub != +DBL_MAX)
+            else if (info->lb == -GLP_DBL_MAX && info->ub != +GLP_DBL_MAX)
             {  /* row upper bound exists, but lower bound doesn't */
                npp->r_stat[info->p] = GLP_NU;
             }
-            else if (info->lb != -DBL_MAX && info->ub != +DBL_MAX)
+            else if (info->lb != -GLP_DBL_MAX && info->ub != +GLP_DBL_MAX)
             {  /* both row lower and upper bounds exist */
                /* to choose proper active row bound we should not use
                   lambda~[q], because its value being close to zero is
@@ -1273,16 +1273,16 @@ void npp_implied_slack(NPP *npp, NPPCOL *q)
       npp->c0 += info->c * (info->b / info->apq);
       /* compute new row bounds */
       if (info->apq > 0.0)
-      {  p->lb = (q->ub == +DBL_MAX ?
-            -DBL_MAX : info->b - info->apq * q->ub);
-         p->ub = (q->lb == -DBL_MAX ?
-            +DBL_MAX : info->b - info->apq * q->lb);
+      {  p->lb = (q->ub == +GLP_DBL_MAX ?
+            -GLP_DBL_MAX : info->b - info->apq * q->ub);
+         p->ub = (q->lb == -GLP_DBL_MAX ?
+            +GLP_DBL_MAX : info->b - info->apq * q->lb);
       }
       else
-      {  p->lb = (q->lb == -DBL_MAX ?
-            -DBL_MAX : info->b - info->apq * q->lb);
-         p->ub = (q->ub == +DBL_MAX ?
-            +DBL_MAX : info->b - info->apq * q->ub);
+      {  p->lb = (q->lb == -GLP_DBL_MAX ?
+            -GLP_DBL_MAX : info->b - info->apq * q->lb);
+         p->ub = (q->ub == +GLP_DBL_MAX ?
+            +GLP_DBL_MAX : info->b - info->apq * q->ub);
       }
       /* remove the column from the problem */
       npp_del_col(npp, q);
@@ -1498,23 +1498,23 @@ int npp_implied_free(NPP *npp, NPPCOL *q)
       /* corresponding row must be inequality constraint */
       apq = q->ptr;
       p = apq->row;
-      xassert(p->lb != -DBL_MAX || p->ub != +DBL_MAX);
+      xassert(p->lb != -GLP_DBL_MAX || p->ub != +GLP_DBL_MAX);
       xassert(p->lb < p->ub);
       /* compute alfa */
       alfa = p->lb;
-      if (alfa != -DBL_MAX)
+      if (alfa != -GLP_DBL_MAX)
       {  for (aij = p->ptr; aij != NULL; aij = aij->r_next)
          {  if (aij == apq) continue; /* skip a[p,q] */
             if (aij->val > 0.0)
-            {  if (aij->col->ub == +DBL_MAX)
-               {  alfa = -DBL_MAX;
+            {  if (aij->col->ub == +GLP_DBL_MAX)
+               {  alfa = -GLP_DBL_MAX;
                   break;
                }
                alfa -= aij->val * aij->col->ub;
             }
             else /* < 0.0 */
-            {  if (aij->col->lb == -DBL_MAX)
-               {  alfa = -DBL_MAX;
+            {  if (aij->col->lb == -GLP_DBL_MAX)
+               {  alfa = -GLP_DBL_MAX;
                   break;
                }
                alfa -= aij->val * aij->col->lb;
@@ -1523,19 +1523,19 @@ int npp_implied_free(NPP *npp, NPPCOL *q)
       }
       /* compute beta */
       beta = p->ub;
-      if (beta != +DBL_MAX)
+      if (beta != +GLP_DBL_MAX)
       {  for (aij = p->ptr; aij != NULL; aij = aij->r_next)
          {  if (aij == apq) continue; /* skip a[p,q] */
             if (aij->val > 0.0)
-            {  if (aij->col->lb == -DBL_MAX)
-               {  beta = +DBL_MAX;
+            {  if (aij->col->lb == -GLP_DBL_MAX)
+               {  beta = +GLP_DBL_MAX;
                   break;
                }
                beta -= aij->val * aij->col->lb;
             }
             else /* < 0.0 */
-            {  if (aij->col->ub == +DBL_MAX)
-               {  beta = +DBL_MAX;
+            {  if (aij->col->ub == +GLP_DBL_MAX)
+               {  beta = +GLP_DBL_MAX;
                   break;
                }
                beta -= aij->val * aij->col->ub;
@@ -1544,26 +1544,26 @@ int npp_implied_free(NPP *npp, NPPCOL *q)
       }
       /* compute implied column lower bound l'[q] */
       if (apq->val > 0.0)
-         l = (alfa == -DBL_MAX ? -DBL_MAX : alfa / apq->val);
+         l = (alfa == -GLP_DBL_MAX ? -GLP_DBL_MAX : alfa / apq->val);
       else /* < 0.0 */
-         l = (beta == +DBL_MAX ? -DBL_MAX : beta / apq->val);
+         l = (beta == +GLP_DBL_MAX ? -GLP_DBL_MAX : beta / apq->val);
       /* compute implied column upper bound u'[q] */
       if (apq->val > 0.0)
-         u = (beta == +DBL_MAX ? +DBL_MAX : beta / apq->val);
+         u = (beta == +GLP_DBL_MAX ? +GLP_DBL_MAX : beta / apq->val);
       else
-         u = (alfa == -DBL_MAX ? +DBL_MAX : alfa / apq->val);
+         u = (alfa == -GLP_DBL_MAX ? +GLP_DBL_MAX : alfa / apq->val);
       /* check if column lower bound l[q] can be active */
-      if (q->lb != -DBL_MAX)
-      {  eps = 1e-9 + 1e-12 * fabs(q->lb);
+      if (q->lb != -GLP_DBL_MAX)
+      {  eps = GLP_MKEQ_EPS * fabs(q->lb);
          if (l < q->lb - eps) return 1; /* yes, it can */
       }
       /* check if column upper bound u[q] can be active */
-      if (q->ub != +DBL_MAX)
-      {  eps = 1e-9 + 1e-12 * fabs(q->ub);
+      if (q->ub != +GLP_DBL_MAX)
+      {  eps = GLP_MKEQ_EPS * fabs(q->ub);
          if (u > q->ub + eps) return 1; /* yes, it can */
       }
       /* okay; make column q free (unbounded) */
-      q->lb = -DBL_MAX, q->ub = +DBL_MAX;
+      q->lb = -GLP_DBL_MAX, q->ub = +GLP_DBL_MAX;
       /* create transformation stack entry */
       info = npp_push_tse(npp,
          rcv_implied_free, sizeof(struct implied_free));
@@ -1574,38 +1574,38 @@ int npp_implied_free(NPP *npp, NPPCOL *q)
       /* check dual feasibility for row p */
       if (pi > +GLP_DBL_EPSILON)
       {  /* lower bound L[p] must be active */
-         if (p->lb != -DBL_MAX)
+         if (p->lb != -GLP_DBL_MAX)
 nl:      {  info->stat = GLP_NL;
             p->ub = p->lb;
          }
          else
          {  if (pi > +1e-5) return 2; /* dual infeasibility */
             /* take a chance on U[p] */
-            xassert(p->ub != +DBL_MAX);
+            xassert(p->ub != +GLP_DBL_MAX);
             goto nu;
          }
       }
       else if (pi < -GLP_DBL_EPSILON)
       {  /* upper bound U[p] must be active */
-         if (p->ub != +DBL_MAX)
+         if (p->ub != +GLP_DBL_MAX)
 nu:      {  info->stat = GLP_NU;
             p->lb = p->ub;
          }
          else
          {  if (pi < -1e-5) return 2; /* dual infeasibility */
             /* take a chance on L[p] */
-            xassert(p->lb != -DBL_MAX);
+            xassert(p->lb != -GLP_DBL_MAX);
             goto nl;
          }
       }
       else
       {  /* any bound (either L[p] or U[p]) can be made active  */
-         if (p->ub == +DBL_MAX)
-         {  xassert(p->lb != -DBL_MAX);
+         if (p->ub == +GLP_DBL_MAX)
+         {  xassert(p->lb != -GLP_DBL_MAX);
             goto nl;
          }
-         if (p->lb == -DBL_MAX)
-         {  xassert(p->ub != +DBL_MAX);
+         if (p->lb == -GLP_DBL_MAX)
+         {  xassert(p->ub != +GLP_DBL_MAX);
             goto nu;
          }
          if (fabs(p->lb) <= fabs(p->ub)) goto nl; else goto nu;
@@ -1842,9 +1842,9 @@ NPPCOL *npp_eq_doublet(NPP *npp, NPPROW *p)
          if (i->lb == i->ub)
             i->lb = i->ub = (i->lb - gamma * p->lb);
          else
-         {  if (i->lb != -DBL_MAX)
+         {  if (i->lb != -GLP_DBL_MAX)
                i->lb -= gamma * p->lb;
-            if (i->ub != +DBL_MAX)
+            if (i->ub != +GLP_DBL_MAX)
                i->ub -= gamma * p->lb;
          }
       }
@@ -2116,12 +2116,12 @@ int npp_forcing_row(NPP *npp, NPPROW *p, int at)
       else if (at == 0)
       {  /* inequality constraint; case L[p] = U'[p] */
          info->stat = GLP_NL;
-         xassert(p->lb != -DBL_MAX);
+         xassert(p->lb != -GLP_DBL_MAX);
       }
       else /* at == 1 */
       {  /* inequality constraint; case U[p] = L'[p] */
          info->stat = GLP_NU;
-         xassert(p->ub != +DBL_MAX);
+         xassert(p->ub != +GLP_DBL_MAX);
       }
       info->ptr = NULL;
       /* scan the forcing row, fix columns at corresponding bounds, and
@@ -2147,14 +2147,14 @@ int npp_forcing_row(NPP *npp, NPPROW *p, int at)
          {  /* at its lower bound */
             if (npp->sol != GLP_MIP)
                col->stat = GLP_NL;
-            xassert(j->lb != -DBL_MAX);
+            xassert(j->lb != -GLP_DBL_MAX);
             j->ub = j->lb;
          }
          else
          {  /* at its upper bound */
             if (npp->sol != GLP_MIP)
                col->stat = GLP_NU;
-            xassert(j->ub != +DBL_MAX);
+            xassert(j->ub != +GLP_DBL_MAX);
             j->lb = j->ub;
          }
          /* save column coefficients a[i,j], i != p */
@@ -2170,7 +2170,7 @@ int npp_forcing_row(NPP *npp, NPPROW *p, int at)
          }
       }
       /* make the row free (unbounded) */
-      p->lb = -DBL_MAX, p->ub = +DBL_MAX;
+      p->lb = -GLP_DBL_MAX, p->ub = +GLP_DBL_MAX;
       return 0;
 }
 
@@ -2345,15 +2345,15 @@ int npp_analyze_row(NPP *npp, NPPROW *p)
       l = 0.0;
       for (aij = p->ptr; aij != NULL; aij = aij->r_next)
       {  if (aij->val > 0.0)
-         {  if (aij->col->lb == -DBL_MAX)
-            {  l = -DBL_MAX;
+         {  if (aij->col->lb == -GLP_DBL_MAX)
+            {  l = -GLP_DBL_MAX;
                break;
             }
             l += aij->val * aij->col->lb;
          }
          else /* aij->val < 0.0 */
-         {  if (aij->col->ub == +DBL_MAX)
-            {  l = -DBL_MAX;
+         {  if (aij->col->ub == +GLP_DBL_MAX)
+            {  l = -GLP_DBL_MAX;
                break;
             }
             l += aij->val * aij->col->ub;
@@ -2363,15 +2363,15 @@ int npp_analyze_row(NPP *npp, NPPROW *p)
       u = 0.0;
       for (aij = p->ptr; aij != NULL; aij = aij->r_next)
       {  if (aij->val > 0.0)
-         {  if (aij->col->ub == +DBL_MAX)
-            {  u = +DBL_MAX;
+         {  if (aij->col->ub == +GLP_DBL_MAX)
+            {  u = +GLP_DBL_MAX;
                break;
             }
             u += aij->val * aij->col->ub;
          }
          else /* aij->val < 0.0 */
-         {  if (aij->col->lb == -DBL_MAX)
-            {  u = +DBL_MAX;
+         {  if (aij->col->lb == -GLP_DBL_MAX)
+            {  u = +GLP_DBL_MAX;
                break;
             }
             u += aij->val * aij->col->lb;
@@ -2379,7 +2379,7 @@ int npp_analyze_row(NPP *npp, NPPROW *p)
       }
       /* column bounds are assumed correct, so L'[p] <= U'[p] */
       /* check if row lower bound is consistent */
-      if (p->lb != -DBL_MAX)
+      if (p->lb != -GLP_DBL_MAX)
       {  eps = 1e-3 + 1e-6 * fabs(p->lb);
          if (p->lb - eps > u)
          {  ret = 0x33;
@@ -2387,7 +2387,7 @@ int npp_analyze_row(NPP *npp, NPPROW *p)
          }
       }
       /* check if row upper bound is consistent */
-      if (p->ub != +DBL_MAX)
+      if (p->ub != +GLP_DBL_MAX)
       {  eps = 1e-3 + 1e-6 * fabs(p->ub);
          if (p->ub + eps < l)
          {  ret = 0x33;
@@ -2395,8 +2395,8 @@ int npp_analyze_row(NPP *npp, NPPROW *p)
          }
       }
       /* check if row lower bound can be active/forcing */
-      if (p->lb != -DBL_MAX)
-      {  eps = 1e-9 + 1e-12 * fabs(p->lb);
+      if (p->lb != -GLP_DBL_MAX)
+      {  eps = GLP_MKEQ_EPS * fabs(p->lb);
          if (p->lb - eps > l)
          {  if (p->lb + eps <= u)
                ret |= 0x01;
@@ -2405,8 +2405,8 @@ int npp_analyze_row(NPP *npp, NPPROW *p)
          }
       }
       /* check if row upper bound can be active/forcing */
-      if (p->ub != +DBL_MAX)
-      {  eps = 1e-9 + 1e-12 * fabs(p->ub);
+      if (p->ub != +GLP_DBL_MAX)
+      {  eps = GLP_MKEQ_EPS * fabs(p->ub);
          if (p->ub + eps < u)
          {  /* check if the upper bound is forcing */
             if (p->ub - eps >= l)
@@ -2488,9 +2488,9 @@ void npp_inactive_bound(NPP *npp, NPPROW *p, int which)
          info = npp_push_tse(npp,
             rcv_inactive_bound, sizeof(struct inactive_bound));
          info->p = p->i;
-         if (p->ub == +DBL_MAX)
+         if (p->ub == +GLP_DBL_MAX)
             info->stat = GLP_NL;
-         else if (p->lb == -DBL_MAX)
+         else if (p->lb == -GLP_DBL_MAX)
             info->stat = GLP_NU;
          else if (p->lb != p->ub)
             info->stat = (char)(which == 0 ? GLP_NU : GLP_NL);
@@ -2499,12 +2499,12 @@ void npp_inactive_bound(NPP *npp, NPPROW *p, int which)
       }
       /* remove row inactive bound */
       if (which == 0)
-      {  xassert(p->lb != -DBL_MAX);
-         p->lb = -DBL_MAX;
+      {  xassert(p->lb != -GLP_DBL_MAX);
+         p->lb = -GLP_DBL_MAX;
       }
       else if (which == 1)
-      {  xassert(p->ub != +DBL_MAX);
-         p->ub = +DBL_MAX;
+      {  xassert(p->ub != +GLP_DBL_MAX);
+         p->ub = +GLP_DBL_MAX;
       }
       else
          xassert(which != which);
@@ -2753,16 +2753,16 @@ void npp_implied_bounds(NPP *npp, NPPROW *p)
          maximal magnitude of row coefficients a[p,j] */
       big = 1.0;
       for (apj = p->ptr; apj != NULL; apj = apj->r_next)
-      {  apj->col->ll.ll = -DBL_MAX, apj->col->uu.uu = +DBL_MAX;
+      {  apj->col->ll.ll = -GLP_DBL_MAX, apj->col->uu.uu = +GLP_DBL_MAX;
          if (big < fabs(apj->val)) big = fabs(apj->val);
       }
       eps = 1e-6 * big;
       /* process row lower bound (assuming that it can be active) */
-      if (p->lb != -DBL_MAX)
+      if (p->lb != -GLP_DBL_MAX)
       {  apk = NULL;
          for (apj = p->ptr; apj != NULL; apj = apj->r_next)
-         {  if (apj->val > 0.0 && apj->col->ub == +DBL_MAX ||
-                apj->val < 0.0 && apj->col->lb == -DBL_MAX)
+         {  if (apj->val > 0.0 && apj->col->ub == +GLP_DBL_MAX ||
+                apj->val < 0.0 && apj->col->lb == -GLP_DBL_MAX)
             {  if (apk == NULL)
                   apk = apj;
                else
@@ -2807,11 +2807,11 @@ void npp_implied_bounds(NPP *npp, NPPROW *p)
 skip1:   ;
       }
       /* process row upper bound (assuming that it can be active) */
-      if (p->ub != +DBL_MAX)
+      if (p->ub != +GLP_DBL_MAX)
       {  apk = NULL;
          for (apj = p->ptr; apj != NULL; apj = apj->r_next)
-         {  if (apj->val > 0.0 && apj->col->lb == -DBL_MAX ||
-                apj->val < 0.0 && apj->col->ub == +DBL_MAX)
+         {  if (apj->val > 0.0 && apj->col->lb == -GLP_DBL_MAX ||
+                apj->val < 0.0 && apj->col->ub == +GLP_DBL_MAX)
             {  if (apk == NULL)
                   apk = apj;
                else

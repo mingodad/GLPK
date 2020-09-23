@@ -84,7 +84,7 @@ int spx_chuzc_sel(SPXLP *lp, const glp_double d[/*1+n-m*/], glp_double tol,
          }
          else if (d[j] >= +eps)
          {  /* xN[j] should be able to decrease */
-            if (!flag[j] && l[k] != -DBL_MAX)
+            if (!flag[j] && l[k] != -GLP_DBL_MAX)
             {  /* but its lower bound is active */
                continue;
             }
@@ -342,7 +342,7 @@ glp_double spx_update_gamma(SPXLP *lp, SPXSE *se, int p, int q,
       for (j = 1; j <= n-m; j++)
       {  if (j == q)
             continue;
-         if (-1e-9 < trow[j] && trow[j] < +1e-9)
+         if (-GLP_MPL_MIN_9 < trow[j] && trow[j] < +GLP_MPL_MIN_9)
          {  /* T[p,j] is close to zero; gamma[j] is not changed */
             continue;
          }

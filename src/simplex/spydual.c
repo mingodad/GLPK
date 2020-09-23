@@ -221,11 +221,11 @@ static void check_flags(struct csa *csa)
       int j, k;
       for (j = 1; j <= n-m; j++)
       {  k = head[m+j]; /* x[k] = xN[j] */
-         if (l[k] == -DBL_MAX && u[k] == +DBL_MAX)
+         if (l[k] == -GLP_DBL_MAX && u[k] == +GLP_DBL_MAX)
             xassert(!flag[j]);
-         else if (l[k] != -DBL_MAX && u[k] == +DBL_MAX)
+         else if (l[k] != -GLP_DBL_MAX && u[k] == +GLP_DBL_MAX)
             xassert(!flag[j]);
-         else if (l[k] == -DBL_MAX && u[k] != +DBL_MAX)
+         else if (l[k] == -GLP_DBL_MAX && u[k] != +GLP_DBL_MAX)
             xassert(flag[j]);
 #ifdef CSL_MULTI_OBJECTIVE
        else if (l[k] == u[k])
@@ -264,13 +264,13 @@ static void set_art_bounds(struct csa *csa)
          b[i] = 0.0;
       /* set artificial bounds depending on types of variables */
       for (k = 1; k <= n; k++)
-      {  if (csa->orig_l[k] == -DBL_MAX && csa->orig_u[k] == +DBL_MAX)
+      {  if (csa->orig_l[k] == -GLP_DBL_MAX && csa->orig_u[k] == +GLP_DBL_MAX)
          {  /* force free variables to enter the basis */
             l[k] = -1e3, u[k] = +1e3;
          }
-      else if (csa->orig_l[k] != -DBL_MAX && csa->orig_u[k] == +DBL_MAX)
+      else if (csa->orig_l[k] != -GLP_DBL_MAX && csa->orig_u[k] == +GLP_DBL_MAX)
             l[k] = 0.0, u[k] = +1.0;
-      else if (csa->orig_l[k] == -DBL_MAX && csa->orig_u[k] != +DBL_MAX)
+      else if (csa->orig_l[k] == -GLP_DBL_MAX && csa->orig_u[k] != +GLP_DBL_MAX)
             l[k] = -1.0, u[k] = 0.0;
          else
             l[k] = u[k] = 0.0;
@@ -317,11 +317,11 @@ static void set_orig_bounds(struct csa *csa)
       xassert(csa->d_st == 1);
       for (j = 1; j <= n-m; j++)
       {  k = head[m+j]; /* x[k] = xN[j] */
-         if (l[k] == -DBL_MAX && u[k] == +DBL_MAX)
+         if (l[k] == -GLP_DBL_MAX && u[k] == +GLP_DBL_MAX)
             flag[j] = 0;
-         else if (l[k] != -DBL_MAX && u[k] == +DBL_MAX)
+         else if (l[k] != -GLP_DBL_MAX && u[k] == +GLP_DBL_MAX)
             flag[j] = 0;
-         else if (l[k] == -DBL_MAX && u[k] != +DBL_MAX)
+         else if (l[k] == -GLP_DBL_MAX && u[k] != +GLP_DBL_MAX)
             flag[j] = 1;
          else if (l[k] != u[k])
             flag[j] = (d[j] < 0.0);
@@ -394,10 +394,10 @@ static int check_feas(struct csa *csa, glp_double tol, glp_double tol1,
          /* check dual feasibility of xN[j] */
          if (d[j] > +eps)
          {  /* xN[j] should have its lower bound active */
-            if (l[k] == -DBL_MAX || flag[j])
+            if (l[k] == -GLP_DBL_MAX || flag[j])
             {  /* but it either has no lower bound or its lower bound
                 * is inactive */
-               if (l[k] == -DBL_MAX)
+               if (l[k] == -GLP_DBL_MAX)
                {  /* cannot recover, since xN[j] has no lower bound */
                   ret = j;
                   break;
@@ -413,7 +413,7 @@ static int check_feas(struct csa *csa, glp_double tol, glp_double tol1,
             if (!flag[j])
             {  /* but it either has no upper bound or its upper bound
                 * is inactive */
-               if (u[k] == +DBL_MAX)
+               if (u[k] == +GLP_DBL_MAX)
                {  /* cannot recover, since xN[j] has no upper bound */
                   ret = j;
                   break;
@@ -734,7 +734,7 @@ try:  /* choose basic variable xB[p] */
          if (nbp <= 1)
             goto skip;
          /* choose appropriate break-point */
-         t_best = 0, dz_best = -DBL_MAX;
+         t_best = 0, dz_best = -GLP_DBL_MAX;
          for (t = 1; t <= nbp; t++)
          {  if (fabs(trow[bp[t].j]) / big >= MIN_RATIO)
             {  if (dz_best < bp[t].dz)
@@ -753,7 +753,7 @@ try:  /* choose basic variable xB[p] */
          /* set initial slope */
          slope = fabs(r);
          /* estimate initial teta_lim */
-         teta_lim = DBL_MAX;
+         teta_lim = GLP_DBL_MAX;
          for (t = 1; t <= nbp; t++)
          {  if (teta_lim > bp[t].teta)
                teta_lim = bp[t].teta;
@@ -880,7 +880,7 @@ done: /* the choice has been made */
           * for all break-points preceding the chosen one */
          for (t = 1; t < t_best; t++)
          {  k = head[m + bp[t].j];
-            xassert(-DBL_MAX < l[k] && l[k] < u[k] && u[k] < +DBL_MAX);
+            xassert(-GLP_DBL_MAX < l[k] && l[k] < u[k] && u[k] < +GLP_DBL_MAX);
             lp->flag[bp[t].j] = !(lp->flag[bp[t].j]);
          }
       }
@@ -921,7 +921,7 @@ static void play_coef(struct csa *csa, int all)
       const glp_double *trow = csa->trow.vec;
       /* this vector was used to update d = (d[j]) */
       int j, k;
-      static const glp_double eps = 1e-9;
+      static const glp_double eps = GLP_MPL_MIN_9;
       /* reduced costs d = (d[j]) should be valid */
       xassert(csa->d_st);
       /* walk thru the list of non-basic variables xN = (xN[j]) */
@@ -933,7 +933,7 @@ static void play_coef(struct csa *csa, int all)
             {  /* xN[j] is fixed variable */
                /* d[j] may have any sign */
             }
-            else if (l[k] == -DBL_MAX && u[k] == +DBL_MAX)
+            else if (l[k] == -GLP_DBL_MAX && u[k] == +GLP_DBL_MAX)
             {  /* xN[j] is free (unbounded) variable */
                /* strong feasibility means d[j] = 0 */
                c[k] -= d[j], d[j] = 0.0;
@@ -942,7 +942,7 @@ static void play_coef(struct csa *csa, int all)
             }
             else if (!flag[j])
             {  /* xN[j] has its lower bound active */
-               xassert(l[k] != -DBL_MAX);
+               xassert(l[k] != -GLP_DBL_MAX);
                /* first, we remove current perturbation to provide
                 * c[k] = orig_c[k] */
                d[j] -= c[k] - orig_c[k], c[k] = orig_c[k];
@@ -953,7 +953,7 @@ static void play_coef(struct csa *csa, int all)
             }
             else
             {  /* xN[j] has its upper bound active */
-               xassert(u[k] != +DBL_MAX);
+               xassert(u[k] != +GLP_DBL_MAX);
                /* similarly, we remove current perturbation to provide
                 * c[k] = orig_c[k] */
                d[j] -= c[k] - orig_c[k], c[k] = orig_c[k];
@@ -1050,7 +1050,7 @@ static void display(struct csa *csa, int spec)
             {  k = head[m+j]; /* x[k] = xN[j] */
                if (d[j] > 0.0)
                {  /* xN[j] should have lower bound */
-                  if (l[k] == -DBL_MAX)
+                  if (l[k] == -GLP_DBL_MAX)
                   {  sum += d[j];
                      if (d[j] > +1e-7)
                         nnn++;
@@ -1058,7 +1058,7 @@ static void display(struct csa *csa, int spec)
                }
                else if (d[j] < 0.0)
                {  /* xN[j] should have upper bound */
-                  if (u[k] == +DBL_MAX)
+                  if (u[k] == +GLP_DBL_MAX)
                   {  sum -= d[j];
                      if (d[j] < -1e-7)
                         nnn++;
@@ -1084,7 +1084,7 @@ static void display(struct csa *csa, int spec)
             {  k = head[m+j]; /* x[k] = xN[j] */
                if (d[j] > 0.0)
                {  /* xN[j] should have its lower bound active */
-                  if (l[k] == -DBL_MAX || flag[j])
+                  if (l[k] == -GLP_DBL_MAX || flag[j])
                      sum += d[j];
                }
                else if (d[j] < 0.0)
@@ -1180,7 +1180,7 @@ void spy_update_r(SPXLP *lp, int p, int q, const glp_double beta[/*1+m*/],
          }
          if (ri == 0.0)
          {  if (vec[i] != 0.0)
-               vec[i] = DBL_MIN; /* will be removed */
+               vec[i] = GLP_DBL_MIN; /* will be removed */
          }
          else
          {  if (vec[i] == 0.0)
@@ -1191,7 +1191,7 @@ void spy_update_r(SPXLP *lp, int p, int q, const glp_double beta[/*1+m*/],
       }
       r->nnz = nnz;
       /* remove zero elements */
-      fvs_adjust_vec(r, DBL_MIN + DBL_MIN);
+      fvs_adjust_vec(r, GLP_DBL_MIN + GLP_DBL_MIN);
       return;
 }
 #endif
@@ -1462,7 +1462,7 @@ loop: /* main loop starts here */
       check_accuracy(csa);
 #endif
       /* check if the objective limit has been reached */
-      if (csa->phase == 2 && csa->obj_lim != DBL_MAX
+      if (csa->phase == 2 && csa->obj_lim != GLP_DBL_MAX
          && spx_eval_obj(lp, beta) >= csa->obj_lim)
       {
 #if 1 /* 26/V-2017 by mao */
@@ -1776,7 +1776,7 @@ loop: /* main loop starts here */
          xassert(1 <= csa->q && csa->q <= n-m);
          /* FIXME: recompute d[q]; see spx_update_d */
          k = head[m+csa->q]; /* x[k] = xN[q] */
-         if (!(lp->l[k] == -DBL_MAX && lp->u[k] == +DBL_MAX))
+         if (!(lp->l[k] == -GLP_DBL_MAX && lp->u[k] == +GLP_DBL_MAX))
          {  if (fabs(d[csa->q]) >= 1e-6)
             {  csa->degen = 0;
                goto skip1;
@@ -1802,10 +1802,10 @@ skip1:      ;
       t_start = timer();
 #endif
 #if 0 /* 30/III-2016 */
-      if (spx_update_d(lp, d, csa->p, csa->q, trow, tcol) <= 1e-9)
+      if (spx_update_d(lp, d, csa->p, csa->q, trow, tcol) <= GLP_MPL_MIN_9)
 #else
       if (spx_update_d_s(lp, d, csa->p, csa->q, &csa->trow, &csa->tcol)
-         <= 1e-9)
+         <= GLP_MPL_MIN_9)
 #endif
       {  /* successful updating */
          csa->d_st = 2;
@@ -2032,7 +2032,7 @@ int spy_dual(glp_prob *P, const glp_smcp *parm)
       csa->tol_dj = parm->tol_dj;
       csa->tol_dj1 = .001 * parm->tol_dj;
 #if 0
-      csa->tol_dj1 = 1e-9 * parm->tol_dj;
+      csa->tol_dj1 = GLP_MPL_MIN_9 * parm->tol_dj;
 #endif
       csa->tol_piv = parm->tol_piv;
       switch (P->dir)
@@ -2046,7 +2046,7 @@ int spy_dual(glp_prob *P, const glp_smcp *parm)
             xassert(parm != parm);
       }
 #if SCALE_Z
-      if (csa->obj_lim != DBL_MAX)
+      if (csa->obj_lim != GLP_DBL_MAX)
          csa->obj_lim /= csa->fz;
 #endif
       csa->it_lim = parm->it_lim;

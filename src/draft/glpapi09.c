@@ -741,7 +741,7 @@ glp_double glp_mip_obj_val(glp_prob *mip)
 {     /*struct LPXCPS *cps = mip->cps;*/
       glp_double z;
       z = mip->mip_obj;
-      /*if (cps->round && fabs(z) < 1e-9) z = 0.0;*/
+      /*if (cps->round && fabs(z) < GLP_MPL_MIN_9) z = 0.0;*/
       return z;
 }
 
@@ -766,7 +766,7 @@ glp_double glp_mip_row_val(glp_prob *mip, int i)
          xerror("glp_mip_row_val: i = %d; row number out of range\n", i)
             ;
       mipx = mip->row[i]->mipx;
-      /*if (cps->round && fabs(mipx) < 1e-9) mipx = 0.0;*/
+      /*if (cps->round && fabs(mipx) < GLP_MPL_MIN_9) mipx = 0.0;*/
       return mipx;
 }
 
@@ -791,7 +791,7 @@ glp_double glp_mip_col_val(glp_prob *mip, int j)
          xerror("glp_mip_col_val: j = %d; column number out of range\n",
             j);
       mipx = mip->col[j]->mipx;
-      /*if (cps->round && fabs(mipx) < 1e-9) mipx = 0.0;*/
+      /*if (cps->round && fabs(mipx) < GLP_MPL_MIN_9) mipx = 0.0;*/
       return mipx;
 }
 

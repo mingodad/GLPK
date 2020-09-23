@@ -509,10 +509,10 @@ void glp_init_smcp(glp_smcp *parm)
 #if 0 /* 07/XI-2015 */
       parm->tol_piv = 1e-10;
 #else
-      parm->tol_piv = 1e-9;
+      parm->tol_piv = GLP_CPS_TOL_PIV;
 #endif
-      parm->obj_ll = -DBL_MAX;
-      parm->obj_ul = +DBL_MAX;
+      parm->obj_ll = -GLP_DBL_MAX;
+      parm->obj_ul = +GLP_DBL_MAX;
       parm->it_lim = INT_MAX;
       parm->tm_lim = INT_MAX;
 #if 0 /* 15/VII-2017 */
@@ -651,7 +651,7 @@ glp_double glp_get_obj_val(glp_prob *lp)
 {     /*struct LPXCPS *cps = lp->cps;*/
       glp_double z;
       z = lp->obj_val;
-      /*if (cps->round && fabs(z) < 1e-9) z = 0.0;*/
+      /*if (cps->round && fabs(z) < GLP_MPL_MIN_9) z = 0.0;*/
       return z;
 }
 
@@ -703,7 +703,7 @@ glp_double glp_get_row_prim(glp_prob *lp, int i)
          xerror("glp_get_row_prim: i = %d; row number out of range\n",
             i);
       prim = lp->row[i]->prim;
-      /*if (cps->round && fabs(prim) < 1e-9) prim = 0.0;*/
+      /*if (cps->round && fabs(prim) < GLP_MPL_MIN_9) prim = 0.0;*/
       return prim;
 }
 
@@ -728,7 +728,7 @@ glp_double glp_get_row_dual(glp_prob *lp, int i)
          xerror("glp_get_row_dual: i = %d; row number out of range\n",
             i);
       dual = lp->row[i]->dual;
-      /*if (cps->round && fabs(dual) < 1e-9) dual = 0.0;*/
+      /*if (cps->round && fabs(dual) < GLP_MPL_MIN_9) dual = 0.0;*/
       return dual;
 }
 
@@ -780,7 +780,7 @@ glp_double glp_get_col_prim(glp_prob *lp, int j)
          xerror("glp_get_col_prim: j = %d; column number out of range\n"
             , j);
       prim = lp->col[j]->prim;
-      /*if (cps->round && fabs(prim) < 1e-9) prim = 0.0;*/
+      /*if (cps->round && fabs(prim) < GLP_MPL_MIN_9) prim = 0.0;*/
       return prim;
 }
 
@@ -805,7 +805,7 @@ glp_double glp_get_col_dual(glp_prob *lp, int j)
          xerror("glp_get_col_dual: j = %d; column number out of range\n"
             , j);
       dual = lp->col[j]->dual;
-      /*if (cps->round && fabs(dual) < 1e-9) dual = 0.0;*/
+      /*if (cps->round && fabs(dual) < GLP_MPL_MIN_9) dual = 0.0;*/
       return dual;
 }
 

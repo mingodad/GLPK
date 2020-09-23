@@ -492,7 +492,7 @@ int sgf_choose_pivot(SGF *sgf, int *p_, int *q_)
          ncand, next_j, p, q;
       glp_double best, big, cost, temp;
       /* no pivot candidate has been chosen so far */
-      p = q = 0, best = DBL_MAX, ncand = 0;
+      p = q = 0, best = GLP_DBL_MAX, ncand = 0;
       /* if the active submatrix contains a column having the only
        * non-zero element (column singleton), choose it as the pivot */
       j = cs_head[1];

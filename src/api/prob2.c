@@ -215,7 +215,7 @@ int glp_get_row_type(glp_prob *lp, int i)
 *
 *  The routine glp_get_row_lb returns the lower bound of i-th row, i.e.
 *  the lower bound of corresponding auxiliary variable. However, if the
-*  row has no lower bound, the routine returns -DBL_MAX. */
+*  row has no lower bound, the routine returns -GLP_DBL_MAX. */
 
 glp_double glp_get_row_lb(glp_prob *lp, int i)
 {     glp_double lb;
@@ -224,7 +224,7 @@ glp_double glp_get_row_lb(glp_prob *lp, int i)
       switch (lp->row[i]->type)
       {  case GLP_FR:
          case GLP_UP:
-            lb = -DBL_MAX; break;
+            lb = -GLP_DBL_MAX; break;
          case GLP_LO:
          case GLP_DB:
          case GLP_FX:
@@ -248,7 +248,7 @@ glp_double glp_get_row_lb(glp_prob *lp, int i)
 *
 *  The routine glp_get_row_ub returns the upper bound of i-th row, i.e.
 *  the upper bound of corresponding auxiliary variable. However, if the
-*  row has no upper bound, the routine returns +DBL_MAX. */
+*  row has no upper bound, the routine returns +GLP_DBL_MAX. */
 
 glp_double glp_get_row_ub(glp_prob *lp, int i)
 {     glp_double ub;
@@ -257,7 +257,7 @@ glp_double glp_get_row_ub(glp_prob *lp, int i)
       switch (lp->row[i]->type)
       {  case GLP_FR:
          case GLP_LO:
-            ub = +DBL_MAX; break;
+            ub = +GLP_DBL_MAX; break;
          case GLP_UP:
          case GLP_DB:
          case GLP_FX:
@@ -308,7 +308,7 @@ int glp_get_col_type(glp_prob *lp, int j)
 *
 *  The routine glp_get_col_lb returns the lower bound of j-th column,
 *  i.e. the lower bound of corresponding structural variable. However,
-*  if the column has no lower bound, the routine returns -DBL_MAX. */
+*  if the column has no lower bound, the routine returns -GLP_DBL_MAX. */
 
 glp_double glp_get_col_lb(glp_prob *lp, int j)
 {     glp_double lb;
@@ -318,7 +318,7 @@ glp_double glp_get_col_lb(glp_prob *lp, int j)
       switch (lp->col[j]->type)
       {  case GLP_FR:
          case GLP_UP:
-            lb = -DBL_MAX; break;
+            lb = -GLP_DBL_MAX; break;
          case GLP_LO:
          case GLP_DB:
          case GLP_FX:
@@ -342,7 +342,7 @@ glp_double glp_get_col_lb(glp_prob *lp, int j)
 *
 *  The routine glp_get_col_ub returns the upper bound of j-th column,
 *  i.e. the upper bound of corresponding structural variable. However,
-*  if the column has no upper bound, the routine returns +DBL_MAX. */
+*  if the column has no upper bound, the routine returns +GLP_DBL_MAX. */
 
 glp_double glp_get_col_ub(glp_prob *lp, int j)
 {     glp_double ub;
@@ -352,7 +352,7 @@ glp_double glp_get_col_ub(glp_prob *lp, int j)
       switch (lp->col[j]->type)
       {  case GLP_FR:
          case GLP_LO:
-            ub = +DBL_MAX; break;
+            ub = +GLP_DBL_MAX; break;
          case GLP_UP:
          case GLP_DB:
          case GLP_FX:

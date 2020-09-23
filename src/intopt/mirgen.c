@@ -70,14 +70,14 @@ struct glp_mir
       /* isint[k], 1 <= k <= m+n, is a flag that means that variable
          x[k] is integer (otherwise, continuous) */
       glp_double *lb; /* glp_double lb[1+m+n]; */
-      /* lb[k], 1 <= k <= m+n, is lower bound of x[k]; -DBL_MAX means
+      /* lb[k], 1 <= k <= m+n, is lower bound of x[k]; -GLP_DBL_MAX means
          that x[k] has no lower bound */
       int *vlb; /* int vlb[1+m+n]; */
       /* vlb[k] = k', 1 <= k <= m+n, is the number of integer variable,
          which defines variable lower bound x[k] >= lb[k] * x[k']; zero
          means that x[k] has simple lower bound */
       glp_double *ub; /* glp_double ub[1+m+n]; */
-      /* ub[k], 1 <= k <= m+n, is upper bound of x[k]; +DBL_MAX means
+      /* ub[k], 1 <= k <= m+n, is upper bound of x[k]; +GLP_DBL_MAX means
          that x[k] has no upper bound */
       int *vub; /* int vub[1+m+n]; */
       /* vub[k] = k', 1 <= k <= m+n, is the number of integer variable,
@@ -155,11 +155,11 @@ static void set_row_attrib(glp_prob *mip, glp_mir *mir)
          mir->isint[k] = 0;
          switch (row->type)
          {  case GLP_FR:
-               mir->lb[k] = -DBL_MAX, mir->ub[k] = +DBL_MAX; break;
+               mir->lb[k] = -GLP_DBL_MAX, mir->ub[k] = +GLP_DBL_MAX; break;
             case GLP_LO:
-               mir->lb[k] = row->lb, mir->ub[k] = +DBL_MAX; break;
+               mir->lb[k] = row->lb, mir->ub[k] = +GLP_DBL_MAX; break;
             case GLP_UP:
-               mir->lb[k] = -DBL_MAX, mir->ub[k] = row->ub; break;
+               mir->lb[k] = -GLP_DBL_MAX, mir->ub[k] = row->ub; break;
             case GLP_DB:
                mir->lb[k] = row->lb, mir->ub[k] = row->ub; break;
             case GLP_FX:
@@ -189,11 +189,11 @@ static void set_col_attrib(glp_prob *mip, glp_mir *mir)
          }
          switch (col->type)
          {  case GLP_FR:
-               mir->lb[k] = -DBL_MAX, mir->ub[k] = +DBL_MAX; break;
+               mir->lb[k] = -GLP_DBL_MAX, mir->ub[k] = +GLP_DBL_MAX; break;
             case GLP_LO:
-               mir->lb[k] = col->lb, mir->ub[k] = +DBL_MAX; break;
+               mir->lb[k] = col->lb, mir->ub[k] = +GLP_DBL_MAX; break;
             case GLP_UP:
-               mir->lb[k] = -DBL_MAX, mir->ub[k] = col->ub; break;
+               mir->lb[k] = -GLP_DBL_MAX, mir->ub[k] = col->ub; break;
             case GLP_DB:
                mir->lb[k] = col->lb, mir->ub[k] = col->ub; break;
             case GLP_FX:
@@ -214,8 +214,8 @@ static void set_var_bounds(glp_prob *mip, glp_mir *mir)
       glp_double a1, a2;
       for (i = 1; i <= m; i++)
       {  /* we need the row to be '>= 0' or '<= 0' */
-         if (!(mir->lb[i] == 0.0 && mir->ub[i] == +DBL_MAX ||
-               mir->lb[i] == -DBL_MAX && mir->ub[i] == 0.0)) continue;
+         if (!(mir->lb[i] == 0.0 && mir->ub[i] == +GLP_DBL_MAX ||
+               mir->lb[i] == -GLP_DBL_MAX && mir->ub[i] == 0.0)) continue;
          /* take first term */
          aij = mip->row[i]->ptr;
          if (aij == NULL) continue;
@@ -238,7 +238,7 @@ static void set_var_bounds(glp_prob *mip, glp_mir *mir)
             continue;
          }
          /* x[k2] should be double-bounded */
-         if (mir->lb[k2] == -DBL_MAX || mir->ub[k2] == +DBL_MAX ||
+         if (mir->lb[k2] == -GLP_DBL_MAX || mir->ub[k2] == +GLP_DBL_MAX ||
              mir->lb[k2] == mir->ub[k2]) continue;
          /* change signs, if necessary */
          if (mir->ub[i] == 0.0) a1 = - a1, a2 = - a2;
@@ -275,7 +275,7 @@ static void mark_useless_rows(glp_prob *mip, glp_mir *mir)
       int i, k, nv;
       for (i = 1; i <= m; i++)
       {  /* free rows should not be used */
-         if (mir->lb[i] == -DBL_MAX && mir->ub[i] == +DBL_MAX)
+         if (mir->lb[i] == -GLP_DBL_MAX && mir->ub[i] == +GLP_DBL_MAX)
          {  mir->skip[i] = 1;
             continue;
          }
@@ -283,14 +283,14 @@ static void mark_useless_rows(glp_prob *mip, glp_mir *mir)
          for (aij = mip->row[i]->ptr; aij != NULL; aij = aij->r_next)
          {  k = m + aij->col->j;
             /* rows with free variables should not be used */
-            if (mir->lb[k] == -DBL_MAX && mir->ub[k] == +DBL_MAX)
+            if (mir->lb[k] == -GLP_DBL_MAX && mir->ub[k] == +GLP_DBL_MAX)
             {  mir->skip[i] = 1;
                break;
             }
             /* rows with integer variables having infinite (lower or
                upper) bound should not be used */
-            if (mir->isint[k] && mir->lb[k] == -DBL_MAX ||
-                mir->isint[k] && mir->ub[k] == +DBL_MAX)
+            if (mir->isint[k] && mir->lb[k] == -GLP_DBL_MAX ||
+                mir->isint[k] && mir->ub[k] == +GLP_DBL_MAX)
             {  mir->skip[i] = 1;
                break;
             }
@@ -388,13 +388,13 @@ static void check_current_point(glp_mir *mir)
          lb = mir->lb[k];
          kk = mir->vlb[k];
          if (kk != 0)
-         {  xassert(lb != -DBL_MAX);
+         {  xassert(lb != -GLP_DBL_MAX);
             xassert(!mir->isint[k]);
             xassert(mir->isint[kk]);
             lb *= mir->x[kk];
          }
          /* check lower bound */
-         if (lb != -DBL_MAX)
+         if (lb != -GLP_DBL_MAX)
          {  eps = 1e-6 * (1.0 + fabs(lb));
             xassert(mir->x[k] >= lb - eps);
          }
@@ -402,13 +402,13 @@ static void check_current_point(glp_mir *mir)
          ub = mir->ub[k];
          kk = mir->vub[k];
          if (kk != 0)
-         {  xassert(ub != +DBL_MAX);
+         {  xassert(ub != +GLP_DBL_MAX);
             xassert(!mir->isint[k]);
             xassert(mir->isint[kk]);
             ub *= mir->x[kk];
          }
          /* check upper bound */
-         if (ub != +DBL_MAX)
+         if (ub != +GLP_DBL_MAX)
          {  eps = 1e-6 * (1.0 + fabs(ub));
             xassert(mir->x[k] <= ub + eps);
          }
@@ -503,33 +503,33 @@ static void bound_subst_heur(glp_mir *mir)
          /* compute distance from x[k] to its lower bound */
          kk = mir->vlb[k];
          if (kk == 0)
-         {  if (mir->lb[k] == -DBL_MAX)
-               d1 = DBL_MAX;
+         {  if (mir->lb[k] == -GLP_DBL_MAX)
+               d1 = GLP_DBL_MAX;
             else
                d1 = mir->x[k] - mir->lb[k];
          }
          else
          {  xassert(1 <= kk && kk <= m+n);
             xassert(mir->isint[kk]);
-            xassert(mir->lb[k] != -DBL_MAX);
+            xassert(mir->lb[k] != -GLP_DBL_MAX);
             d1 = mir->x[k] - mir->lb[k] * mir->x[kk];
          }
          /* compute distance from x[k] to its upper bound */
          kk = mir->vub[k];
          if (kk == 0)
-         {  if (mir->vub[k] == +DBL_MAX)
-               d2 = DBL_MAX;
+         {  if (mir->vub[k] == +GLP_DBL_MAX)
+               d2 = GLP_DBL_MAX;
             else
                d2 = mir->ub[k] - mir->x[k];
          }
          else
          {  xassert(1 <= kk && kk <= m+n);
             xassert(mir->isint[kk]);
-            xassert(mir->ub[k] != +DBL_MAX);
+            xassert(mir->ub[k] != +GLP_DBL_MAX);
             d2 = mir->ub[k] * mir->x[kk] - mir->x[k];
          }
          /* x[k] cannot be free */
-         xassert(d1 != DBL_MAX || d2 != DBL_MAX);
+         xassert(d1 != GLP_DBL_MAX || d2 != GLP_DBL_MAX);
          /* choose the bound which is closer to x[k] */
          xassert(mir->subst[k] == '?');
          if (d1 <= d2)
@@ -560,7 +560,7 @@ static void build_mod_row(glp_mir *mir)
          if (mir->isint[k]) continue; /* skip integer variable */
          if (mir->subst[k] == 'L')
          {  /* x[k] = (lower bound) + x'[k] */
-            xassert(mir->lb[k] != -DBL_MAX);
+            xassert(mir->lb[k] != -GLP_DBL_MAX);
             kk = mir->vlb[k];
             if (kk == 0)
             {  /* x[k] = lb[k] + x'[k] */
@@ -581,7 +581,7 @@ static void build_mod_row(glp_mir *mir)
          }
          else if (mir->subst[k] == 'U')
          {  /* x[k] = (upper bound) - x'[k] */
-            xassert(mir->ub[k] != +DBL_MAX);
+            xassert(mir->ub[k] != +GLP_DBL_MAX);
             kk = mir->vub[k];
             if (kk == 0)
             {  /* x[k] = ub[k] - x'[k] */
@@ -614,7 +614,7 @@ static void build_mod_row(glp_mir *mir)
          if (!mir->isint[k]) continue; /* skip continuous variable */
          xassert(mir->subst[k] == '?');
          xassert(mir->vlb[k] == 0 && mir->vub[k] == 0);
-         xassert(mir->lb[k] != -DBL_MAX && mir->ub[k] != +DBL_MAX);
+         xassert(mir->lb[k] != -GLP_DBL_MAX && mir->ub[k] != +GLP_DBL_MAX);
          if (fabs(mir->lb[k]) <= fabs(mir->ub[k]))
          {  /* x[k] = lb[k] + x'[k] */
             mir->subst[k] = 'L';
@@ -648,7 +648,7 @@ static void check_mod_row(glp_mir *mir)
          xassert(1 <= k && k <= m+n);
          if (mir->subst[k] == 'L')
          {  /* x'[k] = x[k] - (lower bound) */
-            xassert(mir->lb[k] != -DBL_MAX);
+            xassert(mir->lb[k] != -GLP_DBL_MAX);
             kk = mir->vlb[k];
             if (kk == 0)
                x = mir->x[k] - mir->lb[k];
@@ -657,7 +657,7 @@ static void check_mod_row(glp_mir *mir)
          }
          else if (mir->subst[k] == 'U')
          {  /* x'[k] = (upper bound) - x[k] */
-            xassert(mir->ub[k] != +DBL_MAX);
+            xassert(mir->ub[k] != +GLP_DBL_MAX);
             kk = mir->vub[k];
             if (kk == 0)
                x = mir->ub[k] - mir->x[k];
@@ -823,7 +823,7 @@ static glp_double cmir_sep(const int n, const glp_double a[], const glp_double b
       for (j = 1; j <= n; j++)
       {  xassert(a[j] != 0.0);
          /* if x[j] is close to its bounds, skip it */
-         eps = 1e-9 * (1.0 + fabs(u[j]));
+         eps = GLP_MPL_MIN_9 * (1.0 + fabs(u[j]));
          if (x[j] < eps || x[j] > u[j] - eps) continue;
          /* try delta = |a[j]| to construct c-MIR inequality */
          fail = cmir_ineq(n, a, b, u, cset, fabs(a[j]), alpha, beta,
@@ -857,7 +857,7 @@ static glp_double cmir_sep(const int n, const glp_double a[], const glp_double b
       nv = 0;
       for (j = 1; j <= n; j++)
       {  /* if x[j] is close to its bounds, skip it */
-         eps = 1e-9 * (1.0 + fabs(u[j]));
+         eps = GLP_MPL_MIN_9 * (1.0 + fabs(u[j]));
          if (x[j] < eps || x[j] > u[j] - eps) continue;
          /* add x[j] to the subset */
          nv++;
@@ -979,7 +979,7 @@ static glp_double generate(glp_mir *mir)
          /* must be continuous */
          xassert(!mir->isint[k]);
          if (mir->subst[k] == 'L')
-         {  xassert(mir->lb[k] != -DBL_MAX);
+         {  xassert(mir->lb[k] != -GLP_DBL_MAX);
             kk = mir->vlb[k];
             if (kk == 0)
                x = mir->x[k] - mir->lb[k];
@@ -987,7 +987,7 @@ static glp_double generate(glp_mir *mir)
                x = mir->x[k] - mir->lb[k] * mir->x[kk];
          }
          else if (mir->subst[k] == 'U')
-         {  xassert(mir->ub[k] != +DBL_MAX);
+         {  xassert(mir->ub[k] != +GLP_DBL_MAX);
             kk = mir->vub[k];
             if (kk == 0)
                x = mir->ub[k] - mir->x[k];
@@ -1048,7 +1048,7 @@ static void check_raw_cut(glp_mir *mir, glp_double r_best)
       {  k = mir->cut_vec->ind[j];
          xassert(1 <= k && k <= m+n);
          if (mir->subst[k] == 'L')
-         {  xassert(mir->lb[k] != -DBL_MAX);
+         {  xassert(mir->lb[k] != -GLP_DBL_MAX);
             kk = mir->vlb[k];
             if (kk == 0)
                x = mir->x[k] - mir->lb[k];
@@ -1056,7 +1056,7 @@ static void check_raw_cut(glp_mir *mir, glp_double r_best)
                x = mir->x[k] - mir->lb[k] * mir->x[kk];
          }
          else if (mir->subst[k] == 'U')
-         {  xassert(mir->ub[k] != +DBL_MAX);
+         {  xassert(mir->ub[k] != +GLP_DBL_MAX);
             kk = mir->vub[k];
             if (kk == 0)
                x = mir->ub[k] - mir->x[k];
@@ -1092,13 +1092,13 @@ static void back_subst(glp_mir *mir)
          if (!mir->isint[k]) continue; /* skip continuous */
          if (mir->subst[k] == 'L')
          {  /* x'[k] = x[k] - lb[k] */
-            xassert(mir->lb[k] != -DBL_MAX);
+            xassert(mir->lb[k] != -GLP_DBL_MAX);
             xassert(mir->vlb[k] == 0);
             mir->cut_rhs += mir->cut_vec->val[j] * mir->lb[k];
          }
          else if (mir->subst[k] == 'U')
          {  /* x'[k] = ub[k] - x[k] */
-            xassert(mir->ub[k] != +DBL_MAX);
+            xassert(mir->ub[k] != +GLP_DBL_MAX);
             xassert(mir->vub[k] == 0);
             mir->cut_rhs -= mir->cut_vec->val[j] * mir->ub[k];
             mir->cut_vec->val[j] = - mir->cut_vec->val[j];
@@ -1113,7 +1113,7 @@ static void back_subst(glp_mir *mir)
          if (mir->isint[k]) continue; /* skip integer */
          if (mir->subst[k] == 'L')
          {  /* x'[k] = x[k] - (lower bound) */
-            xassert(mir->lb[k] != -DBL_MAX);
+            xassert(mir->lb[k] != -GLP_DBL_MAX);
             kk = mir->vlb[k];
             if (kk == 0)
             {  /* x'[k] = x[k] - lb[k] */
@@ -1138,7 +1138,7 @@ static void back_subst(glp_mir *mir)
          }
          else if (mir->subst[k] == 'U')
          {  /* x'[k] = (upper bound) - x[k] */
-            xassert(mir->ub[k] != +DBL_MAX);
+            xassert(mir->ub[k] != +GLP_DBL_MAX);
             kk = mir->vub[k];
             if (kk == 0)
             {  /* x'[k] = ub[k] - x[k] */
@@ -1278,36 +1278,36 @@ static int aggregate_row(glp_prob *mip, glp_mir *mir, SPV *v)
          /* compute distance from x[k] to its lower bound */
          kk = mir->vlb[k];
          if (kk == 0)
-         {  if (mir->lb[k] == -DBL_MAX)
-               d1 = DBL_MAX;
+         {  if (mir->lb[k] == -GLP_DBL_MAX)
+               d1 = GLP_DBL_MAX;
             else
                d1 = mir->x[k] - mir->lb[k];
          }
          else
          {  xassert(1 <= kk && kk <= m+n);
             xassert(mir->isint[kk]);
-            xassert(mir->lb[k] != -DBL_MAX);
+            xassert(mir->lb[k] != -GLP_DBL_MAX);
             d1 = mir->x[k] - mir->lb[k] * mir->x[kk];
          }
          /* compute distance from x[k] to its upper bound */
          kk = mir->vub[k];
          if (kk == 0)
-         {  if (mir->vub[k] == +DBL_MAX)
-               d2 = DBL_MAX;
+         {  if (mir->vub[k] == +GLP_DBL_MAX)
+               d2 = GLP_DBL_MAX;
             else
                d2 = mir->ub[k] - mir->x[k];
          }
          else
          {  xassert(1 <= kk && kk <= m+n);
             xassert(mir->isint[kk]);
-            xassert(mir->ub[k] != +DBL_MAX);
+            xassert(mir->ub[k] != +GLP_DBL_MAX);
             d2 = mir->ub[k] * mir->x[kk] - mir->x[k];
          }
          /* x[k] cannot be free */
-         xassert(d1 != DBL_MAX || d2 != DBL_MAX);
+         xassert(d1 != GLP_DBL_MAX || d2 != GLP_DBL_MAX);
          /* d = min(d1, d2) */
          d = (d1 <= d2 ? d1 : d2);
-         xassert(d != DBL_MAX);
+         xassert(d != GLP_DBL_MAX);
          /* should not be close to corresponding bound */
          if (d < 0.001) continue;
          if (d_max < d) d_max = d, kappa = k;

@@ -67,12 +67,12 @@ static void show_progress(glp_tree *T, int bingo)
          sprintf(best_bound, "%17s", "tree is empty");
       else
       {  temp = T->slot[p].node->bound;
-         if (temp == -DBL_MAX)
+         if (temp == -GLP_DBL_MAX)
             sprintf(best_bound, "%17s", "-inf");
-         else if (temp == +DBL_MAX)
+         else if (temp == +GLP_DBL_MAX)
             sprintf(best_bound, "%17s", "+inf");
          else
-         {  if (fabs(temp) < 1e-9)
+         {  if (fabs(temp) < GLP_MPL_MIN_9)
                temp = 0;
             sprintf(best_bound, "%17.9" GLP_DBL_FMT_e , temp);
          }
@@ -608,7 +608,7 @@ static int round_heur(glp_tree *T)
             sum += aij->val * x[aij->col->j];
          /* check lower bound */
          if (type == GLP_LO || type == GLP_DB || type == GLP_FX)
-         {  if (sum < T->orig_lb[i] - 1e-9)
+         {  if (sum < T->orig_lb[i] - GLP_MPL_MIN_9)
             {  /* lower bound is violated */
                ret = 2;
                goto done;
@@ -616,7 +616,7 @@ static int round_heur(glp_tree *T)
          }
          /* check upper bound */
          if (type == GLP_UP || type == GLP_DB || type == GLP_FX)
-         {  if (sum > T->orig_ub[i] + 1e-9)
+         {  if (sum > T->orig_ub[i] + GLP_MPL_MIN_9)
             {  /* upper bound is violated */
                ret = 2;
                goto done;

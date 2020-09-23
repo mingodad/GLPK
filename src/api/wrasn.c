@@ -85,8 +85,8 @@ int glp_write_asnprob(glp_graph *G, int v_set, int a_cost, const char
                memcpy(&cost, (char *)a->data + a_cost, sizeof(glp_double));
             else
                cost = 1.0;
-            xfprintf(fp, "a %d %d %.*g\n",
-               a->tail->i, a->head->i, DBL_DIG, cost), count++;
+            xfprintf(fp, "a %d %d %.*" GLP_DBL_FMT_G "\n",
+               a->tail->i, a->head->i, GLP_DBL_DIG, cost), count++;
          }
       }
       xfprintf(fp, "c eof\n"), count++;

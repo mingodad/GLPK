@@ -82,8 +82,8 @@ int glp_write_maxflow(glp_graph *G, int s, int t, int a_cap,
                memcpy(&cap, (char *)a->data + a_cap, sizeof(glp_double));
             else
                cap = 1.0;
-            xfprintf(fp, "a %d %d %.*g\n",
-               a->tail->i, a->head->i, DBL_DIG, cap), count++;
+            xfprintf(fp, "a %d %d %.*" GLP_DBL_FMT_G "\n",
+               a->tail->i, a->head->i, GLP_DBL_DIG, cap), count++;
          }
       }
       xfprintf(fp, "c eof\n"), count++;

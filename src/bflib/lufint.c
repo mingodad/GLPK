@@ -36,7 +36,7 @@ LUFINT *lufint_create(void)
       fi->sva_n_max = fi->sva_size = 0;
       fi->delta_n0 = fi->delta_n = 0;
       fi->sgf_updat = 0;
-      fi->sgf_piv_tol = 0.10;
+      fi->sgf_piv_tol = GLP_PIVOT_TOL;
       fi->sgf_piv_lim = 4;
       fi->sgf_suhl = 1;
       fi->sgf_eps_tol = GLP_DBL_EPSILON;

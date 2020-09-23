@@ -150,8 +150,8 @@ int fp2rat(glp_double x, glp_double eps, glp_double *p, glp_double *q)
          /* f[k] = A[k] / B[k] */
          fk = Ak / Bk;
 #if 0
-         print("%.*g / %.*g = %.*g",
-            DBL_DIG, Ak, DBL_DIG, Bk, DBL_DIG, fk);
+         print("%.*" GLP_DBL_FMT_G " / %.*" GLP_DBL_FMT_G " = %.*" GLP_DBL_FMT_G,
+            GLP_DBL_DIG, Ak, GLP_DBL_DIG, Bk, GLP_DBL_DIG, fk);
 #endif
          if (fabs(x - fk) <= eps)
             break;

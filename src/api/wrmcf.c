@@ -81,7 +81,7 @@ int glp_write_mincost(glp_graph *G, int v_rhs, int a_low, int a_cap,
          {  v = G->v[i];
             memcpy(&rhs, (char *)v->data + v_rhs, sizeof(glp_double));
             if (rhs != 0.0)
-               xfprintf(fp, "n %d %.*g\n", i, DBL_DIG, rhs), count++;
+               xfprintf(fp, "n %d %.*" GLP_DBL_FMT_G "\n", i, GLP_DBL_DIG, rhs), count++;
          }
       }
       for (i = 1; i <= G->nv; i++)
@@ -99,9 +99,9 @@ int glp_write_mincost(glp_graph *G, int v_rhs, int a_low, int a_cap,
                memcpy(&cost, (char *)a->data + a_cost, sizeof(glp_double));
             else
                cost = 0.0;
-            xfprintf(fp, "a %d %d %.*g %.*g %.*g\n",
-               a->tail->i, a->head->i, DBL_DIG, low, DBL_DIG, cap,
-               DBL_DIG, cost), count++;
+            xfprintf(fp, "a %d %d %.*" GLP_DBL_FMT_G " %.*" GLP_DBL_FMT_G " %.*" GLP_DBL_FMT_G "\n",
+               a->tail->i, a->head->i, GLP_DBL_DIG, low, GLP_DBL_DIG, cap,
+               GLP_DBL_DIG, cost), count++;
          }
       }
       xfprintf(fp, "c eof\n"), count++;

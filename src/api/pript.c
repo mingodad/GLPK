@@ -70,7 +70,7 @@ int glp_print_ipt(glp_prob *P, const char *fname)
             xfprintf(fp, "%s\n%20s", row->name, "");
          xfprintf(fp, "%3s", "");
          xfprintf(fp, "%13.6g ",
-            fabs(row->pval) <= 1e-9 ? 0.0 : row->pval);
+            fabs(row->pval) <= GLP_MPL_MIN_9 ? 0.0 : row->pval);
          if (row->type == GLP_LO || row->type == GLP_DB ||
              row->type == GLP_FX)
             xfprintf(fp, "%13.6g ", row->lb);
@@ -80,7 +80,7 @@ int glp_print_ipt(glp_prob *P, const char *fname)
             xfprintf(fp, "%13.6g ", row->ub);
          else
             xfprintf(fp, "%13s ", row->type == GLP_FX ? "=" : "");
-         if (fabs(row->dval) <= 1e-9)
+         if (fabs(row->dval) <= GLP_MPL_MIN_9)
             xfprintf(fp, "%13s", "< eps");
          else
             xfprintf(fp, "%13.6g ", row->dval);
@@ -100,7 +100,7 @@ int glp_print_ipt(glp_prob *P, const char *fname)
             xfprintf(fp, "%s\n%20s", col->name, "");
          xfprintf(fp, "%3s", "");
          xfprintf(fp, "%13.6g ",
-            fabs(col->pval) <= 1e-9 ? 0.0 : col->pval);
+            fabs(col->pval) <= GLP_MPL_MIN_9 ? 0.0 : col->pval);
          if (col->type == GLP_LO || col->type == GLP_DB ||
              col->type == GLP_FX)
             xfprintf(fp, "%13.6g ", col->lb);
@@ -110,7 +110,7 @@ int glp_print_ipt(glp_prob *P, const char *fname)
             xfprintf(fp, "%13.6g ", col->ub);
          else
             xfprintf(fp, "%13s ", col->type == GLP_FX ? "=" : "");
-         if (fabs(col->dval) <= 1e-9)
+         if (fabs(col->dval) <= GLP_MPL_MIN_9)
             xfprintf(fp, "%13s", "< eps");
          else
             xfprintf(fp, "%13.6g ", col->dval);
@@ -126,9 +126,9 @@ int glp_print_ipt(glp_prob *P, const char *fname)
       xfprintf(fp, "        max.rel.err = %.2e on row %d\n",
          re_max, re_ind);
       xfprintf(fp, "%8s%s\n", "",
-         re_max <= 1e-9 ? "High quality" :
-         re_max <= 1e-6 ? "Medium quality" :
-         re_max <= 1e-3 ? "Low quality" : "PRIMAL SOLUTION IS WRONG");
+         re_max <= GLP_LPX_RE_MAX_9 ? "High quality" :
+         re_max <= GLP_LPX_RE_MAX_6 ? "Medium quality" :
+         re_max <= GLP_LPX_RE_MAX_3 ? "Low quality" : "PRIMAL SOLUTION IS WRONG");
       xfprintf(fp, "\n");
       glp_check_kkt(P, GLP_IPT, GLP_KKT_PB, &ae_max, &ae_ind, &re_max,
          &re_ind);
@@ -139,9 +139,9 @@ int glp_print_ipt(glp_prob *P, const char *fname)
             re_max, re_ind <= P->m ? "row" : "column",
             re_ind <= P->m ? re_ind : re_ind - P->m);
       xfprintf(fp, "%8s%s\n", "",
-         re_max <= 1e-9 ? "High quality" :
-         re_max <= 1e-6 ? "Medium quality" :
-         re_max <= 1e-3 ? "Low quality" : "PRIMAL SOLUTION IS INFEASIBL"
+         re_max <= GLP_LPX_RE_MAX_9 ? "High quality" :
+         re_max <= GLP_LPX_RE_MAX_6 ? "Medium quality" :
+         re_max <= GLP_LPX_RE_MAX_3 ? "Low quality" : "PRIMAL SOLUTION IS INFEASIBL"
             "E");
       xfprintf(fp, "\n");
       glp_check_kkt(P, GLP_IPT, GLP_KKT_DE, &ae_max, &ae_ind, &re_max,
@@ -151,9 +151,9 @@ int glp_print_ipt(glp_prob *P, const char *fname)
       xfprintf(fp, "        max.rel.err = %.2e on column %d\n",
          re_max, re_ind == 0 ? 0 : re_ind - P->m);
       xfprintf(fp, "%8s%s\n", "",
-         re_max <= 1e-9 ? "High quality" :
-         re_max <= 1e-6 ? "Medium quality" :
-         re_max <= 1e-3 ? "Low quality" : "DUAL SOLUTION IS WRONG");
+         re_max <= GLP_LPX_RE_MAX_9 ? "High quality" :
+         re_max <= GLP_LPX_RE_MAX_6 ? "Medium quality" :
+         re_max <= GLP_LPX_RE_MAX_3 ? "Low quality" : "DUAL SOLUTION IS WRONG");
       xfprintf(fp, "\n");
       glp_check_kkt(P, GLP_IPT, GLP_KKT_DB, &ae_max, &ae_ind, &re_max,
          &re_ind);
@@ -164,9 +164,9 @@ int glp_print_ipt(glp_prob *P, const char *fname)
             re_max, re_ind <= P->m ? "row" : "column",
             re_ind <= P->m ? re_ind : re_ind - P->m);
       xfprintf(fp, "%8s%s\n", "",
-         re_max <= 1e-9 ? "High quality" :
-         re_max <= 1e-6 ? "Medium quality" :
-         re_max <= 1e-3 ? "Low quality" : "DUAL SOLUTION IS INFEASIBLE")
+         re_max <= GLP_LPX_RE_MAX_9 ? "High quality" :
+         re_max <= GLP_LPX_RE_MAX_6 ? "Medium quality" :
+         re_max <= GLP_LPX_RE_MAX_3 ? "Low quality" : "DUAL SOLUTION IS INFEASIBLE")
             ;
       xfprintf(fp, "\n");
       xfprintf(fp, "End of output\n");

@@ -419,7 +419,7 @@ static int find_col(struct csa *csa, char *name)
             memcpy(&csa->ub[1], &ub[1], n_max * sizeof(glp_double));
             xfree(ub);
          }
-         csa->lb[j] = +DBL_MAX, csa->ub[j] = -DBL_MAX;
+         csa->lb[j] = +GLP_DBL_MAX, csa->ub[j] = -GLP_DBL_MAX;
       }
       return j;
 }
@@ -598,7 +598,7 @@ loop: /* create new row (constraint) */
 
 static void set_lower_bound(struct csa *csa, int j, glp_double lb)
 {     /* set lower bound of j-th variable */
-      if (csa->lb[j] != +DBL_MAX && !csa->lb_warn)
+      if (csa->lb[j] != +GLP_DBL_MAX && !csa->lb_warn)
       {  warning(csa, "lower bound of variable '%s' redefined\n",
             glp_get_col_name(csa->P, j));
          csa->lb_warn = 1;
@@ -609,7 +609,7 @@ static void set_lower_bound(struct csa *csa, int j, glp_double lb)
 
 static void set_upper_bound(struct csa *csa, int j, glp_double ub)
 {     /* set upper bound of j-th variable */
-      if (csa->ub[j] != -DBL_MAX && !csa->ub_warn)
+      if (csa->ub[j] != -GLP_DBL_MAX && !csa->ub_warn)
       {  warning(csa, "upper bound of variable '%s' redefined\n",
             glp_get_col_name(csa->P, j));
          csa->ub_warn = 1;
@@ -658,7 +658,7 @@ loop: /* bound definition can start with a sign, numeric constant, or
                   the_same(csa->image, "inf"))
          {  if (s > 0.0)
                error(csa, "invalid use of '+inf' as lower bound\n");
-            lb = -DBL_MAX, scan_token(csa);
+            lb = -GLP_DBL_MAX, scan_token(csa);
          }
          else
             error(csa, "missing lower bound\n");
@@ -702,7 +702,7 @@ loop: /* bound definition can start with a sign, numeric constant, or
                      the_same(csa->image, "inf"))
             {  if (s < 0.0)
                   error(csa, "invalid use of '-inf' as upper bound\n");
-               set_upper_bound(csa, j, +DBL_MAX);
+               set_upper_bound(csa, j, +GLP_DBL_MAX);
                scan_token(csa);
             }
             else
@@ -735,7 +735,7 @@ loop: /* bound definition can start with a sign, numeric constant, or
                      the_same(csa->image, "inf") == 0)
             {  if (s > 0.0)
                   error(csa, "invalid use of '+inf' as lower bound\n");
-               set_lower_bound(csa, j, -DBL_MAX);
+               set_lower_bound(csa, j, -GLP_DBL_MAX);
                scan_token(csa);
             }
             else
@@ -783,8 +783,8 @@ loop: /* bound definition can start with a sign, numeric constant, or
          {  /* the context '... <= x free ...' is invalid */
             error(csa, "invalid bound definition\n");
          }
-         set_lower_bound(csa, j, -DBL_MAX);
-         set_upper_bound(csa, j, +DBL_MAX);
+         set_lower_bound(csa, j, -GLP_DBL_MAX);
+         set_upper_bound(csa, j, +GLP_DBL_MAX);
          scan_token(csa);
       }
       else if (!lb_flag)
@@ -831,9 +831,9 @@ static void parse_integer(struct csa *csa)
          }
 #else
          {  set_lower_bound(csa, j,
-               csa->lb[j] == +DBL_MAX ? 0.0 : csa->lb[j]);
+               csa->lb[j] == +GLP_DBL_MAX ? 0.0 : csa->lb[j]);
             set_upper_bound(csa, j,
-               csa->ub[j] == -DBL_MAX ? 1.0 : csa->ub[j]);
+               csa->ub[j] == -GLP_DBL_MAX ? 1.0 : csa->ub[j]);
          }
 #endif
          scan_token(csa);
@@ -918,13 +918,13 @@ int glp_read_lp(glp_prob *P, const glp_cpxcp *parm, const char *fname)
          for (j = 1; j <= P->n; j++)
          {  lb = csa->lb[j];
             ub = csa->ub[j];
-            if (lb == +DBL_MAX) lb = 0.0;      /* default lb */
-            if (ub == -DBL_MAX) ub = +DBL_MAX; /* default ub */
-            if (lb == -DBL_MAX && ub == +DBL_MAX)
+            if (lb == +GLP_DBL_MAX) lb = 0.0;      /* default lb */
+            if (ub == -GLP_DBL_MAX) ub = +GLP_DBL_MAX; /* default ub */
+            if (lb == -GLP_DBL_MAX && ub == +GLP_DBL_MAX)
                type = GLP_FR;
-            else if (ub == +DBL_MAX)
+            else if (ub == +GLP_DBL_MAX)
                type = GLP_LO;
-            else if (lb == -DBL_MAX)
+            else if (lb == -GLP_DBL_MAX)
                type = GLP_UP;
             else if (lb != ub)
                type = GLP_DB;
@@ -1151,9 +1151,9 @@ int glp_write_lp(glp_prob *P, const glp_cpxcp *parm, const char *fname)
             else if (col->coef == -1.0)
                sprintf(term, " - %s", name);
             else if (col->coef > 0.0)
-               sprintf(term, " + %.*" GLP_DBL_FMT_G " %s", DBL_DIG, +col->coef, name);
+               sprintf(term, " + %.*" GLP_DBL_FMT_G " %s", GLP_DBL_DIG, +col->coef, name);
             else
-               sprintf(term, " - %.*" GLP_DBL_FMT_G " %s", DBL_DIG, -col->coef, name);
+               sprintf(term, " - %.*" GLP_DBL_FMT_G " %s", GLP_DBL_DIG, -col->coef, name);
             if (strlen(line) + strlen(term) > 72)
                xfprintf(fp, "%s\n", line), line[0] = '\0', count++;
             strcat(line, term);
@@ -1166,7 +1166,7 @@ int glp_write_lp(glp_prob *P, const glp_cpxcp *parm, const char *fname)
       }
       xfprintf(fp, "%s\n", line), count++;
       if (P->c0 != 0.0)
-         xfprintf(fp, "\\* constant term = %.*" GLP_DBL_FMT_G " *\\\n", DBL_DIG, P->c0),
+         xfprintf(fp, "\\* constant term = %.*" GLP_DBL_FMT_G " *\\\n", GLP_DBL_DIG, P->c0),
             count++;
       xfprintf(fp, "\n"), count++;
       /* write the constraints section */
@@ -1184,9 +1184,9 @@ int glp_write_lp(glp_prob *P, const glp_cpxcp *parm, const char *fname)
             else if (aij->val == -1.0)
                sprintf(term, " - %s", name);
             else if (aij->val > 0.0)
-               sprintf(term, " + %.*" GLP_DBL_FMT_G " %s", DBL_DIG, +aij->val, name);
+               sprintf(term, " + %.*" GLP_DBL_FMT_G " %s", GLP_DBL_DIG, +aij->val, name);
             else
-               sprintf(term, " - %.*" GLP_DBL_FMT_G " %s", DBL_DIG, -aij->val, name);
+               sprintf(term, " - %.*" GLP_DBL_FMT_G " %s", GLP_DBL_DIG, -aij->val, name);
             if (strlen(line) + strlen(term) > 72)
                xfprintf(fp, "%s\n", line), line[0] = '\0', count++;
             strcat(line, term);
@@ -1205,11 +1205,11 @@ int glp_write_lp(glp_prob *P, const glp_cpxcp *parm, const char *fname)
          }
          /* right hand-side */
          if (row->type == GLP_LO)
-            sprintf(term, " >= %.*" GLP_DBL_FMT_G, DBL_DIG, row->lb);
+            sprintf(term, " >= %.*" GLP_DBL_FMT_G, GLP_DBL_DIG, row->lb);
          else if (row->type == GLP_UP)
-            sprintf(term, " <= %.*" GLP_DBL_FMT_G, DBL_DIG, row->ub);
+            sprintf(term, " <= %.*" GLP_DBL_FMT_G, GLP_DBL_DIG, row->ub);
          else if (row->type == GLP_DB || row->type == GLP_FX)
-            sprintf(term, " = %.*" GLP_DBL_FMT_G , DBL_DIG, row->lb);
+            sprintf(term, " = %.*" GLP_DBL_FMT_G , GLP_DBL_DIG, row->lb);
          else
             xassert(row != row);
          if (strlen(line) + strlen(term) > 72)
@@ -1226,7 +1226,7 @@ int glp_write_lp(glp_prob *P, const glp_cpxcp *parm, const char *fname)
          if (!flag)
             xfprintf(fp, "Bounds\n"), flag = 1, count++;
          xfprintf(fp, " 0 <= ~r_%d <= %.*" GLP_DBL_FMT_G "\n",
-            i, DBL_DIG, row->ub - row->lb), count++;
+            i, GLP_DBL_DIG, row->ub - row->lb), count++;
       }
       for (j = 1; j <= P->n; j++)
       {  col = P->col[j];
@@ -1237,17 +1237,17 @@ int glp_write_lp(glp_prob *P, const glp_cpxcp *parm, const char *fname)
          if (col->type == GLP_FR)
             xfprintf(fp, " %s free\n", name), count++;
          else if (col->type == GLP_LO)
-            xfprintf(fp, " %s >= %.*g\n",
-               name, DBL_DIG, col->lb), count++;
+            xfprintf(fp, " %s >= %.*" GLP_DBL_FMT_G "\n",
+               name, GLP_DBL_DIG, col->lb), count++;
          else if (col->type == GLP_UP)
-            xfprintf(fp, " -Inf <= %s <= %.*g\n",
-               name, DBL_DIG, col->ub), count++;
+            xfprintf(fp, " -Inf <= %s <= %.*" GLP_DBL_FMT_G "\n",
+               name, GLP_DBL_DIG, col->ub), count++;
          else if (col->type == GLP_DB)
-            xfprintf(fp, " %.*g <= %s <= %.*g\n",
-               DBL_DIG, col->lb, name, DBL_DIG, col->ub), count++;
+            xfprintf(fp, " %.*" GLP_DBL_FMT_G " <= %s <= %.*" GLP_DBL_FMT_G "\n",
+               GLP_DBL_DIG, col->lb, name, GLP_DBL_DIG, col->ub), count++;
          else if (col->type == GLP_FX)
             xfprintf(fp, " %s = %.*" GLP_DBL_FMT_G "\n",
-               name, DBL_DIG, col->lb), count++;
+               name, GLP_DBL_DIG, col->lb), count++;
          else
             xassert(col != col);
       }

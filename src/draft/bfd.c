@@ -99,7 +99,7 @@ void bfd_set_bfcp(BFD *bfd, const void /* glp_bfcp */ *parm)
       {  /* reset to default */
          memset(&bfd->parm, 0, sizeof(glp_bfcp));
          bfd->parm.type = GLP_BF_LUF + GLP_BF_FT;
-         bfd->parm.piv_tol = 0.10;
+         bfd->parm.piv_tol = GLP_PIVOT_TOL;
          bfd->parm.piv_lim = 4;
          bfd->parm.suhl = 1;
          bfd->parm.eps_tol = GLP_DBL_EPSILON;

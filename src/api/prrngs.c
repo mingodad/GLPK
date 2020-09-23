@@ -28,9 +28,9 @@
 
 static char *format(char buf[13+1], glp_double x)
 {     /* format floating-point number in MPS/360-like style */
-      if (x == -DBL_MAX)
+      if (x == -GLP_DBL_MAX)
          strcpy(buf, "         -Inf");
-      else if (x == +DBL_MAX)
+      else if (x == +GLP_DBL_MAX)
          strcpy(buf, "         +Inf");
       else if (fabs(x) <= 999999.99998)
       {  sprintf(buf, "%13.5" GLP_DBL_FMT_F, x);
@@ -174,27 +174,27 @@ int glp_print_ranges(glp_prob *P, int len, const int list[],
             if (stat == GLP_NF)
                coef1 = coef2 = coef;
             else if (stat == GLP_NS)
-               coef1 = -DBL_MAX, coef2 = +DBL_MAX;
+               coef1 = -GLP_DBL_MAX, coef2 = +GLP_DBL_MAX;
             else if (stat == GLP_NL && P->dir == GLP_MIN ||
                      stat == GLP_NU && P->dir == GLP_MAX)
-               coef1 = coef - dual, coef2 = +DBL_MAX;
+               coef1 = coef - dual, coef2 = +GLP_DBL_MAX;
             else
-               coef1 = -DBL_MAX, coef2 = coef - dual;
-            if (value1 == -DBL_MAX)
-            {  if (dual < -1e-9)
-                  obj1 = +DBL_MAX;
-               else if (dual > +1e-9)
-                  obj1 = -DBL_MAX;
+               coef1 = -GLP_DBL_MAX, coef2 = coef - dual;
+            if (value1 == -GLP_DBL_MAX)
+            {  if (dual < -GLP_MPL_MIN_9)
+                  obj1 = +GLP_DBL_MAX;
+               else if (dual > +GLP_MPL_MIN_9)
+                  obj1 = -GLP_DBL_MAX;
                else
                   obj1 = P->obj_val;
             }
             else
                obj1 = P->obj_val + dual * (value1 - prim);
-            if (value2 == +DBL_MAX)
-            {  if (dual < -1e-9)
-                  obj2 = -DBL_MAX;
-               else if (dual > +1e-9)
-                  obj2 = +DBL_MAX;
+            if (value2 == +GLP_DBL_MAX)
+            {  if (dual < -GLP_MPL_MIN_9)
+                  obj2 = -GLP_DBL_MAX;
+               else if (dual > +GLP_MPL_MIN_9)
+                  obj2 = +GLP_DBL_MAX;
                else
                   obj2 = P->obj_val;
             }
@@ -204,21 +204,21 @@ int glp_print_ranges(glp_prob *P, int len, const int list[],
          else
          {  glp_analyze_coef(P, k, &coef1, &var1, &value1, &coef2,
                &var2, &value2);
-            if (coef1 == -DBL_MAX)
-            {  if (prim < -1e-9)
-                  obj1 = +DBL_MAX;
-               else if (prim > +1e-9)
-                  obj1 = -DBL_MAX;
+            if (coef1 == -GLP_DBL_MAX)
+            {  if (prim < -GLP_MPL_MIN_9)
+                  obj1 = +GLP_DBL_MAX;
+               else if (prim > +GLP_MPL_MIN_9)
+                  obj1 = -GLP_DBL_MAX;
                else
                   obj1 = P->obj_val;
             }
             else
                obj1 = P->obj_val + (coef1 - coef) * prim;
-            if (coef2 == +DBL_MAX)
-            {  if (prim < -1e-9)
-                  obj2 = -DBL_MAX;
-               else if (prim > +1e-9)
-                  obj2 = +DBL_MAX;
+            if (coef2 == +GLP_DBL_MAX)
+            {  if (prim < -GLP_MPL_MIN_9)
+                  obj2 = -GLP_DBL_MAX;
+               else if (prim > +GLP_MPL_MIN_9)
+                  obj2 = +GLP_DBL_MAX;
                else
                   obj2 = P->obj_val;
             }

@@ -104,7 +104,7 @@ int glp_write_sol(glp_prob *P, const char *fname)
          case GLP_NOFEAS: glp_format(fp, "n"); break;
          default:         glp_format(fp, "?"); break;
       }
-      glp_format(fp, " %.*g\n", DBL_DIG, P->obj_val);
+      glp_format(fp, " %.*" GLP_DBL_FMT_G "\n", GLP_DBL_DIG, P->obj_val);
       /* write row solution descriptor lines */
       for (i = 1; i <= P->m; i++)
       {  row = P->row[i];
@@ -128,7 +128,7 @@ int glp_write_sol(glp_prob *P, const char *fname)
             default:
                xassert(row != row);
          }
-         glp_format(fp, " %.*g %.*g\n", DBL_DIG, row->prim, DBL_DIG,
+         glp_format(fp, " %.*" GLP_DBL_FMT_G " %.*" GLP_DBL_FMT_G "\n", GLP_DBL_DIG, row->prim, GLP_DBL_DIG,
             row->dual);
       }
       /* write column solution descriptor lines */
@@ -154,7 +154,7 @@ int glp_write_sol(glp_prob *P, const char *fname)
             default:
                xassert(col != col);
          }
-         glp_format(fp, " %.*g %.*g\n", DBL_DIG, col->prim, DBL_DIG,
+         glp_format(fp, " %.*" GLP_DBL_FMT_G " %.*" GLP_DBL_FMT_G "\n", GLP_DBL_DIG, col->prim, GLP_DBL_DIG,
             col->dual);
       }
       /* write end line */

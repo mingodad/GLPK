@@ -309,7 +309,7 @@ err:     xerror("glp_ios_node_level: p = %d; invalid subproblem referen"
 *  On creating a subproblem (due to the branching step) its local bound
 *  is inherited from its parent and then may get only stronger (never
 *  weaker). For the root subproblem its local bound is initially set to
-*  -DBL_MAX (minimization) or +DBL_MAX (maximization) and then improved
+*  -GLP_DBL_MAX (minimization) or +GLP_DBL_MAX (maximization) and then improved
 *  as the root LP relaxation has been solved.
 *
 *  Note that the local bound is not necessarily the optimal objective
@@ -372,7 +372,7 @@ int glp_ios_best_node(glp_tree *tree)
 *
 *  where best_mip is the best integer feasible solution found so far,
 *  best_bnd is the best (global) bound. If no integer feasible solution
-*  has been found yet, gap is set to DBL_MAX.
+*  has been found yet, gap is set to GLP_DBL_MAX.
 *
 *  RETURNS
 *

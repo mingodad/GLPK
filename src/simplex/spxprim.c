@@ -228,7 +228,7 @@ static int set_penalty(struct csa *csa, glp_double tol, glp_double tol1)
       for (i = 1; i <= m; i++)
       {  k = head[i]; /* x[k] = xB[i] */
          /* check lower bound */
-         if ((t = l[k]) != -DBL_MAX)
+         if ((t = l[k]) != -GLP_DBL_MAX)
          {  eps = tol + tol1 * (t >= 0.0 ? +t : -t);
             if (beta[i] < t - eps)
             {  /* lower bound is violated */
@@ -236,7 +236,7 @@ static int set_penalty(struct csa *csa, glp_double tol, glp_double tol1)
             }
          }
          /* check upper bound */
-         if ((t = u[k]) != +DBL_MAX)
+         if ((t = u[k]) != +GLP_DBL_MAX)
          {  eps = tol + tol1 * (t >= 0.0 ? +t : -t);
             if (beta[i] > t + eps)
             {  /* upper bound is violated */
@@ -301,12 +301,12 @@ static int check_feas(struct csa *csa, int phase, glp_double tol, glp_double
          /* determine actual bounds of x[k] */
          if (phase == 1 && c[k] < 0.0)
          {  /* -inf < x[k] <= l[k] */
-            lk = -DBL_MAX, uk = l[k];
+            lk = -GLP_DBL_MAX, uk = l[k];
             orig = 0; /* artificial bounds */
          }
          else if (phase == 1 && c[k] > 0.0)
          {  /* u[k] <= x[k] < +inf */
-            lk = u[k], uk = +DBL_MAX;
+            lk = u[k], uk = +GLP_DBL_MAX;
             orig = 0; /* artificial bounds */
          }
          else
@@ -315,7 +315,7 @@ static int check_feas(struct csa *csa, int phase, glp_double tol, glp_double
             orig = 1; /* original bounds */
          }
          /* check actual lower bound */
-         if (lk != -DBL_MAX)
+         if (lk != -GLP_DBL_MAX)
          {  eps = tol + tol1 * (lk >= 0.0 ? +lk : -lk);
             if (beta[i] < lk - eps)
             {  /* actual lower bound is violated */
@@ -327,7 +327,7 @@ static int check_feas(struct csa *csa, int phase, glp_double tol, glp_double
             }
          }
          /* check actual upper bound */
-         if (uk != +DBL_MAX)
+         if (uk != +GLP_DBL_MAX)
          {  eps = tol + tol1 * (uk >= 0.0 ? +uk : -uk);
             if (beta[i] > uk + eps)
             {  /* actual upper bound is violated */
@@ -384,7 +384,7 @@ static int adjust_penalty(struct csa *csa, glp_double tol, glp_double tol1)
       {  k = head[i]; /* x[k] = xB[i] */
          if (c[k] < 0.0)
          {  /* x[k] violates its original lower bound l[k] */
-            xassert((t = l[k]) != -DBL_MAX);
+            xassert((t = l[k]) != -GLP_DBL_MAX);
             eps = tol + tol1 * (t >= 0.0 ? +t : -t);
             if (beta[i] >= t - eps)
             {  /* however, violation is close to zero */
@@ -393,7 +393,7 @@ static int adjust_penalty(struct csa *csa, glp_double tol, glp_double tol1)
          }
          else if (c[k] > 0.0)
          {  /* x[k] violates its original upper bound u[k] */
-            xassert((t = u[k]) != +DBL_MAX);
+            xassert((t = u[k]) != +GLP_DBL_MAX);
             eps = tol + tol1 * (t >= 0.0 ? +t : -t);
             if (beta[i] <= t + eps)
             {  /* however, violation is close to zero */
@@ -424,7 +424,7 @@ static int adjust_penalty(struct csa *csa, int num, const int
          if (c[k] < 0.0)
          {  /* x[k] violates its original lower bound */
             lk = l[k];
-            xassert(lk != -DBL_MAX);
+            xassert(lk != -GLP_DBL_MAX);
             eps = tol + tol1 * (lk >= 0.0 ? +lk : -lk);
             if (beta[i] >= lk - eps)
             {  /* however, violation is close to zero */
@@ -434,7 +434,7 @@ static int adjust_penalty(struct csa *csa, int num, const int
          else if (c[k] > 0.0)
          {  /* x[k] violates its original upper bound */
             uk = u[k];
-            xassert(uk != +DBL_MAX);
+            xassert(uk != +GLP_DBL_MAX);
             eps = tol + tol1 * (uk >= 0.0 ? +uk : -uk);
             if (beta[i] <= uk + eps)
             {  /* however, violation is close to zero */
@@ -657,7 +657,7 @@ try:  /* choose non-basic variable xN[q] */
          /* set initial slope */
          slope = - fabs(d[q]);
          /* estimate initial teta_lim */
-         teta_lim = DBL_MAX;
+         teta_lim = GLP_DBL_MAX;
          for (t = 1; t <= nbp; t++)
          {  if (teta_lim > bp[t].teta)
                teta_lim = bp[t].teta;
@@ -887,7 +887,7 @@ static void play_bounds(struct csa *csa, int all)
             k = head[i]; /* x[k] = xB[i] */
             if (csa->phase == 1 && c[k] < 0.0)
             {  /* -inf < xB[i] <= lB[i] (artificial bounds) */
-               if (beta[i] < l[k] - 1e-9)
+               if (beta[i] < l[k] - GLP_MPL_MIN_9)
                   continue;
                /* restore actual bounds */
                c[k] = 0.0;
@@ -895,7 +895,7 @@ static void play_bounds(struct csa *csa, int all)
             }
             if (csa->phase == 1 && c[k] > 0.0)
             {  /* uB[i] <= xB[i] < +inf (artificial bounds) */
-               if (beta[i] > u[k] + 1e-9)
+               if (beta[i] > u[k] + GLP_MPL_MIN_9)
                   continue;
                /* restore actual bounds */
                c[k] = 0.0;
@@ -904,14 +904,14 @@ static void play_bounds(struct csa *csa, int all)
             /* lB[i] <= xB[i] <= uB[i] */
             if (csa->phase == 1)
                xassert(c[k] == 0.0);
-            if (l[k] != -DBL_MAX)
+            if (l[k] != -GLP_DBL_MAX)
             {  /* xB[i] has lower bound */
                if (beta[i] < l[k])
                {  /* strong feasibility means xB[i] >= lB[i] */
 #if 0 /* 11/VI-2017 */
                   l[k] = beta[i];
 #else
-                  l[k] = beta[i] - 1e-9;
+                  l[k] = beta[i] - GLP_MPL_MIN_9;
 #endif
                }
                else if (l[k] < orig_l[k])
@@ -922,14 +922,14 @@ static void play_bounds(struct csa *csa, int all)
                      l[k] = beta[i];
                }
             }
-            if (u[k] != +DBL_MAX)
+            if (u[k] != +GLP_DBL_MAX)
             {  /* xB[i] has upper bound */
                if (beta[i] > u[k])
                {  /* strong feasibility means xB[i] <= uB[i] */
 #if 0 /* 11/VI-2017 */
                   u[k] = beta[i];
 #else
-                  u[k] = beta[i] + 1e-9;
+                  u[k] = beta[i] + GLP_MPL_MIN_9;
 #endif
                }
                else if (u[k] > orig_u[k])
@@ -993,9 +993,9 @@ static glp_double sum_infeas(SPXLP *lp, const glp_double beta[/*1+m*/])
       glp_double sum = 0.0;
       for (i = 1; i <= m; i++)
       {  k = head[i]; /* x[k] = xB[i] */
-         if (l[k] != -DBL_MAX && beta[i] < l[k])
+         if (l[k] != -GLP_DBL_MAX && beta[i] < l[k])
             sum += l[k] - beta[i];
-         if (u[k] != +DBL_MAX && beta[i] > u[k])
+         if (u[k] != +GLP_DBL_MAX && beta[i] > u[k])
             sum += beta[i] - u[k];
       }
       return sum;
@@ -1142,7 +1142,7 @@ static void next_objective(glp_prob *P, struct csa *csa, int objno,
          }
          else if (d[j] > +0.5*eps)
          { /* xN[j] should be able to decrease */
-            if (!flag[j] && l[k] != -DBL_MAX)
+            if (!flag[j] && l[k] != -GLP_DBL_MAX)
                /* but its lower bound is active */
                u[k] = l[k];
          }
@@ -1500,19 +1500,19 @@ loop: /* main loop starts here */
          if (lp->l[k] != lp->u[k])
          {  if (csa->p_flag)
             {  /* xB[p] goes to its upper bound */
-               xassert(lp->u[k] != +DBL_MAX);
+               xassert(lp->u[k] != +GLP_DBL_MAX);
                if (fabs(beta[csa->p] - lp->u[k]) >= 1e-6)
                {  csa->degen = 0;
                   goto skip1;
                }
             }
-            else if (lp->l[k] == -DBL_MAX)
+            else if (lp->l[k] == -GLP_DBL_MAX)
             {  /* unusual case */
                goto skip1;
             }
             else
             {  /* xB[p] goes to its lower bound */
-               xassert(lp->l[k] != -DBL_MAX);
+               xassert(lp->l[k] != -GLP_DBL_MAX);
                if (fabs(beta[csa->p] - lp->l[k]) >= 1e-6)
                {  csa->degen = 0;
                   goto skip1;
@@ -1576,10 +1576,10 @@ skip1:      ;
       if (csa->d_st)
 #endif
 #if 0 /* 11/VI-2017 */
-      if (spx_update_d(lp, d, csa->p, csa->q, trow, tcol) <= 1e-9)
+      if (spx_update_d(lp, d, csa->p, csa->q, trow, tcol) <= GLP_MPL_MIN_9)
 #else
       if (spx_update_d_s(lp, d, csa->p, csa->q, &csa->trow, &csa->tcol)
-         <= 1e-9)
+         <= GLP_MPL_MIN_9)
 #endif
       {  /* successful updating */
          csa->d_st = 2;

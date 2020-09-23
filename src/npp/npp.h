@@ -174,9 +174,9 @@ struct NPPROW
       /* row name (1 to 255 chars); NULL means no name is assigned to
          the row */
       glp_double lb;
-      /* lower bound; -DBL_MAX means the row has no lower bound */
+      /* lower bound; -GLP_DBL_MAX means the row has no lower bound */
       glp_double ub;
-      /* upper bound; +DBL_MAX means the row has no upper bound */
+      /* upper bound; +GLP_DBL_MAX means the row has no upper bound */
       NPPAIJ *ptr;
       /* pointer to the linked list of constraint coefficients */
       NPPROW *prev;
@@ -197,9 +197,9 @@ struct NPPCOL
       /* column name (1 to 255 chars); NULL means no name is assigned
          to the column */
       glp_double lb;
-      /* lower bound; -DBL_MAX means the column has no lower bound */
+      /* lower bound; -GLP_DBL_MAX means the column has no lower bound */
       glp_double ub;
-      /* upper bound; +DBL_MAX means the column has no upper bound */
+      /* upper bound; +GLP_DBL_MAX means the column has no upper bound */
       glp_double coef;
       /* objective coefficient */
       NPPAIJ *ptr;

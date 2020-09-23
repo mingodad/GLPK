@@ -87,7 +87,7 @@ static int most_feas(glp_tree *T)
       IOSNPD *node;
       int p;
       glp_double best;
-      p = 0, best = DBL_MAX;
+      p = 0, best = GLP_DBL_MAX;
       for (node = T->head; node != NULL; node = node->next)
       {  xassert(node->up != NULL);
          if (best > node->up->ii_sum)
@@ -111,7 +111,7 @@ static int best_proj(glp_tree *T)
       xassert(root->ii_sum > 0.0);
       deg = (T->mip->mip_obj - root->bound) / root->ii_sum;
       /* nothing has been selected so far */
-      p = 0, best = DBL_MAX;
+      p = 0, best = GLP_DBL_MAX;
       /* walk through the list of active subproblems */
       for (node = T->head; node != NULL; node = node->next)
       {  xassert(node->up != NULL);
@@ -132,10 +132,10 @@ static int best_node(glp_tree *T)
       glp_double bound, eps;
       switch (T->mip->dir)
       {  case GLP_MIN:
-            bound = +DBL_MAX;
+            bound = +GLP_DBL_MAX;
             for (node = T->head; node != NULL; node = node->next)
                if (bound > node->bound) bound = node->bound;
-            xassert(bound != +DBL_MAX);
+            xassert(bound != +GLP_DBL_MAX);
             eps = 1e-10 * (1.0 + fabs(bound));
             for (node = T->head; node != NULL; node = node->next)
             {  if (node->bound <= bound + eps)
@@ -150,10 +150,10 @@ static int best_node(glp_tree *T)
             }
             break;
          case GLP_MAX:
-            bound = -DBL_MAX;
+            bound = -GLP_DBL_MAX;
             for (node = T->head; node != NULL; node = node->next)
                if (bound < node->bound) bound = node->bound;
-            xassert(bound != -DBL_MAX);
+            xassert(bound != -GLP_DBL_MAX);
             eps = 1e-10 * (1.0 + fabs(bound));
             for (node = T->head; node != NULL; node = node->next)
             {  if (node->bound >= bound - eps)

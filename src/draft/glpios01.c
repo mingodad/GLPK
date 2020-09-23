@@ -626,10 +626,10 @@ static IOSNPD *new_node(glp_tree *tree, IOSNPD *parent)
 #endif
 #if 1 /* 04/X-2008 */
       node->lp_obj = (parent == NULL ? (tree->mip->dir == GLP_MIN ?
-         -DBL_MAX : +DBL_MAX) : parent->lp_obj);
+         -GLP_DBL_MAX : +GLP_DBL_MAX) : parent->lp_obj);
 #endif
       node->bound = (parent == NULL ? (tree->mip->dir == GLP_MIN ?
-         -DBL_MAX : +DBL_MAX) : parent->bound);
+         -GLP_DBL_MAX : +GLP_DBL_MAX) : parent->bound);
       node->br_var = 0;
       node->br_val = 0.0;
       node->ii_cnt = 0;
@@ -949,7 +949,7 @@ void ios_eval_degrad(glp_tree *tree, int j, glp_double *dn, glp_double *up)
 #if 0 /* 23/XI-2009 */
          k = lpx_dual_ratio_test(mip, len, ind, val, kase, 1e-7);
 #else
-         k = lpx_dual_ratio_test(mip, len, ind, val, kase, 1e-9);
+         k = lpx_dual_ratio_test(mip, len, ind, val, kase, GLP_MPL_MIN_9);
 #endif
          /* if no variable has been chosen, current basis being primal
             infeasible due to the new upper/lower bound of x[j] is dual
@@ -958,15 +958,15 @@ void ios_eval_degrad(glp_tree *tree, int j, glp_double *dn, glp_double *up)
          if (k == 0)
          {  if (mip->dir == GLP_MIN)
             {  if (kase < 0)
-                  *dn = +DBL_MAX;
+                  *dn = +GLP_DBL_MAX;
                else
-                  *up = +DBL_MAX;
+                  *up = +GLP_DBL_MAX;
             }
             else if (mip->dir == GLP_MAX)
             {  if (kase < 0)
-                  *dn = -DBL_MAX;
+                  *dn = -GLP_DBL_MAX;
                else
-                  *up = -DBL_MAX;
+                  *up = -GLP_DBL_MAX;
             }
             else
                xassert(mip != mip);
@@ -1123,7 +1123,7 @@ glp_double ios_round_bound(glp_tree *tree, glp_double bound)
       xassert(d > 0);
       /* compute new local bound */
       if (mip->dir == GLP_MIN)
-      {  if (bound != +DBL_MAX)
+      {  if (bound != +GLP_DBL_MAX)
          {  h = (bound - s) / (glp_double)d;
             if (h >= floor(h) + 0.001)
             {  /* round up */
@@ -1135,7 +1135,7 @@ glp_double ios_round_bound(glp_tree *tree, glp_double bound)
          }
       }
       else if (mip->dir == GLP_MAX)
-      {  if (bound != -DBL_MAX)
+      {  if (bound != -GLP_DBL_MAX)
          {  h = (bound - s) / (glp_double)d;
             if (h <= ceil(h) - 0.001)
             {  /* round down */
@@ -1191,10 +1191,10 @@ int ios_is_hopeful(glp_tree *tree, glp_double bound)
       else
       {  switch (mip->dir)
          {  case GLP_MIN:
-               if (bound == +DBL_MAX) ret = 0;
+               if (bound == +GLP_DBL_MAX) ret = 0;
                break;
             case GLP_MAX:
-               if (bound == -DBL_MAX) ret = 0;
+               if (bound == -GLP_DBL_MAX) ret = 0;
                break;
             default:
                xassert(mip != mip);
@@ -1268,7 +1268,7 @@ int ios_best_node(glp_tree *tree)
 *
 *  where best_mip is the best integer feasible solution found so far,
 *  best_bnd is the best (global) bound. If no integer feasible solution
-*  has been found yet, rel_gap is set to DBL_MAX.
+*  has been found yet, rel_gap is set to GLP_DBL_MAX.
 *
 *  RETURNS
 *
@@ -1293,7 +1293,7 @@ glp_double ios_relative_gap(glp_tree *tree)
       }
       else
       {  /* no integer feasible solution has been found yet */
-         gap = DBL_MAX;
+         gap = GLP_DBL_MAX;
       }
       return gap;
 }

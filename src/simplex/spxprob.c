@@ -195,13 +195,13 @@ void spx_build_lp(SPXLP *lp, glp_prob *P, int excl, int shift,
             /* setup scaled bounds of variable x[k] */
             switch (row->type)
             {  case GLP_FR:
-                  l[k] = -DBL_MAX, u[k] = +DBL_MAX;
+                  l[k] = -GLP_DBL_MAX, u[k] = +GLP_DBL_MAX;
                   break;
                case GLP_LO:
-                  l[k] = row->lb * row->rii, u[k] = +DBL_MAX;
+                  l[k] = row->lb * row->rii, u[k] = +GLP_DBL_MAX;
                   break;
                case GLP_UP:
-                  l[k] = -DBL_MAX, u[k] = row->ub * row->rii;
+                  l[k] = -GLP_DBL_MAX, u[k] = row->ub * row->rii;
                   break;
                case GLP_DB:
                   l[k] = row->lb * row->rii, u[k] = row->ub * row->rii;
@@ -248,13 +248,13 @@ void spx_build_lp(SPXLP *lp, glp_prob *P, int excl, int shift,
             /* setup scaled bounds of variable x[k] */
             switch (col->type)
             {  case GLP_FR:
-                  l[k] = -DBL_MAX, u[k] = +DBL_MAX;
+                  l[k] = -GLP_DBL_MAX, u[k] = +GLP_DBL_MAX;
                   break;
                case GLP_LO:
-                  l[k] = col->lb / col->sjj, u[k] = +DBL_MAX;
+                  l[k] = col->lb / col->sjj, u[k] = +GLP_DBL_MAX;
                   break;
                case GLP_UP:
-                  l[k] = -DBL_MAX, u[k] = col->ub / col->sjj;
+                  l[k] = -GLP_DBL_MAX, u[k] = col->ub / col->sjj;
                   break;
                case GLP_DB:
                   l[k] = col->lb / col->sjj, u[k] = col->ub / col->sjj;
@@ -280,16 +280,16 @@ void spx_build_lp(SPXLP *lp, glp_prob *P, int excl, int shift,
                continue;
             }
             /* shift bounds of variable x[k] */
-            if (l[k] == -DBL_MAX && u[k] == +DBL_MAX)
+            if (l[k] == -GLP_DBL_MAX && u[k] == +GLP_DBL_MAX)
             {  /* x[k] is unbounded variable */
                delta = 0.0;
             }
-            else if (l[k] != -DBL_MAX && u[k] == +DBL_MAX)
+            else if (l[k] != -GLP_DBL_MAX && u[k] == +GLP_DBL_MAX)
             {  /* shift lower bound to zero */
                delta = l[k];
                l[k] = 0.0;
             }
-            else if (l[k] == -DBL_MAX && u[k] != +DBL_MAX)
+            else if (l[k] == -GLP_DBL_MAX && u[k] != +GLP_DBL_MAX)
             {  /* shift upper bound to zero */
                map[kk] = -k;
                delta = u[k];

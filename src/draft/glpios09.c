@@ -148,7 +148,7 @@ static int branch_mostf(glp_tree *T, int *_next)
 {     int j, jj, next;
       glp_double beta, most, temp;
       /* choose the column to branch on */
-      jj = 0, most = DBL_MAX;
+      jj = 0, most = GLP_DBL_MAX;
       for (j = 1; j <= T->n; j++)
       {  if (T->non_int[j])
          {  beta = glp_get_col_prim(T->mip, j);
@@ -240,7 +240,7 @@ static int branch_drtom(glp_tree *T, int *_next)
             /* apply the dual ratio test in order to determine which
                auxiliary or structural variable should enter the basis
                to keep dual feasibility */
-            k = glp_dual_rtest(mip, len, ind, val, kase, 1e-9);
+            k = glp_dual_rtest(mip, len, ind, val, kase, GLP_MPL_MIN_9);
             if (k != 0) k = ind[k];
             /* if no non-basic variable has been chosen, LP relaxation
                of corresponding branch being primal infeasible and dual
@@ -248,7 +248,7 @@ static int branch_drtom(glp_tree *T, int *_next)
                the change delta Z is formally set to infinity */
             if (k == 0)
             {  delta_z =
-                  (T->mip->dir == GLP_MIN ? +DBL_MAX : -DBL_MAX);
+                  (T->mip->dir == GLP_MIN ? +GLP_DBL_MAX : -GLP_DBL_MAX);
                goto skip;
             }
             /* row of the simplex table that corresponds to non-basic
@@ -354,7 +354,7 @@ skip:       /* new Z is never better than old Z, therefore the change
             /* if down- or up-branch has no feasible solution, we does
                not need to consider other candidates (in principle, the
                corresponding branch could be pruned right now) */
-            if (degrad == DBL_MAX) break;
+            if (degrad == GLP_DBL_MAX) break;
          }
       }
       /* free working arrays */
@@ -370,12 +370,12 @@ skip:       /* new Z is never better than old Z, therefore the change
 #endif
       if (T->parm->msg_lev >= GLP_MSG_DBG)
       {  xprintf("branch_drtom: column %d chosen to branch on\n", jj);
-         if (fabs(dd_dn) == DBL_MAX)
+         if (fabs(dd_dn) == GLP_DBL_MAX)
             xprintf("branch_drtom: down-branch is infeasible\n");
          else
             xprintf("branch_drtom: down-branch bound is %.9e\n",
                glp_get_obj_val(mip) + dd_dn);
-         if (fabs(dd_up) == DBL_MAX)
+         if (fabs(dd_up) == GLP_DBL_MAX)
             xprintf("branch_drtom: up-branch   is infeasible\n");
          else
             xprintf("branch_drtom: up-branch   bound is %.9e\n",
@@ -449,7 +449,7 @@ static glp_double eval_degrad(glp_prob *P, int j, glp_double bnd)
       if (ret == 0 || ret == GLP_EITLIM)
       {  if (glp_get_prim_stat(lp) == GLP_NOFEAS)
          {  /* resulting LP has no primal feasible solution */
-            degrad = DBL_MAX;
+            degrad = GLP_DBL_MAX;
          }
          else if (glp_get_dual_stat(lp) == GLP_FEAS)
          {  /* resulting basis is optimal or at least dual feasible,
@@ -551,8 +551,8 @@ static glp_double eval_psi(glp_tree *T, int j, int brnch)
          {  /* initialize down pseudocost */
             beta = T->mip->col[j]->prim;
             degrad = eval_degrad(T->mip, j, floor(beta));
-            if (degrad == DBL_MAX)
-            {  psi = DBL_MAX;
+            if (degrad == GLP_DBL_MAX)
+            {  psi = GLP_DBL_MAX;
                goto done;
             }
             csa->dn_cnt[j] = 1;
@@ -566,8 +566,8 @@ static glp_double eval_psi(glp_tree *T, int j, int brnch)
          {  /* initialize up pseudocost */
             beta = T->mip->col[j]->prim;
             degrad = eval_degrad(T->mip, j, ceil(beta));
-            if (degrad == DBL_MAX)
-            {  psi = DBL_MAX;
+            if (degrad == GLP_DBL_MAX)
+            {  psi = GLP_DBL_MAX;
                goto done;
             }
             csa->up_cnt[j] = 1;
@@ -617,7 +617,7 @@ int ios_pcost_branch(glp_tree *T, int *_next)
          beta = T->mip->col[j]->prim;
          /* estimate pseudocost of x[j] for down-branch */
          psi = eval_psi(T, j, GLP_DN_BRNCH);
-         if (psi == DBL_MAX)
+         if (psi == GLP_DBL_MAX)
          {  /* down-branch has no primal feasible solution */
             jjj = j, sel = GLP_DN_BRNCH;
             goto done;
@@ -626,7 +626,7 @@ int ios_pcost_branch(glp_tree *T, int *_next)
          d1 = psi * (beta - floor(beta));
          /* estimate pseudocost of x[j] for up-branch */
          psi = eval_psi(T, j, GLP_UP_BRNCH);
-         if (psi == DBL_MAX)
+         if (psi == GLP_DBL_MAX)
          {  /* up-branch has no primal feasible solution */
             jjj = j, sel = GLP_UP_BRNCH;
             goto done;

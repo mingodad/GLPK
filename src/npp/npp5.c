@@ -62,7 +62,7 @@ void npp_clean_prob(NPP *npp)
       /* process rows which originally are free */
       for (row = npp->r_head; row != NULL; row = next_row)
       {  next_row = row->next;
-         if (row->lb == -DBL_MAX && row->ub == +DBL_MAX)
+         if (row->lb == -GLP_DBL_MAX && row->ub == +GLP_DBL_MAX)
          {  /* process free row */
 #ifdef GLP_DEBUG
             xprintf("1");
@@ -74,7 +74,7 @@ void npp_clean_prob(NPP *npp)
       /* process rows which originally are double-sided inequalities */
       for (row = npp->r_head; row != NULL; row = next_row)
       {  next_row = row->next;
-         if (row->lb != -DBL_MAX && row->ub != +DBL_MAX &&
+         if (row->lb != -GLP_DBL_MAX && row->ub != +GLP_DBL_MAX &&
              row->lb < row->ub)
          {  ret = npp_make_equality(npp, row);
             if (ret == 0)
@@ -104,7 +104,7 @@ void npp_clean_prob(NPP *npp)
       /* process columns which are originally double-bounded */
       for (col = npp->c_head; col != NULL; col = next_col)
       {  next_col = col->next;
-         if (col->lb != -DBL_MAX && col->ub != +DBL_MAX &&
+         if (col->lb != -GLP_DBL_MAX && col->ub != +GLP_DBL_MAX &&
              col->lb < col->ub)
          {  ret = npp_make_fixed(npp, col);
             if (ret == 0)
@@ -174,7 +174,7 @@ int npp_process_row(NPP *npp, NPPROW *row, int hard)
       NPPAIJ *aij, *next_aij, *aaa;
       int ret;
       /* row must not be free */
-      xassert(!(row->lb == -DBL_MAX && row->ub == +DBL_MAX));
+      xassert(!(row->lb == -GLP_DBL_MAX && row->ub == +GLP_DBL_MAX));
       /* start processing row */
       if (row->ptr == NULL)
       {  /* empty row */
@@ -295,7 +295,7 @@ int npp_process_row(NPP *npp, NPPROW *row, int hard)
       }
       if ((ret & 0x0F) == 0x00)
       {  /* row lower bound does not exist or redundant */
-         if (row->lb != -DBL_MAX)
+         if (row->lb != -GLP_DBL_MAX)
          {  /* remove redundant row lower bound */
 #ifdef GLP_DEBUG
             xprintf("F");
@@ -340,7 +340,7 @@ fixup:   {  /* columns were fixed, row was made free */
          xassert(ret != ret);
       if ((ret & 0xF0) == 0x00)
       {  /* row upper bound does not exist or redundant */
-         if (row->ub != +DBL_MAX)
+         if (row->ub != +GLP_DBL_MAX)
          {  /* remove redundant row upper bound */
 #ifdef GLP_DEBUG
             xprintf("I");
@@ -362,7 +362,7 @@ fixup:   {  /* columns were fixed, row was made free */
       }
       else
          xassert(ret != ret);
-      if (row->lb == -DBL_MAX && row->ub == +DBL_MAX)
+      if (row->lb == -GLP_DBL_MAX && row->ub == +GLP_DBL_MAX)
       {  /* row became free due to redundant bounds removal */
 #ifdef GLP_DEBUG
          xprintf("K");
@@ -425,7 +425,7 @@ int npp_improve_bounds(NPP *npp, NPPROW *row, int flag)
       glp_double lb, ub;
       xassert(npp->sol == GLP_MIP);
       /* row must not be free */
-      xassert(!(row->lb == -DBL_MAX && row->ub == +DBL_MAX));
+      xassert(!(row->lb == -GLP_DBL_MAX && row->ub == +GLP_DBL_MAX));
       /* determine implied column bounds */
       npp_implied_bounds(npp, row);
       /* and use these bounds to strengthen current column bounds */
@@ -437,12 +437,12 @@ int npp_improve_bounds(NPP *npp, NPPROW *row, int flag)
             lb = col->lb, ub = col->ub;
             if (kase == 0)
             {  /* process implied column lower bound */
-               if (col->ll.ll == -DBL_MAX) continue;
+               if (col->ll.ll == -GLP_DBL_MAX) continue;
                ret = npp_implied_lower(npp, col, col->ll.ll);
             }
             else
             {  /* process implied column upper bound */
-               if (col->uu.uu == +DBL_MAX) continue;
+               if (col->uu.uu == +GLP_DBL_MAX) continue;
                ret = npp_implied_upper(npp, col, col->uu.uu);
             }
             if (ret == 0 || ret == 1)
@@ -556,7 +556,7 @@ slack:      {  /* implied slack variable */
 #endif
                npp_implied_slack(npp, col);
                /* column was deleted */
-               if (row->lb == -DBL_MAX && row->ub == +DBL_MAX)
+               if (row->lb == -GLP_DBL_MAX && row->ub == +GLP_DBL_MAX)
                {  /* row became free due to implied slack variable */
 #ifdef GLP_DEBUG
                   xprintf("P");
@@ -740,7 +740,7 @@ int npp_integer(NPP *npp, const glp_iocp *parm)
       for (row = npp->r_tail; row != NULL; row = prev_row)
       {  prev_row = row->prev;
          /* skip free row */
-         if (row->lb == -DBL_MAX && row->ub == +DBL_MAX) continue;
+         if (row->lb == -GLP_DBL_MAX && row->ub == +GLP_DBL_MAX) continue;
          /* skip equality constraint */
          if (row->lb == row->ub) continue;
          /* skip row having less than two variables */
@@ -765,7 +765,7 @@ int npp_integer(NPP *npp, const glp_iocp *parm)
       for (row = npp->r_tail; row != NULL; row = prev_row)
       {  prev_row = row->prev;
          /* skip free row */
-         if (row->lb == -DBL_MAX && row->ub == +DBL_MAX) continue;
+         if (row->lb == -GLP_DBL_MAX && row->ub == +GLP_DBL_MAX) continue;
          /* skip equality constraint */
          if (row->lb == row->ub) continue;
          /* skip row having less than three variables */

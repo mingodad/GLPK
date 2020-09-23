@@ -276,7 +276,7 @@ void spx_nt_prod_s(SPXLP *lp, SPXNT *nt, FVS *y, int ign, glp_double s,
             y_vec[j] += NT_val[ptr] * t;
             /* don't forget about numeric cancellation */
             if (y_vec[j] == 0.0)
-               y_vec[j] = DBL_MIN;
+               y_vec[j] = GLP_DBL_MIN;
          }
       }
       y->nnz = nnz;

@@ -94,16 +94,16 @@ int glp_write_mip(glp_prob *P, const char *fname)
          case GLP_UNDEF:  glp_format(fp, "u"); break;
          default:         glp_format(fp, "?"); break;
       }
-      glp_format(fp, " %.*g\n", DBL_DIG, P->mip_obj);
+      glp_format(fp, " %.*" GLP_DBL_FMT_G "\n", GLP_DBL_DIG, P->mip_obj);
       /* write row solution descriptor lines */
       for (i = 1; i <= P->m; i++)
       {  row = P->row[i];
-         glp_format(fp, "i %d %.*g\n", i, DBL_DIG, row->mipx), count++;
+         glp_format(fp, "i %d %.*" GLP_DBL_FMT_G "\n", i, GLP_DBL_DIG, row->mipx), count++;
       }
       /* write column solution descriptor lines */
       for (j = 1; j <= P->n; j++)
       {  col = P->col[j];
-         glp_format(fp, "j %d %.*g\n", j, DBL_DIG, col->mipx), count++;
+         glp_format(fp, "j %d %.*" GLP_DBL_FMT_G "\n", j, GLP_DBL_DIG, col->mipx), count++;
       }
       /* write end line */
       glp_format(fp, "e o f\n"), count++;

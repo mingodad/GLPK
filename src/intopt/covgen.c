@@ -40,8 +40,8 @@ struct glp_cov
 
 struct bnd
 {     /* simple or variable bound */
-      /* if z = 0, it is a simple bound x >= or <= b; if b = -DBL_MAX
-       * (b = +DBL_MAX), x has no lower (upper) bound; otherwise, if
+      /* if z = 0, it is a simple bound x >= or <= b; if b = -GLP_DBL_MAX
+       * (b = +GLP_DBL_MAX), x has no lower (upper) bound; otherwise, if
        * z != 0, it is a variable bound x >= or <= a * z + b */
       int z;
       /* number of binary variable or 0 */
@@ -260,9 +260,9 @@ static void add_term(FVS *v, int j, glp_double a)
       }
       /* perform addition */
       v->vec[j] += a;
-      if (fabs(v->vec[j]) < 1e-9 * (1 + fabs(a)))
+      if (fabs(v->vec[j]) < GLP_MPL_MIN_9 * (1 + fabs(a)))
       {  /* remove j-th component */
-         v->vec[j] = DBL_MIN;
+         v->vec[j] = GLP_DBL_MIN;
       }
       return;
 }
@@ -323,7 +323,7 @@ static int build_ks(struct csa *csa, int n, int ind[], glp_double a[],
          }
          else if (a[j] > 0)
          {  /* substitute x[j] by its lower bound */
-            if (l[k].b == -DBL_MAX)
+            if (l[k].b == -GLP_DBL_MAX)
             {  /* x[j] has no lower bound */
                n = -1;
                goto skip;
@@ -340,7 +340,7 @@ static int build_ks(struct csa *csa, int n, int ind[], glp_double a[],
          }
          else /* a[j] < 0 */
          {  /* substitute x[j] by its upper bound */
-            if (u[k].b == +DBL_MAX)
+            if (u[k].b == +GLP_DBL_MAX)
             {  /* x[j] has no upper bound */
                n = -1;
                goto skip;
@@ -357,7 +357,7 @@ static int build_ks(struct csa *csa, int n, int ind[], glp_double a[],
          }
       }
       /* replace tiny coefficients by exact zeros (see add_term) */
-      fvs_adjust_vec(v, 2 * DBL_MIN);
+      fvs_adjust_vec(v, 2 * GLP_DBL_MIN);
       /* copy terms of resulting inequality */
       xassert(v->nnz <= n);
       n = v->nnz;
@@ -657,7 +657,7 @@ static int solve_ks(int n, const int a[], int b, const int c[],
 *  On exit the routine stores the characteritic vector z{j in 1..n}
 *  of the cover found (i.e. z[j] = 1 means j in C, and z[j] = 0 means
 *  j not in C), and returns corresponding minimal value of zeta (4).
-*  However, if no cover is found, the routine returns DBL_MAX.
+*  However, if no cover is found, the routine returns GLP_DBL_MAX.
 *
 *  ALGORITHM
 *
@@ -713,7 +713,7 @@ static glp_double simple_cover(int n, const glp_double a[], glp_double b, const
       aa = talloc(1+n, int);
       cc = talloc(1+n, int);
       /* compute max{j in 1..n} a[j] and min{j in 1..n} a[j] */
-      max_aj = 0, min_aj = DBL_MAX;
+      max_aj = 0, min_aj = GLP_DBL_MAX;
       for (j = 1; j <= n; j++)
       {  xassert(a[j] > 0);
          if (max_aj < a[j])
@@ -740,7 +740,7 @@ static glp_double simple_cover(int n, const glp_double a[], glp_double b, const
       /* solve separation problem */
       if (solve_ks(n, aa, bb, cc, z) == INT_MIN)
       {  /* no cover exists */
-         s = DBL_MAX;
+         s = GLP_DBL_MAX;
          goto skip;
       }
       /* determine z[j] = 1 - z'[j] */
@@ -757,7 +757,7 @@ static glp_double simple_cover(int n, const glp_double a[], glp_double b, const
       eps = 0.01 * (min_aj >= 1 ? min_aj : 1);
       if (!(s >= b + eps))
       {  /* no cover found within a precision req'd */
-         s = DBL_MAX;
+         s = GLP_DBL_MAX;
          goto skip;
       }
       /* compute corresponding zeta (4) for cover found */
@@ -791,7 +791,7 @@ void glp_cov_gen1(glp_prob *P, glp_cov *cov, glp_prob *pool)
       {  /* retrieve 0-1 knapsack inequality */
          len = glp_get_mat_row(cov->set, i, ind, val);
          rhs = glp_get_row_ub(cov->set, i);
-         xassert(rhs != +DBL_MAX);
+         xassert(rhs != +GLP_DBL_MAX);
          /* FIXME: skip, if slack is too large? */
          /* substitute and eliminate binary variables which have been
           * fixed in the current subproblem (this makes the inequality

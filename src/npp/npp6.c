@@ -37,7 +37,7 @@
 
 void npp_sat_free_row(NPP *npp, NPPROW *p)
 {     /* the row should be free */
-      xassert(p->lb == -DBL_MAX && p->ub == +DBL_MAX);
+      xassert(p->lb == -GLP_DBL_MAX && p->ub == +GLP_DBL_MAX);
       /* remove the row from the problem */
       npp_del_row(npp, p);
       return;
@@ -108,13 +108,13 @@ int npp_sat_fixed_col(NPP *npp, NPPCOL *q)
          goto skip;
       for (aij = q->ptr; aij != NULL; aij = aij->c_next)
       {  i = aij->row;
-         if (i->lb != -DBL_MAX)
+         if (i->lb != -GLP_DBL_MAX)
          {  i->lb -= aij->val * (glp_double)info->s;
             temp = (int)i->lb;
             if ((glp_double)temp != i->lb)
                return 1; /* integer arithmetic error */
          }
-         if (i->ub != +DBL_MAX)
+         if (i->ub != +GLP_DBL_MAX)
          {  i->ub -= aij->val * (glp_double)info->s;
             temp = (int)i->ub;
             if ((glp_double)temp != i->ub)
@@ -223,7 +223,7 @@ int npp_sat_num_neg_coef(NPP *npp, NPPROW *row)
 
 int npp_sat_is_cover_ineq(NPP *npp, NPPROW *row)
 {     xassert(npp == npp);
-      if (row->lb != -DBL_MAX && row->ub == +DBL_MAX)
+      if (row->lb != -GLP_DBL_MAX && row->ub == +GLP_DBL_MAX)
       {  /* row is inequality of '>=' type */
          if (npp_sat_is_bin_comb(npp, row))
          {  /* row is a binary combination */
@@ -233,7 +233,7 @@ int npp_sat_is_cover_ineq(NPP *npp, NPPROW *row)
             }
          }
       }
-      else if (row->lb == -DBL_MAX && row->ub != +DBL_MAX)
+      else if (row->lb == -GLP_DBL_MAX && row->ub != +GLP_DBL_MAX)
       {  /* row is inequality of '<=' type */
          if (npp_sat_is_bin_comb(npp, row))
          {  /* row is a binary combination */
@@ -282,7 +282,7 @@ int npp_sat_is_cover_ineq(NPP *npp, NPPROW *row)
 
 int npp_sat_is_pack_ineq(NPP *npp, NPPROW *row)
 {     xassert(npp == npp);
-      if (row->lb == -DBL_MAX && row->ub != +DBL_MAX)
+      if (row->lb == -GLP_DBL_MAX && row->ub != +GLP_DBL_MAX)
       {  /* row is inequality of '<=' type */
          if (npp_sat_is_bin_comb(npp, row))
          {  /* row is a binary combination */
@@ -292,7 +292,7 @@ int npp_sat_is_pack_ineq(NPP *npp, NPPROW *row)
             }
          }
       }
-      else if (row->lb != -DBL_MAX && row->ub == +DBL_MAX)
+      else if (row->lb != -GLP_DBL_MAX && row->ub == +GLP_DBL_MAX)
       {  /* row is inequality of '>=' type */
          if (npp_sat_is_bin_comb(npp, row))
          {  /* row is a binary combination */
@@ -386,16 +386,16 @@ int npp_sat_reverse_row(NPP *npp, NPPROW *row)
             ret = 1;
       }
       old_lb = row->lb, old_ub = row->ub;
-      if (old_ub == +DBL_MAX)
-         row->lb = -DBL_MAX;
+      if (old_ub == +GLP_DBL_MAX)
+         row->lb = -GLP_DBL_MAX;
       else
       {  row->lb = -old_ub;
          temp = (int)row->lb;
          if ((glp_double)temp != row->lb)
             ret = 2;
       }
-      if (old_lb == -DBL_MAX)
-         row->ub = +DBL_MAX;
+      if (old_lb == -GLP_DBL_MAX)
+         row->ub = +GLP_DBL_MAX;
       else
       {  row->ub = -old_lb;
          temp = (int)row->ub;
@@ -444,7 +444,7 @@ NPPROW *npp_sat_split_pack(NPP *npp, NPPROW *row, int nlit)
       xassert(0 < nlit && nlit < npp_row_nnz(npp, row));
       /* create new row corresponding to inequality (2) */
       rrr = npp_add_row(npp);
-      rrr->lb = -DBL_MAX, rrr->ub = 1.0;
+      rrr->lb = -GLP_DBL_MAX, rrr->ub = 1.0;
       /* move first nlit literals (terms) from the original row to the
          new row; the original row becomes inequality (3) */
       for (k = 1; k <= nlit; k++)
@@ -503,7 +503,7 @@ void npp_sat_encode_pack(NPP *npp, NPPROW *row)
          for (aik = aij->r_next; aik != NULL; aik = aik->r_next)
          {  /* create edge packing inequality (2) */
             rrr = npp_add_row(npp);
-            rrr->lb = -DBL_MAX, rrr->ub = 1.0;
+            rrr->lb = -GLP_DBL_MAX, rrr->ub = 1.0;
             npp_add_aij(npp, rrr, aij->col, aij->val);
             if (aij->val < 0.0)
                rrr->ub -= 1.0;
@@ -560,7 +560,7 @@ void npp_sat_encode_sum2(NPP *npp, NPPLSE *set, NPPSED *sed)
                {  /* generate CNF clause to disable infeasible
                      combination */
                   row = npp_add_row(npp);
-                  row->lb = 1.0, row->ub = +DBL_MAX;
+                  row->lb = 1.0, row->ub = +GLP_DBL_MAX;
                   if (x == sed->x.neg)
                      npp_add_aij(npp, row, sed->x.col, +1.0);
                   else
@@ -593,7 +593,7 @@ void npp_sat_encode_sum2(NPP *npp, NPPLSE *set, NPPSED *sed)
                {  /* generate CNF clause to disable infeasible
                      combination */
                   row = npp_add_row(npp);
-                  row->lb = 1.0, row->ub = +DBL_MAX;
+                  row->lb = 1.0, row->ub = +GLP_DBL_MAX;
                   if (x == sed->x.neg)
                      npp_add_aij(npp, row, sed->x.col, +1.0);
                   else
@@ -661,7 +661,7 @@ void npp_sat_encode_sum3(NPP *npp, NPPLSE *set, NPPSED *sed)
                   {  /* generate CNF clause to disable infeasible
                         combination */
                      row = npp_add_row(npp);
-                     row->lb = 1.0, row->ub = +DBL_MAX;
+                     row->lb = 1.0, row->ub = +GLP_DBL_MAX;
                      if (x == sed->x.neg)
                         npp_add_aij(npp, row, sed->x.col, +1.0);
                      else
@@ -702,7 +702,7 @@ void npp_sat_encode_sum3(NPP *npp, NPPLSE *set, NPPSED *sed)
                   {  /* generate CNF clause to disable infeasible
                         combination */
                      row = npp_add_row(npp);
-                     row->lb = 1.0, row->ub = +DBL_MAX;
+                     row->lb = 1.0, row->ub = +GLP_DBL_MAX;
                      if (x == sed->x.neg)
                         npp_add_aij(npp, row, sed->x.col, +1.0);
                      else
@@ -981,7 +981,7 @@ NPPROW *npp_sat_encode_clause(NPP *npp, int size, NPPLIT lit[])
       int k;
       xassert(size >= 1);
       row = npp_add_row(npp);
-      row->lb = 1.0, row->ub = +DBL_MAX;
+      row->lb = 1.0, row->ub = +GLP_DBL_MAX;
       for (k = 1; k <= size; k++)
       {  xassert(lit[k].col != NULL);
          if (lit[k].neg == 0)
@@ -1326,15 +1326,15 @@ int npp_sat_encode_row(NPP *npp, NPPROW *row)
       int n, rhs;
       glp_double lb, ub;
       /* the row should not be free */
-      xassert(!(row->lb == -DBL_MAX && row->ub == +DBL_MAX));
+      xassert(!(row->lb == -GLP_DBL_MAX && row->ub == +GLP_DBL_MAX));
       /* compute new bounds L' and U' (3) */
       lb = row->lb;
       ub = row->ub;
       for (aij = row->ptr; aij != NULL; aij = aij->r_next)
       {  if (aij->val < 0.0)
-         {  if (lb != -DBL_MAX)
+         {  if (lb != -GLP_DBL_MAX)
                lb -= aij->val;
-            if (ub != -DBL_MAX)
+            if (ub != -GLP_DBL_MAX)
                ub -= aij->val;
          }
       }
@@ -1343,7 +1343,7 @@ int npp_sat_encode_row(NPP *npp, NPPROW *row)
       if (n < 0)
          return 2; /* integer arithmetic error */
       /* encode the condition (5) */
-      if (lb != -DBL_MAX)
+      if (lb != -GLP_DBL_MAX)
       {  rhs = (int)lb;
          if ((glp_double)rhs != lb)
             return 2; /* integer arithmetic error */
@@ -1351,7 +1351,7 @@ int npp_sat_encode_row(NPP *npp, NPPROW *row)
             return 1; /* original constraint is infeasible */
       }
       /* encode the condition (6) */
-      if (ub != +DBL_MAX)
+      if (ub != +GLP_DBL_MAX)
       {  rhs = (int)ub;
          if ((glp_double)rhs != ub)
             return 2; /* integer arithmetic error */
@@ -1386,7 +1386,7 @@ int npp_sat_encode_prob(NPP *npp)
       /* process and remove free rows */
       for (row = npp->r_head; row != NULL; row = next_row)
       {  next_row = row->next;
-         if (row->lb == -DBL_MAX && row->ub == +DBL_MAX)
+         if (row->lb == -GLP_DBL_MAX && row->ub == +GLP_DBL_MAX)
             npp_sat_free_row(npp, row);
       }
       /* process and remove fixed columns */
@@ -1433,13 +1433,13 @@ int npp_sat_encode_prob(NPP *npp)
             /* and split it into covering and packing inequalities,
                both in canonical forms */
             cov = npp_add_row(npp);
-            cov->lb = row->lb, cov->ub = +DBL_MAX;
+            cov->lb = row->lb, cov->ub = +GLP_DBL_MAX;
             for (aij = row->ptr; aij != NULL; aij = aij->r_next)
                npp_add_aij(npp, cov, aij->col, aij->val);
             xassert(npp_sat_is_cover_ineq(npp, cov) == 1);
             /* the cover inequality already encodes a clause and do
                not need any further processing */
-            row->lb = -DBL_MAX;
+            row->lb = -GLP_DBL_MAX;
             xassert(npp_sat_is_pack_ineq(npp, row) == 1);
             /* the packing inequality will be processed below */
             pack--;

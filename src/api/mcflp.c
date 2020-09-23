@@ -93,7 +93,7 @@ void glp_mincost_lp(glp_prob *lp, glp_graph *G, int names, int v_rhs,
                memcpy(&cap, (char *)a->data + a_cap, sizeof(glp_double));
             else
                cap = 1.0;
-            if (cap == DBL_MAX)
+            if (cap == GLP_DBL_MAX)
                type = GLP_LO;
             else if (low != cap)
                type = GLP_DB;

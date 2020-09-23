@@ -100,7 +100,7 @@ int spy_chuzc_std(SPXLP *lp, const glp_double d[/*1+n-m*/],
       s = (r > 0.0 ? +1.0 : -1.0);
 #endif
       /* nothing is chosen so far */
-      q = 0, teta_min = DBL_MAX, biga = 0.0;
+      q = 0, teta_min = GLP_DBL_MAX, biga = 0.0;
       /* walk thru the list of non-basic variables */
       for (j = 1; j <= n-m; j++)
       {  k = head[m+j]; /* x[k] = xN[j] */
@@ -115,7 +115,7 @@ int spy_chuzc_std(SPXLP *lp, const glp_double d[/*1+n-m*/],
             /* determine theta on which lambdaN[j] reaches zero */
             teta = (d[j] < +delta ? 0.0 : d[j] / alfa);
          }
-         else if (alfa <= -tol_piv && (l[k] == -DBL_MAX || flag[j]))
+         else if (alfa <= -tol_piv && (l[k] == -GLP_DBL_MAX || flag[j]))
          {  /* xN[j] is either free or has its upper bound active, so
              * lambdaN[j] = d[j] <= 0 increases up to zero */
             delta = tol + tol1 * (c[k] >= 0.0 ? +c[k] : -c[k]);
@@ -177,7 +177,7 @@ int spy_chuzc_harris(SPXLP *lp, const glp_double d[/*1+n-m*/],
       /*--------------------------------------------------------------*/
       /* first pass: determine teta_min for relaxed bounds            */
       /*--------------------------------------------------------------*/
-      teta_min = DBL_MAX;
+      teta_min = GLP_DBL_MAX;
       /* walk thru the list of non-basic variables */
       for (j = 1; j <= n-m; j++)
       {  k = head[m+j]; /* x[k] = xN[j] */
@@ -192,7 +192,7 @@ int spy_chuzc_harris(SPXLP *lp, const glp_double d[/*1+n-m*/],
             /* determine theta on which lambdaN[j] reaches -delta */
             teta = ((d[j] < 0.0 ? 0.0 : d[j]) + delta) / alfa;
          }
-         else if (alfa <= -tol_piv && (l[k] == -DBL_MAX || flag[j]))
+         else if (alfa <= -tol_piv && (l[k] == -GLP_DBL_MAX || flag[j]))
          {  /* xN[j] is either free or has its upper bound active, so
              * lambdaN[j] = d[j] <= 0 increases up to zero */
             delta = tol + tol1 * (c[k] >= 0.0 ? +c[k] : -c[k]);
@@ -210,7 +210,7 @@ int spy_chuzc_harris(SPXLP *lp, const glp_double d[/*1+n-m*/],
       /*--------------------------------------------------------------*/
       /* second pass: choose non-basic variable xN[q]                 */
       /*--------------------------------------------------------------*/
-      if (teta_min == DBL_MAX)
+      if (teta_min == GLP_DBL_MAX)
       {  /* theta may increase unlimitedly */
          q = 0;
          goto done;
@@ -230,7 +230,7 @@ int spy_chuzc_harris(SPXLP *lp, const glp_double d[/*1+n-m*/],
             /* determine theta on which lambdaN[j] reaches zero */
             teta = d[j] / alfa;
          }
-         else if (alfa <= -tol_piv && (l[k] == -DBL_MAX || flag[j]))
+         else if (alfa <= -tol_piv && (l[k] == -GLP_DBL_MAX || flag[j]))
          {  /* xN[j] is either free or has its upper bound active, so
              * lambdaN[j] = d[j] <= 0 increases up to zero */
             /* determine theta on which lambdaN[j] reaches zero */
@@ -314,7 +314,7 @@ int spy_eval_bp(SPXLP *lp, const glp_double d[/*1+n-m*/],
             /* determine teta[j] on which lambdaN[j] reaches zero */
             teta = (d[j] < 0.0 ? 0.0 : d[j] / alfa);
          }
-         else if (alfa <= -tol_piv && (l[k] == -DBL_MAX || flag[j]))
+         else if (alfa <= -tol_piv && (l[k] == -GLP_DBL_MAX || flag[j]))
          {  /* xN[j] is either free or has its upper bound active, so
              * lambdaN[j] = d[j] <= 0 increases up to zero */
             /* determine teta[j] on which lambdaN[j] reaches zero */
@@ -335,11 +335,11 @@ int spy_eval_bp(SPXLP *lp, const glp_double d[/*1+n-m*/],
       }
       /* determine "blocking" dual basic variable lambdaN[j_max] that
        * prevents increasing teta more than teta_max */
-      j_max = 0, teta_max = DBL_MAX;
+      j_max = 0, teta_max = GLP_DBL_MAX;
       for (t = 1; t <= num; t++)
       {  j = bp[t].j;
          k = head[m+j]; /* x[k] = xN[j] */
-         if (l[k] == -DBL_MAX || u[k] == +DBL_MAX)
+         if (l[k] == -GLP_DBL_MAX || u[k] == +GLP_DBL_MAX)
          {  /* lambdaN[j] cannot intersect zero */
             if (j_max == 0
                || teta_max > bp[t].teta
@@ -355,7 +355,7 @@ int spy_eval_bp(SPXLP *lp, const glp_double d[/*1+n-m*/],
       for (t = 1; t <= num; t++)
       {  j = bp[t].j;
          k = head[m+j]; /* x[k] = xN[j] */
-         if (l[k] != -DBL_MAX && u[k] != +DBL_MAX
+         if (l[k] != -GLP_DBL_MAX && u[k] != +GLP_DBL_MAX
             && bp[t].teta <= teta_max)
          {  nnn++;
             bp[nnn].j = j;
@@ -389,7 +389,7 @@ int spy_eval_bp(SPXLP *lp, const glp_double d[/*1+n-m*/],
          if (t < num)
          {  j = bp[t].j;
             k = head[m+j]; /* x[k] = xN[j] */
-            xassert(-DBL_MAX < l[k] && l[k] < u[k] && u[k] < +DBL_MAX);
+            xassert(-GLP_DBL_MAX < l[k] && l[k] < u[k] && u[k] < +GLP_DBL_MAX);
             v -= fabs(trow[j]) * (u[k] - l[k]);
          }
       }
@@ -424,7 +424,7 @@ int spy_ls_eval_bp(SPXLP *lp, const glp_double d[/*1+n-m*/],
       s = (r > 0.0 ? +1.0 : -1.0);
       /* build the list of all dual basic variables lambdaN[j] that
        * can reach zero on increasing the ray parameter teta >= 0 */
-      nnn = 0, teta_max = DBL_MAX;
+      nnn = 0, teta_max = GLP_DBL_MAX;
       /* walk thru the list of non-basic variables */
       for (j = 1; j <= n-m; j++)
       {  k = head[m+j]; /* x[k] = xN[j] */
@@ -439,17 +439,17 @@ int spy_ls_eval_bp(SPXLP *lp, const glp_double d[/*1+n-m*/],
             teta = (d[j] < 0.0 ? 0.0 : d[j] / alfa);
             /* if xN[j] has no upper bound, lambdaN[j] cannot become
              * negative and thereby blocks further increasing teta */
-            if (u[k] == +DBL_MAX && teta_max > teta)
+            if (u[k] == +GLP_DBL_MAX && teta_max > teta)
                teta_max = teta;
          }
-         else if (alfa <= -tol_piv && (l[k] == -DBL_MAX || flag[j]))
+         else if (alfa <= -tol_piv && (l[k] == -GLP_DBL_MAX || flag[j]))
          {  /* xN[j] is either free or has its upper bound active, so
              * lambdaN[j] = d[j] <= 0 increases up to zero */
             /* determine teta[j] on which lambdaN[j] reaches zero */
             teta = (d[j] > 0.0 ? 0.0 : d[j] / alfa);
             /* if xN[j] has no lower bound, lambdaN[j] cannot become
              * positive and thereby blocks further increasing teta */
-            if (l[k] == -DBL_MAX && teta_max > teta)
+            if (l[k] == -GLP_DBL_MAX && teta_max > teta)
                teta_max = teta;
          }
          else
@@ -537,24 +537,24 @@ int spy_ls_select_bp(SPXLP *lp, const glp_double trow[/*1+n-m*/],
       for (t = num+1; t <= num1; t++)
       {  /* calculate the dual objective change relative to its value
           * at break-point bp[t-1] */
-         if (*slope == -DBL_MAX)
-            dz = -DBL_MAX;
+         if (*slope == -GLP_DBL_MAX)
+            dz = -GLP_DBL_MAX;
          else
             dz = (*slope) *
                (bp[t].teta - (t == 1 ? 0.0 : bp[t-1].teta));
          /* calculate the dual objective change relative to its value
           * at teta = 0 */
-         if (dz == -DBL_MAX)
-            bp[t].dz = -DBL_MAX;
+         if (dz == -GLP_DBL_MAX)
+            bp[t].dz = -GLP_DBL_MAX;
          else
             bp[t].dz = (t == 1 ? 0.0 : bp[t-1].dz) + dz;
          /* calculate a new slope of the dual objective to the right of
           * the current break-point bp[t] */
-         if (*slope != -DBL_MAX)
+         if (*slope != -GLP_DBL_MAX)
          {  j = bp[t].j;
             k = head[m+j]; /* x[k] = xN[j] */
-            if (l[k] == -DBL_MAX || u[k] == +DBL_MAX)
-               *slope = -DBL_MAX; /* blocking break-point reached */
+            if (l[k] == -GLP_DBL_MAX || u[k] == +GLP_DBL_MAX)
+               *slope = -GLP_DBL_MAX; /* blocking break-point reached */
             else
             {  xassert(l[k] < u[k]);
                *slope -= fabs(trow[j]) * (u[k] - l[k]);

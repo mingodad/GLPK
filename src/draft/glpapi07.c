@@ -88,9 +88,9 @@ static void set_d_eps(mpq_t x, glp_double val)
              -> 6004799503160661/18014398509481984
          while this routine gives exactly 1/3 */
       int s, n, j;
-      glp_double f, p, q, eps = 1e-9;
+      glp_double f, p, q, eps = GLP_D_EPS;
       mpq_t temp;
-      xassert(-DBL_MAX <= val && val <= +DBL_MAX);
+      xassert(-GLP_DBL_MAX <= val && val <= +GLP_DBL_MAX);
 #if 1 /* 30/VII-2008 */
       if (val == floor(val))
       {  /* if val is integral, do not approximate */
@@ -368,7 +368,7 @@ int glp_exact(glp_prob *lp, const glp_smcp *parm)
 #endif
       ssx->it_lim = parm->it_lim;
       ssx->it_cnt = lp->it_cnt;
-      ssx->tm_lim = (glp_double)parm->tm_lim / 1000.0;
+      ssx->tm_lim = (glp_double)parm->tm_lim / GLP_DBL_THOUSAND;
 #endif
       ssx->out_frq = 5.0;
       ssx->tm_beg = xtime();

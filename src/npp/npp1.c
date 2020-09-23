@@ -178,7 +178,7 @@ NPPROW *npp_add_row(NPP *npp)
       row = dmp_get_atom(npp->pool, sizeof(NPPROW));
       row->i = ++(npp->nrows);
       row->name = NULL;
-      row->lb = -DBL_MAX, row->ub = +DBL_MAX;
+      row->lb = -GLP_DBL_MAX, row->ub = +GLP_DBL_MAX;
       row->ptr = NULL;
       row->temp = 0;
       npp_insert_row(npp, row, 1);
@@ -395,11 +395,11 @@ void npp_load_prob(NPP *npp, glp_prob *orig, int names, int sol,
          }
          if (!scaling)
          {  if (rrr->type == GLP_FR)
-               row->lb = -DBL_MAX, row->ub = +DBL_MAX;
+               row->lb = -GLP_DBL_MAX, row->ub = +GLP_DBL_MAX;
             else if (rrr->type == GLP_LO)
-               row->lb = rrr->lb, row->ub = +DBL_MAX;
+               row->lb = rrr->lb, row->ub = +GLP_DBL_MAX;
             else if (rrr->type == GLP_UP)
-               row->lb = -DBL_MAX, row->ub = rrr->ub;
+               row->lb = -GLP_DBL_MAX, row->ub = rrr->ub;
             else if (rrr->type == GLP_DB)
                row->lb = rrr->lb, row->ub = rrr->ub;
             else if (rrr->type == GLP_FX)
@@ -410,11 +410,11 @@ void npp_load_prob(NPP *npp, glp_prob *orig, int names, int sol,
          else
          {  glp_double rii = rrr->rii;
             if (rrr->type == GLP_FR)
-               row->lb = -DBL_MAX, row->ub = +DBL_MAX;
+               row->lb = -GLP_DBL_MAX, row->ub = +GLP_DBL_MAX;
             else if (rrr->type == GLP_LO)
-               row->lb = rrr->lb * rii, row->ub = +DBL_MAX;
+               row->lb = rrr->lb * rii, row->ub = +GLP_DBL_MAX;
             else if (rrr->type == GLP_UP)
-               row->lb = -DBL_MAX, row->ub = rrr->ub * rii;
+               row->lb = -GLP_DBL_MAX, row->ub = rrr->ub * rii;
             else if (rrr->type == GLP_DB)
                row->lb = rrr->lb * rii, row->ub = rrr->ub * rii;
             else if (rrr->type == GLP_FX)
@@ -442,11 +442,11 @@ void npp_load_prob(NPP *npp, glp_prob *orig, int names, int sol,
 #endif
          if (!scaling)
          {  if (ccc->type == GLP_FR)
-               col->lb = -DBL_MAX, col->ub = +DBL_MAX;
+               col->lb = -GLP_DBL_MAX, col->ub = +GLP_DBL_MAX;
             else if (ccc->type == GLP_LO)
-               col->lb = ccc->lb, col->ub = +DBL_MAX;
+               col->lb = ccc->lb, col->ub = +GLP_DBL_MAX;
             else if (ccc->type == GLP_UP)
-               col->lb = -DBL_MAX, col->ub = ccc->ub;
+               col->lb = -GLP_DBL_MAX, col->ub = ccc->ub;
             else if (ccc->type == GLP_DB)
                col->lb = ccc->lb, col->ub = ccc->ub;
             else if (ccc->type == GLP_FX)
@@ -460,11 +460,11 @@ void npp_load_prob(NPP *npp, glp_prob *orig, int names, int sol,
          else
          {  glp_double sjj = ccc->sjj;
             if (ccc->type == GLP_FR)
-               col->lb = -DBL_MAX, col->ub = +DBL_MAX;
+               col->lb = -GLP_DBL_MAX, col->ub = +GLP_DBL_MAX;
             else if (ccc->type == GLP_LO)
-               col->lb = ccc->lb / sjj, col->ub = +DBL_MAX;
+               col->lb = ccc->lb / sjj, col->ub = +GLP_DBL_MAX;
             else if (ccc->type == GLP_UP)
-               col->lb = -DBL_MAX, col->ub = ccc->ub / sjj;
+               col->lb = -GLP_DBL_MAX, col->ub = ccc->ub / sjj;
             else if (ccc->type == GLP_DB)
                col->lb = ccc->lb / sjj, col->ub = ccc->ub / sjj;
             else if (ccc->type == GLP_FX)
@@ -506,11 +506,11 @@ void npp_build_prob(NPP *npp, glp_prob *prob)
       for (row = npp->r_head; row != NULL; row = row->next)
       {  row->temp = i = glp_add_rows(prob, 1);
          glp_set_row_name(prob, i, row->name);
-         if (row->lb == -DBL_MAX && row->ub == +DBL_MAX)
+         if (row->lb == -GLP_DBL_MAX && row->ub == +GLP_DBL_MAX)
             type = GLP_FR;
-         else if (row->ub == +DBL_MAX)
+         else if (row->ub == +GLP_DBL_MAX)
             type = GLP_LO;
-         else if (row->lb == -DBL_MAX)
+         else if (row->lb == -GLP_DBL_MAX)
             type = GLP_UP;
          else if (row->lb != row->ub)
             type = GLP_DB;
@@ -529,11 +529,11 @@ void npp_build_prob(NPP *npp, glp_prob *prob)
 #else
          glp_set_col_kind(prob, j, col->is_int ? GLP_IV : GLP_CV);
 #endif
-         if (col->lb == -DBL_MAX && col->ub == +DBL_MAX)
+         if (col->lb == -GLP_DBL_MAX && col->ub == +GLP_DBL_MAX)
             type = GLP_FR;
-         else if (col->ub == +DBL_MAX)
+         else if (col->ub == +GLP_DBL_MAX)
             type = GLP_LO;
-         else if (col->lb == -DBL_MAX)
+         else if (col->lb == -GLP_DBL_MAX)
             type = GLP_UP;
          else if (col->lb != col->ub)
             type = GLP_DB;
@@ -623,22 +623,22 @@ void npp_postprocess(NPP *npp, glp_prob *prob)
       if (npp->r_prim == NULL)
          npp->r_prim = xcalloc(1+npp->nrows, sizeof(glp_double));
       for (i = 1; i <= npp->nrows; i++)
-         npp->r_prim[i] = DBL_MAX;
+         npp->r_prim[i] = GLP_DBL_MAX;
 #endif
       if (npp->c_value == NULL)
          npp->c_value = xcalloc(1+npp->ncols, sizeof(glp_double));
       for (j = 1; j <= npp->ncols; j++)
-         npp->c_value[j] = DBL_MAX;
+         npp->c_value[j] = GLP_DBL_MAX;
       if (npp->sol != GLP_MIP)
       {  if (npp->r_pi == NULL)
             npp->r_pi = xcalloc(1+npp->nrows, sizeof(glp_double));
          for (i = 1; i <= npp->nrows; i++)
-            npp->r_pi[i] = DBL_MAX;
+            npp->r_pi[i] = GLP_DBL_MAX;
 #if 0
          if (npp->c_dual == NULL)
             npp->c_dual = xcalloc(1+npp->ncols, sizeof(glp_double));
          for (j = 1; j <= npp->ncols; j++)
-            npp->c_dual[j] = DBL_MAX;
+            npp->c_dual[j] = GLP_DBL_MAX;
 #endif
       }
       /* copy solution components from the resultant problem */

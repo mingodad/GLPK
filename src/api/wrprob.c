@@ -85,14 +85,14 @@ int glp_write_prob(glp_prob *P, int flags, const char *fname)
          if (row->type == GLP_FR)
             xfprintf(fp, "f\n");
          else if (row->type == GLP_LO)
-            xfprintf(fp, "l %.*g\n", DBL_DIG, row->lb);
+            xfprintf(fp, "l %.*" GLP_DBL_FMT_G "\n", GLP_DBL_DIG, row->lb);
          else if (row->type == GLP_UP)
-            xfprintf(fp, "u %.*g\n", DBL_DIG, row->ub);
+            xfprintf(fp, "u %.*" GLP_DBL_FMT_G "\n", GLP_DBL_DIG, row->ub);
          else if (row->type == GLP_DB)
-            xfprintf(fp, "d %.*g %.*g\n", DBL_DIG, row->lb, DBL_DIG,
+            xfprintf(fp, "d %.*" GLP_DBL_FMT_G " %.*" GLP_DBL_FMT_G "\n", GLP_DBL_DIG, row->lb, GLP_DBL_DIG,
                   row->ub);
          else if (row->type == GLP_FX)
-            xfprintf(fp, "s %.*g\n", DBL_DIG, row->lb);
+            xfprintf(fp, "s %.*" GLP_DBL_FMT_G "\n", GLP_DBL_DIG, row->lb);
          else
             xassert(row != row);
 skip1:   if (row->name != NULL)
@@ -118,14 +118,14 @@ skip1:   if (row->name != NULL)
          if (col->type == GLP_FR)
             xfprintf(fp, "f\n");
          else if (col->type == GLP_LO)
-            xfprintf(fp, "l %.*g\n", DBL_DIG, col->lb);
+            xfprintf(fp, "l %.*" GLP_DBL_FMT_G "\n", GLP_DBL_DIG, col->lb);
          else if (col->type == GLP_UP)
-            xfprintf(fp, "u %.*g\n", DBL_DIG, col->ub);
+            xfprintf(fp, "u %.*" GLP_DBL_FMT_G "\n", GLP_DBL_DIG, col->ub);
          else if (col->type == GLP_DB)
-            xfprintf(fp, "d %.*g %.*g\n", DBL_DIG, col->lb, DBL_DIG,
+            xfprintf(fp, "d %.*" GLP_DBL_FMT_G " %.*" GLP_DBL_FMT_G "\n", GLP_DBL_DIG, col->lb, GLP_DBL_DIG,
                   col->ub);
          else if (col->type == GLP_FX)
-            xfprintf(fp, "s %.*g\n", DBL_DIG, col->lb);
+            xfprintf(fp, "s %.*" GLP_DBL_FMT_G "\n", GLP_DBL_DIG, col->lb);
          else
             xassert(col != col);
 skip2:   if (col->name != NULL)
@@ -133,18 +133,18 @@ skip2:   if (col->name != NULL)
       }
       /* write objective coefficient descriptors */
       if (P->c0 != 0.0)
-         xfprintf(fp, "a 0 0 %.*g\n", DBL_DIG, P->c0), count++;
+         xfprintf(fp, "a 0 0 %.*" GLP_DBL_FMT_G "\n", GLP_DBL_DIG, P->c0), count++;
       for (j = 1; j <= P->n; j++)
       {  col = P->col[j];
          if (col->coef != 0.0)
-            xfprintf(fp, "a 0 %d %.*g\n", j, DBL_DIG, col->coef),
+            xfprintf(fp, "a 0 %d %.*" GLP_DBL_FMT_G "\n", j, GLP_DBL_DIG, col->coef),
                count++;
       }
       /* write constraint coefficient descriptors */
       for (i = 1; i <= P->m; i++)
       {  row = P->row[i];
          for (aij = row->ptr; aij != NULL; aij = aij->r_next)
-            xfprintf(fp, "a %d %d %.*g\n", i, aij->col->j, DBL_DIG,
+            xfprintf(fp, "a %d %d %.*" GLP_DBL_FMT_G "\n", i, aij->col->j, GLP_DBL_DIG,
                aij->val), count++;
       }
       /* write end line */

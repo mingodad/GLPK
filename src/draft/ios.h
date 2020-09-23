@@ -269,7 +269,7 @@ struct IOSNPD
       /* optimal objective value to LP relaxation of this subproblem;
          on creating a subproblem this value is inherited from its
          parent; for the root subproblem, which has no parent, this
-         value is initially set to -DBL_MAX (minimization) or +DBL_MAX
+         value is initially set to -GLP_DBL_MAX (minimization) or +GLP_DBL_MAX
          (maximization); each time the subproblem is re-optimized, this
          value is appropriately changed */
       glp_double bound;
@@ -279,8 +279,8 @@ struct IOSNPD
          at this node cannot have better integer feasible solutions;
          on creating a subproblem its local bound is inherited from its
          parent and then can be made stronger (never weaker); for the
-         root subproblem its local bound is initially set to -DBL_MAX
-         (minimization) or +DBL_MAX (maximization) and then improved as
+         root subproblem its local bound is initially set to -GLP_DBL_MAX
+         (minimization) or +GLP_DBL_MAX (maximization) and then improved as
          the root LP relaxation has been solved */
       /* the following two quantities are defined only if LP relaxation
          of this subproblem was solved at least once (solved > 0): */

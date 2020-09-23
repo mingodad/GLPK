@@ -111,9 +111,9 @@ int spx_chuzr_std(SPXLP *lp, int phase, const glp_double beta[/*1+m*/],
       xassert(s == +1.0 || s == -1.0);
       /* determine initial teta_min */
       k = head[m+q]; /* x[k] = xN[q] */
-      if (l[k] == -DBL_MAX || u[k] == +DBL_MAX)
+      if (l[k] == -GLP_DBL_MAX || u[k] == +GLP_DBL_MAX)
       {  /* xN[q] has no opposite bound */
-         p = 0, *p_flag = 0, teta_min = DBL_MAX, biga = 0.0;
+         p = 0, *p_flag = 0, teta_min = GLP_DBL_MAX, biga = 0.0;
       }
       else
       {  /* xN[q] have both lower and upper bounds */
@@ -134,13 +134,13 @@ int spx_chuzr_std(SPXLP *lp, int phase, const glp_double beta[/*1+m*/],
             else if (phase == 1 && c[k] > 0.0)
             {  /* actual lower bound of xB[i] is its upper bound */
                lk = u[k];
-               xassert(lk != +DBL_MAX);
+               xassert(lk != +GLP_DBL_MAX);
                i_flag = 1;
             }
             else
             {  /* actual lower bound of xB[i] is its original bound */
                lk = l[k];
-               if (lk == -DBL_MAX)
+               if (lk == -GLP_DBL_MAX)
                   continue;
                i_flag = 0;
             }
@@ -157,7 +157,7 @@ int spx_chuzr_std(SPXLP *lp, int phase, const glp_double beta[/*1+m*/],
             if (phase == 1 && c[k] < 0.0)
             {  /* actual upper bound of xB[i] is its lower bound */
                uk = l[k];
-               xassert(uk != -DBL_MAX);
+               xassert(uk != -GLP_DBL_MAX);
                i_flag = 0;
             }
             else if (phase == 1 && c[k] > 0.0)
@@ -229,7 +229,7 @@ int spx_chuzr_harris(SPXLP *lp, int phase, const glp_double beta[/*1+m*/],
       /*--------------------------------------------------------------*/
       /* first pass: determine teta_min for relaxed bounds            */
       /*--------------------------------------------------------------*/
-      teta_min = DBL_MAX;
+      teta_min = GLP_DBL_MAX;
       /* walk thru the list of basic variables */
       for (i = 1; i <= m; i++)
       {  k = head[i]; /* x[k] = xB[i] */
@@ -245,12 +245,12 @@ int spx_chuzr_harris(SPXLP *lp, int phase, const glp_double beta[/*1+m*/],
             else if (phase == 1 && c[k] > 0.0)
             {  /* actual lower bound of xB[i] is its upper bound */
                lk = u[k];
-               xassert(lk != +DBL_MAX);
+               xassert(lk != +GLP_DBL_MAX);
             }
             else
             {  /* actual lower bound of xB[i] is its original bound */
                lk = l[k];
-               if (lk == -DBL_MAX)
+               if (lk == -GLP_DBL_MAX)
                   continue;
             }
             /* determine teta on which xB[i] reaches its relaxed lower
@@ -267,7 +267,7 @@ int spx_chuzr_harris(SPXLP *lp, int phase, const glp_double beta[/*1+m*/],
             if (phase == 1 && c[k] < 0.0)
             {  /* actual upper bound of xB[i] is its lower bound */
                uk = l[k];
-               xassert(uk != -DBL_MAX);
+               xassert(uk != -GLP_DBL_MAX);
             }
             else if (phase == 1 && c[k] > 0.0)
             {  /* xB[i] has no actual upper bound */
@@ -276,7 +276,7 @@ int spx_chuzr_harris(SPXLP *lp, int phase, const glp_double beta[/*1+m*/],
             else
             {  /* actual upper bound of xB[i] is its original bound */
                uk = u[k];
-               if (uk == +DBL_MAX)
+               if (uk == +GLP_DBL_MAX)
                   continue;
             }
             /* determine teta on which xB[i] reaches its relaxed upper
@@ -299,7 +299,7 @@ int spx_chuzr_harris(SPXLP *lp, int phase, const glp_double beta[/*1+m*/],
       /* second pass: choose basic variable xB[p]                     */
       /*--------------------------------------------------------------*/
       k = head[m+q]; /* x[k] = xN[q] */
-      if (l[k] != -DBL_MAX && u[k] != +DBL_MAX)
+      if (l[k] != -GLP_DBL_MAX && u[k] != +GLP_DBL_MAX)
       {  /* xN[q] has both lower and upper bounds */
          if (fabs(l[k] - u[k]) <= teta_min)
          {  /* and reaches its opposite bound */
@@ -307,7 +307,7 @@ int spx_chuzr_harris(SPXLP *lp, int phase, const glp_double beta[/*1+m*/],
             goto done;
          }
       }
-      if (teta_min == DBL_MAX)
+      if (teta_min == GLP_DBL_MAX)
       {  /* teta may increase unlimitedly */
          p = 0, *p_flag = 0;
          goto done;
@@ -329,13 +329,13 @@ int spx_chuzr_harris(SPXLP *lp, int phase, const glp_double beta[/*1+m*/],
             else if (phase == 1 && c[k] > 0.0)
             {  /* actual lower bound of xB[i] is its upper bound */
                lk = u[k];
-               xassert(lk != +DBL_MAX);
+               xassert(lk != +GLP_DBL_MAX);
                i_flag = 1;
             }
             else
             {  /* actual lower bound of xB[i] is its original bound */
                lk = l[k];
-               if (lk == -DBL_MAX)
+               if (lk == -GLP_DBL_MAX)
                   continue;
                i_flag = 0;
             }
@@ -348,7 +348,7 @@ int spx_chuzr_harris(SPXLP *lp, int phase, const glp_double beta[/*1+m*/],
             if (phase == 1 && c[k] < 0.0)
             {  /* actual upper bound of xB[i] is its lower bound */
                uk = l[k];
-               xassert(uk != -DBL_MAX);
+               xassert(uk != -GLP_DBL_MAX);
                i_flag = 0;
             }
             else if (phase == 1 && c[k] > 0.0)
@@ -358,7 +358,7 @@ int spx_chuzr_harris(SPXLP *lp, int phase, const glp_double beta[/*1+m*/],
             else
             {  /* actual upper bound of xB[i] is its original bound */
                uk = u[k];
-               if (uk == +DBL_MAX)
+               if (uk == +GLP_DBL_MAX)
                   continue;
                i_flag = 1;
             }
@@ -417,7 +417,7 @@ int spx_ls_eval_bp(SPXLP *lp, const glp_double beta[/*1+m*/],
       /* if chosen non-basic variable xN[q] is double-bounded, include
        * it in the list, because it can cross its opposite bound */
       k = head[m+q]; /* x[k] = xN[q] */
-      if (l[k] != -DBL_MAX && u[k] != +DBL_MAX)
+      if (l[k] != -GLP_DBL_MAX && u[k] != +DBL_MAX)
       {  nbp++;
          bp[nbp].i = 0;
          xassert(l[k] < u[k]); /* xN[q] cannot be fixed */
@@ -446,7 +446,7 @@ int spx_ls_eval_bp(SPXLP *lp, const glp_double beta[/*1+m*/],
                }
             }
             else
-            {  if (l[k] != -DBL_MAX && c[k] < 0.0)
+            {  if (l[k] != -GLP_DBL_MAX && c[k] < 0.0)
                {  /* increasing xB[i] can cross its lower bound lB[i],
                    * because currently xB[i] < lB[i] */
                   nbp++;
@@ -454,7 +454,7 @@ int spx_ls_eval_bp(SPXLP *lp, const glp_double beta[/*1+m*/],
                   bp[nbp].teta = (l[k] - beta[i]) / alfa;
                   bp[nbp].dc = +1.0;
                }
-               if (u[k] != +DBL_MAX && c[k] <= 0.0)
+               if (u[k] != +GLP_DBL_MAX && c[k] <= 0.0)
                {  /* increasing xB[i] can cross its upper bound uB[i],
                    * because currently xB[i] does not violate it */
                   nbp++;
@@ -479,7 +479,7 @@ int spx_ls_eval_bp(SPXLP *lp, const glp_double beta[/*1+m*/],
                }
             }
             else
-            {  if (l[k] != -DBL_MAX && c[k] >= 0.0)
+            {  if (l[k] != -GLP_DBL_MAX && c[k] >= 0.0)
                {  /* decreasing xB[i] can cross its lower bound lB[i],
                    * because currently xB[i] does not violate it */
                   nbp++;
@@ -487,7 +487,7 @@ int spx_ls_eval_bp(SPXLP *lp, const glp_double beta[/*1+m*/],
                   bp[nbp].teta = (l[k] - beta[i]) / alfa;
                   bp[nbp].dc = -1.0;
                }
-               if (u[k] != +DBL_MAX && c[k] > 0.0)
+               if (u[k] != +GLP_DBL_MAX && c[k] > 0.0)
                {  /* decreasing xB[i] can cross its upper bound uB[i],
                    * because currently xB[i] > uB[i] */
                   nbp++;

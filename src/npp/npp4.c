@@ -178,7 +178,7 @@ int npp_binarize_prob(NPP *npp)
          /* if u < 2^n - 1, we need one additional row for (4) */
          if (u < temp - 1)
          {  row = npp_add_row(npp), nrows++;
-            row->lb = -DBL_MAX, row->ub = u;
+            row->lb = -GLP_DBL_MAX, row->ub = u;
          }
          else
             row = NULL;
@@ -316,7 +316,7 @@ int npp_is_packing(NPP *npp, NPPROW *row)
       NPPAIJ *aij;
       int b;
       xassert(npp == npp);
-      if (!(row->lb == -DBL_MAX && row->ub != +DBL_MAX))
+      if (!(row->lb == -GLP_DBL_MAX && row->ub != +GLP_DBL_MAX))
          return 0;
       b = 1;
       for (aij = row->ptr; aij != NULL; aij = aij->r_next)
@@ -507,13 +507,13 @@ int npp_hidden_packing(NPP *npp, NPPROW *row)
       for (kase = 0; kase <= 1; kase++)
       {  if (kase == 0)
          {  /* process row upper bound */
-            if (row->ub == +DBL_MAX) continue;
+            if (row->ub == +GLP_DBL_MAX) continue;
             ptr = copy_form(npp, row, +1.0);
             b = + row->ub;
          }
          else
          {  /* process row lower bound */
-            if (row->lb == -DBL_MAX) continue;
+            if (row->lb == -GLP_DBL_MAX) continue;
             ptr = copy_form(npp, row, -1.0);
             b = - row->lb;
          }
@@ -528,15 +528,15 @@ int npp_hidden_packing(NPP *npp, NPPROW *row)
             xprintf("Original constraint:\n");
             for (aij = row->ptr; aij != NULL; aij = aij->r_next)
                xprintf(" %+g x%d", aij->val, aij->col->j);
-            if (row->lb != -DBL_MAX) xprintf(", >= %g", row->lb);
-            if (row->ub != +DBL_MAX) xprintf(", <= %g", row->ub);
+            if (row->lb != -GLP_DBL_MAX) xprintf(", >= %g", row->lb);
+            if (row->ub != +GLP_DBL_MAX) xprintf(", <= %g", row->ub);
             xprintf("\n");
             xprintf("Equivalent packing inequality:\n");
             for (e = ptr; e != NULL; e = e->next)
                xprintf(" %sx%d", e->aj > 0.0 ? "+" : "-", e->xj->j);
             xprintf(", <= %g\n", b);
 #endif
-            if (row->lb == -DBL_MAX || row->ub == +DBL_MAX)
+            if (row->lb == -GLP_DBL_MAX || row->ub == +GLP_DBL_MAX)
             {  /* the original row is single-sided inequality; no copy
                   is needed */
                copy = NULL;
@@ -548,11 +548,11 @@ int npp_hidden_packing(NPP *npp, NPPROW *row)
                copy = npp_add_row(npp);
                if (kase == 0)
                {  /* the copy is for lower bound */
-                  copy->lb = row->lb, copy->ub = +DBL_MAX;
+                  copy->lb = row->lb, copy->ub = +GLP_DBL_MAX;
                }
                else
                {  /* the copy is for upper bound */
-                  copy->lb = -DBL_MAX, copy->ub = row->ub;
+                  copy->lb = -GLP_DBL_MAX, copy->ub = row->ub;
                }
                /* copy original row coefficients */
                for (aij = row->ptr; aij != NULL; aij = aij->r_next)
@@ -560,7 +560,7 @@ int npp_hidden_packing(NPP *npp, NPPROW *row)
             }
             /* replace the original inequality by equivalent one */
             npp_erase_row(npp, row);
-            row->lb = -DBL_MAX, row->ub = b;
+            row->lb = -GLP_DBL_MAX, row->ub = b;
             for (e = ptr; e != NULL; e = e->next)
                npp_add_aij(npp, row, e->xj, e->aj);
             /* continue processing lower bound for the copy */
@@ -720,12 +720,12 @@ int npp_implied_packing(NPP *npp, NPPROW *row, int which,
       /* build inequality (3) */
       if (which == 0)
       {  ptr = copy_form(npp, row, -1.0);
-         xassert(row->lb != -DBL_MAX);
+         xassert(row->lb != -GLP_DBL_MAX);
          b = - row->lb;
       }
       else if (which == 1)
       {  ptr = copy_form(npp, row, +1.0);
-         xassert(row->ub != +DBL_MAX);
+         xassert(row->ub != +GLP_DBL_MAX);
          b = + row->ub;
       }
       /* remove non-binary variables to build relaxed inequality (5);
@@ -734,11 +734,11 @@ int npp_implied_packing(NPP *npp, NPPROW *row, int which,
       {  if (!(e->xj->is_int && e->xj->lb == 0.0 && e->xj->ub == 1.0))
          {  /* x[j] is non-binary variable */
             if (e->aj > 0.0)
-            {  if (e->xj->lb == -DBL_MAX) goto done;
+            {  if (e->xj->lb == -GLP_DBL_MAX) goto done;
                b -= e->aj * e->xj->lb;
             }
             else /* e->aj < 0.0 */
-            {  if (e->xj->ub == +DBL_MAX) goto done;
+            {  if (e->xj->ub == +GLP_DBL_MAX) goto done;
                b -= e->aj * e->xj->ub;
             }
             /* a[j] = 0 means that variable x[j] is removed */
@@ -841,7 +841,7 @@ int npp_is_covering(NPP *npp, NPPROW *row)
       NPPAIJ *aij;
       int b;
       xassert(npp == npp);
-      if (!(row->lb != -DBL_MAX && row->ub == +DBL_MAX))
+      if (!(row->lb != -GLP_DBL_MAX && row->ub == +GLP_DBL_MAX))
          return 0;
       b = 1;
       for (aij = row->ptr; aij != NULL; aij = aij->r_next)
@@ -972,7 +972,7 @@ static int hidden_covering(NPP *npp, struct elem *ptr, double *_b)
       /* now a[j] > 0 for all j in J, and b > 0 */
       /* the specified constraint is equivalent to covering inequality
          iff a[j] >= b for all j in J */
-      eps = 1e-9 + 1e-12 * fabs(b);
+      eps = GLP_MKEQ_EPS * fabs(b);
       for (e = ptr; e != NULL; e = e->next)
          if (fabs(e->aj) < b - eps) return 0;
       /* perform back substitution x~[j] = 1 - x[j] and construct the
@@ -1000,13 +1000,13 @@ int npp_hidden_covering(NPP *npp, NPPROW *row)
       for (kase = 0; kase <= 1; kase++)
       {  if (kase == 0)
          {  /* process row lower bound */
-            if (row->lb == -DBL_MAX) continue;
+            if (row->lb == -GLP_DBL_MAX) continue;
             ptr = copy_form(npp, row, +1.0);
             b = + row->lb;
          }
          else
          {  /* process row upper bound */
-            if (row->ub == +DBL_MAX) continue;
+            if (row->ub == +GLP_DBL_MAX) continue;
             ptr = copy_form(npp, row, -1.0);
             b = - row->ub;
          }
@@ -1021,15 +1021,15 @@ int npp_hidden_covering(NPP *npp, NPPROW *row)
             xprintf("Original constraint:\n");
             for (aij = row->ptr; aij != NULL; aij = aij->r_next)
                xprintf(" %+g x%d", aij->val, aij->col->j);
-            if (row->lb != -DBL_MAX) xprintf(", >= %g", row->lb);
-            if (row->ub != +DBL_MAX) xprintf(", <= %g", row->ub);
+            if (row->lb != -GLP_DBL_MAX) xprintf(", >= %g", row->lb);
+            if (row->ub != +GLP_DBL_MAX) xprintf(", <= %g", row->ub);
             xprintf("\n");
             xprintf("Equivalent covering inequality:\n");
             for (e = ptr; e != NULL; e = e->next)
                xprintf(" %sx%d", e->aj > 0.0 ? "+" : "-", e->xj->j);
             xprintf(", >= %g\n", b);
 #endif
-            if (row->lb == -DBL_MAX || row->ub == +DBL_MAX)
+            if (row->lb == -GLP_DBL_MAX || row->ub == +GLP_DBL_MAX)
             {  /* the original row is single-sided inequality; no copy
                   is needed */
                copy = NULL;
@@ -1041,11 +1041,11 @@ int npp_hidden_covering(NPP *npp, NPPROW *row)
                copy = npp_add_row(npp);
                if (kase == 0)
                {  /* the copy is for upper bound */
-                  copy->lb = -DBL_MAX, copy->ub = row->ub;
+                  copy->lb = -GLP_DBL_MAX, copy->ub = row->ub;
                }
                else
                {  /* the copy is for lower bound */
-                  copy->lb = row->lb, copy->ub = +DBL_MAX;
+                  copy->lb = row->lb, copy->ub = +GLP_DBL_MAX;
                }
                /* copy original row coefficients */
                for (aij = row->ptr; aij != NULL; aij = aij->r_next)
@@ -1053,7 +1053,7 @@ int npp_hidden_covering(NPP *npp, NPPROW *row)
             }
             /* replace the original inequality by equivalent one */
             npp_erase_row(npp, row);
-            row->lb = b, row->ub = +DBL_MAX;
+            row->lb = b, row->ub = +GLP_DBL_MAX;
             for (e = ptr; e != NULL; e = e->next)
                npp_add_aij(npp, row, e->xj, e->aj);
             /* continue processing upper bound for the copy */
@@ -1283,11 +1283,11 @@ static int reduce_ineq_coef(NPP *npp, struct elem *ptr, double *_b)
       h = 0.0;
       for (e = ptr; e != NULL; e = e->next)
       {  if (e->aj > 0.0)
-         {  if (e->xj->lb == -DBL_MAX) goto done;
+         {  if (e->xj->lb == -GLP_DBL_MAX) goto done;
             h += e->aj * e->xj->lb;
          }
          else /* e->aj < 0.0 */
-         {  if (e->xj->ub == +DBL_MAX) goto done;
+         {  if (e->xj->ub == +GLP_DBL_MAX) goto done;
             h += e->aj * e->xj->ub;
          }
       }
@@ -1352,7 +1352,7 @@ int npp_reduce_ineq_coef(NPP *npp, NPPROW *row)
       for (kase = 0; kase <= 1; kase++)
       {  if (kase == 0)
          {  /* process row lower bound */
-            if (row->lb == -DBL_MAX) continue;
+            if (row->lb == -GLP_DBL_MAX) continue;
 #ifdef GLP_DEBUG
             xprintf("L");
 #endif
@@ -1361,7 +1361,7 @@ int npp_reduce_ineq_coef(NPP *npp, NPPROW *row)
          }
          else
          {  /* process row upper bound */
-            if (row->ub == +DBL_MAX) continue;
+            if (row->ub == +GLP_DBL_MAX) continue;
 #ifdef GLP_DEBUG
             xprintf("U");
 #endif
@@ -1373,7 +1373,7 @@ int npp_reduce_ineq_coef(NPP *npp, NPPROW *row)
          if (count[kase] > 0)
          {  /* the original inequality has been replaced by equivalent
                one with coefficients reduced */
-            if (row->lb == -DBL_MAX || row->ub == +DBL_MAX)
+            if (row->lb == -GLP_DBL_MAX || row->ub == +GLP_DBL_MAX)
             {  /* the original row is single-sided inequality; no copy
                   is needed */
                copy = NULL;
@@ -1388,11 +1388,11 @@ int npp_reduce_ineq_coef(NPP *npp, NPPROW *row)
                copy = npp_add_row(npp);
                if (kase == 0)
                {  /* the copy is for upper bound */
-                  copy->lb = -DBL_MAX, copy->ub = row->ub;
+                  copy->lb = -GLP_DBL_MAX, copy->ub = row->ub;
                }
                else
                {  /* the copy is for lower bound */
-                  copy->lb = row->lb, copy->ub = +DBL_MAX;
+                  copy->lb = row->lb, copy->ub = +GLP_DBL_MAX;
                }
                /* copy original row coefficients */
                for (aij = row->ptr; aij != NULL; aij = aij->r_next)
@@ -1400,7 +1400,7 @@ int npp_reduce_ineq_coef(NPP *npp, NPPROW *row)
             }
             /* replace the original inequality by equivalent one */
             npp_erase_row(npp, row);
-            row->lb = b, row->ub = +DBL_MAX;
+            row->lb = b, row->ub = +GLP_DBL_MAX;
             for (e = ptr; e != NULL; e = e->next)
                npp_add_aij(npp, row, e->xj, e->aj);
             /* continue processing upper bound for the copy */

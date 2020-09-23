@@ -822,11 +822,11 @@ blnk: {  /* new BOUNDS vector */
       /* get current column bounds */
       col = csa->P->col[j];
       if (col->type == GLP_FR)
-         lb = -DBL_MAX, ub = +DBL_MAX;
+         lb = -GLP_DBL_MAX, ub = +GLP_DBL_MAX;
       else if (col->type == GLP_LO)
-         lb = col->lb, ub = +DBL_MAX;
+         lb = col->lb, ub = +GLP_DBL_MAX;
       else if (col->type == GLP_UP)
-         lb = -DBL_MAX, ub = col->ub;
+         lb = -GLP_DBL_MAX, ub = col->ub;
       else if (col->type == GLP_DB)
          lb = col->lb, ub = col->ub;
       else if (col->type == GLP_FX)
@@ -841,11 +841,11 @@ blnk: {  /* new BOUNDS vector */
       else if (strcmp(type, "FX") == 0)
          lb = ub = bnd;
       else if (strcmp(type, "FR") == 0)
-         lb = -DBL_MAX, ub = +DBL_MAX;
+         lb = -GLP_DBL_MAX, ub = +GLP_DBL_MAX;
       else if (strcmp(type, "MI") == 0)
-         lb = -DBL_MAX;
+         lb = -GLP_DBL_MAX;
       else if (strcmp(type, "PL") == 0)
-         ub = +DBL_MAX;
+         ub = +GLP_DBL_MAX;
       else if (strcmp(type, "LI") == 0)
       {  glp_set_col_kind(csa->P, j, GLP_IV);
          lb = ceil(bnd);
@@ -853,7 +853,7 @@ blnk: {  /* new BOUNDS vector */
          /* if column upper bound has not been explicitly specified,
             take it as +inf */
          if (!(flag[j] & 0x10))
-            ub = +DBL_MAX;
+            ub = +GLP_DBL_MAX;
 #endif
       }
       else if (strcmp(type, "UI") == 0)
@@ -867,11 +867,11 @@ blnk: {  /* new BOUNDS vector */
       else
          xassert(type != type);
       /* set new column bounds */
-      if (lb == -DBL_MAX && ub == +DBL_MAX)
+      if (lb == -GLP_DBL_MAX && ub == +GLP_DBL_MAX)
          glp_set_col_bnds(csa->P, j, GLP_FR, lb, ub);
-      else if (ub == +DBL_MAX)
+      else if (ub == +GLP_DBL_MAX)
          glp_set_col_bnds(csa->P, j, GLP_LO, lb, ub);
-      else if (lb == -DBL_MAX)
+      else if (lb == -GLP_DBL_MAX)
          glp_set_col_bnds(csa->P, j, GLP_UP, lb, ub);
       else if (lb != ub)
          glp_set_col_bnds(csa->P, j, GLP_DB, lb, ub);

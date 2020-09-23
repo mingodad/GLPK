@@ -129,7 +129,7 @@ void ios_process_cuts(glp_tree *T)
             default: xassert(cut != cut);
          }
          ret = _glp_analyze_row(T->mip, len, ind, val, cut->type,
-            rhs, 1e-9, NULL, NULL, NULL, NULL, &dy, &dz);
+            rhs, GLP_MPL_MIN_9, NULL, NULL, NULL, NULL, &dy, &dz);
          /* determine normalized residual and lower bound to objective
             degradation */
          if (ret == 0)
@@ -153,7 +153,7 @@ void ios_process_cuts(glp_tree *T)
          else if (ret == 2)
          {  /* no dual feasible adjacent basis exists */
             info[k].eff = 1.0;
-            info[k].deg = DBL_MAX;
+            info[k].deg = GLP_DBL_MAX;
          }
          else
             xassert(ret != ret);
@@ -256,7 +256,7 @@ void ios_process_cuts(glp_tree *T)
             value for the adjacent basis by simulating one step of the
             dual simplex */
          ret = _glp_analyze_row(T->mip, len, ind, val, cut->type,
-            cut->rhs, 1e-9, NULL, NULL, NULL, NULL, &dy, &dz);
+            cut->rhs, GLP_MPL_MIN_9, NULL, NULL, NULL, NULL, &dy, &dz);
          /* determine normalized residual and lower bound to objective
             degradation */
          if (ret == 0)
@@ -280,7 +280,7 @@ void ios_process_cuts(glp_tree *T)
          else if (ret == 2)
          {  /* no dual feasible adjacent basis exists */
             info[k].eff = 1.0;
-            info[k].deg = DBL_MAX;
+            info[k].deg = GLP_DBL_MAX;
          }
          else
             xassert(ret != ret);

@@ -75,11 +75,11 @@ static void transform(NPP *npp)
       NPPCOL *col, *prev_col;
       for (row = npp->r_tail; row != NULL; row = prev_row)
       {  prev_row = row->prev;
-         if (row->lb == -DBL_MAX && row->ub == +DBL_MAX)
+         if (row->lb == -GLP_DBL_MAX && row->ub == +GLP_DBL_MAX)
             npp_free_row(npp, row);
-         else if (row->lb == -DBL_MAX)
+         else if (row->lb == -GLP_DBL_MAX)
             npp_leq_row(npp, row);
-         else if (row->ub == +DBL_MAX)
+         else if (row->ub == +GLP_DBL_MAX)
             npp_geq_row(npp, row);
          else if (row->lb != row->ub)
          {  if (fabs(row->lb) < fabs(row->ub))
@@ -90,11 +90,11 @@ static void transform(NPP *npp)
       }
       for (col = npp->c_tail; col != NULL; col = prev_col)
       {  prev_col = col->prev;
-         if (col->lb == -DBL_MAX && col->ub == +DBL_MAX)
+         if (col->lb == -GLP_DBL_MAX && col->ub == +GLP_DBL_MAX)
             npp_free_col(npp, col);
-         else if (col->lb == -DBL_MAX)
+         else if (col->lb == -GLP_DBL_MAX)
             npp_ubnd_col(npp, col);
-         else if (col->ub == +DBL_MAX)
+         else if (col->ub == +GLP_DBL_MAX)
          {  if (col->lb != 0.0)
                npp_lbnd_col(npp, col);
          }
@@ -113,7 +113,7 @@ static void transform(NPP *npp)
       for (row = npp->r_head; row != NULL; row = row->next)
          xassert(row->lb == row->ub);
       for (col = npp->c_head; col != NULL; col = col->next)
-         xassert(col->lb == 0.0 && col->ub == +DBL_MAX);
+         xassert(col->lb == 0.0 && col->ub == +GLP_DBL_MAX);
       return;
 }
 
@@ -281,7 +281,7 @@ glp_double glp_ipt_obj_val(glp_prob *lp)
 {     /*struct LPXCPS *cps = lp->cps;*/
       glp_double z;
       z = lp->ipt_obj;
-      /*if (cps->round && fabs(z) < 1e-9) z = 0.0;*/
+      /*if (cps->round && fabs(z) < GLP_MPL_MIN_9) z = 0.0;*/
       return z;
 }
 
@@ -306,7 +306,7 @@ glp_double glp_ipt_row_prim(glp_prob *lp, int i)
          xerror("glp_ipt_row_prim: i = %d; row number out of range\n",
             i);
       pval = lp->row[i]->pval;
-      /*if (cps->round && fabs(pval) < 1e-9) pval = 0.0;*/
+      /*if (cps->round && fabs(pval) < GLP_MPL_MIN_9) pval = 0.0;*/
       return pval;
 }
 
@@ -331,7 +331,7 @@ glp_double glp_ipt_row_dual(glp_prob *lp, int i)
          xerror("glp_ipt_row_dual: i = %d; row number out of range\n",
             i);
       dval = lp->row[i]->dval;
-      /*if (cps->round && fabs(dval) < 1e-9) dval = 0.0;*/
+      /*if (cps->round && fabs(dval) < GLP_MPL_MIN_9) dval = 0.0;*/
       return dval;
 }
 
@@ -356,7 +356,7 @@ glp_double glp_ipt_col_prim(glp_prob *lp, int j)
          xerror("glp_ipt_col_prim: j = %d; column number out of range\n"
             , j);
       pval = lp->col[j]->pval;
-      /*if (cps->round && fabs(pval) < 1e-9) pval = 0.0;*/
+      /*if (cps->round && fabs(pval) < GLP_MPL_MIN_9) pval = 0.0;*/
       return pval;
 }
 
@@ -381,7 +381,7 @@ glp_double glp_ipt_col_dual(glp_prob *lp, int j)
          xerror("glp_ipt_col_dual: j = %d; column number out of range\n"
             , j);
       dval = lp->col[j]->dval;
-      /*if (cps->round && fabs(dval) < 1e-9) dval = 0.0;*/
+      /*if (cps->round && fabs(dval) < GLP_MPL_MIN_9) dval = 0.0;*/
       return dval;
 }
 

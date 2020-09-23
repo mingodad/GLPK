@@ -273,7 +273,7 @@ static LUXELM *find_pivot(LUX *lux, LUXWKA *wka)
       int i, j, len, min_len, ncand, piv_lim = 5;
       glp_double best, cost;
       /* nothing is chosen so far */
-      piv = NULL, best = DBL_MAX, ncand = 0;
+      piv = NULL, best = GLP_DBL_MAX, ncand = 0;
       /* if in the active submatrix there is a column that has the only
          non-zero (column singleton), choose it as a pivot */
       j = C_head[1];

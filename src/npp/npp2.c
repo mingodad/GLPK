@@ -78,7 +78,7 @@ void npp_free_row(NPP *npp, NPPROW *p)
 {     /* process free (unbounded) row */
       struct free_row *info;
       /* the row must be free */
-      xassert(p->lb == -DBL_MAX && p->ub == +DBL_MAX);
+      xassert(p->lb == -GLP_DBL_MAX && p->ub == +GLP_DBL_MAX);
       /* create transformation stack entry */
       info = npp_push_tse(npp,
          rcv_free_row, sizeof(struct free_row));
@@ -195,12 +195,12 @@ void npp_geq_row(NPP *npp, NPPROW *p)
       struct ineq_row *info;
       NPPCOL *s;
       /* the row must have lower bound */
-      xassert(p->lb != -DBL_MAX);
+      xassert(p->lb != -GLP_DBL_MAX);
       xassert(p->lb < p->ub);
       /* create column for surplus variable */
       s = npp_add_col(npp);
       s->lb = 0.0;
-      s->ub = (p->ub == +DBL_MAX ? +DBL_MAX : p->ub - p->lb);
+      s->ub = (p->ub == +GLP_DBL_MAX ? +GLP_DBL_MAX : p->ub - p->lb);
       /* and add it to the transformed problem */
       npp_add_aij(npp, p, s, -1.0);
       /* create transformation stack entry */
@@ -339,12 +339,12 @@ void npp_leq_row(NPP *npp, NPPROW *p)
       struct ineq_row *info;
       NPPCOL *s;
       /* the row must have upper bound */
-      xassert(p->ub != +DBL_MAX);
+      xassert(p->ub != +GLP_DBL_MAX);
       xassert(p->lb < p->ub);
       /* create column for slack variable */
       s = npp_add_col(npp);
       s->lb = 0.0;
-      s->ub = (p->lb == -DBL_MAX ? +DBL_MAX : p->ub - p->lb);
+      s->ub = (p->lb == -GLP_DBL_MAX ? +GLP_DBL_MAX : p->ub - p->lb);
       /* and add it to the transformed problem */
       npp_add_aij(npp, p, s, +1.0);
       /* create transformation stack entry */
@@ -491,13 +491,13 @@ void npp_free_col(NPP *npp, NPPCOL *q)
       NPPCOL *s;
       NPPAIJ *aij;
       /* the column must be free */
-      xassert(q->lb == -DBL_MAX && q->ub == +DBL_MAX);
+      xassert(q->lb == -GLP_DBL_MAX && q->ub == +GLP_DBL_MAX);
       /* variable x[q] becomes s' */
-      q->lb = 0.0, q->ub = +DBL_MAX;
+      q->lb = 0.0, q->ub = +GLP_DBL_MAX;
       /* create variable s'' */
       s = npp_add_col(npp);
       s->is_int = q->is_int;
-      s->lb = 0.0, s->ub = +DBL_MAX;
+      s->lb = 0.0, s->ub = +GLP_DBL_MAX;
       /* duplicate objective coefficient */
       s->coef = -q->coef;
       /* duplicate column of the constraint matrix */
@@ -650,7 +650,7 @@ void npp_lbnd_col(NPP *npp, NPPCOL *q)
       NPPAIJ *aij;
       /* the column must have non-zero lower bound */
       xassert(q->lb != 0.0);
-      xassert(q->lb != -DBL_MAX);
+      xassert(q->lb != -GLP_DBL_MAX);
       xassert(q->lb < q->ub);
       /* create transformation stack entry */
       info = npp_push_tse(npp,
@@ -665,14 +665,14 @@ void npp_lbnd_col(NPP *npp, NPPCOL *q)
          if (i->lb == i->ub)
             i->ub = (i->lb -= aij->val * q->lb);
          else
-         {  if (i->lb != -DBL_MAX)
+         {  if (i->lb != -GLP_DBL_MAX)
                i->lb -= aij->val * q->lb;
-            if (i->ub != +DBL_MAX)
+            if (i->ub != +GLP_DBL_MAX)
                i->ub -= aij->val * q->lb;
          }
       }
       /* column x[q] becomes column s */
-      if (q->ub != +DBL_MAX)
+      if (q->ub != +GLP_DBL_MAX)
          q->ub -= q->lb;
       q->lb = 0.0;
       return;
@@ -817,7 +817,7 @@ void npp_ubnd_col(NPP *npp, NPPCOL *q)
       NPPROW *i;
       NPPAIJ *aij;
       /* the column must have upper bound */
-      xassert(q->ub != +DBL_MAX);
+      xassert(q->ub != +GLP_DBL_MAX);
       xassert(q->lb < q->ub);
       /* create transformation stack entry */
       info = npp_push_tse(npp,
@@ -833,18 +833,18 @@ void npp_ubnd_col(NPP *npp, NPPCOL *q)
          if (i->lb == i->ub)
             i->ub = (i->lb -= aij->val * q->ub);
          else
-         {  if (i->lb != -DBL_MAX)
+         {  if (i->lb != -GLP_DBL_MAX)
                i->lb -= aij->val * q->ub;
-            if (i->ub != +DBL_MAX)
+            if (i->ub != +GLP_DBL_MAX)
                i->ub -= aij->val * q->ub;
          }
          aij->val = -aij->val;
       }
       /* column x[q] becomes column s */
-      if (q->lb != -DBL_MAX)
+      if (q->lb != -GLP_DBL_MAX)
          q->ub -= q->lb;
       else
-         q->ub = +DBL_MAX;
+         q->ub = +GLP_DBL_MAX;
       q->lb = 0.0;
       return;
 }
@@ -967,11 +967,11 @@ void npp_dbnd_col(NPP *npp, NPPCOL *q)
       /* the column must be non-negative with upper bound */
       xassert(q->lb == 0.0);
       xassert(q->ub > 0.0);
-      xassert(q->ub != +DBL_MAX);
+      xassert(q->ub != +GLP_DBL_MAX);
       /* create variable s */
       s = npp_add_col(npp);
       s->is_int = q->is_int;
-      s->lb = 0.0, s->ub = +DBL_MAX;
+      s->lb = 0.0, s->ub = +GLP_DBL_MAX;
       /* create equality constraint (2) */
       p = npp_add_row(npp);
       p->lb = p->ub = q->ub;
@@ -983,7 +983,7 @@ void npp_dbnd_col(NPP *npp, NPPCOL *q)
       info->q = q->j;
       info->s = s->j;
       /* remove upper bound of x[q] */
-      q->ub = +DBL_MAX;
+      q->ub = +GLP_DBL_MAX;
       return;
 }
 
@@ -1123,9 +1123,9 @@ void npp_fixed_col(NPP *npp, NPPCOL *q)
          if (i->lb == i->ub)
             i->ub = (i->lb -= aij->val * q->lb);
          else
-         {  if (i->lb != -DBL_MAX)
+         {  if (i->lb != -GLP_DBL_MAX)
                i->lb -= aij->val * q->lb;
-            if (i->ub != +DBL_MAX)
+            if (i->ub != +GLP_DBL_MAX)
                i->ub -= aij->val * q->lb;
          }
       }
@@ -1228,11 +1228,11 @@ int npp_make_equality(NPP *npp, NPPROW *p)
       struct make_equality *info;
       glp_double b, eps, nint;
       /* the row must be double-sided inequality */
-      xassert(p->lb != -DBL_MAX);
-      xassert(p->ub != +DBL_MAX);
+      xassert(p->lb != -GLP_DBL_MAX);
+      xassert(p->ub != +GLP_DBL_MAX);
       xassert(p->lb < p->ub);
       /* check row bounds */
-      eps = 1e-9 + 1e-12 * fabs(p->lb);
+      eps = GLP_MKEQ_EPS * fabs(p->lb);
       if (p->ub - p->lb > eps) return 0;
       /* row bounds are very close to each other */
       /* create transformation stack entry */
@@ -1370,11 +1370,11 @@ int npp_make_fixed(NPP *npp, NPPCOL *q)
       NPPLFE *lfe;
       glp_double s, eps, nint;
       /* the column must be double-bounded */
-      xassert(q->lb != -DBL_MAX);
-      xassert(q->ub != +DBL_MAX);
+      xassert(q->lb != -GLP_DBL_MAX);
+      xassert(q->ub != +GLP_DBL_MAX);
       xassert(q->lb < q->ub);
       /* check column bounds */
-      eps = 1e-9 + 1e-12 * fabs(q->lb);
+      eps = GLP_MKEQ_EPS * fabs(q->lb);
       if (q->ub - q->lb > eps) return 0;
       /* column bounds are very close to each other */
       /* create transformation stack entry */

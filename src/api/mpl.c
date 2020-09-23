@@ -148,7 +148,7 @@ void glp_mpl_build_prob(glp_tran *tran, glp_prob *prob)
             case MPL_FX: type = GLP_FX; break;
             default: xassert(type != type);
          }
-         if (type == GLP_DB && fabs(lb - ub) < 1e-9 * (1.0 + fabs(lb)))
+         if (type == GLP_DB && fabs(lb - ub) < GLP_MPL_MIN_9 * (1.0 + fabs(lb)))
          {  type = GLP_FX;
             if (fabs(lb) <= fabs(ub)) ub = lb; else lb = ub;
          }
@@ -194,7 +194,7 @@ void glp_mpl_build_prob(glp_tran *tran, glp_prob *prob)
             if (type == GLP_FR || type == GLP_LO || ub > 1.0) ub = 1.0;
             type = GLP_DB;
          }
-         if (type == GLP_DB && fabs(lb - ub) < 1e-9 * (1.0 + fabs(lb)))
+         if (type == GLP_DB && fabs(lb - ub) < GLP_MPL_MIN_9 * (1.0 + fabs(lb)))
          {  type = GLP_FX;
             if (fabs(lb) <= fabs(ub)) ub = lb; else lb = ub;
          }
@@ -276,8 +276,8 @@ int glp_mpl_postsolve(glp_tran *tran, glp_prob *prob, int sol)
          }
          else
             xassert(sol != sol);
-         if (fabs(prim) < 1e-9) prim = 0.0;
-         if (fabs(dual) < 1e-9) dual = 0.0;
+         if (fabs(prim) < GLP_MPL_MIN_9) prim = 0.0;
+         if (fabs(dual) < GLP_MPL_MIN_9) dual = 0.0;
          mpl_put_row_soln(tran, i, stat, prim, dual);
       }
       for (j = 1; j <= n; j++)
@@ -298,8 +298,8 @@ int glp_mpl_postsolve(glp_tran *tran, glp_prob *prob, int sol)
          }
          else
             xassert(sol != sol);
-         if (fabs(prim) < 1e-9) prim = 0.0;
-         if (fabs(dual) < 1e-9) dual = 0.0;
+         if (fabs(prim) < GLP_MPL_MIN_9) prim = 0.0;
+         if (fabs(dual) < GLP_MPL_MIN_9) dual = 0.0;
          mpl_put_col_soln(tran, j, stat, prim, dual);
       }
       ret = mpl_postsolve(tran);
@@ -370,7 +370,7 @@ lprec *glp_lpsolve_mpl_build_prob(glp_tran *tran)
       if (type == MPL_FR || type == MPL_LO || ub > 1.0) ub = 1.0;
       type = MPL_DB;
     }
-    if (type == MPL_DB && fabs(lb - ub) < 1e-9 * (1.0 + fabs(lb))) {
+    if (type == MPL_DB && fabs(lb - ub) < GLP_MPL_MIN_9 * (1.0 + fabs(lb))) {
       type = MPL_FX;
       if (fabs(lb) <= fabs(ub)) ub = lb; else lb = ub;
     }
@@ -444,7 +444,7 @@ lprec *glp_lpsolve_mpl_build_prob(glp_tran *tran)
     }
     if(type == MPL_FR)
       continue;
-    if (type == MPL_DB && fabs(lb - ub) < 1e-9 * (1.0 + fabs(lb))) {
+    if (type == MPL_DB && fabs(lb - ub) < GLP_MPL_MIN_9 * (1.0 + fabs(lb))) {
       type = MPL_FX;
       if (fabs(lb) <= fabs(ub))
         ub = lb;
@@ -535,8 +535,8 @@ int glp_lpsolve_mpl_postsolve(glp_tran *tran, lprec *lp, int sol)
          dual = get_var_dualresult(lp, i);
          //dual = lp->int_vars ? get_var_dualresult(lp, i) : 0.0;
 
-         if (fabs(prim) < 1e-9) prim = 0.0;
-         if (fabs(dual) < 1e-9) dual = 0.0;
+         if (fabs(prim) < GLP_MPL_MIN_9) prim = 0.0;
+         if (fabs(dual) < GLP_MPL_MIN_9) dual = 0.0;
          mpl_put_row_soln(tran, i+1, stat, prim, dual);
       }
       for (j = 1; j <= n; j++)
@@ -544,8 +544,8 @@ int glp_lpsolve_mpl_postsolve(glp_tran *tran, lprec *lp, int sol)
          stat = 0;//glp_get_col_stat(prob, j+m-1);
          prim = get_var_primalresult(lp, j+m-1);
          dual = lp->int_vars ? get_var_dualresult(lp, j+m-1) : 0.0;
-         if (fabs(prim) < 1e-9) prim = 0.0;
-         if (fabs(dual) < 1e-9) dual = 0.0;
+         if (fabs(prim) < GLP_MPL_MIN_9) prim = 0.0;
+         if (fabs(dual) < GLP_MPL_MIN_9) dual = 0.0;
          mpl_put_col_soln(tran, j, stat, prim, dual);
       }
       ret = mpl_postsolve(tran);
@@ -602,7 +602,7 @@ Cbc_Model *glp_cbc_mpl_build_prob(glp_tran *tran)
       if (type == MPL_FR || type == MPL_LO || ub > 1.0) ub = 1.0;
       type = MPL_DB;
     }
-    if (type == MPL_DB && fabs(lb - ub) < 1e-9 * (1.0 + fabs(lb))) {
+    if (type == MPL_DB && fabs(lb - ub) < GLP_MPL_MIN_9 * (1.0 + fabs(lb))) {
       type = MPL_FX;
       if (fabs(lb) <= fabs(ub)) ub = lb; else lb = ub;
     }
@@ -667,7 +667,7 @@ Cbc_Model *glp_cbc_mpl_build_prob(glp_tran *tran)
     }
     if(type == MPL_FR)
       continue;
-    if (type == MPL_DB && fabs(lb - ub) < 1e-9 * (1.0 + fabs(lb))) {
+    if (type == MPL_DB && fabs(lb - ub) < GLP_MPL_MIN_9 * (1.0 + fabs(lb))) {
       type = MPL_FX;
       if (fabs(lb) <= fabs(ub))
         ub = lb;
@@ -759,8 +759,8 @@ int glp_cbc_mpl_postsolve(glp_tran *tran, Cbc_Model *lp, int sol)
          dual = get_var_dualresult(lp, i);
          //dual = lp->int_vars ? get_var_dualresult(lp, i) : 0.0;
 
-         if (fabs(prim) < 1e-9) prim = 0.0;
-         if (fabs(dual) < 1e-9) dual = 0.0;
+         if (fabs(prim) < GLP_MPL_MIN_9) prim = 0.0;
+         if (fabs(dual) < GLP_MPL_MIN_9) dual = 0.0;
          mpl_put_row_soln(tran, i+1, stat, prim, dual);
       }
       for (j = 1; j <= n; j++)
@@ -768,8 +768,8 @@ int glp_cbc_mpl_postsolve(glp_tran *tran, Cbc_Model *lp, int sol)
          stat = 0;//glp_get_col_stat(prob, j+m-1);
          prim = get_var_primalresult(lp, j+m-1);
          dual = lp->int_vars ? get_var_dualresult(lp, j+m-1) : 0.0;
-         if (fabs(prim) < 1e-9) prim = 0.0;
-         if (fabs(dual) < 1e-9) dual = 0.0;
+         if (fabs(prim) < GLP_MPL_MIN_9) prim = 0.0;
+         if (fabs(dual) < GLP_MPL_MIN_9) dual = 0.0;
          mpl_put_col_soln(tran, j, stat, prim, dual);
       }
       ret = mpl_postsolve(tran);

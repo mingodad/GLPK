@@ -168,9 +168,9 @@ int fhv_ft_update(FHV *fhv, int q, int aq_len, const int aq_ind[],
       int *hh_ptr = &sva->ptr[hh_ref-1];
       int *hh_len = &sva->len[hh_ref-1];
 #if 1 /* FIXME */
-      const glp_double eps_tol = GLP_DBL_EPSILON;
-      const glp_double vpq_tol = 1e-5;
-      const glp_double err_tol = 1e-10;
+      const glp_double eps_tol = GLP_EPS_TOL;
+      const glp_double vpq_tol = GLP_VPQ_TOL;
+      const glp_double err_tol = GLP_ERR_TOL;
 #endif
       int end, i, i_end, i_ptr, j, j_end, j_ptr, k, len, nnz, p, p_end,
          p_ptr, ptr, q_end, q_ptr, s, t;

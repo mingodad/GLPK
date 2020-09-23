@@ -130,11 +130,11 @@ struct SPXLP
       glp_double *l; /* glp_double l[1+n]; */
       /* l[0] is not used;
        * l[k], 1 <= k <= n, is the lower bound of variable x[k];
-       * if x[k] has no lower bound, l[k] = -DBL_MAX */
+       * if x[k] has no lower bound, l[k] = -GLP_DBL_MAX */
       glp_double *u; /* glp_double u[1+n]; */
       /* u[0] is not used;
        * u[k], 1 <= k <= n, is the upper bound of variable u[k];
-       * if x[k] has no upper bound, u[k] = +DBL_MAX;
+       * if x[k] has no upper bound, u[k] = +GLP_DBL_MAX;
        * note that l[k] = u[k] means that x[k] is fixed variable */
       /*--------------------------------------------------------------*/
       /* LP basis */

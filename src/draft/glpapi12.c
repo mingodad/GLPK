@@ -610,12 +610,12 @@ int glp_warm_up(glp_prob *P)
          row->prim = work[row->bind];
          type = row->type;
          if (type == GLP_LO || type == GLP_DB || type == GLP_FX)
-         {  eps = 1e-6 + 1e-9 * fabs(row->lb);
+         {  eps = GLP_WARMUP_EPS * fabs(row->lb);
             if (row->prim < row->lb - eps)
                P->pbs_stat = GLP_INFEAS;
          }
          if (type == GLP_UP || type == GLP_DB || type == GLP_FX)
-         {  eps = 1e-6 + 1e-9 * fabs(row->ub);
+         {  eps = GLP_WARMUP_EPS * fabs(row->ub);
             if (row->prim > row->ub + eps)
                P->pbs_stat = GLP_INFEAS;
          }
@@ -627,12 +627,12 @@ int glp_warm_up(glp_prob *P)
          col->prim = work[col->bind];
          type = col->type;
          if (type == GLP_LO || type == GLP_DB || type == GLP_FX)
-         {  eps = 1e-6 + 1e-9 * fabs(col->lb);
+         {  eps = GLP_WARMUP_EPS * fabs(col->lb);
             if (col->prim < col->lb - eps)
                P->pbs_stat = GLP_INFEAS;
          }
          if (type == GLP_UP || type == GLP_DB || type == GLP_FX)
-         {  eps = 1e-6 + 1e-9 * fabs(col->ub);
+         {  eps = GLP_WARMUP_EPS * fabs(col->ub);
             if (col->prim > col->ub + eps)
                P->pbs_stat = GLP_INFEAS;
          }
@@ -1299,7 +1299,7 @@ int glp_prim_rtest(glp_prob *P, int len, const int ind[],
       m = glp_get_num_rows(P);
       n = glp_get_num_cols(P);
       /* initial settings */
-      piv = 0, teta = DBL_MAX, big = 0.0;
+      piv = 0, teta = GLP_DBL_MAX, big = 0.0;
       /* walk through the entries of the specified column */
       for (t = 1; t <= len; t++)
       {  /* get the ordinal number of basic variable */
@@ -1443,7 +1443,7 @@ int glp_dual_rtest(glp_prob *P, int len, const int ind[],
       /* take into account optimization direction */
       obj = (glp_get_obj_dir(P) == GLP_MIN ? +1.0 : -1.0);
       /* initial settings */
-      piv = 0, teta = DBL_MAX, big = 0.0;
+      piv = 0, teta = GLP_DBL_MAX, big = 0.0;
       /* walk through the entries of the specified row */
       for (t = 1; t <= len; t++)
       {  /* get ordinal number of non-basic variable */
@@ -1722,7 +1722,7 @@ int main(void)
       len = glp_transform_row(P, len, ind, val);
       /* finally, we simulate one step of the dual simplex method to
          obtain necessary information for the adjacent basis */
-      ret = _glp_analyze_row(P, len, ind, val, GLP_UP, rhs, 1e-9, &piv,
+      ret = _glp_analyze_row(P, len, ind, val, GLP_UP, rhs, GLP_MPL_MIN_9, &piv,
          &x, &dx, &y, &dy, &dz);
       glp_assert(ret == 0);
       glp_printf("k = %d, x = %g; dx = %g; y = %g; dy = %g; dz = %g\n",
@@ -1776,22 +1776,22 @@ int main(void)
 *  Results of the analysis have the following meaning.
 *
 *  value1 is the minimal value of the active bound, at which the basis
-*  still remains primal feasible and thus optimal. -DBL_MAX means that
+*  still remains primal feasible and thus optimal. -GLP_DBL_MAX means that
 *  the active bound has no lower limit.
 *
 *  var1 is the ordinal number of an auxiliary (1 to m) or structural
 *  (m+1 to n) basic variable, which reaches its bound first and thereby
 *  limits further decreasing the active bound being analyzed.
-*  if value1 = -DBL_MAX, var1 is set to 0.
+*  if value1 = -GLP_DBL_MAX, var1 is set to 0.
 *
 *  value2 is the maximal value of the active bound, at which the basis
-*  still remains primal feasible and thus optimal. +DBL_MAX means that
+*  still remains primal feasible and thus optimal. +GLP_DBL_MAX means that
 *  the active bound has no upper limit.
 *
 *  var2 is the ordinal number of an auxiliary (1 to m) or structural
 *  (m+1 to n) basic variable, which reaches its bound first and thereby
 *  limits further increasing the active bound being analyzed.
-*  if value2 = +DBL_MAX, var2 is set to 0. */
+*  if value2 = +GLP_DBL_MAX, var2 is set to 0. */
 
 void glp_analyze_bound(glp_prob *P, int k, glp_double *value1, int *var1,
       glp_double *value2, int *var2)
@@ -1841,11 +1841,11 @@ void glp_analyze_bound(glp_prob *P, int k, glp_double *value1, int *var1,
             kase > 0 means active bound of x[k] is increasing */
          /* use the primal ratio test to determine some basic variable
             x[p] which reaches its bound first */
-         piv = glp_prim_rtest(P, len, ind, val, kase, 1e-9);
+         piv = glp_prim_rtest(P, len, ind, val, kase, GLP_MPL_MIN_9);
          if (piv == 0)
          {  /* nothing limits changing the active bound of x[k] */
             p = 0;
-            new_x = (kase < 0 ? -DBL_MAX : +DBL_MAX);
+            new_x = (kase < 0 ? -GLP_DBL_MAX : +GLP_DBL_MAX);
             goto store;
          }
          /* basic variable x[p] limits changing the active bound of
@@ -1871,12 +1871,12 @@ void glp_analyze_bound(glp_prob *P, int k, glp_double *value1, int *var1,
          if (kase < 0 && val[piv] > 0.0 ||
              kase > 0 && val[piv] < 0.0)
          {  /* delta x[p] < 0, so x[p] goes toward its lower bound */
-            xassert(ll != -DBL_MAX);
+            xassert(ll != -GLP_DBL_MAX);
             delta = ll - xx;
          }
          else
          {  /* delta x[p] > 0, so x[p] goes toward its upper bound */
-            xassert(uu != +DBL_MAX);
+            xassert(uu != +GLP_DBL_MAX);
             delta = uu - xx;
          }
          /* delta x[p] = alfa[p,k] * delta x[k], so new x[k] = x[k] +
@@ -1925,13 +1925,13 @@ store:   /* store analysis results */
 *  Results of the analysis have the following meaning.
 *
 *  coef1 is the minimal value of the objective coefficient, at which
-*  the basis still remains dual feasible and thus optimal. -DBL_MAX
+*  the basis still remains dual feasible and thus optimal. -GLP_DBL_MAX
 *  means that the objective coefficient has no lower limit.
 *
 *  var1 is the ordinal number of an auxiliary (1 to m) or structural
 *  (m+1 to n) non-basic variable, whose reduced cost reaches its zero
 *  bound first and thereby limits further decreasing the objective
-*  coefficient being analyzed. If coef1 = -DBL_MAX, var1 is set to 0.
+*  coefficient being analyzed. If coef1 = -GLP_DBL_MAX, var1 is set to 0.
 *
 *  value1 is value of the basic variable being analyzed in an adjacent
 *  basis, which is defined as follows. Let the objective coefficient
@@ -1944,16 +1944,16 @@ store:   /* store analysis results */
 *  of the basic variable being analyzed are ignored as if it were free
 *  (unbounded) variable, so it cannot leave the basis. It may happen
 *  that no dual feasible adjacent basis exists, in which case value1 is
-*  set to -DBL_MAX or +DBL_MAX.
+*  set to -GLP_DBL_MAX or +GLP_DBL_MAX.
 *
 *  coef2 is the maximal value of the objective coefficient, at which
-*  the basis still remains dual feasible and thus optimal. +DBL_MAX
+*  the basis still remains dual feasible and thus optimal. +GLP_DBL_MAX
 *  means that the objective coefficient has no upper limit.
 *
 *  var2 is the ordinal number of an auxiliary (1 to m) or structural
 *  (m+1 to n) non-basic variable, whose reduced cost reaches its zero
 *  bound first and thereby limits further increasing the objective
-*  coefficient being analyzed. If coef2 = +DBL_MAX, var2 is set to 0.
+*  coefficient being analyzed. If coef2 = +GLP_DBL_MAX, var2 is set to 0.
 *
 *  value2 is value of the basic variable being analyzed in an adjacent
 *  basis, which is defined exactly in the same way as value1 above with
@@ -2027,10 +2027,10 @@ void glp_analyze_coef(glp_prob *P, int k, glp_double *coef1, int *var1,
             xassert(P != P);
          /* use the dual ratio test to determine non-basic variable
             x[q] whose reduced cost d[q] reaches zero bound first */
-         rpiv = glp_dual_rtest(P, rlen, rind, rval, dir, 1e-9);
+         rpiv = glp_dual_rtest(P, rlen, rind, rval, dir, GLP_MPL_MIN_9);
          if (rpiv == 0)
          {  /* nothing limits changing c[k] */
-            lim_coef = (kase < 0 ? -DBL_MAX : +DBL_MAX);
+            lim_coef = (kase < 0 ? -GLP_DBL_MAX : +GLP_DBL_MAX);
             q = 0;
             /* x[k] keeps its current value */
             new_x = x;
@@ -2101,7 +2101,7 @@ void glp_analyze_coef(glp_prob *P, int k, glp_double *coef1, int *var1,
          }
          /* use the primal ratio test to determine some basic variable
             which leaves the basis */
-         cpiv = glp_prim_rtest(P, clen, cind, cval, dir, 1e-9);
+         cpiv = glp_prim_rtest(P, clen, cind, cval, dir, GLP_MPL_MIN_9);
          /* restore original bounds of the basic variable x[k] */
          if (k <= m)
          {  row = P->row[k];
@@ -2118,11 +2118,11 @@ void glp_analyze_coef(glp_prob *P, int k, glp_double *coef1, int *var1,
             if (dir < 0 && rval[rpiv] > 0.0 ||
                 dir > 0 && rval[rpiv] < 0.0)
             {  /* delta x[k] = alfa[k,q] * delta x[q] < 0 */
-               new_x = -DBL_MAX;
+               new_x = -GLP_DBL_MAX;
             }
             else
             {  /* delta x[k] = alfa[k,q] * delta x[q] > 0 */
-               new_x = +DBL_MAX;
+               new_x = +GLP_DBL_MAX;
             }
             goto store;
          }
@@ -2150,12 +2150,12 @@ void glp_analyze_coef(glp_prob *P, int k, glp_double *coef1, int *var1,
          if (dir < 0 && cval[cpiv] > 0.0 ||
              dir > 0 && cval[cpiv] < 0.0)
          {  /* delta x[p] < 0, so x[p] goes toward its lower bound */
-            xassert(ll != -DBL_MAX);
+            xassert(ll != -GLP_DBL_MAX);
             delta = ll - xx;
          }
          else
          {  /* delta x[p] > 0, so x[p] goes toward its upper bound */
-            xassert(uu != +DBL_MAX);
+            xassert(uu != +GLP_DBL_MAX);
             delta = uu - xx;
          }
          /* compute new x[k] = x[k] + alfa[k,q] * delta x[q], where

@@ -109,11 +109,11 @@ static void prepare_row_info(int n, const glp_double a[], const glp_double l[],
       f_min = 0.0, j_min = 0;
       for (j = 1; j <= n; j++)
       {  if (a[j] > 0.0)
-         {  if (l[j] == -DBL_MAX)
+         {  if (l[j] == -GLP_DBL_MAX)
             {  if (j_min == 0)
                   j_min = j;
                else
-               {  f_min = -DBL_MAX, j_min = 0;
+               {  f_min = -GLP_DBL_MAX, j_min = 0;
                   break;
                }
             }
@@ -121,11 +121,11 @@ static void prepare_row_info(int n, const glp_double a[], const glp_double l[],
                f_min += a[j] * l[j];
          }
          else if (a[j] < 0.0)
-         {  if (u[j] == +DBL_MAX)
+         {  if (u[j] == +GLP_DBL_MAX)
             {  if (j_min == 0)
                   j_min = j;
                else
-               {  f_min = -DBL_MAX, j_min = 0;
+               {  f_min = -GLP_DBL_MAX, j_min = 0;
                   break;
                }
             }
@@ -140,11 +140,11 @@ static void prepare_row_info(int n, const glp_double a[], const glp_double l[],
       f_max = 0.0, j_max = 0;
       for (j = 1; j <= n; j++)
       {  if (a[j] > 0.0)
-         {  if (u[j] == +DBL_MAX)
+         {  if (u[j] == +GLP_DBL_MAX)
             {  if (j_max == 0)
                   j_max = j;
                else
-               {  f_max = +DBL_MAX, j_max = 0;
+               {  f_max = +GLP_DBL_MAX, j_max = 0;
                   break;
                }
             }
@@ -152,11 +152,11 @@ static void prepare_row_info(int n, const glp_double a[], const glp_double l[],
                f_max += a[j] * u[j];
          }
          else if (a[j] < 0.0)
-         {  if (l[j] == -DBL_MAX)
+         {  if (l[j] == -GLP_DBL_MAX)
             {  if (j_max == 0)
                   j_max = j;
                else
-               {  f_max = +DBL_MAX, j_max = 0;
+               {  f_max = +GLP_DBL_MAX, j_max = 0;
                   break;
                }
             }
@@ -211,8 +211,8 @@ static void prepare_row_info(int n, const glp_double a[], const glp_double l[],
 
 static void row_implied_bounds(const struct f_info *f, glp_double *LL,
       glp_double *UU)
-{     *LL = (f->j_min == 0 ? f->f_min : -DBL_MAX);
-      *UU = (f->j_max == 0 ? f->f_max : +DBL_MAX);
+{     *LL = (f->j_min == 0 ? f->f_min : -GLP_DBL_MAX);
+      *UU = (f->j_max == 0 ? f->f_max : +GLP_DBL_MAX);
       return;
 }
 
@@ -302,15 +302,15 @@ static void col_implied_bounds(const struct f_info *f, int n,
       xassert(n >= 0);
       xassert(1 <= k && k <= n);
       /* determine implied lower bound of term a[k] * x[k] (14) */
-      if (L == -DBL_MAX || f->f_max == +DBL_MAX)
-         ilb = -DBL_MAX;
+      if (L == -GLP_DBL_MAX || f->f_max == +GLP_DBL_MAX)
+         ilb = -GLP_DBL_MAX;
       else if (f->j_max == 0)
       {  if (a[k] > 0.0)
-         {  xassert(u[k] != +DBL_MAX);
+         {  xassert(u[k] != +GLP_DBL_MAX);
             ilb = L - (f->f_max - a[k] * u[k]);
          }
          else if (a[k] < 0.0)
-         {  xassert(l[k] != -DBL_MAX);
+         {  xassert(l[k] != -GLP_DBL_MAX);
             ilb = L - (f->f_max - a[k] * l[k]);
          }
          else
@@ -319,17 +319,17 @@ static void col_implied_bounds(const struct f_info *f, int n,
       else if (f->j_max == k)
          ilb = L - f->f_max;
       else
-         ilb = -DBL_MAX;
+         ilb = -GLP_DBL_MAX;
       /* determine implied upper bound of term a[k] * x[k] (15) */
-      if (U == +DBL_MAX || f->f_min == -DBL_MAX)
-         iub = +DBL_MAX;
+      if (U == +GLP_DBL_MAX || f->f_min == -GLP_DBL_MAX)
+         iub = +GLP_DBL_MAX;
       else if (f->j_min == 0)
       {  if (a[k] > 0.0)
-         {  xassert(l[k] != -DBL_MAX);
+         {  xassert(l[k] != -GLP_DBL_MAX);
             iub = U - (f->f_min - a[k] * l[k]);
          }
          else if (a[k] < 0.0)
-         {  xassert(u[k] != +DBL_MAX);
+         {  xassert(u[k] != +GLP_DBL_MAX);
             iub = U - (f->f_min - a[k] * u[k]);
          }
          else
@@ -338,7 +338,7 @@ static void col_implied_bounds(const struct f_info *f, int n,
       else if (f->j_min == k)
          iub = U - f->f_min;
       else
-         iub = +DBL_MAX;
+         iub = +GLP_DBL_MAX;
       /* determine implied bounds of x[k] (16) and (17) */
 #if 1
       /* do not use a[k] if it has small magnitude to prevent wrong
@@ -346,15 +346,15 @@ static void col_implied_bounds(const struct f_info *f, int n,
          x1 >= -10, x2, x3 >= 0, would lead to wrong conclusion that
          x1 >= 0 */
       if (fabs(a[k]) < 1e-6)
-         *ll = -DBL_MAX, *uu = +DBL_MAX; else
+         *ll = -GLP_DBL_MAX, *uu = +GLP_DBL_MAX; else
 #endif
       if (a[k] > 0.0)
-      {  *ll = (ilb == -DBL_MAX ? -DBL_MAX : ilb / a[k]);
-         *uu = (iub == +DBL_MAX ? +DBL_MAX : iub / a[k]);
+      {  *ll = (ilb == -GLP_DBL_MAX ? -GLP_DBL_MAX : ilb / a[k]);
+         *uu = (iub == +GLP_DBL_MAX ? +GLP_DBL_MAX : iub / a[k]);
       }
       else if (a[k] < 0.0)
-      {  *ll = (iub == +DBL_MAX ? -DBL_MAX : iub / a[k]);
-         *uu = (ilb == -DBL_MAX ? +DBL_MAX : ilb / a[k]);
+      {  *ll = (iub == +GLP_DBL_MAX ? -GLP_DBL_MAX : iub / a[k]);
+         *uu = (ilb == -GLP_DBL_MAX ? +GLP_DBL_MAX : ilb / a[k]);
       }
       else
          xassert(a != a);
@@ -389,7 +389,7 @@ static int check_row_bounds(const struct f_info *f, glp_double *L_,
       /* determine implied bounds of the row */
       row_implied_bounds(f, &LL, &UU);
       /* check if the original lower bound is infeasible */
-      if (L != -DBL_MAX)
+      if (L != -GLP_DBL_MAX)
       {  glp_double eps = 1e-3 * (1.0 + fabs(L));
          if (UU < L - eps)
          {  ret = 1;
@@ -397,7 +397,7 @@ static int check_row_bounds(const struct f_info *f, glp_double *L_,
          }
       }
       /* check if the original upper bound is infeasible */
-      if (U != +DBL_MAX)
+      if (U != +GLP_DBL_MAX)
       {  glp_double eps = 1e-3 * (1.0 + fabs(U));
          if (LL > U + eps)
          {  ret = 1;
@@ -405,19 +405,19 @@ static int check_row_bounds(const struct f_info *f, glp_double *L_,
          }
       }
       /* check if the original lower bound is redundant */
-      if (L != -DBL_MAX)
+      if (L != -GLP_DBL_MAX)
       {  glp_double eps = 1e-12 * (1.0 + fabs(L));
          if (LL > L - eps)
          {  /* it cannot be active, so remove it */
-            *L_ = -DBL_MAX;
+            *L_ = -GLP_DBL_MAX;
          }
       }
       /* check if the original upper bound is redundant */
-      if (U != +DBL_MAX)
+      if (U != +GLP_DBL_MAX)
       {  glp_double eps = 1e-12 * (1.0 + fabs(U));
          if (UU < U + eps)
          {  /* it cannot be active, so remove it */
-            *U_ = +DBL_MAX;
+            *U_ = +GLP_DBL_MAX;
          }
       }
 done: return ret;
@@ -464,13 +464,13 @@ static int check_col_bounds(const struct f_info *f, int n,
       col_implied_bounds(f, n, a, L, U, l, u, j, &ll, &uu);
       /* if x[j] is integral, round its implied bounds */
       if (flag)
-      {  if (ll != -DBL_MAX)
+      {  if (ll != -GLP_DBL_MAX)
             ll = (ll - floor(ll) < 1e-3 ? floor(ll) : ceil(ll));
-         if (uu != +DBL_MAX)
+         if (uu != +GLP_DBL_MAX)
             uu = (ceil(uu) - uu < 1e-3 ? ceil(uu) : floor(uu));
       }
       /* check if the original lower bound is infeasible */
-      if (lj != -DBL_MAX)
+      if (lj != -GLP_DBL_MAX)
       {  glp_double eps = 1e-3 * (1.0 + fabs(lj));
          if (uu < lj - eps)
          {  ret = 1;
@@ -478,7 +478,7 @@ static int check_col_bounds(const struct f_info *f, int n,
          }
       }
       /* check if the original upper bound is infeasible */
-      if (uj != +DBL_MAX)
+      if (uj != +GLP_DBL_MAX)
       {  glp_double eps = 1e-3 * (1.0 + fabs(uj));
          if (ll > uj + eps)
          {  ret = 1;
@@ -486,7 +486,7 @@ static int check_col_bounds(const struct f_info *f, int n,
          }
       }
       /* check if the original lower bound is redundant */
-      if (ll != -DBL_MAX)
+      if (ll != -GLP_DBL_MAX)
       {  glp_double eps = 1e-3 * (1.0 + fabs(ll));
          if (lj < ll - eps)
          {  /* it cannot be active, so tighten it */
@@ -494,7 +494,7 @@ static int check_col_bounds(const struct f_info *f, int n,
          }
       }
       /* check if the original upper bound is redundant */
-      if (uu != +DBL_MAX)
+      if (uu != +GLP_DBL_MAX)
       {  glp_double eps = 1e-3 * (1.0 + fabs(uu));
          if (uj > uu + eps)
          {  /* it cannot be active, so tighten it */
@@ -504,7 +504,7 @@ static int check_col_bounds(const struct f_info *f, int n,
       /* due to round-off errors it may happen that lj > uj (although
          lj < uj + eps, since no primal infeasibility is detected), so
          adjuct the new actual bounds to provide lj <= uj */
-      if (!(lj == -DBL_MAX || uj == +DBL_MAX))
+      if (!(lj == -GLP_DBL_MAX || uj == +GLP_DBL_MAX))
       {  glp_double t1 = fabs(lj), t2 = fabs(uj);
          glp_double eps = 1e-10 * (1.0 + (t1 <= t2 ? t1 : t2));
          if (lj > uj - eps)
@@ -537,11 +537,11 @@ static int check_efficiency(int flag, glp_double l, glp_double u, glp_double ll,
 {     int eff = 0;
       /* check efficiency for lower bound */
       if (l < ll)
-      {  if (flag || l == -DBL_MAX)
+      {  if (flag || l == -GLP_DBL_MAX)
             eff++;
          else
          {  glp_double r;
-            if (u == +DBL_MAX)
+            if (u == +GLP_DBL_MAX)
                r = 1.0 + fabs(l);
             else
                r = 1.0 + (u - l);
@@ -551,11 +551,11 @@ static int check_efficiency(int flag, glp_double l, glp_double u, glp_double ll,
       }
       /* check efficiency for upper bound */
       if (u > uu)
-      {  if (flag || u == +DBL_MAX)
+      {  if (flag || u == +GLP_DBL_MAX)
             eff++;
          else
          {  glp_double r;
-            if (l == -DBL_MAX)
+            if (l == -GLP_DBL_MAX)
                r = 1.0 + fabs(u);
             else
                r = 1.0 + (u - l);
@@ -637,7 +637,7 @@ static int basic_preprocessing(glp_prob *mip, glp_double L[], glp_double U[],
          /* increase the row processing count */
          pass[i]++;
          /* if the row is free, skip it */
-         if (L[i] == -DBL_MAX && U[i] == +DBL_MAX) continue;
+         if (L[i] == -GLP_DBL_MAX && U[i] == +GLP_DBL_MAX) continue;
          /* obtain coefficients of the row */
          len = 0;
          if (i == 0)
@@ -666,7 +666,7 @@ static int basic_preprocessing(glp_prob *mip, glp_double L[], glp_double U[],
             goto done;
          }
          /* if the row became free, drop it */
-         if (L[i] == -DBL_MAX && U[i] == +DBL_MAX) continue;
+         if (L[i] == -GLP_DBL_MAX && U[i] == +GLP_DBL_MAX) continue;
          /* process columns having non-zero coefficients in the row */
          for (k = 1; k <= len; k++)
          {  GLPCOL *col;
@@ -696,7 +696,7 @@ static int basic_preprocessing(glp_prob *mip, glp_double L[], glp_double U[],
                      skip it */
                   if (pass[ii] >= max_pass) continue;
                   /* if the row is free, skip it */
-                  if (L[ii] == -DBL_MAX && U[ii] == +DBL_MAX) continue;
+                  if (L[ii] == -GLP_DBL_MAX && U[ii] == +GLP_DBL_MAX) continue;
                   /* put the row into the list */
                   if (mark[ii] == 0)
                   {  xassert(size <= m);
@@ -750,15 +750,15 @@ int ios_preprocess_node(glp_tree *tree, int max_pass)
       U = xcalloc(1+m, sizeof(glp_double));
       switch (mip->mip_stat)
       {  case GLP_UNDEF:
-            L[0] = -DBL_MAX, U[0] = +DBL_MAX;
+            L[0] = -GLP_DBL_MAX, U[0] = +GLP_DBL_MAX;
             break;
          case GLP_FEAS:
             switch (mip->dir)
             {  case GLP_MIN:
-                  L[0] = -DBL_MAX, U[0] = mip->mip_obj - mip->c0;
+                  L[0] = -GLP_DBL_MAX, U[0] = mip->mip_obj - mip->c0;
                   break;
                case GLP_MAX:
-                  L[0] = mip->mip_obj - mip->c0, U[0] = +DBL_MAX;
+                  L[0] = mip->mip_obj - mip->c0, U[0] = +GLP_DBL_MAX;
                   break;
                default:
                   xassert(mip != mip);
@@ -791,22 +791,22 @@ int ios_preprocess_node(glp_tree *tree, int max_pass)
       for (i = 1; i <= m; i++)
       {  /* consider only non-active rows to keep dual feasibility */
          if (glp_get_row_stat(mip, i) == GLP_BS)
-         {  if (L[i] == -DBL_MAX && U[i] == +DBL_MAX)
+         {  if (L[i] == -GLP_DBL_MAX && U[i] == +GLP_DBL_MAX)
                glp_set_row_bnds(mip, i, GLP_FR, 0.0, 0.0);
-            else if (U[i] == +DBL_MAX)
+            else if (U[i] == +GLP_DBL_MAX)
                glp_set_row_bnds(mip, i, GLP_LO, L[i], 0.0);
-            else if (L[i] == -DBL_MAX)
+            else if (L[i] == -GLP_DBL_MAX)
                glp_set_row_bnds(mip, i, GLP_UP, 0.0, U[i]);
          }
       }
       /* set new actual (tightened) column bounds */
       for (j = 1; j <= n; j++)
       {  int type;
-         if (l[j] == -DBL_MAX && u[j] == +DBL_MAX)
+         if (l[j] == -GLP_DBL_MAX && u[j] == +GLP_DBL_MAX)
             type = GLP_FR;
-         else if (u[j] == +DBL_MAX)
+         else if (u[j] == +GLP_DBL_MAX)
             type = GLP_LO;
-         else if (l[j] == -DBL_MAX)
+         else if (l[j] == -GLP_DBL_MAX)
             type = GLP_UP;
          else if (l[j] != u[j])
             type = GLP_DB;
