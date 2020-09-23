@@ -138,7 +138,7 @@
 *     University of Tennessee (2001). */
 
 #define check_fvs _glp_mat_check_fvs
-int check_fvs(int n, int nnz, int ind[], double vec[]);
+int check_fvs(int n, int nnz, int ind[], glp_double vec[]);
 /* check sparse vector in full-vector storage format */
 
 #define check_pattern _glp_mat_check_pattern
@@ -146,8 +146,8 @@ int check_pattern(int m, int n, int A_ptr[], int A_ind[]);
 /* check pattern of sparse matrix */
 
 #define transpose _glp_mat_transpose
-void transpose(int m, int n, int A_ptr[], int A_ind[], double A_val[],
-      int AT_ptr[], int AT_ind[], double AT_val[]);
+void transpose(int m, int n, int A_ptr[], int A_ind[], glp_double A_val[],
+      int AT_ptr[], int AT_ind[], glp_double AT_val[]);
 /* transpose sparse matrix */
 
 #define adat_symbolic _glp_mat_adat_symbolic
@@ -157,8 +157,8 @@ int *adat_symbolic(int m, int n, int P_per[], int A_ptr[], int A_ind[],
 
 #define adat_numeric _glp_mat_adat_numeric
 void adat_numeric(int m, int n, int P_per[],
-      int A_ptr[], int A_ind[], double A_val[], double D_diag[],
-      int S_ptr[], int S_ind[], double S_val[], double S_diag[]);
+      int A_ptr[], int A_ind[], glp_double A_val[], glp_double D_diag[],
+      int S_ptr[], int S_ind[], glp_double S_val[], glp_double S_diag[]);
 /* compute S = P*A*D*A'*P' (numeric phase) */
 
 #define min_degree _glp_mat_min_degree
@@ -179,18 +179,18 @@ int *chol_symbolic(int n, int A_ptr[], int A_ind[], int U_ptr[]);
 
 #define chol_numeric _glp_mat_chol_numeric
 int chol_numeric(int n,
-      int A_ptr[], int A_ind[], double A_val[], double A_diag[],
-      int U_ptr[], int U_ind[], double U_val[], double U_diag[]);
+      int A_ptr[], int A_ind[], glp_double A_val[], glp_double A_diag[],
+      int U_ptr[], int U_ind[], glp_double U_val[], glp_double U_diag[]);
 /* compute Cholesky factorization (numeric phase) */
 
 #define u_solve _glp_mat_u_solve
-void u_solve(int n, int U_ptr[], int U_ind[], double U_val[],
-      double U_diag[], double x[]);
+void u_solve(int n, int U_ptr[], int U_ind[], glp_double U_val[],
+      glp_double U_diag[], glp_double x[]);
 /* solve upper triangular system U*x = b */
 
 #define ut_solve _glp_mat_ut_solve
-void ut_solve(int n, int U_ptr[], int U_ind[], double U_val[],
-      double U_diag[], double x[]);
+void ut_solve(int n, int U_ptr[], int U_ind[], glp_double U_val[],
+      glp_double U_diag[], glp_double x[]);
 /* solve lower triangular system U'*x = b */
 
 #endif

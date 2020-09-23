@@ -29,6 +29,8 @@
 typedef struct ENV ENV;
 typedef struct MBD MBD;
 
+#include "glpk_real.h"
+
 #define SIZE_T_MAX (~(size_t)0)
 /* largest value of size_t type */
 
@@ -112,9 +114,9 @@ struct ENV
       /* handle to ODBC shared library */
       void *h_mysql;
       /* handle to MySQL shared library */
-      double time_start;
+      glp_double time_start;
       /* start time to compute time spent */
-      double last_time_start;
+      glp_double last_time_start;
       /* last start time to compute time spent */
       size_t last_mem_tpeak;
       /* last peak value of mem_total */
@@ -300,11 +302,11 @@ int glp_close(glp_file *f);
 /* close stream */
 
 #define xtime glp_time
-double glp_time(void);
+glp_double glp_time(void);
 /* determine current universal time */
 
 #define xdifftime glp_difftime
-double glp_difftime(double t1, double t0);
+glp_double glp_difftime(glp_double t1, glp_double t0);
 /* compute difference between two time values */
 
 #define xdlopen _glp_dlopen

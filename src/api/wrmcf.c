@@ -52,17 +52,17 @@ int glp_write_mincost(glp_graph *G, int v_rhs, int a_low, int a_cap,
       glp_vertex *v;
       glp_arc *a;
       int i, count = 0, ret;
-      double rhs, low, cap, cost;
-      if (v_rhs >= 0 && v_rhs > G->v_size - (int)sizeof(double))
+      glp_double rhs, low, cap, cost;
+      if (v_rhs >= 0 && v_rhs > G->v_size - (int)sizeof(glp_double))
          xerror("glp_write_mincost: v_rhs = %d; invalid offset\n",
             v_rhs);
-      if (a_low >= 0 && a_low > G->a_size - (int)sizeof(double))
+      if (a_low >= 0 && a_low > G->a_size - (int)sizeof(glp_double))
          xerror("glp_write_mincost: a_low = %d; invalid offset\n",
             a_low);
-      if (a_cap >= 0 && a_cap > G->a_size - (int)sizeof(double))
+      if (a_cap >= 0 && a_cap > G->a_size - (int)sizeof(glp_double))
          xerror("glp_write_mincost: a_cap = %d; invalid offset\n",
             a_cap);
-      if (a_cost >= 0 && a_cost > G->a_size - (int)sizeof(double))
+      if (a_cost >= 0 && a_cost > G->a_size - (int)sizeof(glp_double))
          xerror("glp_write_mincost: a_cost = %d; invalid offset\n",
             a_cost);
       xprintf("Writing min-cost flow problem data to '%s'...\n",
@@ -79,7 +79,7 @@ int glp_write_mincost(glp_graph *G, int v_rhs, int a_low, int a_cap,
       if (v_rhs >= 0)
       {  for (i = 1; i <= G->nv; i++)
          {  v = G->v[i];
-            memcpy(&rhs, (char *)v->data + v_rhs, sizeof(double));
+            memcpy(&rhs, (char *)v->data + v_rhs, sizeof(glp_double));
             if (rhs != 0.0)
                xfprintf(fp, "n %d %.*g\n", i, DBL_DIG, rhs), count++;
          }
@@ -88,15 +88,15 @@ int glp_write_mincost(glp_graph *G, int v_rhs, int a_low, int a_cap,
       {  v = G->v[i];
          for (a = v->out; a != NULL; a = a->t_next)
          {  if (a_low >= 0)
-               memcpy(&low, (char *)a->data + a_low, sizeof(double));
+               memcpy(&low, (char *)a->data + a_low, sizeof(glp_double));
             else
                low = 0.0;
             if (a_cap >= 0)
-               memcpy(&cap, (char *)a->data + a_cap, sizeof(double));
+               memcpy(&cap, (char *)a->data + a_cap, sizeof(glp_double));
             else
                cap = 1.0;
             if (a_cost >= 0)
-               memcpy(&cost, (char *)a->data + a_cost, sizeof(double));
+               memcpy(&cost, (char *)a->data + a_cost, sizeof(glp_double));
             else
                cost = 0.0;
             xfprintf(fp, "a %d %d %.*g %.*g %.*g\n",

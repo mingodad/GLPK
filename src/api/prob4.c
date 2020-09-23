@@ -31,14 +31,14 @@
 *
 *  SYNOPSIS
 *
-*  void glp_set_rii(glp_prob *lp, int i, double rii);
+*  void glp_set_rii(glp_prob *lp, int i, glp_double rii);
 *
 *  DESCRIPTION
 *
 *  The routine glp_set_rii sets (changes) the scale factor r[i,i] for
 *  i-th row of the specified problem object. */
 
-void glp_set_rii(glp_prob *lp, int i, double rii)
+void glp_set_rii(glp_prob *lp, int i, glp_double rii)
 {     if (!(1 <= i && i <= lp->m))
          xerror("glp_set_rii: i = %d; row number out of range\n", i);
       if (rii <= 0.0)
@@ -65,14 +65,14 @@ void glp_set_rii(glp_prob *lp, int i, double rii)
 *
 *  SYNOPSIS
 *
-*  void glp_set_sjj(glp_prob *lp, int j, double sjj);
+*  void glp_set_sjj(glp_prob *lp, int j, glp_double sjj);
 *
 *  DESCRIPTION
 *
 *  The routine glp_set_sjj sets (changes) the scale factor s[j,j] for
 *  j-th column of the specified problem object. */
 
-void glp_set_sjj(glp_prob *lp, int j, double sjj)
+void glp_set_sjj(glp_prob *lp, int j, glp_double sjj)
 {     if (!(1 <= j && j <= lp->n))
          xerror("glp_set_sjj: j = %d; column number out of range\n", j);
       if (sjj <= 0.0)
@@ -94,14 +94,14 @@ void glp_set_sjj(glp_prob *lp, int j, double sjj)
 *
 *  SYNOPSIS
 *
-*  double glp_get_rii(glp_prob *lp, int i);
+*  glp_double glp_get_rii(glp_prob *lp, int i);
 *
 *  RETURNS
 *
 *  The routine glp_get_rii returns current scale factor r[i,i] for i-th
 *  row of the specified problem object. */
 
-double glp_get_rii(glp_prob *lp, int i)
+glp_double glp_get_rii(glp_prob *lp, int i)
 {     if (!(1 <= i && i <= lp->m))
          xerror("glp_get_rii: i = %d; row number out of range\n", i);
       return lp->row[i]->rii;
@@ -114,14 +114,14 @@ double glp_get_rii(glp_prob *lp, int i)
 *
 *  SYNOPSIS
 *
-*  double glp_get_sjj(glp_prob *lp, int j);
+*  glp_double glp_get_sjj(glp_prob *lp, int j);
 *
 *  RETURNS
 *
 *  The routine glp_get_sjj returns current scale factor s[j,j] for j-th
 *  column of the specified problem object. */
 
-double glp_get_sjj(glp_prob *lp, int j)
+glp_double glp_get_sjj(glp_prob *lp, int j)
 {     if (!(1 <= j && j <= lp->n))
          xerror("glp_get_sjj: j = %d; column number out of range\n", j);
       return lp->col[j]->sjj;

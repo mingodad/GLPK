@@ -65,33 +65,33 @@ struct IFU
       /* maximal order of matrices A, F, U; n_max >= 1 */
       int n;
       /* current order of matrices A, F, U; 0 <= n <= n_max */
-      double *f; /* double f[n_max*n_max]; */
+      glp_double *f; /* glp_double f[n_max*n_max]; */
       /* matrix F stored by rows */
-      double *u; /* double u[n_max*n_max]; */
+      glp_double *u; /* glp_double u[n_max*n_max]; */
       /* matrix U stored by rows */
 };
 
 #define ifu_expand _glp_ifu_expand
-void ifu_expand(IFU *ifu, double c[/*1+n*/], double r[/*1+n*/],
-      double d);
+void ifu_expand(IFU *ifu, glp_double c[/*1+n*/], glp_double r[/*1+n*/],
+      glp_double d);
 /* expand IFU-factorization */
 
 #define ifu_bg_update _glp_ifu_bg_update
-int ifu_bg_update(IFU *ifu, double c[/*1+n*/], double r[/*1+n*/],
-      double d);
+int ifu_bg_update(IFU *ifu, glp_double c[/*1+n*/], glp_double r[/*1+n*/],
+      glp_double d);
 /* update IFU-factorization (Bartels-Golub) */
 
 #define ifu_gr_update _glp_ifu_gr_update
-int ifu_gr_update(IFU *ifu, double c[/*1+n*/], double r[/*1+n*/],
-      double d);
+int ifu_gr_update(IFU *ifu, glp_double c[/*1+n*/], glp_double r[/*1+n*/],
+      glp_double d);
 /* update IFU-factorization (Givens rotations) */
 
 #define ifu_a_solve _glp_ifu_a_solve
-void ifu_a_solve(IFU *ifu, double x[/*1+n*/], double w[/*1+n*/]);
+void ifu_a_solve(IFU *ifu, glp_double x[/*1+n*/], glp_double w[/*1+n*/]);
 /* solve system A * x = b */
 
 #define ifu_at_solve _glp_ifu_at_solve
-void ifu_at_solve(IFU *ifu, double x[/*1+n*/], double w[/*1+n*/]);
+void ifu_at_solve(IFU *ifu, glp_double x[/*1+n*/], glp_double w[/*1+n*/]);
 /* solve system A'* x = b */
 
 #endif

@@ -45,7 +45,7 @@ struct bnd
        * z != 0, it is a variable bound x >= or <= a * z + b */
       int z;
       /* number of binary variable or 0 */
-      double a, b;
+      glp_double a, b;
       /* bound parameters */
 };
 
@@ -101,13 +101,13 @@ static void init_bounds(struct csa *csa)
 *  of variables x and z and values of a and b. Otherwise, the routine
 *  returns zero. */
 
-static int check_vb(struct csa *csa, int i, int *x, int *z, double *a,
-      double *b)
+static int check_vb(struct csa *csa, int i, int *x, int *z, glp_double *a,
+      glp_double *b)
 {     glp_prob *P = csa->P;
       GLPROW *row;
       GLPAIJ *a1, *a2;
       int type;
-      double rhs;
+      glp_double rhs;
       xassert(1 <= i && i <= P->m);
       row = P->row[i];
       /* check row type */
@@ -172,8 +172,8 @@ static int check_vb(struct csa *csa, int i, int *x, int *z, double *a,
 *
 *     x <= a * z + b    (type = GLP_UP) */
 
-static void set_vb(struct csa *csa, int type, int x, int z, double a,
-      double b)
+static void set_vb(struct csa *csa, int type, int x, int z, glp_double a,
+      glp_double b)
 {     glp_prob *P = csa->P;
       struct bnd *l = csa->l, *u = csa->u;
       xassert(glp_get_col_type(P, x) != GLP_FX);
@@ -205,7 +205,7 @@ static void set_vb(struct csa *csa, int type, int x, int z, double a,
 static void obtain_vbs(struct csa *csa)
 {     glp_prob *P = csa->P;
       int i, x, z, type, save;
-      double a, b;
+      glp_double a, b;
       for (i = 1; i <= P->m; i++)
       {  switch (P->row[i]->type)
          {  case GLP_FR:
@@ -249,7 +249,7 @@ static void obtain_vbs(struct csa *csa)
 *  where v is a sparse vector in full storage format, a is a non-zero
 *  scalar, e[j] is j-th column of unity matrix. */
 
-static void add_term(FVS *v, int j, double a)
+static void add_term(FVS *v, int j, glp_double a)
 {     xassert(1 <= j && j <= v->n);
       xassert(a != 0);
       if (v->vec[j] == 0)
@@ -302,8 +302,8 @@ static void add_term(FVS *v, int j, double a)
 *  lower/upper bounds of some variable, the routine returns a negative
 *  value. */
 
-static int build_ks(struct csa *csa, int n, int ind[], double a[],
-      double *b, FVS *v)
+static int build_ks(struct csa *csa, int n, int ind[], glp_double a[],
+      glp_double *b, FVS *v)
 {     glp_prob *P = csa->P;
       struct bnd *l = csa->l, *u = csa->u;
       int j, k;
@@ -379,9 +379,9 @@ skip: /* restore zero content of v */
 *
 *  can be active. If so, the routine returns true, otherwise false. */
 
-static int can_be_active(int n, const double a[], double b)
+static int can_be_active(int n, const glp_double a[], glp_double b)
 {     int j;
-      double s;
+      glp_double s;
       s = 0;
       for (j = 1; j <= n; j++)
       {  if (a[j] > 0)
@@ -428,7 +428,7 @@ static int can_be_active(int n, const double a[], double b)
 *  we have that the original inequality is equivalent to (2), where
 *  J' = {j : a[j] > 0} and J" = {j : a[j] < 0}. */
 
-static int is_sos_ineq(int n, const double a[], double b)
+static int is_sos_ineq(int n, const glp_double a[], glp_double b)
 {     int j, p, q;
       xassert(n >= 2);
       /* compute b := b - sum{j : a[j] < 0} */
@@ -471,8 +471,8 @@ static int is_sos_ineq(int n, const double a[], double b)
 *
 *  Note that the arrays ind and a are not saved on exit. */
 
-static void process_ineq(struct csa *csa, int n, int ind[], double a[],
-      double b, FVS *v)
+static void process_ineq(struct csa *csa, int n, int ind[], glp_double a[],
+      glp_double b, FVS *v)
 {     int i;
       /* attempt to transform the specified inequality to equivalent or
        * relaxed "0-1 knapsack" inequality */
@@ -505,7 +505,7 @@ glp_cov *glp_cov_init(glp_prob *P)
       glp_cov *cov;
       struct csa csa;
       int i, k, len, *ind;
-      double rhs, *val;
+      glp_double rhs, *val;
       FVS fvs;
       csa.P = P;
       csa.l = talloc(1+P->n, struct bnd);
@@ -518,7 +518,7 @@ glp_cov *glp_cov_init(glp_prob *P)
       obtain_vbs(&csa);
       /* allocate working arrays */
       ind = talloc(1+P->n, int);
-      val = talloc(1+P->n, double);
+      val = talloc(1+P->n, glp_double);
       fvs_alloc_vec(&fvs, P->n);
       /* process all rows of the root mip */
       for (i = 1; i <= P->m; i++)
@@ -704,10 +704,10 @@ static int solve_ks(int n, const int a[], int b, const int c[],
 *  (The constant term zeta0 doesn't affect the solution, so it can be
 *  dropped.) */
 
-static double simple_cover(int n, const double a[], double b, const
-      double x[], char z[])
+static glp_double simple_cover(int n, const glp_double a[], glp_double b, const
+      glp_double x[], char z[])
 {     int j, *aa, bb, *cc;
-      double max_aj, min_aj, s, eps;
+      glp_double max_aj, min_aj, s, eps;
       xassert(n >= 3);
       /* allocate working arrays */
       aa = talloc(1+n, int);
@@ -777,14 +777,14 @@ skip: /* free working arrays */
 void glp_cov_gen1(glp_prob *P, glp_cov *cov, glp_prob *pool)
 {     /* generate locally valid simple cover cuts */
       int i, k, len, new_len, *ind;
-      double *val, rhs, *x, zeta;
+      glp_double *val, rhs, *x, zeta;
       char *z;
       xassert(P->n == cov->n && P->n == cov->set->n);
       xassert(glp_get_status(P) == GLP_OPT);
       /* allocate working arrays */
       ind = talloc(1+P->n, int);
-      val = talloc(1+P->n, double);
-      x = talloc(1+P->n, double);
+      val = talloc(1+P->n, glp_double);
+      x = talloc(1+P->n, glp_double);
       z = talloc(1+P->n, char);
       /* walk thru 0-1 knapsack inequalities */
       for (i = 1; i <= cov->set->m; i++)

@@ -52,14 +52,14 @@ int glp_write_maxflow(glp_graph *G, int s, int t, int a_cap,
       glp_vertex *v;
       glp_arc *a;
       int i, count = 0, ret;
-      double cap;
+      glp_double cap;
       if (!(1 <= s && s <= G->nv))
          xerror("glp_write_maxflow: s = %d; source node number out of r"
             "ange\n", s);
       if (!(1 <= t && t <= G->nv))
          xerror("glp_write_maxflow: t = %d: sink node number out of ran"
             "ge\n", t);
-      if (a_cap >= 0 && a_cap > G->a_size - (int)sizeof(double))
+      if (a_cap >= 0 && a_cap > G->a_size - (int)sizeof(glp_double))
          xerror("glp_write_mincost: a_cap = %d; invalid offset\n",
             a_cap);
       xprintf("Writing maximum flow problem data to '%s'...\n",
@@ -79,7 +79,7 @@ int glp_write_maxflow(glp_graph *G, int s, int t, int a_cap,
       {  v = G->v[i];
          for (a = v->out; a != NULL; a = a->t_next)
          {  if (a_cap >= 0)
-               memcpy(&cap, (char *)a->data + a_cap, sizeof(double));
+               memcpy(&cap, (char *)a->data + a_cap, sizeof(glp_double));
             else
                cap = 1.0;
             xfprintf(fp, "a %d %d %.*g\n",

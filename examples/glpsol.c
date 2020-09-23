@@ -193,9 +193,9 @@ static int str2int(const char *s, int *x)
       return 0;
 }
 
-static int str2num(const char *s, double *x)
+static int str2num(const char *s, glp_double *x)
 {     /* convert string to floating point */
-      double t;
+      glp_double t;
       char *endptr;
       t = strtod(s, &endptr);
       if (*endptr != '\0')
@@ -920,7 +920,7 @@ static int parse_cmdline(struct csa *csa, int argc, char *argv[])
             csa->iocp.gmi_cuts = csa->iocp.mir_cuts =
             csa->iocp.cov_cuts = csa->iocp.clq_cuts = GLP_ON;
          else if (p("--mipgap"))
-         {  double mip_gap;
+         {  glp_double mip_gap;
             k++;
             if (k == argc || argv[k][0] == '\0' || argv[k][0] == '-')
             {  xprintf("No relative gap tolerance specified\n");
@@ -996,8 +996,8 @@ static int parse_cmdline(struct csa *csa, int argc, char *argv[])
       return 0;
 }
 
-typedef struct { double rhs, pi; } v_data;
-typedef struct { double low, cap, cost, x; } a_data;
+typedef struct { glp_double rhs, pi; } v_data;
+typedef struct { glp_double low, cap, cost, x; } a_data;
 
 static int solve_callback(glp_tran *tran, int sol_type, void *udata)
 {
@@ -1168,7 +1168,7 @@ int __cdecl main(int argc, char *argv[])
 #if 0 /* 10/VI-2013 */
       glp_long start;
 #else
-      double start;
+      glp_double start;
 #endif
       /* perform initialization */
       csa->prob = glp_create_prob();
@@ -1664,7 +1664,7 @@ err2:    {  xprintf("MathProg model processing error\n");
       {  size_t tpeak;
          glp_mem_usage(NULL, NULL, NULL, &tpeak);
          xprintf("Memory used: %.1f Mb (%.0f bytes)\n",
-            (double)tpeak / 1048576.0, (double)tpeak);
+            (glp_double)tpeak / 1048576.0, (glp_double)tpeak);
       }
 #endif
       /*--------------------------------------------------------------*/

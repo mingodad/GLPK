@@ -82,8 +82,8 @@
 *
 ************************************************************************
 *
-* int proxy(glp_prob *lp, double *zstar, double *xstar,
-*           const double[] initsol, double rel_impr, int tlim,
+* int proxy(glp_prob *lp, glp_double *zstar, glp_double *xstar,
+*           const glp_double[] initsol, glp_double rel_impr, int tlim,
 *           int verbose)
 *
 * lp       : GLPK problem pointer to a MIP with binary variables
@@ -151,15 +151,15 @@ int b_vars_exist;       /* TRUE if there is at least one binary
                            variable in the problem */
 int i_vars_exist;       /* TRUE if there is at least one general
                            integer variable in the problem */
-const double *startsol; /* Pointer to the initial solution */
+const glp_double *startsol; /* Pointer to the initial solution */
 
 int *ckind;             /* Store the kind of the structural variables
                            of the problem */
-double *clb;            /* Store the lower bound on the structural
+glp_double *clb;            /* Store the lower bound on the structural
                            variables of the problem */
-double *cub;            /* Store the upper bound on the structural
+glp_double *cub;            /* Store the upper bound on the structural
                            variables of the problem */
-double *true_obj;       /* Store the obj coefficients of the problem */
+glp_double *true_obj;       /* Store the obj coefficients of the problem */
 
 int dir;                /* Minimization or maximization problem */
 int ncols;              /* Number of structural variables of the
@@ -179,22 +179,22 @@ static void callback(glp_tree *tree, void *info);
 static void get_info(struct csa *csa, glp_prob *lp);
 static int is_integer(struct csa *csa);
 static void check_integrality(struct csa *csa);
-static int check_ref(struct csa *csa, glp_prob *lp, double *xref);
-static double second(void);
+static int check_ref(struct csa *csa, glp_prob *lp, glp_double *xref);
+static glp_double second(void);
 static int add_cutoff(struct csa *csa, glp_prob *lp);
-static void get_sol(struct csa *csa, glp_prob *lp, double *xstar);
-static double elapsed_time(struct csa *csa);
-static void redefine_obj(glp_prob *lp, double *xtilde, int ncols,
-                         int *ckind, double *clb, double *cub);
-static double update_cutoff(struct csa *csa, glp_prob *lp,
-                            double zstar, int index, double rel_impr);
-static double compute_delta(struct csa *csa, double z,
-                            double rel_impr);
-static double objval(int ncols, double *x, double *true_obj);
-static void array_copy(int begin, int end, double *source,
-                       double *destination);
+static void get_sol(struct csa *csa, glp_prob *lp, glp_double *xstar);
+static glp_double elapsed_time(struct csa *csa);
+static void redefine_obj(glp_prob *lp, glp_double *xtilde, int ncols,
+                         int *ckind, glp_double *clb, glp_double *cub);
+static glp_double update_cutoff(struct csa *csa, glp_prob *lp,
+                            glp_double zstar, int index, glp_double rel_impr);
+static glp_double compute_delta(struct csa *csa, glp_double z,
+                            glp_double rel_impr);
+static glp_double objval(int ncols, glp_double *x, glp_double *true_obj);
+static void array_copy(int begin, int end, glp_double *source,
+                       glp_double *destination);
 static int do_refine(struct csa *csa, glp_prob *lp_ref, int ncols,
-                     int *ckind, double *xref, int *tlim, int tref_lim,
+                     int *ckind, glp_double *xref, int *tlim, int tref_lim,
                      int verbose);
 static void deallocate(struct csa *csa, int refine);
 
@@ -202,8 +202,8 @@ static void deallocate(struct csa *csa, int refine);
 /* 5. FUNCTIONS                                                       */
 /**********************************************************************/
 
-int proxy(glp_prob *lp, double *zfinal, double *xfinal,
-          const double initsol[], double rel_impr, int tlim,
+int proxy(glp_prob *lp, glp_double *zfinal, glp_double *xfinal,
+          const glp_double initsol[], glp_double rel_impr, int tlim,
           int verbose)
 
 {   struct csa csa_, *csa = &csa_;
@@ -211,7 +211,7 @@ int proxy(glp_prob *lp, double *zfinal, double *xfinal,
     glp_smcp parm_lp;
     size_t tpeak;
     int refine, tref_lim, err, cutoff_row, niter, status, i, tout;
-    double *xref, *xstar, zstar, tela, cutoff, zz;
+    glp_double *xref, *xstar, zstar, tela, cutoff, zz;
 
     memset(csa, 0, sizeof(struct csa));
 
@@ -251,9 +251,9 @@ int proxy(glp_prob *lp, double *zfinal, double *xfinal,
        variables are binary. If so, the routine creates a copy of the
        lp problem named lp_ref and initializes the solution xref to
        zero. */
-    xref = talloc(csa->ncols+1, double);
+    xref = talloc(csa->ncols+1, glp_double);
 #if 0 /* by mao */
-    memset(xref, 0, sizeof(double)*(csa->ncols+1));
+    memset(xref, 0, sizeof(glp_double)*(csa->ncols+1));
 #endif
     refine = check_ref(csa, lp, xref);
 #ifdef PROXY_DEBUG
@@ -261,9 +261,9 @@ int proxy(glp_prob *lp, double *zfinal, double *xfinal,
 #endif
 
     /* Initializing the solution */
-    xstar = talloc(csa->ncols+1, double);
+    xstar = talloc(csa->ncols+1, glp_double);
 #if 0 /* by mao */
-    memset(xstar, 0, sizeof(double)*(csa->ncols+1));
+    memset(xstar, 0, sizeof(glp_double)*(csa->ncols+1));
 #endif
 
     /**********                         **********/
@@ -415,7 +415,7 @@ int proxy(glp_prob *lp, double *zfinal, double *xfinal,
     glp_mem_usage(NULL, NULL, NULL, &tpeak);
     if (verbose) {
         xprintf("Time used: %3.1lf secs.  Memory used: %2.1lf Mb\n",
-                tela,(double)tpeak/1048576);
+                tela,(glp_double)tpeak/1048576);
         xprintf("Starting proximity search...\n");
     }
 
@@ -575,7 +575,7 @@ int proxy(glp_prob *lp, double *zfinal, double *xfinal,
                     err = do_refine(csa, csa->lp_ref, csa->ncols,
                           csa->ckind, xref, &tlim, tref_lim, verbose);
                     if (!err) {
-                        double zref = objval(csa->ncols, xref,
+                        glp_double zref = objval(csa->ncols, xref,
                                              csa->true_obj);
                         if (((zref<zz) && (csa->dir == GLP_MIN)) ||
                             ((zref>zz) && (csa->dir == GLP_MAX))) {
@@ -601,7 +601,7 @@ done:
     glp_mem_usage(NULL, NULL, NULL, &tpeak);
     if (verbose) {
         xprintf("Time used: %3.1lf.  Memory used: %2.1lf Mb\n",
-                tela,(double)tpeak/1048576);
+                tela,(glp_double)tpeak/1048576);
     }
 
 
@@ -644,17 +644,17 @@ static void get_info(struct csa *csa, glp_prob *lp)
 #if 0 /* by mao */
     memset(csa->ckind, 0, sizeof(int)*(csa->ncols+1));
 #endif
-    csa->clb = talloc(csa->ncols+1, double);
+    csa->clb = talloc(csa->ncols+1, glp_double);
 #if 0 /* by mao */
-    memset(csa->clb, 0, sizeof(double)*(csa->ncols+1));
+    memset(csa->clb, 0, sizeof(glp_double)*(csa->ncols+1));
 #endif
-    csa->cub = talloc(csa->ncols+1, double);
+    csa->cub = talloc(csa->ncols+1, glp_double);
 #if 0 /* by mao */
-    memset(csa->cub, 0, sizeof(double)*(csa->ncols+1));
+    memset(csa->cub, 0, sizeof(glp_double)*(csa->ncols+1));
 #endif
-    csa->true_obj = talloc(csa->ncols+1, double);
+    csa->true_obj = talloc(csa->ncols+1, glp_double);
 #if 0 /* by mao */
-    memset(csa->true_obj, 0, sizeof(double)*(csa->ncols+1));
+    memset(csa->true_obj, 0, sizeof(glp_double)*(csa->ncols+1));
 #endif
         for( i = 1 ; i < (csa->ncols + 1); i++ ) {
             csa->ckind[i] = glp_get_col_kind(lp, i);
@@ -676,7 +676,7 @@ static int is_integer(struct csa *csa)
             csa->integer_obj = FALSE;
         }
         if (fabs(csa->true_obj[i]) <= INT_MAX) {
-            double tmp, rem;
+            glp_double tmp, rem;
             if (fabs(csa->true_obj[i]) - floor(fabs(csa->true_obj[i]))
                 < 0.5) {
                 tmp = floor(fabs(csa->true_obj[i]));
@@ -723,7 +723,7 @@ static void check_integrality(struct csa *csa)
 }
 
 /**********************************************************************/
-static int check_ref(struct csa *csa, glp_prob *lp, double *xref)
+static int check_ref(struct csa *csa, glp_prob *lp, glp_double *xref)
 /**********************************************************************/
 {
     /*
@@ -749,11 +749,11 @@ static int check_ref(struct csa *csa, glp_prob *lp, double *xref)
 }
 
 /**********************************************************************/
-static double second(void)
+static glp_double second(void)
 /**********************************************************************/
 {
 #if 0 /* by mao */
-    return ((double)clock()/(double)CLOCKS_PER_SEC);
+    return ((glp_double)clock()/(glp_double)CLOCKS_PER_SEC);
 #else
     return xtime() / 1000.0;
 #endif
@@ -774,9 +774,9 @@ static int add_cutoff(struct csa *csa, glp_prob *lp)
 #if 0 /* by mao */
     memset(obj_index, 0, sizeof(int)*(csa->ncols+1));
 #endif
-    double *obj_value = talloc(csa->ncols+1, double);
+    glp_double *obj_value = talloc(csa->ncols+1, glp_double);
 #if 0 /* by mao */
-    memset(obj_value, 0, sizeof(double)*(csa->ncols+1));
+    memset(obj_value, 0, sizeof(glp_double)*(csa->ncols+1));
 #endif
     int obj_nzcnt = 0;
     int i, irow;
@@ -810,7 +810,7 @@ static int add_cutoff(struct csa *csa, glp_prob *lp)
 }
 
 /**********************************************************************/
-static void get_sol(struct csa *csa, glp_prob *lp, double *xstar)
+static void get_sol(struct csa *csa, glp_prob *lp, glp_double *xstar)
 /**********************************************************************/
 {
     /* Retrieving and storing the coefficients of the solution */
@@ -822,17 +822,17 @@ static void get_sol(struct csa *csa, glp_prob *lp, double *xstar)
 }
 
 /**********************************************************************/
-static double elapsed_time(struct csa *csa)
+static glp_double elapsed_time(struct csa *csa)
 /**********************************************************************/
 {
-    double tela = second() - csa->GLOtstart;
+    glp_double tela = second() - csa->GLOtstart;
     if ( tela < 0 ) tela += TDAY;
     return(tela);
 }
 
 /**********************************************************************/
-static void redefine_obj(glp_prob *lp, double *xtilde, int ncols,
-                         int *ckind, double *clb, double *cub)
+static void redefine_obj(glp_prob *lp, glp_double *xtilde, int ncols,
+                         int *ckind, glp_double *clb, glp_double *cub)
 /**********************************************************************/
 
 /*
@@ -843,9 +843,9 @@ static void redefine_obj(glp_prob *lp, double *xtilde, int ncols,
 
 {
     int j;
-    double *delta = talloc(ncols+1, double);
+    glp_double *delta = talloc(ncols+1, glp_double);
 #if 0 /* by mao */
-    memset(delta, 0, sizeof(double)*(ncols+1));
+    memset(delta, 0, sizeof(glp_double)*(ncols+1));
 #endif
 
     for ( j = 1; j < (ncols +1); j++ ) {
@@ -878,16 +878,16 @@ static void redefine_obj(glp_prob *lp, double *xtilde, int ncols,
 }
 
 /**********************************************************************/
-static double update_cutoff(struct csa *csa, glp_prob *lp,
-                            double zstar, int cutoff_row,
-                            double rel_impr)
+static glp_double update_cutoff(struct csa *csa, glp_prob *lp,
+                            glp_double zstar, int cutoff_row,
+                            glp_double rel_impr)
 /**********************************************************************/
 {
     /*
      Updating the cutoff constraint with the value we would like to
      find during the next optimization
      */
-    double cutoff;
+    glp_double cutoff;
     zstar -= csa->true_obj[0];
     if (csa->dir == GLP_MIN) {
         cutoff = zstar - compute_delta(csa, zstar, rel_impr);
@@ -902,25 +902,25 @@ static double update_cutoff(struct csa *csa, glp_prob *lp,
 }
 
 /**********************************************************************/
-static double compute_delta(struct csa *csa, double z, double rel_impr)
+static glp_double compute_delta(struct csa *csa, glp_double z, glp_double rel_impr)
 /**********************************************************************/
 {
     /* Computing the offset for the next best solution */
 
-    double delta = rel_impr * fabs(z);
+    glp_double delta = rel_impr * fabs(z);
     if ( csa->integer_obj ) delta = ceil(delta);
 
     return(delta);
 }
 
 /**********************************************************************/
-static double objval(int ncols, double *x, double *true_obj)
+static glp_double objval(int ncols, glp_double *x, glp_double *true_obj)
 /**********************************************************************/
 {
     /* Computing the true cost of x (using the original obj coeff.s) */
 
     int j;
-    double z = 0.0;
+    glp_double z = 0.0;
     for ( j = 1; j < (ncols +1); j++ ) {
         z += x[j] * true_obj[j];
     }
@@ -928,8 +928,8 @@ static double objval(int ncols, double *x, double *true_obj)
 }
 
 /**********************************************************************/
-static void array_copy(int begin, int end, double *source,
-                       double *destination)
+static void array_copy(int begin, int end, glp_double *source,
+                       glp_double *destination)
 /**********************************************************************/
 {
     int i;
@@ -939,7 +939,7 @@ static void array_copy(int begin, int end, double *source,
 }
 /**********************************************************************/
 static int do_refine(struct csa *csa, glp_prob *lp_ref, int ncols,
-                     int *ckind, double *xref, int *tlim, int tref_lim,
+                     int *ckind, glp_double *xref, int *tlim, int tref_lim,
                      int verbose)
 /**********************************************************************/
 {
@@ -952,8 +952,8 @@ static int do_refine(struct csa *csa, glp_prob *lp_ref, int ncols,
      */
 
     int j, tout;
-    double refineStart = second();
-    double val, tela, tlimit;
+    glp_double refineStart = second();
+    glp_double val, tela, tlimit;
 
     if ( glp_get_num_cols(lp_ref) != ncols ) {
         if (verbose) {

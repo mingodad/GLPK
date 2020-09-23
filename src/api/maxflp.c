@@ -44,7 +44,7 @@ void glp_maxflow_lp(glp_prob *lp, glp_graph *G, int names, int s,
 {     glp_vertex *v;
       glp_arc *a;
       int i, j, type, ind[1+2];
-      double cap, val[1+2];
+      glp_double cap, val[1+2];
       if (!(names == GLP_ON || names == GLP_OFF))
          xerror("glp_maxflow_lp: names = %d; invalid parameter\n",
             names);
@@ -57,7 +57,7 @@ void glp_maxflow_lp(glp_prob *lp, glp_graph *G, int names, int s,
       if (s == t)
          xerror("glp_maxflow_lp: s = t = %d; source and sink nodes must"
             " be distinct\n", s);
-      if (a_cap >= 0 && a_cap > G->a_size - (int)sizeof(double))
+      if (a_cap >= 0 && a_cap > G->a_size - (int)sizeof(glp_double))
          xerror("glp_maxflow_lp: a_cap = %d; invalid offset\n", a_cap);
       glp_erase_prob(lp);
       if (names) glp_set_prob_name(lp, G->name);
@@ -91,7 +91,7 @@ void glp_maxflow_lp(glp_prob *lp, glp_graph *G, int names, int s,
                glp_set_mat_col(lp, j, 2, ind, val);
             }
             if (a_cap >= 0)
-               memcpy(&cap, (char *)a->data + a_cap, sizeof(double));
+               memcpy(&cap, (char *)a->data + a_cap, sizeof(glp_double));
             else
                cap = 1.0;
             if (cap == DBL_MAX)

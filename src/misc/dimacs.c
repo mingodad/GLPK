@@ -135,7 +135,7 @@ void dmx_end_of_line(DMX *csa)
       return;
 }
 
-void dmx_check_int(DMX *csa, double num)
+void dmx_check_int(DMX *csa, glp_double num)
 {     /* print a warning if non-integer data are detected */
       if (!csa->nonint && num != floor(num))
       {  dmx_warning(csa, "non-integer data detected");

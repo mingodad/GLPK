@@ -43,7 +43,7 @@ SCFINT *scfint_create(int type)
 }
 
 int scfint_factorize(SCFINT *fi, int n, int (*col)(void *info, int j,
-      int ind[], double val[]), void *info)
+      int ind[], glp_double val[]), void *info)
 {     /* compute SC-factorization of specified matrix A */
       int nn_max, old_n0_max, n0_max, k, ret;
       xassert(n > 0);
@@ -82,17 +82,17 @@ int scfint_factorize(SCFINT *fi, int n, int (*col)(void *info, int j,
             tfree(fi->w2);
          if (fi->w3 != NULL)
             tfree(fi->w3);
-         fi->w1 = talloc(1+n0_max, double);
-         fi->w2 = talloc(1+n0_max, double);
-         fi->w3 = talloc(1+n0_max, double);
+         fi->w1 = talloc(1+n0_max, glp_double);
+         fi->w2 = talloc(1+n0_max, glp_double);
+         fi->w3 = talloc(1+n0_max, glp_double);
       }
       if (fi->scf.nn_max != nn_max)
       {  if (fi->scf.ifu.f != NULL)
             tfree(fi->scf.ifu.f);
          if (fi->scf.ifu.u != NULL)
             tfree(fi->scf.ifu.u);
-         fi->scf.ifu.f = talloc(nn_max * nn_max, double);
-         fi->scf.ifu.u = talloc(nn_max * nn_max, double);
+         fi->scf.ifu.f = talloc(nn_max * nn_max, glp_double);
+         fi->scf.ifu.u = talloc(nn_max * nn_max, glp_double);
       }
       if (old_n0_max < n0_max || fi->scf.nn_max != nn_max)
       {  if (fi->scf.pp_ind != NULL)
@@ -111,8 +111,8 @@ int scfint_factorize(SCFINT *fi, int n, int (*col)(void *info, int j,
          fi->scf.pp_inv = talloc(1+n0_max+nn_max, int);
          fi->scf.qq_ind = talloc(1+n0_max+nn_max, int);
          fi->scf.qq_inv = talloc(1+n0_max+nn_max, int);
-         fi->w4 = talloc(1+n0_max+nn_max, double);
-         fi->w5 = talloc(1+n0_max+nn_max, double);
+         fi->w4 = talloc(1+n0_max+nn_max, glp_double);
+         fi->w5 = talloc(1+n0_max+nn_max, glp_double);
       }
       /* initialize SC-factorization */
       fi->scf.n = n;
@@ -136,7 +136,7 @@ int scfint_factorize(SCFINT *fi, int n, int (*col)(void *info, int j,
 }
 
 int scfint_update(SCFINT *fi, int upd, int j, int len, const int ind[],
-      const double val[])
+      const glp_double val[])
 {     /* update SC-factorization after replacing j-th column of A */
       int n = fi->scf.n;
       int n0 = fi->scf.n0;
@@ -144,8 +144,8 @@ int scfint_update(SCFINT *fi, int upd, int j, int len, const int ind[],
       int *pp_ind = fi->scf.pp_ind;
       int *qq_ind = fi->scf.qq_ind;
       int *qq_inv = fi->scf.qq_inv;
-      double *bf = fi->w4;
-      double *dg = fi->w5;
+      glp_double *bf = fi->w4;
+      glp_double *dg = fi->w5;
       int k, t, ret;
       xassert(fi->valid);
       xassert(0 <= n && n <= n0+nn);
@@ -181,23 +181,23 @@ int scfint_update(SCFINT *fi, int upd, int j, int len, const int ind[],
       return ret;
 }
 
-void scfint_ftran(SCFINT *fi, double x[])
+void scfint_ftran(SCFINT *fi, glp_double x[])
 {     /* solve system A * x = b */
       xassert(fi->valid);
       scf_a_solve(&fi->scf, x, fi->w4, fi->w5, fi->w1, fi->w2);
       return;
 }
 
-void scfint_btran(SCFINT *fi, double x[])
+void scfint_btran(SCFINT *fi, glp_double x[])
 {     /* solve system A'* x = b */
       xassert(fi->valid);
       scf_at_solve(&fi->scf, x, fi->w4, fi->w5, fi->w1, fi->w2);
       return;
 }
 
-double scfint_estimate(SCFINT *fi)
+glp_double scfint_estimate(SCFINT *fi)
 {     /* estimate 1-norm of inv(A) */
-      double norm;
+      glp_double norm;
       xassert(fi->valid);
       xassert(fi->scf.n == fi->scf.n0);
       switch (fi->scf.type)

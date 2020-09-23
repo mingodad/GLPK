@@ -27,13 +27,13 @@
 #include "misc.h"
 
 static int lpx_eval_tab_row(glp_prob *lp, int k, int ind[],
-      double val[])
+      glp_double val[])
 {     /* compute row of the simplex tableau */
       return glp_eval_tab_row(lp, k, ind, val);
 }
 
 static int lpx_dual_ratio_test(glp_prob *lp, int len, const int ind[],
-      const double val[], int how, double tol)
+      const glp_double val[], int how, glp_double tol)
 {     /* perform dual ratio test */
       int piv;
       piv = glp_dual_rtest(lp, len, ind, val, how, tol);
@@ -77,11 +77,11 @@ glp_tree *ios_create_tree(glp_prob *mip, const glp_iocp *parm)
       /* save original problem components */
       tree->orig_m = m;
       tree->orig_type = xcalloc(1+m+n, sizeof(char));
-      tree->orig_lb = xcalloc(1+m+n, sizeof(double));
-      tree->orig_ub = xcalloc(1+m+n, sizeof(double));
+      tree->orig_lb = xcalloc(1+m+n, sizeof(glp_double));
+      tree->orig_ub = xcalloc(1+m+n, sizeof(glp_double));
       tree->orig_stat = xcalloc(1+m+n, sizeof(char));
-      tree->orig_prim = xcalloc(1+m+n, sizeof(double));
-      tree->orig_dual = xcalloc(1+m+n, sizeof(double));
+      tree->orig_prim = xcalloc(1+m+n, sizeof(glp_double));
+      tree->orig_dual = xcalloc(1+m+n, sizeof(glp_double));
       for (i = 1; i <= m; i++)
       {  GLPROW *row = mip->row[i];
          tree->orig_type[i] = (char)row->type;
@@ -150,7 +150,7 @@ glp_tree *ios_create_tree(glp_prob *mip, const glp_iocp *parm)
       /* pseudocost branching */
       tree->pcost = NULL;
       tree->iwrk = xcalloc(1+n, sizeof(int));
-      tree->dwrk = xcalloc(1+n, sizeof(double));
+      tree->dwrk = xcalloc(1+n, sizeof(glp_double));
       /* initialize control parameters */
       tree->parm = parm;
       tree->tm_beg = xtime();
@@ -250,8 +250,8 @@ void ios_revive_node(glp_tree *tree, int p)
                if (tree->pred_stat != NULL) xfree(tree->pred_stat);
                tree->pred_max = new_size;
                tree->pred_type = xcalloc(1+new_size, sizeof(char));
-               tree->pred_lb = xcalloc(1+new_size, sizeof(double));
-               tree->pred_ub = xcalloc(1+new_size, sizeof(double));
+               tree->pred_lb = xcalloc(1+new_size, sizeof(glp_double));
+               tree->pred_ub = xcalloc(1+new_size, sizeof(glp_double));
                tree->pred_stat = xcalloc(1+new_size, sizeof(char));
             }
             /* save row attributes */
@@ -294,9 +294,9 @@ void ios_revive_node(glp_tree *tree, int p)
          {  IOSROW *r;
             IOSAIJ *a;
             int i, len, *ind;
-            double *val;
+            glp_double *val;
             ind = xcalloc(1+n, sizeof(int));
-            val = xcalloc(1+n, sizeof(double));
+            val = xcalloc(1+n, sizeof(glp_double));
             for (r = node->r_ptr; r != NULL; r = r->next)
             {  i = glp_add_rows(mip, 1);
                glp_set_row_name(mip, i, r->name);
@@ -395,8 +395,8 @@ void ios_freeze_node(glp_tree *tree)
          xassert(tree->root_stat == NULL);
          tree->root_m = m;
          tree->root_type = xcalloc(1+m+n, sizeof(char));
-         tree->root_lb = xcalloc(1+m+n, sizeof(double));
-         tree->root_ub = xcalloc(1+m+n, sizeof(double));
+         tree->root_lb = xcalloc(1+m+n, sizeof(glp_double));
+         tree->root_ub = xcalloc(1+m+n, sizeof(glp_double));
          tree->root_stat = xcalloc(1+m+n, sizeof(char));
          for (k = 1; k <= m+n; k++)
          {  if (k <= m)
@@ -427,7 +427,7 @@ void ios_freeze_node(glp_tree *tree)
          xassert(node->s_ptr == NULL);
          for (k = 1; k <= pred_m + n; k++)
          {  int pred_type, pred_stat, type, stat;
-            double pred_lb, pred_ub, lb, ub;
+            glp_double pred_lb, pred_ub, lb, ub;
             /* determine attributes in the parent subproblem */
             pred_type = tree->pred_type[k];
             pred_lb = tree->pred_lb[k];
@@ -473,9 +473,9 @@ void ios_freeze_node(glp_tree *tree)
          xassert(node->r_ptr == NULL);
          if (pred_m < m)
          {  int i, len, *ind;
-            double *val;
+            glp_double *val;
             ind = xcalloc(1+n, sizeof(int));
-            val = xcalloc(1+n, sizeof(double));
+            val = xcalloc(1+n, sizeof(glp_double));
             for (i = m; i > pred_m; i--)
             {  GLPROW *row = mip->row[i];
                IOSROW *r;
@@ -909,7 +909,7 @@ void ios_delete_tree(glp_tree *tree)
 *  SYNOPSIS
 *
 *  #include "glpios.h"
-*  void ios_eval_degrad(glp_tree *tree, int j, double *dn, double *up);
+*  void ios_eval_degrad(glp_tree *tree, int j, glp_double *dn, glp_double *up);
 *
 *  DESCRIPTION
 *
@@ -919,13 +919,13 @@ void ios_delete_tree(glp_tree *tree)
 *  which are stored in locations *dn and *up, assuming that x[j] is a
 *  variable chosen to branch upon. */
 
-void ios_eval_degrad(glp_tree *tree, int j, double *dn, double *up)
+void ios_eval_degrad(glp_tree *tree, int j, glp_double *dn, glp_double *up)
 {     glp_prob *mip = tree->mip;
       int m = mip->m, n = mip->n;
       int len, kase, k, t, stat;
-      double alfa, beta, gamma, delta, dz;
+      glp_double alfa, beta, gamma, delta, dz;
       int *ind = tree->iwrk;
-      double *val = tree->dwrk;
+      glp_double *val = tree->dwrk;
       /* current basis must be optimal */
       xassert(glp_get_status(mip) == GLP_OPT);
       /* basis factorization must exist */
@@ -1043,7 +1043,7 @@ void ios_eval_degrad(glp_tree *tree, int j, double *dn, double *up)
 *  SYNOPSIS
 *
 *  #include "glpios.h"
-*  double ios_round_bound(glp_tree *tree, double bound);
+*  glp_double ios_round_bound(glp_tree *tree, glp_double bound);
 *
 *  RETURNS
 *
@@ -1091,11 +1091,11 @@ void ios_eval_degrad(glp_tree *tree, int j, double *dn, double *up)
 *  NOTE: If b is a valid local bound for a child of the current
 *        subproblem, b' is also valid for that child subproblem. */
 
-double ios_round_bound(glp_tree *tree, double bound)
+glp_double ios_round_bound(glp_tree *tree, glp_double bound)
 {     glp_prob *mip = tree->mip;
       int n = mip->n;
       int d, j, nn, *c = tree->iwrk;
-      double s, h;
+      glp_double s, h;
       /* determine c[j] and compute s */
       nn = 0, s = mip->c0, d = 0;
       for (j = 1; j <= n; j++)
@@ -1109,7 +1109,7 @@ double ios_round_bound(glp_tree *tree, double bound)
          {  /* non-fixed variable */
             if (col->kind != GLP_IV) goto skip;
             if (col->coef != floor(col->coef)) goto skip;
-            if (fabs(col->coef) <= (double)INT_MAX)
+            if (fabs(col->coef) <= (glp_double)INT_MAX)
                c[++nn] = (int)fabs(col->coef);
             else
                d = 1;
@@ -1124,23 +1124,23 @@ double ios_round_bound(glp_tree *tree, double bound)
       /* compute new local bound */
       if (mip->dir == GLP_MIN)
       {  if (bound != +DBL_MAX)
-         {  h = (bound - s) / (double)d;
+         {  h = (bound - s) / (glp_double)d;
             if (h >= floor(h) + 0.001)
             {  /* round up */
                h = ceil(h);
                /*xprintf("d = %d; old = %g; ", d, bound);*/
-               bound = (double)d * h + s;
+               bound = (glp_double)d * h + s;
                /*xprintf("new = %g\n", bound);*/
             }
          }
       }
       else if (mip->dir == GLP_MAX)
       {  if (bound != -DBL_MAX)
-         {  h = (bound - s) / (double)d;
+         {  h = (bound - s) / (glp_double)d;
             if (h <= ceil(h) - 0.001)
             {  /* round down */
                h = floor(h);
-               bound = (double)d * h + s;
+               bound = (glp_double)d * h + s;
             }
          }
       }
@@ -1157,7 +1157,7 @@ skip: return bound;
 *  SYNOPSIS
 *
 *  #include "glpios.h"
-*  int ios_is_hopeful(glp_tree *tree, double bound);
+*  int ios_is_hopeful(glp_tree *tree, glp_double bound);
 *
 *  DESCRIPTION
 *
@@ -1171,10 +1171,10 @@ skip: return bound;
 *  routine returns non-zero; otherwise, if the corresponding branch can
 *  be pruned, the routine returns zero. */
 
-int ios_is_hopeful(glp_tree *tree, double bound)
+int ios_is_hopeful(glp_tree *tree, glp_double bound)
 {     glp_prob *mip = tree->mip;
       int ret = 1;
-      double eps;
+      glp_double eps;
       if (mip->mip_stat == GLP_FEAS)
       {  eps = tree->parm->tol_obj * (1.0 + fabs(mip->mip_obj));
          switch (mip->dir)
@@ -1257,14 +1257,14 @@ int ios_best_node(glp_tree *tree)
 *  SYNOPSIS
 *
 *  #include "glpios.h"
-*  double ios_relative_gap(glp_tree *tree);
+*  glp_double ios_relative_gap(glp_tree *tree);
 *
 *  DESCRIPTION
 *
 *  The routine ios_relative_gap computes the relative mip gap using the
 *  formula:
 *
-*     gap = |best_mip - best_bnd| / (|best_mip| + DBL_EPSILON),
+*     gap = |best_mip - best_bnd| / (|best_mip| + GLP_DBL_EPSILON),
 *
 *  where best_mip is the best integer feasible solution found so far,
 *  best_bnd is the best (global) bound. If no integer feasible solution
@@ -1274,10 +1274,10 @@ int ios_best_node(glp_tree *tree)
 *
 *  The routine ios_relative_gap returns the relative mip gap. */
 
-double ios_relative_gap(glp_tree *tree)
+glp_double ios_relative_gap(glp_tree *tree)
 {     glp_prob *mip = tree->mip;
       int p;
-      double best_mip, best_bnd, gap;
+      glp_double best_mip, best_bnd, gap;
       if (mip->mip_stat == GLP_FEAS)
       {  best_mip = mip->mip_obj;
          p = ios_best_node(tree);
@@ -1288,7 +1288,7 @@ double ios_relative_gap(glp_tree *tree)
          else
          {  best_bnd = tree->slot[p].node->bound;
             gap = fabs(best_mip - best_bnd) / (fabs(best_mip) +
-               DBL_EPSILON);
+               GLP_DBL_EPSILON);
          }
       }
       else
@@ -1418,7 +1418,7 @@ IOSPOOL *ios_create_pool(glp_tree *tree)
 #ifdef NEW_LOCAL /* 02/II-2018 */
 int ios_add_row(glp_tree *tree, IOSPOOL *pool,
       const char *name, int klass, int flags, int len, const int ind[],
-      const double val[], int type, double rhs)
+      const glp_double val[], int type, glp_double rhs)
 {     /* add row (constraint) to the cut pool */
       int i;
       i = glp_add_rows(pool, 1);
@@ -1432,7 +1432,7 @@ int ios_add_row(glp_tree *tree, IOSPOOL *pool,
 #else
 int ios_add_row(glp_tree *tree, IOSPOOL *pool,
       const char *name, int klass, int flags, int len, const int ind[],
-      const double val[], int type, double rhs)
+      const glp_double val[], int type, glp_double rhs)
 {     /* add row (constraint) to the cut pool */
       IOSCUT *cut;
       IOSAIJ *aij;

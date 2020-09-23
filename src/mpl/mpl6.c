@@ -209,7 +209,7 @@ err2:       {  xprintf("%s:%d: field too long\n", csv->fname,
          if (len == 0) goto err1;
          csv->field[len] = '\0';
          /* check the field type */
-         if (str2num(csv->field, &temp)) csv->what = CSV_STR;
+         if (str2double(csv->field, &temp)) csv->what = CSV_STR;
       }
 done: return;
 }
@@ -353,7 +353,7 @@ static int csv_read_record(TABDCA *dca, struct csv *csv)
          {  /* floating-point number */
             if (csv->ref[k] > 0)
             {  double num;
-               int rc = str2num(csv->field, &num);
+               int rc = str2double(csv->field, &num);
                xassert(rc == 0);
                mpl_tab_set_num(dca, csv->ref[k], num);
             }
@@ -811,7 +811,7 @@ static int dbf_read_record(TABDCA *dca, struct dbf *dbf)
             if (dbf->ref[k] > 0)
             {  double num;
                strspx(buf);
-               int rc = str2num(buf, &num);
+               int rc = str2double(buf, &num);
                xassert(rc == 0);
                mpl_tab_set_num(dca, dbf->ref[k], num);
             }

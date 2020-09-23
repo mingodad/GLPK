@@ -152,58 +152,58 @@ struct SCF
 /* swap columns j1 and j2 of permutation matrix Q */
 
 #define scf_r0_solve _glp_scf_r0_solve
-void scf_r0_solve(SCF *scf, int tr, double x[/*1+n0*/]);
+void scf_r0_solve(SCF *scf, int tr, glp_double x[/*1+n0*/]);
 /* solve system R0 * x = b or R0'* x = b */
 
 #define scf_s0_solve _glp_scf_s0_solve
-void scf_s0_solve(SCF *scf, int tr, double x[/*1+n0*/],
-      double w1[/*1+n0*/], double w2[/*1+n0*/], double w3[/*1+n0*/]);
+void scf_s0_solve(SCF *scf, int tr, glp_double x[/*1+n0*/],
+      glp_double w1[/*1+n0*/], glp_double w2[/*1+n0*/], glp_double w3[/*1+n0*/]);
 /* solve system S0 * x = b or S0'* x = b */
 
 #define scf_r_prod _glp_scf_r_prod
-void scf_r_prod(SCF *scf, double y[/*1+nn*/], double a, const double
+void scf_r_prod(SCF *scf, glp_double y[/*1+nn*/], glp_double a, const glp_double
       x[/*1+n0*/]);
 /* compute product y := y + alpha * R * x */
 
 #define scf_rt_prod _glp_scf_rt_prod
-void scf_rt_prod(SCF *scf, double y[/*1+n0*/], double a, const double
+void scf_rt_prod(SCF *scf, glp_double y[/*1+n0*/], glp_double a, const glp_double
       x[/*1+nn*/]);
 /* compute product y := y + alpha * R'* x */
 
 #define scf_s_prod _glp_scf_s_prod
-void scf_s_prod(SCF *scf, double y[/*1+n0*/], double a, const double
+void scf_s_prod(SCF *scf, glp_double y[/*1+n0*/], glp_double a, const glp_double
       x[/*1+nn*/]);
 /* compute product y := y + alpha * S * x */
 
 #define scf_st_prod _glp_scf_st_prod
-void scf_st_prod(SCF *scf, double y[/*1+nn*/], double a, const double
+void scf_st_prod(SCF *scf, glp_double y[/*1+nn*/], glp_double a, const glp_double
       x[/*1+n0*/]);
 /* compute product y := y + alpha * S'* x */
 
 #define scf_a_solve _glp_scf_a_solve
-void scf_a_solve(SCF *scf, double x[/*1+n*/],
-      double w[/*1+n0+nn*/], double work1[/*1+max(n0,nn)*/],
-      double work2[/*1+n*/], double work3[/*1+n*/]);
+void scf_a_solve(SCF *scf, glp_double x[/*1+n*/],
+      glp_double w[/*1+n0+nn*/], glp_double work1[/*1+max(n0,nn)*/],
+      glp_double work2[/*1+n*/], glp_double work3[/*1+n*/]);
 /* solve system A * x = b */
 
 #define scf_at_solve _glp_scf_at_solve
-void scf_at_solve(SCF *scf, double x[/*1+n*/],
-      double w[/*1+n0+nn*/], double work1[/*1+max(n0,nn)*/],
-      double work2[/*1+n*/], double work3[/*1+n*/]);
+void scf_at_solve(SCF *scf, glp_double x[/*1+n*/],
+      glp_double w[/*1+n0+nn*/], glp_double work1[/*1+max(n0,nn)*/],
+      glp_double work2[/*1+n*/], glp_double work3[/*1+n*/]);
 /* solve system A'* x = b */
 
 #define scf_add_r_row _glp_scf_add_r_row
-void scf_add_r_row(SCF *scf, const double w[/*1+n0*/]);
+void scf_add_r_row(SCF *scf, const glp_double w[/*1+n0*/]);
 /* add new row to matrix R */
 
 #define scf_add_s_col _glp_scf_add_s_col
-void scf_add_s_col(SCF *scf, const double v[/*1+n0*/]);
+void scf_add_s_col(SCF *scf, const glp_double v[/*1+n0*/]);
 /* add new column to matrix S */
 
 #define scf_update_aug _glp_scf_update_aug
-int scf_update_aug(SCF *scf, double b[/*1+n0*/], double d[/*1+n0*/],
-      double f[/*1+nn*/], double g[/*1+nn*/], double h, int upd,
-      double w1[/*1+n0*/], double w2[/*1+n0*/], double w3[/*1+n0*/]);
+int scf_update_aug(SCF *scf, glp_double b[/*1+n0*/], glp_double d[/*1+n0*/],
+      glp_double f[/*1+nn*/], glp_double g[/*1+nn*/], glp_double h, int upd,
+      glp_double w1[/*1+n0*/], glp_double w2[/*1+n0*/], glp_double w3[/*1+n0*/]);
 /* update factorization of augmented matrix */
 
 #endif

@@ -52,15 +52,15 @@
 *  Note that the resulting matrix U loses its upper triangular form due
 *  to row spike r', which should be eliminated. */
 
-void ifu_expand(IFU *ifu, double c[/*1+n*/], double r[/*1+n*/],
-      double d)
+void ifu_expand(IFU *ifu, glp_double c[/*1+n*/], glp_double r[/*1+n*/],
+      glp_double d)
 {     /* non-optimized version */
       int n_max = ifu->n_max;
       int n = ifu->n;
-      double *f_ = ifu->f;
-      double *u_ = ifu->u;
+      glp_double *f_ = ifu->f;
+      glp_double *u_ = ifu->u;
       int i, j;
-      double t;
+      glp_double t;
 #     define f(i,j) f_[(i)*n_max+(j)]
 #     define u(i,j) u_[(i)*n_max+(j)]
       xassert(0 <= n && n < n_max);
@@ -116,18 +116,18 @@ void ifu_expand(IFU *ifu, double c[/*1+n*/], double r[/*1+n*/],
 *  1. R.H.Bartels, G.H.Golub, "The Simplex Method of Linear Programming
 *     Using LU-decomposition", Comm. ACM, 12, pp. 266-68, 1969. */
 
-int ifu_bg_update(IFU *ifu, double c[/*1+n*/], double r[/*1+n*/],
-      double d)
+int ifu_bg_update(IFU *ifu, glp_double c[/*1+n*/], glp_double r[/*1+n*/],
+      glp_double d)
 {     /* non-optimized version */
       int n_max = ifu->n_max;
       int n = ifu->n;
-      double *f_ = ifu->f;
-      double *u_ = ifu->u;
+      glp_double *f_ = ifu->f;
+      glp_double *u_ = ifu->u;
 #if 1 /* FIXME */
-      double tol = 1e-5;
+      glp_double tol = 1e-5;
 #endif
       int j, k;
-      double t;
+      glp_double t;
 #     define f(i,j) f_[(i)*n_max+(j)]
 #     define u(i,j) u_[(i)*n_max+(j)]
       /* expand factorization */
@@ -191,9 +191,9 @@ int ifu_bg_update(IFU *ifu, double c[/*1+n*/], double r[/*1+n*/],
 *
 *  G.H.Golub, C.F.Van Loan, "Matrix Computations", 2nd ed. */
 
-static void givens(double a, double b, double *c, double *s)
+static void givens(glp_double a, glp_double b, glp_double *c, glp_double *s)
 {     /* non-optimized version */
-      double t;
+      glp_double t;
       if (b == 0.0)
          (*c) = 1.0, (*s) = 0.0;
       else if (fabs(a) <= fabs(b))
@@ -224,18 +224,18 @@ static void givens(double a, double b, double *c, double *s)
 *
 *  1. G.H.Golub, C.F.Van Loan, "Matrix Computations", 2nd ed. */
 
-int ifu_gr_update(IFU *ifu, double c[/*1+n*/], double r[/*1+n*/],
-      double d)
+int ifu_gr_update(IFU *ifu, glp_double c[/*1+n*/], glp_double r[/*1+n*/],
+      glp_double d)
 {     /* non-optimized version */
       int n_max = ifu->n_max;
       int n = ifu->n;
-      double *f_ = ifu->f;
-      double *u_ = ifu->u;
+      glp_double *f_ = ifu->f;
+      glp_double *u_ = ifu->u;
 #if 1 /* FIXME */
-      double tol = 1e-5;
+      glp_double tol = 1e-5;
 #endif
       int j, k;
-      double cs, sn;
+      glp_double cs, sn;
 #     define f(i,j) f_[(i)*n_max+(j)]
 #     define u(i,j) u_[(i)*n_max+(j)]
       /* expand factorization */
@@ -257,14 +257,14 @@ int ifu_gr_update(IFU *ifu, double c[/*1+n*/], double r[/*1+n*/],
          /* apply Givens rotation to k-th and n-th rows of matrix U to
           * eliminate u[n,k] */
          for (j = k; j <= n; j++)
-         {  double ukj = u(k,j), unj = u(n,j);
+         {  glp_double ukj = u(k,j), unj = u(n,j);
             u(k,j) = cs * ukj - sn * unj;
             u(n,j) = sn * ukj + cs * unj;
          }
          /* apply the same transformation to matrix F to keep the main
           * equality F * A = U */
          for (j = 0; j <= n; j++)
-         {  double fkj = f(k,j), fnj = f(n,j);
+         {  glp_double fkj = f(k,j), fnj = f(n,j);
             f(k,j) = cs * fkj - sn * fnj;
             f(n,j) = sn * fkj + cs * fnj;
          }
@@ -299,21 +299,21 @@ int ifu_gr_update(IFU *ifu, double c[/*1+n*/], double r[/*1+n*/],
 *  The working array w should have at least 1+n elements (0-th element
 *  is not used). */
 
-void ifu_a_solve(IFU *ifu, double x[/*1+n*/], double w[/*1+n*/])
+void ifu_a_solve(IFU *ifu, glp_double x[/*1+n*/], glp_double w[/*1+n*/])
 {     /* non-optimized version */
       int n_max = ifu->n_max;
       int n = ifu->n;
-      double *f_ = ifu->f;
-      double *u_ = ifu->u;
+      glp_double *f_ = ifu->f;
+      glp_double *u_ = ifu->u;
       int i, j;
-      double t;
+      glp_double t;
 #     define f(i,j) f_[(i)*n_max+(j)]
 #     define u(i,j) u_[(i)*n_max+(j)]
       xassert(0 <= n && n <= n_max);
       /* adjust indexing */
       x++, w++;
       /* y := F * b */
-      memcpy(w, x, n * sizeof(double));
+      memcpy(w, x, n * sizeof(glp_double));
       for (i = 0; i < n; i++)
       {  /* y[i] := (i-th row of F) * b */
          t = 0.0;
@@ -356,14 +356,14 @@ void ifu_a_solve(IFU *ifu, double x[/*1+n*/], double w[/*1+n*/])
 *  The working array w should have at least 1+n elements (0-th element
 *  is not used). */
 
-void ifu_at_solve(IFU *ifu, double x[/*1+n*/], double w[/*1+n*/])
+void ifu_at_solve(IFU *ifu, glp_double x[/*1+n*/], glp_double w[/*1+n*/])
 {     /* non-optimized version */
       int n_max = ifu->n_max;
       int n = ifu->n;
-      double *f_ = ifu->f;
-      double *u_ = ifu->u;
+      glp_double *f_ = ifu->f;
+      glp_double *u_ = ifu->u;
       int i, j;
-      double t;
+      glp_double t;
 #     define f(i,j) f_[(i)*n_max+(j)]
 #     define u(i,j) u_[(i)*n_max+(j)]
       xassert(0 <= n && n <= n_max);
@@ -383,7 +383,7 @@ void ifu_at_solve(IFU *ifu, double x[/*1+n*/], double w[/*1+n*/])
             t += f(i,j) * x[i];
          w[j] = t;
       }
-      memcpy(x, w, n * sizeof(double));
+      memcpy(x, w, n * sizeof(glp_double));
 #     undef f
 #     undef u
       return;

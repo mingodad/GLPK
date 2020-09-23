@@ -160,7 +160,7 @@ int npp_binarize_prob(NPP *npp)
          /* now 0 <= x[q] <= u[q] */
          xassert(col->lb == 0.0);
          u = (int)col->ub;
-         xassert(col->ub == (double)u);
+         xassert(col->ub == (glp_double)u);
          /* if x[q] is binary, further processing is not needed */
          if (u == 1) continue;
          /* determine smallest n such that u <= 2^n - 1 (thus, n is the
@@ -195,7 +195,7 @@ int npp_binarize_prob(NPP *npp)
             bin = npp_add_col(npp);
             bin->is_int = 1;
             bin->lb = 0.0, bin->ub = 1.0;
-            bin->coef = (double)temp * col->coef;
+            bin->coef = (glp_double)temp * col->coef;
             /* store column reference number for x[1] */
             if (info->j == 0)
                info->j = bin->j;
@@ -204,7 +204,7 @@ int npp_binarize_prob(NPP *npp)
             /* duplicate constraint coefficients for x[k]; this also
                automatically includes x[k] into constraint (4) */
             for (aij = col->ptr; aij != NULL; aij = aij->c_next)
-               npp_add_aij(npp, aij->row, bin, (double)temp * aij->val);
+               npp_add_aij(npp, aij->row, bin, (glp_double)temp * aij->val);
          }
       }
       if (nvars > 0)
@@ -222,11 +222,11 @@ static int rcv_binarize_prob(NPP *npp, void *_info)
 {     /* recovery binarized variable */
       struct binarize *info = _info;
       int k, temp;
-      double sum;
+      glp_double sum;
       /* compute value of x[q]; see formula (3) */
       sum = npp->c_value[info->q];
       for (k = 1, temp = 2; k < info->n; k++, temp += temp)
-         sum += (double)temp * npp->c_value[info->j + (k-1)];
+         sum += (glp_double)temp * npp->c_value[info->j + (k-1)];
       npp->c_value[info->q] = sum;
       return 0;
 }
@@ -235,7 +235,7 @@ static int rcv_binarize_prob(NPP *npp, void *_info)
 
 struct elem
 {     /* linear form element a[j] x[j] */
-      double aj;
+      glp_double aj;
       /* non-zero coefficient value */
       NPPCOL *xj;
       /* pointer to variable (column) */
@@ -243,7 +243,7 @@ struct elem
       /* pointer to another term */
 };
 
-static struct elem *copy_form(NPP *npp, NPPROW *row, double s)
+static struct elem *copy_form(NPP *npp, NPPROW *row, glp_double s)
 {     /* copy linear form */
       NPPAIJ *aij;
       struct elem *ptr, *e;
@@ -330,7 +330,7 @@ int npp_is_packing(NPP *npp, NPPROW *row)
          else
             return 0;
       }
-      if (row->ub != (double)b) return 0;
+      if (row->ub != (glp_double)b) return 0;
       return 1;
 }
 
@@ -426,14 +426,14 @@ int npp_is_packing(NPP *npp, NPPROW *row)
 *
 *  None needed. */
 
-static int hidden_packing(NPP *npp, struct elem *ptr, double *_b)
+static int hidden_packing(NPP *npp, struct elem *ptr, glp_double *_b)
 {     /* process inequality constraint: sum a[j] x[j] <= b;
          0 - specified row is NOT hidden packing inequality;
          1 - specified row is packing inequality;
          2 - specified row is hidden packing inequality. */
       struct elem *e, *ej, *ek;
       int neg;
-      double b = *_b, eps;
+      glp_double b = *_b, eps;
       xassert(npp == npp);
       /* a[j] must be non-zero, x[j] must be binary, for all j in J */
       for (e = ptr; e != NULL; e = e->next)
@@ -454,7 +454,7 @@ static int hidden_packing(NPP *npp, struct elem *ptr, double *_b)
       }
       if (e == NULL)
       {  /* all coefficients a[j] are +1 or -1; check rhs b */
-         if (b == (double)(1 - neg))
+         if (b == (glp_double)(1 - neg))
          {  /* it is packing inequality; no processing is needed */
             return 1;
          }
@@ -501,7 +501,7 @@ int npp_hidden_packing(NPP *npp, NPPROW *row)
       NPPAIJ *aij;
       struct elem *ptr, *e;
       int kase, ret, count = 0;
-      double b;
+      glp_double b;
       /* the row must be inequality constraint */
       xassert(row->lb < row->ub);
       for (kase = 0; kase <= 1; kase++)
@@ -716,7 +716,7 @@ int npp_implied_packing(NPP *npp, NPPROW *row, int which,
       NPPCOL *var[], char set[])
 {     struct elem *ptr, *e, *i, *k;
       int len = 0;
-      double b, eps;
+      glp_double b, eps;
       /* build inequality (3) */
       if (which == 0)
       {  ptr = copy_form(npp, row, -1.0);
@@ -855,7 +855,7 @@ int npp_is_covering(NPP *npp, NPPROW *row)
          else
             return 0;
       }
-      if (row->lb != (double)b) return 0;
+      if (row->lb != (glp_double)b) return 0;
       return 1;
 }
 

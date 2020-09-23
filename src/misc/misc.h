@@ -24,13 +24,19 @@
 #ifndef MISC_H
 #define MISC_H
 
+#include "glpk_real.h"
+
 #define str2int _glp_str2int
 int str2int(const char *str, int *val);
 /* convert character string to value of int type */
 
 #define str2num _glp_str2num
-int str2num(const char *str, double *val);
-/* convert character string to value of double type */
+int str2num(const char *str, glp_double *val);
+/* convert character string to value of glp_double type */
+
+#define str2double _glp_str2double
+int str2double(const char *str, double *val);
+/* convert character string to value of glp_double type */
 
 #define strspx _glp_strspx
 char *strspx(char *str);
@@ -49,11 +55,11 @@ int gcdn(int n, int x[]);
 /* find greatest common divisor of n integers */
 
 #define round2n _glp_round2n
-double round2n(double x);
+glp_double round2n(glp_double x);
 /* round floating-point number to nearest power of two */
 
 #define fp2rat _glp_fp2rat
-int fp2rat(double x, double eps, double *p, double *q);
+int fp2rat(glp_double x, glp_double eps, glp_double *p, glp_double *q);
 /* convert floating-point number to rational number */
 
 #endif

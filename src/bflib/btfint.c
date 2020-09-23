@@ -38,18 +38,18 @@ BTFINT *btfint_create(void)
       fi->sgf_piv_tol = 0.10;
       fi->sgf_piv_lim = 4;
       fi->sgf_suhl = 1;
-      fi->sgf_eps_tol = DBL_EPSILON;
+      fi->sgf_eps_tol = GLP_DBL_EPSILON;
       return fi;
 }
 
 static void factorize_triv(BTFINT *fi, int k, int (*col)(void *info,
-      int j, int ind[], double val[]), void *info)
+      int j, int ind[], glp_double val[]), void *info)
 {     /* compute LU-factorization of diagonal block A~[k,k] and store
        * corresponding columns of matrix A except elements of A~[k,k]
        * (trivial case when the block has unity size) */
       SVA *sva = fi->sva;
       int *sv_ind = sva->ind;
-      double *sv_val = sva->val;
+      glp_double *sv_val = sva->val;
       BTF *btf = fi->btf;
       int *pp_inv = btf->pp_inv;
       int *qq_ind = btf->qq_ind;
@@ -59,7 +59,7 @@ static void factorize_triv(BTFINT *fi, int k, int (*col)(void *info,
       int *ac_len = &sva->len[ac_ref-1];
       SGF *sgf = fi->sgf;
       int *ind = (int *)sgf->vr_max; /* working array */
-      double *val = sgf->work; /* working array */
+      glp_double *val = sgf->work; /* working array */
       int i, j, t, len, ptr, beg_k;
       /* diagonal block A~[k,k] has the only element in matrix A~,
        * which is a~[beg[k],beg[k]] = a[i,j] */
@@ -84,7 +84,7 @@ static void factorize_triv(BTFINT *fi, int k, int (*col)(void *info,
       btf->q1_ind[beg_k] = btf->q1_inv[beg_k] = 1;
       /* remove element a[i,j] = a~[beg[k],beg[k]] from j-th column */
       memmove(&ind[t], &ind[t+1], (len-t) * sizeof(int));
-      memmove(&val[t], &val[t+1], (len-t) * sizeof(double));
+      memmove(&val[t], &val[t+1], (len-t) * sizeof(glp_double));
       len--;
       /* and store resulting j-th column of A into BTF */
       if (len > 0)
@@ -98,20 +98,20 @@ static void factorize_triv(BTFINT *fi, int k, int (*col)(void *info,
          /* store j-th column of A (except elements of A~[k,k]) */
          ptr = ac_ptr[j];
          memcpy(&sv_ind[ptr], &ind[1], len * sizeof(int));
-         memcpy(&sv_val[ptr], &val[1], len * sizeof(double));
+         memcpy(&sv_val[ptr], &val[1], len * sizeof(glp_double));
          ac_len[j] = len;
       }
       return;
 }
 
 static int factorize_block(BTFINT *fi, int k, int (*col)(void *info,
-      int j, int ind[], double val[]), void *info)
+      int j, int ind[], glp_double val[]), void *info)
 {     /* compute LU-factorization of diagonal block A~[k,k] and store
        * corresponding columns of matrix A except elements of A~[k,k]
        * (general case) */
       SVA *sva = fi->sva;
       int *sv_ind = sva->ind;
-      double *sv_val = sva->val;
+      glp_double *sv_val = sva->val;
       BTF *btf = fi->btf;
       int *pp_ind = btf->pp_ind;
       int *qq_ind = btf->qq_ind;
@@ -121,7 +121,7 @@ static int factorize_block(BTFINT *fi, int k, int (*col)(void *info,
       int *ac_len = &sva->len[ac_ref-1];
       SGF *sgf = fi->sgf;
       int *ind = (int *)sgf->vr_max; /* working array */
-      double *val = sgf->work; /* working array */
+      glp_double *val = sgf->work; /* working array */
       LUF luf;
       int *vc_ptr, *vc_len, *vc_cap;
       int i, ii, j, jj, t, len, cnt, ptr, beg_k;
@@ -157,7 +157,7 @@ static int factorize_block(BTFINT *fi, int k, int (*col)(void *info,
             ii = pp_ind[i];
             if (ii >= beg_k)
             {  /* a~[ii,jj] = a[i,j] is in diagonal block A~[k,k] */
-               double temp;
+               glp_double temp;
                cnt++;
                ind[t] = ind[cnt];
                ind[cnt] = ii - (beg_k-1); /* local index */
@@ -178,7 +178,7 @@ static int factorize_block(BTFINT *fi, int k, int (*col)(void *info,
          /* store jj-th column of V = A~[k,k] */
          ptr = vc_ptr[jj];
          memcpy(&sv_ind[ptr], &ind[1], cnt * sizeof(int));
-         memcpy(&sv_val[ptr], &val[1], cnt * sizeof(double));
+         memcpy(&sv_val[ptr], &val[1], cnt * sizeof(glp_double));
          vc_len[jj] = cnt;
          /* other (len-cnt) elements in the column list are stored in
           * j-th column of the original matrix A */
@@ -194,7 +194,7 @@ static int factorize_block(BTFINT *fi, int k, int (*col)(void *info,
             /* store j-th column of A (except elements of A~[k,k]) */
             ptr = ac_ptr[j];
             memcpy(&sv_ind[ptr], &ind[cnt+1], len * sizeof(int));
-            memcpy(&sv_val[ptr], &val[cnt+1], len * sizeof(double));
+            memcpy(&sv_val[ptr], &val[cnt+1], len * sizeof(glp_double));
             ac_len[j] = len;
          }
       }
@@ -208,7 +208,7 @@ static int factorize_block(BTFINT *fi, int k, int (*col)(void *info,
 }
 
 int btfint_factorize(BTFINT *fi, int n, int (*col)(void *info, int j,
-      int ind[], double val[]), void *info)
+      int ind[], glp_double val[]), void *info)
 {     /* compute BT-factorization of specified matrix A */
       SVA *sva;
       BTF *btf;
@@ -259,7 +259,7 @@ int btfint_factorize(BTFINT *fi, int n, int (*col)(void *info, int j,
          btf->qq_ind = talloc(1+n_max, int);
          btf->qq_inv = talloc(1+n_max, int);
          btf->beg = talloc(1+n_max+1, int);
-         btf->vr_piv = talloc(1+n_max, double);
+         btf->vr_piv = talloc(1+n_max, glp_double);
          btf->p1_ind = talloc(1+n_max, int);
          btf->p1_inv = talloc(1+n_max, int);
          btf->q1_ind = talloc(1+n_max, int);
@@ -290,9 +290,9 @@ int btfint_factorize(BTFINT *fi, int n, int (*col)(void *info, int j,
          sgf->cs_head = talloc(1+n_max, int);
          sgf->cs_prev = talloc(1+n_max, int);
          sgf->cs_next = talloc(1+n_max, int);
-         sgf->vr_max = talloc(1+n_max, double);
+         sgf->vr_max = talloc(1+n_max, glp_double);
          sgf->flag = talloc(1+n_max, char);
-         sgf->work = talloc(1+n_max, double);
+         sgf->work = talloc(1+n_max, glp_double);
       }
       btf = fi->btf;
       btf->n = n;

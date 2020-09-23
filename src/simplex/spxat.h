@@ -42,9 +42,9 @@ struct SPXAT
        * that row) can be calculated as ptr[i+1] - ptr[i] */
       int *ind; /* int ind[1+nnz]; */
       /* column indices */
-      double *val; /* double val[1+nnz]; */
+      glp_double *val; /* glp_double val[1+nnz]; */
       /* non-zero element values */
-      double *work; /* double work[1+n]; */
+      glp_double *work; /* glp_double work[1+n]; */
       /* working array */
 };
 
@@ -57,18 +57,18 @@ void spx_build_at(SPXLP *lp, SPXAT *at);
 /* build constraint matrix in sparse row-wise format */
 
 #define spx_at_prod _glp_spx_at_prod
-void spx_at_prod(SPXLP *lp, SPXAT *at, double y[/*1+n*/], double s,
-      const double x[/*1+m*/]);
+void spx_at_prod(SPXLP *lp, SPXAT *at, glp_double y[/*1+n*/], glp_double s,
+      const glp_double x[/*1+m*/]);
 /* compute product y := y + s * A'* x */
 
 #define spx_nt_prod1 _glp_spx_nt_prod1
-void spx_nt_prod1(SPXLP *lp, SPXAT *at, double y[/*1+n-m*/], int ign,
-      double s, const double x[/*1+m*/]);
+void spx_nt_prod1(SPXLP *lp, SPXAT *at, glp_double y[/*1+n-m*/], int ign,
+      glp_double s, const glp_double x[/*1+m*/]);
 /* compute product y := y + s * N'* x */
 
 #define spx_eval_trow1 _glp_spx_eval_trow1
-void spx_eval_trow1(SPXLP *lp, SPXAT *at, const double rho[/*1+m*/],
-      double trow[/*1+n-m*/]);
+void spx_eval_trow1(SPXLP *lp, SPXAT *at, const glp_double rho[/*1+m*/],
+      glp_double trow[/*1+n-m*/]);
 /* compute i-th row of simplex table */
 
 #define spx_free_at _glp_spx_free_at

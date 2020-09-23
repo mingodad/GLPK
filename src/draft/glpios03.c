@@ -52,11 +52,11 @@
 
 static void show_progress(glp_tree *T, int bingo)
 {     int p;
-      double temp;
+      glp_double temp;
       char best_mip[50], best_bound[50], *rho, rel_gap[50];
       /* format the best known integer feasible solution */
       if (T->mip->mip_stat == GLP_FEAS)
-         sprintf(best_mip, "%17.9e", T->mip->mip_obj);
+         sprintf(best_mip, "%17.9" GLP_DBL_FMT_e, T->mip->mip_obj);
       else
          sprintf(best_mip, "%17s", "not found yet");
       /* determine reference number of an active subproblem whose local
@@ -74,7 +74,7 @@ static void show_progress(glp_tree *T, int bingo)
          else
          {  if (fabs(temp) < 1e-9)
                temp = 0;
-            sprintf(best_bound, "%17.9e", temp);
+            sprintf(best_bound, "%17.9" GLP_DBL_FMT_e , temp);
          }
       }
       /* choose the relation sign between global bounds */
@@ -91,7 +91,7 @@ static void show_progress(glp_tree *T, int bingo)
       else if (temp < 0.001)
          sprintf(rel_gap, "< 0.1%%");
       else if (temp <= 9.999)
-         sprintf(rel_gap, "%5.1f%%", 100.0 * temp);
+         sprintf(rel_gap, "%5.1" GLP_DBL_FMT_F "%%", 100.0 * temp);
       else
          sprintf(rel_gap, "%6s", "");
       /* display progress of the search */
@@ -155,7 +155,7 @@ static int is_branch_hopeful(glp_tree *T, int p)
 static void check_integrality(glp_tree *T)
 {     glp_prob *mip = T->mip;
       int j, type, ii_cnt = 0;
-      double lb, ub, x, temp1, temp2, ii_sum = 0.0;
+      glp_double lb, ub, x, temp1, temp2, ii_sum = 0.0;
       /* walk through the set of columns (structural variables) */
       for (j = 1; j <= mip->n; j++)
       {  GLPCOL *col = mip->col[j];
@@ -269,7 +269,7 @@ static void record_solution(glp_tree *T)
 static void fix_by_red_cost(glp_tree *T)
 {     glp_prob *mip = T->mip;
       int j, stat, fixed = 0;
-      double obj, lb, ub, dj;
+      glp_double obj, lb, ub, dj;
       /* the global bound must exist */
       xassert(T->mip->mip_stat == GLP_FEAS);
       /* basic solution of LP relaxation must be optimal */
@@ -368,7 +368,7 @@ static int branch_on(glp_tree *T, int j, int next)
       int m = mip->m;
       int n = mip->n;
       int type, dn_type, up_type, dn_bad, up_bad, p, ret, clone[1+2];
-      double lb, ub, beta, new_ub, new_lb, dn_lp, up_lp, dn_bnd, up_bnd;
+      glp_double lb, ub, beta, new_ub, new_lb, dn_lp, up_lp, dn_bnd, up_bnd;
       /* determine bounds and value of x[j] in optimal solution to LP
          relaxation of the current subproblem */
       xassert(1 <= j && j <= n);
@@ -576,9 +576,9 @@ static int round_heur(glp_tree *T)
       /*int m = P->m;*/
       int n = P->n;
       int i, j, ret;
-      double *x;
+      glp_double *x;
       /* compute rounded values of variables */
-      x = talloc(1+n, double);
+      x = talloc(1+n, glp_double);
       for (j = 1; j <= n; j++)
       {  GLPCOL *col = P->col[j];
          if (col->kind == GLP_IV)
@@ -599,7 +599,7 @@ static int round_heur(glp_tree *T)
       for (i = 1; i <= T->orig_m; i++)
       {  int type = T->orig_type[i];
          GLPAIJ *aij;
-         double sum;
+         glp_double sum;
          if (type == GLP_FR)
             continue;
          /* compute value of linear form */
@@ -648,9 +648,9 @@ static void gmi_gen(glp_tree *T)
       glp_gmi_gen(P, pool, 50);
       if (pool->m > 0)
       {  int i, len, *ind;
-         double *val;
+         glp_double *val;
          ind = xcalloc(1+P->n, sizeof(int));
-         val = xcalloc(1+P->n, sizeof(double));
+         val = xcalloc(1+P->n, sizeof(glp_double));
          for (i = 1; i <= pool->m; i++)
          {  len = glp_get_mat_row(pool, i, ind, val);
             glp_ios_add_row(T, NULL, GLP_RF_GMI, 0, len, ind, val,
@@ -676,9 +676,9 @@ static void cov_gen(glp_tree *T)
       glp_cov_gen1(P, T->cov_gen, pool);
       if (pool->m > 0)
       {  int i, len, *ind;
-         double *val;
+         glp_double *val;
          ind = xcalloc(1+P->n, sizeof(int));
-         val = xcalloc(1+P->n, sizeof(double));
+         val = xcalloc(1+P->n, sizeof(glp_double));
          for (i = 1; i <= pool->m; i++)
          {  len = glp_get_mat_row(pool, i, ind, val);
             glp_ios_add_row(T, NULL, GLP_RF_COV, 0, len, ind, val,
@@ -702,9 +702,9 @@ static void mir_gen(glp_tree *T)
       glp_mir_gen(P, T->mir_gen, pool);
       if (pool->m > 0)
       {  int i, len, *ind;
-         double *val;
+         glp_double *val;
          ind = xcalloc(1+P->n, sizeof(int));
-         val = xcalloc(1+P->n, sizeof(double));
+         val = xcalloc(1+P->n, sizeof(glp_double));
          for (i = 1; i <= pool->m; i++)
          {  len = glp_get_mat_row(pool, i, ind, val);
             glp_ios_add_row(T, NULL, GLP_RF_MIR, 0, len, ind, val,
@@ -724,9 +724,9 @@ static void clq_gen(glp_tree *T, glp_cfg *G)
       glp_prob *P = T->mip;
       int n = P->n;
       int len, *ind;
-      double *val;
+      glp_double *val;
       ind = talloc(1+n, int);
-      val = talloc(1+n, double);
+      val = talloc(1+n, glp_double);
       len = glp_clq_cut(T->mip, G, ind, val);
       if (len > 0)
          glp_ios_add_row(T, NULL, GLP_RF_CLQ, 0, len, ind, val, GLP_UP,
@@ -908,12 +908,12 @@ int ios_driver(glp_tree *T)
 #endif
 #if 1 /* 18/VII-2013 */
       int bad_cut;
-      double old_obj;
+      glp_double old_obj;
 #endif
 #if 0 /* 10/VI-2013 */
       glp_long ttt = T->tm_beg;
 #else
-      double ttt = T->tm_beg;
+      glp_double ttt = T->tm_beg;
 #endif
 #if 1 /* 27/II-2016 by Chris */
       int root_done = 0;
@@ -1045,7 +1045,7 @@ more: /* minor loop starts here */
       /* display current progress of the search */
       if (T->parm->msg_lev >= GLP_MSG_DBG ||
           T->parm->msg_lev >= GLP_MSG_ON &&
-        (double)(T->parm->out_frq - 1) <=
+        (glp_double)(T->parm->out_frq - 1) <=
             1000.0 * xdifftime(xtime(), T->tm_lag))
          show_progress(T, 0);
       if (T->parm->msg_lev >= GLP_MSG_ALL &&
@@ -1061,7 +1061,7 @@ more: /* minor loop starts here */
       {  size_t total;
          glp_mem_usage(NULL, NULL, &total, NULL);
          xprintf("Time used: %.1f secs.  Memory used: %.1f Mb.\n",
-            xdifftime(xtime(), T->tm_beg), (double)total / 1048576.0);
+            xdifftime(xtime(), T->tm_beg), (glp_double)total / 1048576.0);
          ttt = xtime();
       }
 #endif
@@ -1076,7 +1076,7 @@ more: /* minor loop starts here */
       }
       /* check if the time limit has been exhausted */
       if (T->parm->tm_lim < INT_MAX &&
-         (double)(T->parm->tm_lim - 1) <=
+         (glp_double)(T->parm->tm_lim - 1) <=
          1000.0 * xdifftime(xtime(), T->tm_beg))
       {  if (T->parm->msg_lev >= GLP_MSG_DBG)
             xprintf("Time limit exhausted; search terminated\n");
@@ -1181,7 +1181,7 @@ more: /* minor loop starts here */
       T->curr->lp_obj = T->mip->obj_val;
       /* thus, it defines a local bound to integer optimal solution of
          the current subproblem */
-      {  double bound = T->mip->obj_val;
+      {  glp_double bound = T->mip->obj_val;
          /* some local bound to the current subproblem could be already
             set before, so we should only improve it */
          bound = ios_round_bound(T, bound);
@@ -1363,7 +1363,7 @@ more: /* minor loop starts here */
       }
 #if 1 /* 18/VII-2013 */
       if (T->curr->changed > 0)
-      {  double degrad = fabs(T->curr->lp_obj - old_obj);
+      {  glp_double degrad = fabs(T->curr->lp_obj - old_obj);
          if (degrad < 1e-4 * (1.0 + fabs(old_obj)))
             bad_cut++;
          else

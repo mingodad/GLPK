@@ -271,7 +271,7 @@ static LUXELM *find_pivot(LUX *lux, LUXWKA *wka)
       int *C_next = wka->C_next;
       LUXELM *piv, *some, *vij;
       int i, j, len, min_len, ncand, piv_lim = 5;
-      double best, cost;
+      glp_double best, cost;
       /* nothing is chosen so far */
       piv = NULL, best = DBL_MAX, ncand = 0;
       /* if in the active submatrix there is a column that has the only
@@ -316,7 +316,7 @@ static LUXELM *find_pivot(LUX *lux, LUXWKA *wka)
             xassert(some != NULL);
             ncand++;
             /* compute its Markowitz cost */
-            cost = (double)(min_len - 1) * (double)(len - 1);
+            cost = (glp_double)(min_len - 1) * (glp_double)(len - 1);
             /* choose between the current candidate and this element */
             if (cost < best) piv = some, best = cost;
             /* if piv_lim candidates have been considered, there is a
@@ -345,7 +345,7 @@ static LUXELM *find_pivot(LUX *lux, LUXWKA *wka)
             xassert(some != NULL);
             ncand++;
             /* compute its Markowitz cost */
-            cost = (double)(len - 1) * (double)(min_len - 1);
+            cost = (glp_double)(len - 1) * (glp_double)(min_len - 1);
             /* choose between the current candidate and this element */
             if (cost < best) piv = some, best = cost;
             /* if piv_lim candidates have been considered, there is a
@@ -890,7 +890,7 @@ void lux_f_solve(LUX *lux, int tr, mpq_t x[])
 *  SYNOPSIS
 *
 *  #include "lux.h"
-*  void lux_v_solve(LUX *lux, int tr, double x[]);
+*  void lux_v_solve(LUX *lux, int tr, glp_double x[]);
 *
 *  DESCRIPTION
 *

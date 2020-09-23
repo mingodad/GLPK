@@ -5,6 +5,8 @@
 #ifndef GLPAMD_H
 #define GLPAMD_H
 
+#include "glpk_real.h"
+
 #define AMD_DATE "May 31, 2007"
 #define AMD_VERSION_CODE(main, sub) ((main) * 1000 + (sub))
 #define AMD_MAIN_VERSION 2
@@ -43,24 +45,24 @@
 
 #define amd_order _glp_amd_order
 int amd_order(int n, const int Ap[], const int Ai[], int P[],
-      double Control[], double Info[]);
+      glp_double Control[], glp_double Info[]);
 
 #define amd_2 _glp_amd_2
 void amd_2(int n, int Pe[], int Iw[], int Len[], int iwlen, int pfree,
       int Nv[], int Next[], int Last[], int Head[], int Elen[],
-      int Degree[], int W[], double Control[], double Info[]);
+      int Degree[], int W[], glp_double Control[], glp_double Info[]);
 
 #define amd_valid _glp_amd_valid
 int amd_valid(int n_row, int n_col, const int Ap[], const int Ai[]);
 
 #define amd_defaults _glp_amd_defaults
-void amd_defaults(double Control[]);
+void amd_defaults(glp_double Control[]);
 
 #define amd_control _glp_amd_control
-void amd_control(double Control[]);
+void amd_control(glp_double Control[]);
 
 #define amd_info _glp_amd_info
-void amd_info(double Info[]);
+void amd_info(glp_double Info[]);
 
 #endif
 

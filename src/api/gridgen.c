@@ -49,15 +49,15 @@
 *  problem data have to be stored. Note that on entry the graph object
 *  is erased with the routine glp_erase_graph.
 *
-*  The parameter v_rhs specifies an offset of the field of type double
+*  The parameter v_rhs specifies an offset of the field of type glp_double
 *  in the vertex data block, to which the routine stores the supply or
 *  demand value. If v_rhs < 0, the value is not stored.
 *
-*  The parameter a_cap specifies an offset of the field of type double
+*  The parameter a_cap specifies an offset of the field of type glp_double
 *  in the arc data block, to which the routine stores the arc capacity.
 *  If a_cap < 0, the capacity is not stored.
 *
-*  The parameter a_cost specifies an offset of the field of type double
+*  The parameter a_cost specifies an offset of the field of type glp_double
 *  in the arc data block, to which the routine stores the per-unit cost
 *  if the arc flow. If a_cost < 0, the cost is not stored.
 *
@@ -141,7 +141,7 @@ struct stat_para
       /* the distribution: */
 #define UNIFORM      1  /* uniform distribution */
 #define EXPONENTIAL  2  /* exponential distribution */
-      double parameter[5];
+      glp_double parameter[5];
       /* the parameters of the distribution */
 };
 
@@ -226,7 +226,7 @@ struct csa
 static void assign_capacities(struct csa *csa);
 static void assign_costs(struct csa *csa);
 static void assign_imbalance(struct csa *csa);
-static int exponential(struct csa *csa, double lambda[1]);
+static int exponential(struct csa *csa, glp_double lambda[1]);
 static struct arcs *gen_additional_arcs(struct csa *csa, struct arcs
       *arc_ptr);
 static struct arcs *gen_basic_grid(struct csa *csa, struct arcs
@@ -234,9 +234,9 @@ static struct arcs *gen_basic_grid(struct csa *csa, struct arcs
 static void gen_more_arcs(struct csa *csa, struct arcs *arc_ptr);
 static void generate(struct csa *csa);
 static void output(struct csa *csa);
-static double randy(struct csa *csa);
+static glp_double randy(struct csa *csa);
 static void select_source_sinks(struct csa *csa);
-static int uniform(struct csa *csa, double a[2]);
+static int uniform(struct csa *csa, glp_double a[2]);
 
 int glp_gridgen(glp_graph *G_, int _v_rhs, int _a_cap, int _a_cost,
       const int parm[1+14])
@@ -247,11 +247,11 @@ int glp_gridgen(glp_graph *G_, int _v_rhs, int _a_cap, int _a_cost,
       a_cap = _a_cap;
       a_cost = _a_cost;
       if (G != NULL)
-      {  if (v_rhs >= 0 && v_rhs > G->v_size - (int)sizeof(double))
+      {  if (v_rhs >= 0 && v_rhs > G->v_size - (int)sizeof(glp_double))
             xerror("glp_gridgen: v_rhs = %d; invalid offset\n", v_rhs);
-         if (a_cap >= 0 && a_cap > G->a_size - (int)sizeof(double))
+         if (a_cap >= 0 && a_cap > G->a_size - (int)sizeof(glp_double))
             xerror("glp_gridgen: a_cap = %d; invalid offset\n", a_cap);
-         if (a_cost >= 0 && a_cost > G->a_size - (int)sizeof(double))
+         if (a_cost >= 0 && a_cost > G->a_size - (int)sizeof(glp_double))
             xerror("glp_gridgen: a_cost = %d; invalid offset\n", a_cost)
                ;
       }
@@ -323,7 +323,7 @@ int glp_gridgen(glp_graph *G_, int _v_rhs, int _a_cap, int _a_cost,
          arc_costs.parameter[1] = parm[11];
       }
       else
-      {  arc_costs.parameter[0] = (double)parm[10] / 100.0;
+      {  arc_costs.parameter[0] = (glp_double)parm[10] / 100.0;
          arc_costs.parameter[1] = 0.0;
       }
       capacities.distribution = parm[12];
@@ -332,18 +332,18 @@ int glp_gridgen(glp_graph *G_, int _v_rhs, int _a_cap, int _a_cost,
          capacities.parameter[1] = parm[14];
       }
       else
-      {  capacities.parameter[0] = (double)parm[13] / 100.0;
+      {  capacities.parameter[0] = (glp_double)parm[13] / 100.0;
          capacities.parameter[1] = 0.0;
       }
       /* Calculate the edge lengths of the grid according to the
          input. */
       if (n * n >= n_node)
       {  n1 = n;
-         n2 = (int)((double)n_node / (double)n + 0.5);
+         n2 = (int)((glp_double)n_node / (glp_double)n + 0.5);
       }
       else
       {  n2 = n;
-         n1 = (int)((double)n_node / (double)n + 0.5);
+         n1 = (int)((glp_double)n_node / (glp_double)n + 0.5);
       }
       /* Recalculate the total number of nodes and plus 1 for the super
          node. */
@@ -373,7 +373,7 @@ done: return ret;
 static void assign_capacities(struct csa *csa)
 {     /* Assign a capacity to each arc. */
       struct arcs *arc_ptr = arc_list;
-      int (*random)(struct csa *csa, double *);
+      int (*random)(struct csa *csa, glp_double *);
       int i;
       /* Determine the random number generator to use. */
       switch (arc_costs.distribution)
@@ -402,7 +402,7 @@ static void assign_capacities(struct csa *csa)
 static void assign_costs(struct csa *csa)
 {     /* Assign a cost to each arc. */
       struct arcs *arc_ptr = arc_list;
-      int (*random)(struct csa *csa, double *);
+      int (*random)(struct csa *csa, glp_double *);
       int i;
       /* A high cost assigned to arcs to/from the supernode. */
       int high_cost;
@@ -438,7 +438,7 @@ static void assign_costs(struct csa *csa)
 static void assign_imbalance(struct csa *csa)
 {     /* Assign an imbalance to each node. */
       int total, i;
-      double avg;
+      glp_double avg;
       struct imbalance *ptr;
       /* assign the supply nodes */
       avg = 2.0 * t_supply / n_source;
@@ -466,10 +466,10 @@ static void assign_imbalance(struct csa *csa)
       return;
 }
 
-static int exponential(struct csa *csa, double lambda[1])
+static int exponential(struct csa *csa, glp_double lambda[1])
 {     /* Returns an "exponentially distributed" integer with parameter
          lambda. */
-      return ((int)(- lambda[0] * log((double)randy(csa)) + 0.5));
+      return ((int)(- lambda[0] * log((glp_double)randy(csa)) + 0.5));
 }
 
 static struct arcs *gen_additional_arcs(struct csa *csa, struct arcs
@@ -554,7 +554,7 @@ static struct arcs *gen_basic_grid(struct csa *csa, struct arcs
 static void gen_more_arcs(struct csa *csa, struct arcs *arc_ptr)
 {     /* Generate random arcs to meet the specified density. */
       int i;
-      double ab[2];
+      glp_double ab[2];
       ab[0] = 0.9;
       ab[1] = n_node - 0.99;  /* upper limit is n_node-1 because the
                                  supernode cannot be selected */
@@ -627,10 +627,10 @@ skip: if (G == NULL)
       else
       {  glp_add_vertices(G, n_node);
          if (v_rhs >= 0)
-         {  double zero = 0.0;
+         {  glp_double zero = 0.0;
             for (i = 1; i <= n_node; i++)
             {  glp_vertex *v = G->v[i];
-               memcpy((char *)v->data + v_rhs, &zero, sizeof(double));
+               memcpy((char *)v->data + v_rhs, &zero, sizeof(glp_double));
             }
          }
       }
@@ -640,9 +640,9 @@ skip: if (G == NULL)
             xprintf("n %d %d\n", imb_ptr->node, imb_ptr->supply);
          else
          {  if (v_rhs >= 0)
-            {  double temp = (double)imb_ptr->supply;
+            {  glp_double temp = (glp_double)imb_ptr->supply;
                glp_vertex *v = G->v[imb_ptr->node];
-               memcpy((char *)v->data + v_rhs, &temp, sizeof(double));
+               memcpy((char *)v->data + v_rhs, &temp, sizeof(glp_double));
             }
          }
       }
@@ -651,9 +651,9 @@ skip: if (G == NULL)
             xprintf("n %d %d\n", imb_ptr->node, imb_ptr->supply);
          else
          {  if (v_rhs >= 0)
-            {  double temp = (double)imb_ptr->supply;
+            {  glp_double temp = (glp_double)imb_ptr->supply;
                glp_vertex *v = G->v[imb_ptr->node];
-               memcpy((char *)v->data + v_rhs, &temp, sizeof(double));
+               memcpy((char *)v->data + v_rhs, &temp, sizeof(glp_double));
             }
          }
       }
@@ -665,19 +665,19 @@ skip: if (G == NULL)
          else
          {  glp_arc *a = glp_add_arc(G, arc_ptr->from, arc_ptr->to);
             if (a_cap >= 0)
-            {  double temp = (double)arc_ptr->u;
-               memcpy((char *)a->data + a_cap, &temp, sizeof(double));
+            {  glp_double temp = (glp_double)arc_ptr->u;
+               memcpy((char *)a->data + a_cap, &temp, sizeof(glp_double));
             }
             if (a_cost >= 0)
-            {  double temp = (double)arc_ptr->cost;
-               memcpy((char *)a->data + a_cost, &temp, sizeof(double));
+            {  glp_double temp = (glp_double)arc_ptr->cost;
+               memcpy((char *)a->data + a_cost, &temp, sizeof(glp_double));
             }
          }
       }
       return;
 }
 
-static double randy(struct csa *csa)
+static glp_double randy(struct csa *csa)
 {     /* Returns a random number between 0.0 and 1.0.
          See Ward Cheney & David Kincaid, "Numerical Mathematics and
          Computing," 2Ed, pp. 335. */
@@ -691,7 +691,7 @@ static void select_source_sinks(struct csa *csa)
       int i, *int_ptr;
       int *temp_list;   /* a temporary list of nodes */
       struct imbalance *ptr;
-      double ab[2];     /* parameter for random number generator */
+      glp_double ab[2];     /* parameter for random number generator */
       ab[0] = 0.9;
       ab[1] = n_node - 0.99;  /* upper limit is n_node-1 because the
                                  supernode cannot be selected */
@@ -722,7 +722,7 @@ static void select_source_sinks(struct csa *csa)
       return;
 }
 
-int uniform(struct csa *csa, double a[2])
+int uniform(struct csa *csa, glp_double a[2])
 {     /* Generates an integer uniformly selected from [a[0],a[1]]. */
       return (int)((a[1] - a[0]) * randy(csa) + a[0] + 0.5);
 }
@@ -732,7 +732,7 @@ int uniform(struct csa *csa, double a[2])
 #if 0
 int main(void)
 {     int parm[1+14];
-      double temp;
+      glp_double temp;
       scanf("%d", &parm[1]);
       scanf("%d", &parm[2]);
       scanf("%d", &parm[3]);

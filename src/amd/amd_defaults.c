@@ -21,12 +21,12 @@
 
 GLOBAL void AMD_defaults
 (
-    double Control [ ]
+    glp_double Control [ ]
 )
 {
     Int i ;
 
-    if (Control != (double *) NULL)
+    if (Control != (glp_double *) NULL)
     {
         for (i = 0 ; i < AMD_CONTROL ; i++)
         {

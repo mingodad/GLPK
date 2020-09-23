@@ -55,7 +55,7 @@ int glp_read_prob(glp_prob *P, int flags, const char *fname)
 {     DMX _csa, *csa = &_csa;
       int mip, m, n, nnz, ne, i, j, k, type, kind, ret, *ln = NULL,
          *ia = NULL, *ja = NULL;
-      double lb, ub, temp, *ar = NULL;
+      glp_double lb, ub, temp, *ar = NULL;
       char *rf = NULL, *cf = NULL;
 #if 0 /* 04/IV-2016 */
       if (P == NULL || P->magic != GLP_PROB_MAGIC)
@@ -136,7 +136,7 @@ int glp_read_prob(glp_prob *P, int flags, const char *fname)
       ln = xcalloc(1+nnz, sizeof(int));
       ia = xcalloc(1+nnz, sizeof(int));
       ja = xcalloc(1+nnz, sizeof(int));
-      ar = xcalloc(1+nnz, sizeof(double));
+      ar = xcalloc(1+nnz, sizeof(glp_double));
       /* read descriptor lines */
       ne = 0;
       for (;;)

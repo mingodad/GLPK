@@ -78,7 +78,7 @@ SPM *spm_create_mat(int m, int n)
 *  SYNOPSIS
 *
 *  #include "glpspm.h"
-*  SPME *spm_new_elem(SPM *A, int i, int j, double val);
+*  SPME *spm_new_elem(SPM *A, int i, int j, glp_double val);
 *
 *  DESCRIPTION
 *
@@ -90,7 +90,7 @@ SPM *spm_create_mat(int m, int n)
 *
 *  The routine returns a pointer to the new element added. */
 
-SPME *spm_new_elem(SPM *A, int i, int j, double val)
+SPME *spm_new_elem(SPM *A, int i, int j, glp_double val)
 {     SPME *e;
       xassert(1 <= i && i <= A->m);
       xassert(1 <= j && j <= A->n);
@@ -214,20 +214,20 @@ SPM *spm_test_mat_d(int n, int c)
       for (i = 1; i <= n; i++)
          spm_new_elem(A, i, i, 1.0);
       for (i = 1; i <= n-c; i++)
-         spm_new_elem(A, i, i+c, (double)(i+1));
+         spm_new_elem(A, i, i+c, (glp_double)(i+1));
       for (i = n-c+1; i <= n; i++)
-         spm_new_elem(A, i, i-n+c, (double)(i+1));
+         spm_new_elem(A, i, i-n+c, (glp_double)(i+1));
       for (i = 1; i <= n-c-1; i++)
-         spm_new_elem(A, i, i+c+1, (double)(-i));
+         spm_new_elem(A, i, i+c+1, (glp_double)(-i));
       for (i = n-c; i <= n; i++)
-         spm_new_elem(A, i, i-n+c+1, (double)(-i));
+         spm_new_elem(A, i, i-n+c+1, (glp_double)(-i));
       for (i = 1; i <= n-c-2; i++)
          spm_new_elem(A, i, i+c+2, 16.0);
       for (i = n-c-1; i <= n; i++)
          spm_new_elem(A, i, i-n+c+2, 16.0);
       for (j = 1; j <= 10; j++)
          for (i = 1; i <= 11-j; i++)
-            spm_new_elem(A, i, n-11+i+j, 100.0 * (double)j);
+            spm_new_elem(A, i, n-11+i+j, 100.0 * (glp_double)j);
       return A;
 }
 
@@ -329,7 +329,7 @@ SPM *spm_read_hbm(const char *fname)
 {     SPM *A = NULL;
       HBM *hbm;
       int nrow, ncol, nnzero, i, j, beg, end, ptr, *colptr, *rowind;
-      double val, *values;
+      glp_double val, *values;
       char *mxtype;
       hbm = hbm_read_mat(fname);
       if (hbm == NULL)
@@ -404,7 +404,7 @@ int spm_count_nnz(const SPM *A)
 *  SYNOPSIS
 *
 *  #include "glpspm.h"
-*  int spm_drop_zeros(SPM *A, double eps);
+*  int spm_drop_zeros(SPM *A, glp_double eps);
 *
 *  DESCRIPTION
 *
@@ -418,7 +418,7 @@ int spm_count_nnz(const SPM *A)
 *
 *  The routine returns the number of elements removed. */
 
-int spm_drop_zeros(SPM *A, double eps)
+int spm_drop_zeros(SPM *A, glp_double eps)
 {     SPME *e, *next;
       int i, count = 0;
       for (i = 1; i <= A->m; i++)
@@ -485,7 +485,7 @@ SPM *spm_read_mat(const char *fname)
       PDS *pds;
       jmp_buf jump;
       int i, j, k, m, n, nnz, fail = 0;
-      double val;
+      glp_double val;
       xprintf("spm_read_mat: reading matrix from '%s'...\n", fname);
       pds = pds_open_file(fname);
       if (pds == NULL)
@@ -687,13 +687,13 @@ SPM *spm_add_sym(const SPM *A, const SPM *B)
       return C;
 }
 
-void spm_add_num(SPM *C, double alfa, const SPM *A, double beta,
+void spm_add_num(SPM *C, glp_double alfa, const SPM *A, glp_double beta,
       const SPM *B)
 {     /* add two sparse matrices (numeric phase) */
       int i, j;
-      double *work;
+      glp_double *work;
       /* allocate and clear the working array */
-      work = xcalloc(1+C->n, sizeof(double));
+      work = xcalloc(1+C->n, sizeof(glp_double));
       for (j = 1; j <= C->n; j++)
          work[j] = 0.0;
       /* compute matrix C = alfa * A + beta * B */
@@ -719,7 +719,7 @@ void spm_add_num(SPM *C, double alfa, const SPM *A, double beta,
       return;
 }
 
-SPM *spm_add_mat(double alfa, const SPM *A, double beta, const SPM *B)
+SPM *spm_add_mat(glp_double alfa, const SPM *A, glp_double beta, const SPM *B)
 {     /* add two sparse matrices (driver routine) */
       SPM *C;
       C = spm_add_sym(A, B);
@@ -768,15 +768,15 @@ SPM *spm_mul_sym(const SPM *A, const SPM *B)
 void spm_mul_num(SPM *C, const SPM *A, const SPM *B)
 {     /* multiply two sparse matrices (numeric phase) */
       int i, j;
-      double *work;
+      glp_double *work;
       /* allocate and clear the working array */
-      work = xcalloc(1+A->n, sizeof(double));
+      work = xcalloc(1+A->n, sizeof(glp_double));
       for (j = 1; j <= A->n; j++)
          work[j] = 0.0;
       /* compute matrix C = A * B */
       for (i = 1; i <= C->m; i++)
       {  SPME *e, *ee;
-         double temp;
+         glp_double temp;
          /* work := (i-th row of A) */
          /* (note that A may have duplicate elements) */
          for (e = A->row[i]; e != NULL; e = e->r_next)

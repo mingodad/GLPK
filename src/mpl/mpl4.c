@@ -1175,6 +1175,15 @@ int mpl_get_row_bnds(MPL *mpl, int i, double *_lb, double *_ub)
       return type;
 }
 
+int mpl_get_row_bnds_gd(MPL *mpl, int i, glp_double *_lb, glp_double *_ub)
+{
+    double d_lb, d_ub;
+    int rc = mpl_get_row_bnds(mpl, i, &d_lb, &d_ub);
+    *_lb = d_lb;
+    *_ub = d_ub;
+    return rc;
+}
+
 /*----------------------------------------------------------------------
 -- mpl_get_mat_row - obtain row of the constraint matrix.
 --
@@ -1205,6 +1214,24 @@ int mpl_get_row_bnds(MPL *mpl, int i, double *_lb, double *_ub)
 -- of the constraint matrix (i.e. number of non-zero coefficients). */
 
 int mpl_get_mat_row(MPL *mpl, int i, int ndx[], double val[])
+{     FORMULA *term;
+      int len = 0;
+      if (mpl->phase != GLP_TRAN_PHASE_GENERATE)
+         xfault("mpl_get_mat_row: invalid call sequence\n");
+      if (!(1 <= i && i <= mpl->m))
+         xfault("mpl_get_mat_row: i = %d; row number out of range\n",
+            i);
+      for (term = mpl->row[i]->form; term != NULL; term = term->next)
+      {  xassert(term->var != NULL);
+         len++;
+         xassert(len <= mpl->n);
+         if (ndx != NULL) ndx[len] = term->var->j;
+         if (val != NULL) val[len] = term->coef;
+      }
+      return len;
+}
+
+int mpl_get_mat_row_gd(MPL *mpl, int i, int ndx[], glp_double val[])
 {     FORMULA *term;
       int len = 0;
       if (mpl->phase != GLP_TRAN_PHASE_GENERATE)
@@ -1409,6 +1436,15 @@ int mpl_get_col_bnds(MPL *mpl, int j, double *_lb, double *_ub)
       if (_lb != NULL) *_lb = lb;
       if (_ub != NULL) *_ub = ub;
       return type;
+}
+
+int mpl_get_col_bnds_gd(MPL *mpl, int j, glp_double *_lb, glp_double *_ub)
+{
+    double d_lb, d_ub;
+    int rc = mpl_get_col_bnds(mpl, j, &d_lb, &d_ub);
+    *_lb = d_lb;
+    *_ub = d_ub;
+    return rc;
 }
 
 /*----------------------------------------------------------------------

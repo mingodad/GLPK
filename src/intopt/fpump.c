@@ -51,7 +51,7 @@ struct VAR
       /* ordinal number */
       int x;
       /* value in the rounded solution (0 or 1) */
-      double d;
+      glp_double d;
       /* sorting key */
 };
 
@@ -75,7 +75,7 @@ void ios_feas_pump(glp_tree *T)
       GLPCOL *col;
       glp_smcp parm;
       int j, k, new_x, nfail, npass, nv, ret, stalling;
-      double dist, tol;
+      glp_double dist, tol;
       xassert(glp_get_status(P) == GLP_OPT);
       /* this heuristic is applied only once on the root level */
       if (!(T->curr->level == 0 && T->curr->solved == 1)) goto done;
@@ -122,11 +122,11 @@ more: /* copy the original problem object to keep it intact */
          is better than the best known one */
       if (P->mip_stat == GLP_FEAS)
       {  int *ind;
-         double *val, bnd;
+         glp_double *val, bnd;
          /* add a row and make it identical to the objective row */
          glp_add_rows(lp, 1);
          ind = xcalloc(1+n, sizeof(int));
-         val = xcalloc(1+n, sizeof(double));
+         val = xcalloc(1+n, sizeof(glp_double));
          for (j = 1; j <= n; j++)
          {  ind[j] = j;
             val[j] = P->col[j]->coef;
@@ -180,7 +180,7 @@ pass: /* next pass starts here */
       /* if it is not the first pass, perturb the last rounded point
          rather than construct it from the basic solution */
       if (npass > 1)
-      {  double rho, temp;
+      {  glp_double rho, temp;
          if (rand == NULL)
             rand = rng_create_rand();
          for (k = 1; k <= nv; k++)
@@ -188,7 +188,7 @@ pass: /* next pass starts here */
             col = lp->col[j];
             rho = rng_uniform(rand, -0.3, 0.7);
             if (rho < 0.0) rho = 0.0;
-            temp = fabs((double)var[k].x - col->prim);
+            temp = fabs((glp_double)var[k].x - col->prim);
             if (temp + rho > 0.5) var[k].x = 1 - var[k].x;
          }
          goto skip;
@@ -217,7 +217,7 @@ loop: /* innermost loop begins here */
       {  /* compute d[j] = |x[j] - round(x[j])| */
          for (k = 1; k <= nv; k++)
          {  col = lp->col[var[k].j];
-            var[k].d = fabs(col->prim - (double)var[k].x);
+            var[k].d = fabs(col->prim - (glp_double)var[k].x);
          }
          /* sort the list of binary variables by descending d[j] */
          qsort(&var[1], nv, sizeof(struct VAR), fcmp);
@@ -229,7 +229,7 @@ loop: /* innermost loop begins here */
       }
 skip: /* check if the time limit has been exhausted */
       if (T->parm->tm_lim < INT_MAX &&
-         (double)(T->parm->tm_lim - 1) <=
+         (glp_double)(T->parm->tm_lim - 1) <=
          1000.0 * xdifftime(xtime(), T->tm_beg)) goto done;
       /* build the objective, which is the distance between the current
          (basic) point and the rounded one */
@@ -277,7 +277,7 @@ skip: /* check if the time limit has been exhausted */
       }
       if (k > nv)
       {  /* okay; the basic solution seems to be integer feasible */
-         double *x = xcalloc(1+n, sizeof(double));
+         glp_double *x = xcalloc(1+n, sizeof(glp_double));
          for (j = 1; j <= n; j++)
          {  x[j] = lp->col[j]->prim;
             if (P->col[j]->kind == GLP_IV) x[j] = floor(x[j] + 0.5);

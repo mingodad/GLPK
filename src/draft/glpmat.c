@@ -34,7 +34,7 @@
 -- SYNOPSIS
 --
 -- #include "glpmat.h"
--- int check_fvs(int n, int nnz, int ind[], double vec[]);
+-- int check_fvs(int n, int nnz, int ind[], glp_double vec[]);
 --
 -- DESCRIPTION
 --
@@ -52,7 +52,7 @@
 -- 4 - some element index is duplicate;
 -- 5 - some non-zero element is out of pattern. */
 
-int check_fvs(int n, int nnz, int ind[], double vec[])
+int check_fvs(int n, int nnz, int ind[], glp_double vec[])
 {     int i, t, ret, *flag = NULL;
       /* check the number of elements */
       if (n < 0)
@@ -171,7 +171,7 @@ done: if (flag != NULL) xfree(flag);
 --
 -- #include "glpmat.h"
 -- void transpose(int m, int n, int A_ptr[], int A_ind[],
---    double A_val[], int AT_ptr[], int AT_ind[], double AT_val[]);
+--    glp_double A_val[], int AT_ptr[], int AT_ind[], glp_double AT_val[]);
 --
 -- *Description*
 --
@@ -191,8 +191,8 @@ done: if (flag != NULL) xfree(flag);
 -- The routine transpose has a side effect that elements in rows of the
 -- resultant matrix A' follow in ascending their column indices. */
 
-void transpose(int m, int n, int A_ptr[], int A_ind[], double A_val[],
-      int AT_ptr[], int AT_ind[], double AT_val[])
+void transpose(int m, int n, int A_ptr[], int A_ind[], glp_double A_val[],
+      int AT_ptr[], int AT_ind[], glp_double AT_val[])
 {     int i, j, t, beg, end, pos, len;
       /* determine row lengths of resultant matrix */
       for (j = 1; j <= n; j++) AT_ptr[j] = 0;
@@ -325,8 +325,8 @@ int *adat_symbolic(int m, int n, int P_per[], int A_ptr[], int A_ind[],
 --
 -- #include "glpmat.h"
 -- void adat_numeric(int m, int n, int P_per[],
---    int A_ptr[], int A_ind[], double A_val[], double D_diag[],
---    int S_ptr[], int S_ind[], double S_val[], double S_diag[]);
+--    int A_ptr[], int A_ind[], glp_double A_val[], glp_double D_diag[],
+--    int S_ptr[], int S_ind[], glp_double S_val[], glp_double S_diag[]);
 --
 -- *Description*
 --
@@ -357,11 +357,11 @@ int *adat_symbolic(int m, int n, int P_per[], int A_ptr[], int A_ind[],
 -- elements of S are stored in locations S_diag[1], ..., S_diag[n]. */
 
 void adat_numeric(int m, int n, int P_per[],
-      int A_ptr[], int A_ind[], double A_val[], double D_diag[],
-      int S_ptr[], int S_ind[], double S_val[], double S_diag[])
+      int A_ptr[], int A_ind[], glp_double A_val[], glp_double D_diag[],
+      int S_ptr[], int S_ind[], glp_double S_val[], glp_double S_diag[])
 {     int i, j, t, ii, jj, tt, beg, end, beg1, end1, k;
-      double sum, *work;
-      work = xcalloc(1+n, sizeof(double));
+      glp_double sum, *work;
+      work = xcalloc(1+n, sizeof(glp_double));
       for (j = 1; j <= n; j++) work[j] = 0.0;
       /* compute S = B*D*B', where B = P*A, B' is a matrix transposed
          to B */
@@ -494,7 +494,7 @@ void min_degree(int n, int A_ptr[], int A_ind[], int P_per[])
 void amd_order1(int n, int A_ptr[], int A_ind[], int P_per[])
 {     /* approximate minimum degree ordering (AMD) */
       int k, ret;
-      double Control[AMD_CONTROL], Info[AMD_INFO];
+      glp_double Control[AMD_CONTROL], Info[AMD_INFO];
       /* get the default parameters */
       amd_defaults(Control);
 #if 0
@@ -716,8 +716,8 @@ int *chol_symbolic(int n, int A_ptr[], int A_ind[], int U_ptr[])
 --
 -- #include "glpmat.h"
 -- int chol_numeric(int n,
---    int A_ptr[], int A_ind[], double A_val[], double A_diag[],
---    int U_ptr[], int U_ind[], double U_val[], double U_diag[]);
+--    int A_ptr[], int A_ind[], glp_double A_val[], glp_double A_diag[],
+--    int U_ptr[], int U_ind[], glp_double U_val[], glp_double U_diag[]);
 --
 -- *Description*
 --
@@ -789,11 +789,11 @@ int *chol_symbolic(int n, int A_ptr[], int A_ind[], int U_ptr[])
 -- only if the system A*x = b is consistent. */
 
 int chol_numeric(int n,
-      int A_ptr[], int A_ind[], double A_val[], double A_diag[],
-      int U_ptr[], int U_ind[], double U_val[], double U_diag[])
+      int A_ptr[], int A_ind[], glp_double A_val[], glp_double A_diag[],
+      int U_ptr[], int U_ind[], glp_double U_val[], glp_double U_diag[])
 {     int i, j, k, t, t1, beg, end, beg1, end1, count = 0;
-      double ukk, uki, *work;
-      work = xcalloc(1+n, sizeof(double));
+      glp_double ukk, uki, *work;
+      work = xcalloc(1+n, sizeof(glp_double));
       for (j = 1; j <= n; j++) work[j] = 0.0;
       /* U := (upper triangle of A) */
       /* note that the upper traingle of A is a subset of U */
@@ -843,8 +843,8 @@ int chol_numeric(int n,
 -- *Synopsis*
 --
 -- #include "glpmat.h"
--- void u_solve(int n, int U_ptr[], int U_ind[], double U_val[],
---    double U_diag[], double x[]);
+-- void u_solve(int n, int U_ptr[], int U_ind[], glp_double U_val[],
+--    glp_double U_diag[], glp_double x[]);
 --
 -- *Description*
 --
@@ -864,10 +864,10 @@ int chol_numeric(int n,
 -- the routine stores computed components of the vector of unknowns x
 -- in the array x in the same manner. */
 
-void u_solve(int n, int U_ptr[], int U_ind[], double U_val[],
-      double U_diag[], double x[])
+void u_solve(int n, int U_ptr[], int U_ind[], glp_double U_val[],
+      glp_double U_diag[], glp_double x[])
 {     int i, t, beg, end;
-      double temp;
+      glp_double temp;
       for (i = n; i >= 1; i--)
       {  temp = x[i];
          beg = U_ptr[i], end = U_ptr[i+1];
@@ -885,8 +885,8 @@ void u_solve(int n, int U_ptr[], int U_ind[], double U_val[],
 -- *Synopsis*
 --
 -- #include "glpmat.h"
--- void ut_solve(int n, int U_ptr[], int U_ind[], double U_val[],
---    double U_diag[], double x[]);
+-- void ut_solve(int n, int U_ptr[], int U_ind[], glp_double U_val[],
+--    glp_double U_diag[], glp_double x[]);
 --
 -- *Description*
 --
@@ -906,10 +906,10 @@ void u_solve(int n, int U_ptr[], int U_ind[], double U_val[],
 -- the routine stores computed components of the vector of unknowns x
 -- in the array x in the same manner. */
 
-void ut_solve(int n, int U_ptr[], int U_ind[], double U_val[],
-      double U_diag[], double x[])
+void ut_solve(int n, int U_ptr[], int U_ind[], glp_double U_val[],
+      glp_double U_diag[], glp_double x[])
 {     int i, t, beg, end;
-      double temp;
+      glp_double temp;
       for (i = 1; i <= n; i++)
       {  xassert(U_diag[i] != 0.0);
          temp = (x[i] /= U_diag[i]);

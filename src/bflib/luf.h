@@ -110,7 +110,7 @@ struct LUF
       /* vr_cap[0] is not used;
        * vr_cap[i], 1 <= i <= n, is capacity of i-th row */
 #endif
-      double *vr_piv; /* double vr_piv[1+n]; */
+      glp_double *vr_piv; /* glp_double vr_piv[1+n]; */
       /* vr_piv[0] is not used;
        * vr_piv[i], 1 <= i <= n, is pivot element of i-th row */
       /*--------------------------------------------------------------*/
@@ -170,7 +170,7 @@ struct LUF
 
 #define luf_store_v_cols _glp_luf_store_v_cols
 int luf_store_v_cols(LUF *luf, int (*col)(void *info, int j, int ind[],
-      double val[]), void *info, int ind[], double val[]);
+      glp_double val[]), void *info, int ind[], glp_double val[]);
 /* store matrix V = A in column-wise format */
 
 #define luf_check_all _glp_luf_check_all
@@ -198,27 +198,27 @@ void luf_check_v_rc(LUF *luf);
 /* check rows and columns of matrix V */
 
 #define luf_f_solve _glp_luf_f_solve
-void luf_f_solve(LUF *luf, double x[/*1+n*/]);
+void luf_f_solve(LUF *luf, glp_double x[/*1+n*/]);
 /* solve system F * x = b */
 
 #define luf_ft_solve _glp_luf_ft_solve
-void luf_ft_solve(LUF *luf, double x[/*1+n*/]);
+void luf_ft_solve(LUF *luf, glp_double x[/*1+n*/]);
 /* solve system F' * x = b */
 
 #define luf_v_solve _glp_luf_v_solve
-void luf_v_solve(LUF *luf, double b[/*1+n*/], double x[/*1+n*/]);
+void luf_v_solve(LUF *luf, glp_double b[/*1+n*/], glp_double x[/*1+n*/]);
 /* solve system V * x = b */
 
 #define luf_vt_solve _glp_luf_vt_solve
-void luf_vt_solve(LUF *luf, double b[/*1+n*/], double x[/*1+n*/]);
+void luf_vt_solve(LUF *luf, glp_double b[/*1+n*/], glp_double x[/*1+n*/]);
 /* solve system V' * x = b */
 
 #define luf_vt_solve1 _glp_luf_vt_solve1
-void luf_vt_solve1(LUF *luf, double e[/*1+n*/], double y[/*1+n*/]);
+void luf_vt_solve1(LUF *luf, glp_double e[/*1+n*/], glp_double y[/*1+n*/]);
 /* solve system V' * y = e' to cause growth in y */
 
 #define luf_estimate_norm _glp_luf_estimate_norm
-double luf_estimate_norm(LUF *luf, double w1[/*1+n*/], double
+glp_double luf_estimate_norm(LUF *luf, glp_double w1[/*1+n*/], glp_double
       w2[/*1+n*/]);
 /* estimate 1-norm of inv(A) */
 

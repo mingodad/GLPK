@@ -12,8 +12,8 @@
 
 #if 1 /* 28/XI-2009 */
 int _glp_analyze_row(glp_prob *P, int len, const int ind[],
-      const double val[], int type, double rhs, double eps, int *_piv,
-      double *_x, double *_dx, double *_y, double *_dy, double *_dz);
+      const glp_double val[], int type, glp_double rhs, glp_double eps, int *_piv,
+      glp_double *_x, glp_double *_dx, glp_double *_y, glp_double *_dy, glp_double *_dz);
 /* simulate one iteration of dual simplex method */
 #endif
 

@@ -294,9 +294,9 @@ void setup(int n, char a[1+50][1+50], int ip[], int icn[], int lenr[])
       return;
 }
 
-double g = 1431655765.0;
+glp_double g = 1431655765.0;
 
-double fa01as(int i)
+glp_double fa01as(int i)
 {     /* random number generator */
       g = fmod(g * 9228907.0, 4294967296.0);
       if (i >= 0)
@@ -306,7 +306,7 @@ double fa01as(int i)
 }
 
 void fa01bs(int max, int *nrand)
-{     *nrand = (int)(fa01as(1) * (double)max) + 1;
+{     *nrand = (int)(fa01as(1) * (glp_double)max) + 1;
       return;
 }
 #endif

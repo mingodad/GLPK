@@ -25,8 +25,8 @@
 #include "env.h"
 #include "prob.h"
 
-void glp_check_kkt(glp_prob *P, int sol, int cond, double *_ae_max,
-      int *_ae_ind, double *_re_max, int *_re_ind)
+void glp_check_kkt(glp_prob *P, int sol, int cond, glp_double *_ae_max,
+      int *_ae_ind, glp_double *_re_max, int *_re_ind)
 {     /* check feasibility and optimality conditions */
       int m = P->m;
       int n = P->n;
@@ -34,7 +34,7 @@ void glp_check_kkt(glp_prob *P, int sol, int cond, double *_ae_max,
       GLPCOL *col;
       GLPAIJ *aij;
       int i, j, ae_ind, re_ind;
-      double e, sp, sn, t, ae_max, re_max;
+      glp_double e, sp, sn, t, ae_max, re_max;
       if (!(sol == GLP_SOL || sol == GLP_IPT || sol == GLP_MIP))
          xerror("glp_check_kkt: sol = %d; invalid solution indicator\n",
             sol);

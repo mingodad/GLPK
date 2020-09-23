@@ -43,11 +43,11 @@ struct SCFINT
       /* interface to factorize initial matrix A0 */
       /*--------------------------------------------------------------*/
       /* working arrays */
-      double *w1; /* double w1[1+n0_max]; */
-      double *w2; /* double w2[1+n0_max]; */
-      double *w3; /* double w3[1+n0_max]; */
-      double *w4; /* double w4[1+n0_max+nn_max]; */
-      double *w5; /* double w5[1+n0_max+nn_max]; */
+      glp_double *w1; /* glp_double w1[1+n0_max]; */
+      glp_double *w2; /* glp_double w2[1+n0_max]; */
+      glp_double *w3; /* glp_double w3[1+n0_max]; */
+      glp_double *w4; /* glp_double w4[1+n0_max+nn_max]; */
+      glp_double *w5; /* glp_double w5[1+n0_max+nn_max]; */
       /*--------------------------------------------------------------*/
       /* control parameters */
       int nn_max;
@@ -60,24 +60,24 @@ SCFINT *scfint_create(int type);
 
 #define scfint_factorize _glp_scfint_factorize
 int scfint_factorize(SCFINT *fi, int n, int (*col)(void *info, int j,
-      int ind[], double val[]), void *info);
+      int ind[], glp_double val[]), void *info);
 /* compute SC-factorization of specified matrix A */
 
 #define scfint_update _glp_scfint_update
 int scfint_update(SCFINT *fi, int upd, int j, int len, const int ind[],
-      const double val[]);
+      const glp_double val[]);
 /* update SC-factorization after replacing j-th column of A */
 
 #define scfint_ftran _glp_scfint_ftran
-void scfint_ftran(SCFINT *fi, double x[]);
+void scfint_ftran(SCFINT *fi, glp_double x[]);
 /* solve system A * x = b */
 
 #define scfint_btran _glp_scfint_btran
-void scfint_btran(SCFINT *fi, double x[]);
+void scfint_btran(SCFINT *fi, glp_double x[]);
 /* solve system A'* x = b */
 
 #define scfint_estimate _glp_scfint_estimate
-double scfint_estimate(SCFINT *fi);
+glp_double scfint_estimate(SCFINT *fi);
 /* estimate 1-norm of inv(A) */
 
 #define scfint_delete _glp_scfint_delete

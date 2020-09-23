@@ -73,7 +73,7 @@ void dmx_end_of_line(DMX *csa);
 /* skip white-space characters until end of line */
 
 #define dmx_check_int _glp_dmx_check_int
-void dmx_check_int(DMX *csa, double num);
+void dmx_check_int(DMX *csa, glp_double num);
 /* print a warning if non-integer data are detected */
 
 #endif

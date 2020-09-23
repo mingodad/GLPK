@@ -637,7 +637,7 @@ struct bnd_col
 {     /* bounded column */
       int q;
       /* column reference number for variables x[q] and s */
-      double bnd;
+      glp_double bnd;
       /* lower/upper bound l[q] or u[q] */
 };
 
@@ -1097,7 +1097,7 @@ struct fixed_col
 {     /* fixed column */
       int q;
       /* column reference number for variable x[q] */
-      double s;
+      glp_double s;
       /* value, at which x[q] is fixed */
 };
 
@@ -1226,7 +1226,7 @@ static int rcv_make_equality(NPP *npp, void *info);
 int npp_make_equality(NPP *npp, NPPROW *p)
 {     /* process row with almost identical bounds */
       struct make_equality *info;
-      double b, eps, nint;
+      glp_double b, eps, nint;
       /* the row must be double-sided inequality */
       xassert(p->lb != -DBL_MAX);
       xassert(p->ub != +DBL_MAX);
@@ -1355,7 +1355,7 @@ struct make_fixed
 {     /* column with almost identical bounds */
       int q;
       /* column reference number */
-      double c;
+      glp_double c;
       /* objective coefficient at x[q] */
       NPPLFE *ptr;
       /* list of non-zero coefficients a[i,q] */
@@ -1368,7 +1368,7 @@ int npp_make_fixed(NPP *npp, NPPCOL *q)
       struct make_fixed *info;
       NPPAIJ *aij;
       NPPLFE *lfe;
-      double s, eps, nint;
+      glp_double s, eps, nint;
       /* the column must be double-bounded */
       xassert(q->lb != -DBL_MAX);
       xassert(q->ub != +DBL_MAX);
@@ -1407,7 +1407,7 @@ static int rcv_make_fixed(NPP *npp, void *_info)
 {     /* recover column with almost identical bounds */
       struct make_fixed *info = _info;
       NPPLFE *lfe;
-      double lambda;
+      glp_double lambda;
       if (npp->sol == GLP_SOL)
       {  if (npp->c_stat[info->q] == GLP_BS)
             npp->c_stat[info->q] = GLP_BS;

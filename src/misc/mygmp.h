@@ -28,6 +28,8 @@
 #include <config.h>
 #endif
 
+#include "glpk_real.h"
+
 #ifdef HAVE_GMP               /* use GNU MP library */
 
 #include <gmp.h>
@@ -130,12 +132,12 @@ void mpz_set_si(mpz_t x, int val);
 /* set the value of x to val */
 
 #define mpz_get_d _glp_mpz_get_d
-double mpz_get_d(mpz_t x);
-/* convert x to a double, truncating if necessary */
+glp_double mpz_get_d(mpz_t x);
+/* convert x to a glp_double, truncating if necessary */
 
 #define mpz_get_d_2exp _glp_mpz_get_d_2exp
-double mpz_get_d_2exp(int *exp, mpz_t x);
-/* convert x to a double, returning the exponent separately */
+glp_double mpz_get_d_2exp(int *exp, mpz_t x);
+/* convert x to a glp_double, returning the exponent separately */
 
 #define mpz_swap _glp_mpz_swap
 void mpz_swap(mpz_t x, mpz_t y);
@@ -204,11 +206,11 @@ void mpq_set_si(mpq_t x, int p, unsigned int q);
 /* set the value of x to p/q */
 
 #define mpq_get_d _glp_mpq_get_d
-double mpq_get_d(mpq_t x);
-/* convert x to a double, truncating if necessary */
+glp_double mpq_get_d(mpq_t x);
+/* convert x to a glp_double, truncating if necessary */
 
 #define mpq_set_d _glp_mpq_set_d
-void mpq_set_d(mpq_t x, double val);
+void mpq_set_d(mpq_t x, glp_double val);
 /* set x to val; there is no rounding, the conversion is exact */
 
 #define mpq_add _glp_mpq_add

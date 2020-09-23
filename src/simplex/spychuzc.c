@@ -76,26 +76,26 @@
 *  parameter theta, and returns p on exit. And if theta may increase
 *  unlimitedly, the routine returns zero. */
 
-int spy_chuzc_std(SPXLP *lp, const double d[/*1+n-m*/],
+int spy_chuzc_std(SPXLP *lp, const glp_double d[/*1+n-m*/],
 #if 0 /* 14/III-2016 */
-      double s, const double trow[/*1+n-m*/], double tol_piv,
+      glp_double s, const glp_double trow[/*1+n-m*/], glp_double tol_piv,
 #else
-      double r, const double trow[/*1+n-m*/], double tol_piv,
+      glp_double r, const glp_double trow[/*1+n-m*/], glp_double tol_piv,
 #endif
-      double tol, double tol1)
+      glp_double tol, glp_double tol1)
 {     int m = lp->m;
       int n = lp->n;
-      double *c = lp->c;
-      double *l = lp->l;
-      double *u = lp->u;
+      glp_double *c = lp->c;
+      glp_double *l = lp->l;
+      glp_double *u = lp->u;
       int *head = lp->head;
       char *flag = lp->flag;
       int j, k, q;
-      double alfa, biga, delta, teta, teta_min;
+      glp_double alfa, biga, delta, teta, teta_min;
 #if 0 /* 14/III-2016 */
       xassert(s == +1.0 || s == -1.0);
 #else
-      double s;
+      glp_double s;
       xassert(r != 0.0);
       s = (r > 0.0 ? +1.0 : -1.0);
 #endif
@@ -151,26 +151,26 @@ int spy_chuzc_std(SPXLP *lp, const double d[/*1+n-m*/],
 *  cost d[j] the tolerance is delta[j] = tol + tol1 |cN[j]|, where
 *  cN[j] is objective coefficient at non-basic variable xN[j]. */
 
-int spy_chuzc_harris(SPXLP *lp, const double d[/*1+n-m*/],
+int spy_chuzc_harris(SPXLP *lp, const glp_double d[/*1+n-m*/],
 #if 0 /* 14/III-2016 */
-      double s, const double trow[/*1+n-m*/], double tol_piv,
+      glp_double s, const glp_double trow[/*1+n-m*/], glp_double tol_piv,
 #else
-      double r, const double trow[/*1+n-m*/], double tol_piv,
+      glp_double r, const glp_double trow[/*1+n-m*/], glp_double tol_piv,
 #endif
-      double tol, double tol1)
+      glp_double tol, glp_double tol1)
 {     int m = lp->m;
       int n = lp->n;
-      double *c = lp->c;
-      double *l = lp->l;
-      double *u = lp->u;
+      glp_double *c = lp->c;
+      glp_double *l = lp->l;
+      glp_double *u = lp->u;
       int *head = lp->head;
       char *flag = lp->flag;
       int j, k, q;
-      double alfa, biga, delta, teta, teta_min;
+      glp_double alfa, biga, delta, teta, teta_min;
 #if 0 /* 14/III-2016 */
       xassert(s == +1.0 || s == -1.0);
 #else
-      double s;
+      glp_double s;
       xassert(r != 0.0);
       s = (r > 0.0 ? +1.0 : -1.0);
 #endif
@@ -285,17 +285,17 @@ static int CDECL fcmp(const void *v1, const void *v2)
          return 0;
 }
 
-int spy_eval_bp(SPXLP *lp, const double d[/*1+n-m*/],
-      double r, const double trow[/*1+n-m*/], double tol_piv,
+int spy_eval_bp(SPXLP *lp, const glp_double d[/*1+n-m*/],
+      glp_double r, const glp_double trow[/*1+n-m*/], glp_double tol_piv,
       SPYBP bp[/*1+n-m*/])
 {     int m = lp->m;
       int n = lp->n;
-      double *l = lp->l;
-      double *u = lp->u;
+      glp_double *l = lp->l;
+      glp_double *u = lp->u;
       int *head = lp->head;
       char *flag = lp->flag;
       int j, j_max, k, t, nnn, num;
-      double s, alfa, teta, teta_max, dz, v;
+      glp_double s, alfa, teta, teta_max, dz, v;
       xassert(r != 0.0);
       s = (r > 0.0 ? +1.0 : -1.0);
       /* build the list of all dual basic variables lambdaN[j] that
@@ -409,17 +409,17 @@ done: return num;
 *  bp[1], ..., bp[nbp] in *arbitrary* order, where 0 <= nbp <= n-m is
 *  the number of break-points returned by the routine on exit. */
 
-int spy_ls_eval_bp(SPXLP *lp, const double d[/*1+n-m*/],
-      double r, const double trow[/*1+n-m*/], double tol_piv,
+int spy_ls_eval_bp(SPXLP *lp, const glp_double d[/*1+n-m*/],
+      glp_double r, const glp_double trow[/*1+n-m*/], glp_double tol_piv,
       SPYBP bp[/*1+n-m*/])
 {     int m = lp->m;
       int n = lp->n;
-      double *l = lp->l;
-      double *u = lp->u;
+      glp_double *l = lp->l;
+      glp_double *u = lp->u;
       int *head = lp->head;
       char *flag = lp->flag;
       int j, k, t, nnn, nbp;
-      double s, alfa, teta, teta_max;
+      glp_double s, alfa, teta, teta_max;
       xassert(r != 0.0);
       s = (r > 0.0 ? +1.0 : -1.0);
       /* build the list of all dual basic variables lambdaN[j] that
@@ -507,16 +507,16 @@ static int CDECL fcmp(const void *v1, const void *v2)
          return 0;
 }
 
-int spy_ls_select_bp(SPXLP *lp, const double trow[/*1+n-m*/],
-      int nbp, SPYBP bp[/*1+n-m*/], int num, double *slope, double
+int spy_ls_select_bp(SPXLP *lp, const glp_double trow[/*1+n-m*/],
+      int nbp, SPYBP bp[/*1+n-m*/], int num, glp_double *slope, glp_double
       teta_lim)
 {     int m = lp->m;
       int n = lp->n;
-      double *l = lp->l;
-      double *u = lp->u;
+      glp_double *l = lp->l;
+      glp_double *u = lp->u;
       int *head = lp->head;
       int j, k, t, num1;
-      double teta, dz;
+      glp_double teta, dz;
       xassert(0 <= num && num <= nbp && nbp <= n-m);
       /* select a new portion of break-points */
       num1 = num;

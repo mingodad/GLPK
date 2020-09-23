@@ -26,7 +26,7 @@
 
 #define triang _glp_triang
 int triang(int m, int n, int (*mat)(void *info, int k, int ind[],
-      double val[]), void *info, double tol, int rn[], int cn[]);
+      glp_double val[]), void *info, glp_double tol, int rn[], int cn[]);
 /* find maximal triangular part of rectangular matrix */
 
 #endif

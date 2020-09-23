@@ -194,7 +194,7 @@
       P->col[j]->lb == 0.0 && P->col[j]->ub == 1.0)
 /* check if x[j] is binary variable */
 
-struct term { int ind; double val; };
+struct term { int ind; glp_double val; };
 /* term a[j] * z[j] used to sort a[j]'s */
 
 static int CDECL fcmp(const void *e1, const void *e2)
@@ -209,7 +209,7 @@ static int CDECL fcmp(const void *e1, const void *e2)
 }
 
 static void analyze_ineq(glp_prob *P, CFG *G, int len, int ind[],
-      double val[], double rhs, struct term t[])
+      glp_double val[], glp_double rhs, struct term t[])
 {     /* analyze inequality constraint (6) */
       /* P is the original MIP
        * G is the conflict graph to be built
@@ -353,14 +353,14 @@ CFG *cfg_build_graph(void *P_)
       int n = P->n;
       CFG *G;
       int i, k, type, len, *ind;
-      double *val;
+      glp_double *val;
       struct term *t;
       /* create the conflict graph (number of its vertices cannot be
        * greater than double number of binary variables) */
       G = cfg_create_graph(n, 2 * glp_get_num_bin(P));
       /* allocate working arrays */
       ind = talloc(1+n, int);
-      val = talloc(1+n, double);
+      val = talloc(1+n, glp_double);
       t = talloc(1+n, struct term);
       /* analyze constraints to discover edge inequalities */
       for (i = 1; i <= m; i++)
@@ -448,7 +448,7 @@ struct csa
       int *itov; /* int itov[1+nv]; */
       /* itov[i] = v, 1 <= i <= nn, means that vertex i in V' is vertex
        * v in V */
-      double *wgt; /* double wgt[1+nv]; */
+      glp_double *wgt; /* glp_double wgt[1+nv]; */
       /* wgt[i], 1 <= i <= nn, is a weight of vertex i in V', which is
        * the value of corresponding binary variable in optimal solution
        * to LP relaxation */
@@ -466,9 +466,9 @@ static void build_subgraph(struct csa *csa)
       int *ref = G->ref;
       int *vtoi = csa->vtoi;
       int *itov = csa->itov;
-      double *wgt = csa->wgt;
+      glp_double *wgt = csa->wgt;
       int j, k, v, w, nn, len;
-      double z, sum;
+      glp_double z, sum;
       /* initially induced subgraph is empty */
       nn = 0;
       /* walk thru vertices of original conflict graph */
@@ -565,7 +565,7 @@ static int find_clique(struct csa *csa, int c_ind[])
 {     /* find maximum weight clique in induced subgraph with exact
        * Ostergard's algorithm */
       int nn = csa->nn;
-      double *wgt = csa->wgt;
+      glp_double *wgt = csa->wgt;
       int i, j, k, p, q, t, ne, nb, len, *iwt, *ind;
       unsigned char *a;
       xassert(nn >= 2);
@@ -632,7 +632,7 @@ static int find_clique1(struct csa *csa, int c_ind[])
 {     /* find maximum weight clique in induced subgraph with greedy
        * heuristic */
       int nn = csa->nn;
-      double *wgt = csa->wgt;
+      glp_double *wgt = csa->wgt;
       int len;
       xassert(nn >= 2);
       len = wclique1(nn, wgt, func, csa, c_ind);
@@ -640,11 +640,11 @@ static int find_clique1(struct csa *csa, int c_ind[])
       return len;
 }
 
-int cfg_find_clique(void *P, CFG *G, int ind[], double *sum_)
+int cfg_find_clique(void *P, CFG *G, int ind[], glp_double *sum_)
 {     int nv = G->nv;
       struct csa csa;
       int i, k, len;
-      double sum;
+      glp_double sum;
       /* initialize common storage area */
       csa.P = P;
       csa.G = G;
@@ -652,7 +652,7 @@ int cfg_find_clique(void *P, CFG *G, int ind[], double *sum_)
       csa.nn = -1;
       csa.vtoi = talloc(1+nv, int);
       csa.itov = talloc(1+nv, int);
-      csa.wgt = talloc(1+nv, double);
+      csa.wgt = talloc(1+nv, glp_double);
       /* build induced subgraph */
       build_subgraph(&csa);
 #ifdef GLP_DEBUG

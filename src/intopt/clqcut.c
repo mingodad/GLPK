@@ -32,7 +32,7 @@
 *
 *  SYNOPSIS
 *
-*  int glp_clq_cut(glp_prob *P, glp_cfg *G, int ind[], double val[]);
+*  int glp_clq_cut(glp_prob *P, glp_cfg *G, int ind[], glp_double val[]);
 *
 *  DESCRIPTION
 *
@@ -56,14 +56,14 @@
 *  len, the number of non-zero coefficients in the cut, 1 <= len <= n.
 *  Otherwise, the routine returns a non-positive value. */
 
-int glp_clq_cut(glp_prob *P, glp_cfg *G, int ind[], double val[])
+int glp_clq_cut(glp_prob *P, glp_cfg *G, int ind[], glp_double val[])
 {     int n = P->n;
       int *pos = G->pos;
       int *neg = G->neg;
       int nv = G->nv;
       int *ref = G->ref;
       int j, k, v, len;
-      double rhs, sum;
+      glp_double rhs, sum;
       xassert(G->n == n);
       /* find maximum weight clique in conflict graph */
       len = cfg_find_clique(P, G, ind, &sum);

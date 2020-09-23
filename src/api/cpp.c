@@ -31,7 +31,7 @@
 *
 *  SYNOPSIS
 *
-*  double glp_cpp(glp_graph *G, int v_t, int v_es, int v_ls);
+*  glp_double glp_cpp(glp_graph *G, int v_t, int v_es, int v_ls);
 *
 *  DESCRIPTION
 *
@@ -42,16 +42,16 @@
 *  the project network. This graph must be acyclic. Multiple arcs are
 *  allowed being considered as single arcs.
 *
-*  The parameter v_t specifies an offset of the field of type double
+*  The parameter v_t specifies an offset of the field of type glp_double
 *  in the vertex data block, which contains time t[i] >= 0 needed to
 *  perform corresponding job j. If v_t < 0, it is assumed that t[i] = 1
 *  for all jobs.
 *
-*  The parameter v_es specifies an offset of the field of type double
+*  The parameter v_es specifies an offset of the field of type glp_double
 *  in the vertex data block, to which the routine stores earliest start
 *  time for corresponding job. If v_es < 0, this time is not stored.
 *
-*  The parameter v_ls specifies an offset of the field of type double
+*  The parameter v_ls specifies an offset of the field of type glp_double
 *  in the vertex data block, to which the routine stores latest start
 *  time for corresponding job. If v_ls < 0, this time is not stored.
 *
@@ -62,16 +62,16 @@
 
 static void sorting(glp_graph *G, int list[]);
 
-double glp_cpp(glp_graph *G, int v_t, int v_es, int v_ls)
+glp_double glp_cpp(glp_graph *G, int v_t, int v_es, int v_ls)
 {     glp_vertex *v;
       glp_arc *a;
       int i, j, k, nv, *list;
-      double temp, total, *t, *es, *ls;
-      if (v_t >= 0 && v_t > G->v_size - (int)sizeof(double))
+      glp_double temp, total, *t, *es, *ls;
+      if (v_t >= 0 && v_t > G->v_size - (int)sizeof(glp_double))
          xerror("glp_cpp: v_t = %d; invalid offset\n", v_t);
-      if (v_es >= 0 && v_es > G->v_size - (int)sizeof(double))
+      if (v_es >= 0 && v_es > G->v_size - (int)sizeof(glp_double))
          xerror("glp_cpp: v_es = %d; invalid offset\n", v_es);
-      if (v_ls >= 0 && v_ls > G->v_size - (int)sizeof(double))
+      if (v_ls >= 0 && v_ls > G->v_size - (int)sizeof(glp_double))
          xerror("glp_cpp: v_ls = %d; invalid offset\n", v_ls);
       nv = G->nv;
       if (nv == 0)
@@ -79,15 +79,15 @@ double glp_cpp(glp_graph *G, int v_t, int v_es, int v_ls)
          goto done;
       }
       /* allocate working arrays */
-      t = xcalloc(1+nv, sizeof(double));
-      es = xcalloc(1+nv, sizeof(double));
-      ls = xcalloc(1+nv, sizeof(double));
+      t = xcalloc(1+nv, sizeof(glp_double));
+      es = xcalloc(1+nv, sizeof(glp_double));
+      ls = xcalloc(1+nv, sizeof(glp_double));
       list = xcalloc(1+nv, sizeof(int));
       /* retrieve job times */
       for (i = 1; i <= nv; i++)
       {  v = G->v[i];
          if (v_t >= 0)
-         {  memcpy(&t[i], (char *)v->data + v_t, sizeof(double));
+         {  memcpy(&t[i], (char *)v->data + v_t, sizeof(glp_double));
             if (t[i] < 0.0)
                xerror("glp_cpp: t[%d] = %g; invalid time\n", i, t[i]);
          }
@@ -134,13 +134,13 @@ double glp_cpp(glp_graph *G, int v_t, int v_es, int v_ls)
       if (v_es >= 0)
       {  for (i = 1; i <= nv; i++)
          {  v = G->v[i];
-            memcpy((char *)v->data + v_es, &es[i], sizeof(double));
+            memcpy((char *)v->data + v_es, &es[i], sizeof(glp_double));
          }
       }
       if (v_ls >= 0)
       {  for (i = 1; i <= nv; i++)
          {  v = G->v[i];
-            memcpy((char *)v->data + v_ls, &ls[i], sizeof(double));
+            memcpy((char *)v->data + v_ls, &ls[i], sizeof(glp_double));
          }
       }
       /* free working arrays */

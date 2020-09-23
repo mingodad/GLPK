@@ -72,7 +72,7 @@ int glp_check_cnfsat(glp_prob *P)
          }
          /* the right-hand side should be (1 - neg), where neg is the
             number of negative constraint coefficients in the row */
-         if (row->lb != (double)(1 - neg))
+         if (row->lb != (glp_double)(1 - neg))
             return 6;
       }
       /* congratulations; this is CNF-SAT */

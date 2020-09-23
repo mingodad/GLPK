@@ -119,7 +119,7 @@ int glp_mpl_set_msg_lev(glp_tran *tran, int msg_lev)
 void glp_mpl_build_prob(glp_tran *tran, glp_prob *prob)
 {     /* build LP/MIP problem instance from the model */
       int m, n, i, j, t, kind, type, len, *ind;
-      double lb, ub, *val;
+      glp_double lb, ub, *val;
       if (tran->phase != GLP_TRAN_PHASE_GENERATE)
          xerror("glp_mpl_build_prob: invalid call sequence\n");
       /* erase the problem object */
@@ -139,7 +139,7 @@ void glp_mpl_build_prob(glp_tran *tran, glp_prob *prob)
          if(prob->use_col_row_names)
              glp_set_row_name(prob, i, mpl_get_row_name(tran, i));
          /* set row bounds */
-         type = mpl_get_row_bnds(tran, i, &lb, &ub);
+         type = mpl_get_row_bnds_gd(tran, i, &lb, &ub);
          switch (type)
          {  case MPL_FR: type = GLP_FR; break;
             case MPL_LO: type = GLP_LO; break;
@@ -180,7 +180,7 @@ void glp_mpl_build_prob(glp_tran *tran, glp_prob *prob)
                xassert(kind != kind);
          }
          /* set column bounds */
-         type = mpl_get_col_bnds(tran, j, &lb, &ub);
+         type = mpl_get_col_bnds_gd(tran, j, &lb, &ub);
          switch (type)
          {  case MPL_FR: type = GLP_FR; break;
             case MPL_LO: type = GLP_LO; break;
@@ -202,9 +202,9 @@ void glp_mpl_build_prob(glp_tran *tran, glp_prob *prob)
       }
       /* load the constraint matrix */
       ind = xcalloc(1+n, sizeof(int));
-      val = xcalloc(1+n, sizeof(double));
+      val = xcalloc(1+n, sizeof(glp_double));
       for (i = 1; i <= m; i++)
-      {  len = mpl_get_mat_row(tran, i, ind, val);
+      {  len = mpl_get_mat_row_gd(tran, i, ind, val);
          glp_set_mat_row(prob, i, len, ind, val);
       }
       /* build objective function (the first objective is used) */
@@ -218,7 +218,7 @@ void glp_mpl_build_prob(glp_tran *tran, glp_prob *prob)
             /* set constant term */
             glp_set_obj_coef(prob, 0, mpl_get_row_c0(tran, i));
             /* set objective coefficients */
-            len = mpl_get_mat_row(tran, i, ind, val);
+            len = mpl_get_mat_row_gd(tran, i, ind, val);
             for (t = 1; t <= len; t++)
                glp_set_obj_coef(prob, ind[t], val[t]);
             break;
@@ -233,7 +233,7 @@ void glp_mpl_build_prob(glp_tran *tran, glp_prob *prob)
 int glp_mpl_postsolve(glp_tran *tran, glp_prob *prob, int sol)
 {     /* postsolve the model */
       int i, j, m, n, stat, ret, has_shift;
-      double prim, dual;
+      glp_double prim, dual;
       if (!(tran->phase == GLP_TRAN_PHASE_GENERATE && !tran->flag_p))
          xerror("glp_mpl_postsolve: invalid call sequence\n");
       if (!(sol == GLP_SOL || sol == GLP_IPT || sol == GLP_MIP))
@@ -498,7 +498,7 @@ done:
 int glp_lpsolve_mpl_postsolve(glp_tran *tran, lprec *lp, int sol)
 {     /* postsolve the model */
       int i, j, m, n, stat, ret, has_shift, *bascolumn = NULL;
-      double prim, dual;
+      glp_double prim, dual;
       if (!(tran->phase == GLP_TRAN_PHASE_GENERATE && !tran->flag_p))
          xerror("glp_lpsolve_mpl_postsolve: invalid call sequence\n");
       if (!(sol == GLP_SOL || sol == GLP_IPT || sol == GLP_MIP))
@@ -566,30 +566,24 @@ done:
 Cbc_Model *glp_cbc_mpl_build_prob(glp_tran *tran)
 {
   int     ret, m, n, i, ii, j, *ndx, len, kind, type;
-  double  lb, ub, *val, infinite;
+  glp_double  lb, ub, *val, infinite;
   if (tran->phase != GLP_TRAN_PHASE_GENERATE)
      xerror("glp_cbc_mpl_build_prob: invalid call sequence\n");
   Cbc_Model *lp =  Cbc_newModel();
   if(!lp) return lp;
   /* set problem name and temporary row storage order */
   Cbc_setProblemName(lp, mpl_get_prob_name(tran));
-  lp->set_add_rowmode(lp, TRUE);
 
-  infinite = get_infinite(lp);
   /* build columns (variables) */
   n = mpl_get_num_cols(tran);
   for (j = 1; j <= n; j++) {
 
-    /* set column name */
-    Cbc_setColName(lp, j, mpl_get_col_name(tran, j));
-
     /* set column kind */
     kind = mpl_get_col_kind(tran, j);
     switch (kind) {
-      case MPL_NUM: break;
+      case MPL_NUM: kind = 0; break;
       case MPL_INT:
-      case MPL_BIN: lp->set_int(lp, j, TRUE);
-                    break;
+      case MPL_BIN: kind = 1; break;
       default:      xassert(kind != kind);
     }
 
@@ -613,29 +607,14 @@ Cbc_Model *glp_cbc_mpl_build_prob(glp_tran *tran)
       if (fabs(lb) <= fabs(ub)) ub = lb; else lb = ub;
     }
 
-    //if(ub > infinite) ub = infinite;
-    //if(lb < -infinite) lb = -infinite;
-    if(type == MPL_FR)
-      lp->set_unbounded(lp, j);
-    else if(type == MPL_UP) {
-      lp->set_unbounded(lp, j);
-      lp->set_upbo(lp, j, ub);
-    }
-    else if(type == MPL_LO)
-      lp->set_lowbo(lp, j, lb);
-    else {
-      lp->set_upbo(lp, j, ub);
-      lp->set_lowbo(lp, j, lb);
-    }
+    Cbc_addCol(lp, mpl_get_col_name(tran, j),
+          lb, ub, 0.0, kind, 0, NULL, NULL);
   }
 
-  Cbc_addCol(lp, const char *name, double lb,
-  double ub, double obj, char isInteger,
-  int nz, int *rows, double *coefs);
 
   /* allocate working arrays */
   ndx = (int *) glp_malloc((1+n) * sizeof(*ndx));
-  val = (double *) glp_malloc((1+n) * sizeof(*val));
+  val = (glp_double *) glp_malloc((1+n) * sizeof(*val));
 
   /* build objective function (the first objective is used) */
   m = mpl_get_num_rows(tran);
@@ -663,6 +642,8 @@ Cbc_Model *glp_cbc_mpl_build_prob(glp_tran *tran)
       lp->set_row_name(lp, 0, mpl_get_row_name(tran, i));
       break;
     }
+    Cbc_addRow(Cbc_Model *model, const char *name, int nz,
+        const int *cols, const glp_double *coefs, char sense, glp_double rhs);
   }
 
   /* build rows (constraints) */
@@ -723,9 +704,9 @@ Cbc_Model *glp_cbc_mpl_build_prob(glp_tran *tran)
     /* set constraint name */
     Cbc_setRowName(lp, ii, mpl_get_row_name(tran, i));
 
+    Cbc_addRow(lp, mpl_get_row_name(tran, i), len,
+        ndx+1, val+1, char sense, glp_double rhs);
   }
-  Cbc_addRow(lp, const char *name, int nz,
-  const int *cols, const double *coefs, char sense, double rhs);
   /* set status and free working arrays */
   glp_free(ndx);
   glp_free(val);
@@ -741,7 +722,7 @@ done:
 int glp_cbc_mpl_postsolve(glp_tran *tran, Cbc_Model *lp, int sol)
 {     /* postsolve the model */
       int i, j, m, n, stat, ret, has_shift, *bascolumn = NULL;
-      double prim, dual;
+      glp_double prim, dual;
       if (!(tran->phase == GLP_TRAN_PHASE_GENERATE && !tran->flag_p))
          xerror("glp_cbc_mpl_postsolve: invalid call sequence\n");
       if (!(sol == GLP_SOL || sol == GLP_IPT || sol == GLP_MIP))

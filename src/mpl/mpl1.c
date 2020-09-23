@@ -258,7 +258,7 @@ frac:       while (isdigit(mpl->scan_input->c)) append_char(mpl);
                mpl->scan_input->image, mpl->scan_input->c);
          }
 conv:    /* convert numeric literal to floating-point */
-         if (str2num(mpl->scan_input->image, &mpl->scan_input->value))
+         if (str2double(mpl->scan_input->image, &mpl->scan_input->value))
 err:     {  enter_context(mpl);
             error(mpl, "cannot convert numeric literal %s to floating-p"
                "oint number", mpl->scan_input->image);
@@ -325,6 +325,8 @@ err:     {  enter_context(mpl);
          else if (mpl->scan_input->c == '-')
             mpl->scan_input->token = T_INPUT, append_char(mpl);
 #endif
+         else if (mpl->scan_input->c == '<')
+            mpl->scan_input->token = T_LAPPEND, append_char(mpl);
       }
       else if (mpl->scan_input->c == '=')
       {  mpl->scan_input->token = T_EQ, append_char(mpl);
@@ -403,7 +405,7 @@ err:     {  enter_context(mpl);
          mpl->scan_input->token = T_SYMBOL;
          while (isalnum(mpl->scan_input->c) || strchr("+-._", mpl->scan_input->c) != NULL)
             append_char(mpl);
-         switch (str2num(mpl->scan_input->image, &mpl->scan_input->value))
+         switch (str2double(mpl->scan_input->image, &mpl->scan_input->value))
          {  case 0:
                mpl->scan_input->token = T_NUMBER;
                break;
@@ -739,6 +741,7 @@ CODE *make_code(MPL *mpl, int op, OPERANDS *arg, int type, int dim)
             code->arg.loop.domain = arg->loop.domain;
             code->arg.loop.x = arg->loop.x;
             break;
+         case O_PIECEWISE:
          case O_VERSION: /* nothing to do */
              break;
          default:
@@ -2055,6 +2058,48 @@ err:           error(mpl, "integrand following %s{...} has invalid type"
       return code;
 }
 
+CODE *piecewise_expression(MPL *mpl)
+{     CODE *code;
+      OPERANDS arg;
+      int breakpoints, slopes, in_slopes, op = O_PIECEWISE;
+      char opstr[8];
+      xassert(mpl->scan_input->token == T_LAPPEND);
+      strcpy(opstr, mpl->scan_input->image);
+      xassert(strlen(opstr) < sizeof(opstr));
+      get_token(mpl /* << */);
+      /* parse the list of piecewise parameters */
+      breakpoints = slopes = in_slopes = 0;
+      for (;;)
+      {  if (mpl->scan_input->token == T_APPEND)
+         {
+            ++slopes;
+            break;
+         }
+         else if (mpl->scan_input->token == T_SEMICOLON)
+         {
+            in_slopes = 1;
+            ++breakpoints;
+            get_token(mpl /* ; */);
+         }
+         else if (mpl->scan_input->token == T_COMMA)
+         {
+             if(in_slopes) ++slopes;
+             else ++breakpoints;
+             get_token(mpl /* , */);
+         }
+         arg.loop.x = expression_3(mpl);
+      }
+      xassert(mpl->scan_input->token == T_APPEND);
+      get_token(mpl /* >> */);
+      if(!in_slopes || (slopes - breakpoints) != 1)
+          error(mpl, "invalid number of breakpoints/slopes %d/%d",
+                  breakpoints, slopes);
+      arg.arg.x = NULL;
+      arg.arg.y = NULL;
+      code = make_code(mpl, op, &arg, O_CVTNUM, 1);
+      return code;
+}
+
 /*----------------------------------------------------------------------
 -- domain_arity - determine arity of domain.
 --
@@ -2272,6 +2317,10 @@ CODE *primary_expression(MPL *mpl)
       else if (mpl->scan_input->token == T_IF)
       {  /* parse conditional expression */
          code = branched_expression(mpl);
+      }
+      else if (mpl->scan_input->token == T_LAPPEND)
+      {  /* parse piecewise expression */
+         code = piecewise_expression(mpl);
       }
       else if (is_reserved(mpl))
       {  /* other reserved keywords cannot be used here */

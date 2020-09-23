@@ -1,4 +1,4 @@
-/* str2num.c (convert string to double) */
+/* str2num.c (convert string to glp_double) */
 
 /***********************************************************************
 *  This code is part of GLPK (GNU Linear Programming Kit).
@@ -27,17 +27,17 @@
 /***********************************************************************
 *  NAME
 *
-*  str2num - convert character string to value of double type
+*  str2num - convert character string to value of glp_double type
 *
 *  SYNOPSIS
 *
 *  #include "misc.h"
-*  int str2num(const char *str, double *val);
+*  int str2num(const char *str, glp_double *val);
 *
 *  DESCRIPTION
 *
 *  The routine str2num converts the character string str to a value of
-*  double type and stores the value into location, which the parameter
+*  glp_double type and stores the value into location, which the parameter
 *  val points to (in the case of error content of this location is not
 *  changed).
 *
@@ -49,9 +49,9 @@
 *  1 - value out of range;
 *  2 - character string is syntactically incorrect. */
 
-int str2num(const char *str, double *val_)
+int str2num(const char *str, glp_double *val_)
 {     int k;
-      double val;
+      glp_double val;
       /* scan optional sign */
       k = (str[0] == '+' || str[0] == '-' ? 1 : 0);
       /* check for decimal point */
@@ -105,6 +105,14 @@ frac: /* scan optional fraction part */
       /* conversion has been done */
       *val_ = val;
       return 0;
+}
+
+int str2double(const char *str, double *val_)
+{
+    glp_double gd;
+    int rc = str2num(str, &gd);
+    *val_ = gd;
+    return rc;
 }
 
 /* eof */

@@ -58,8 +58,8 @@ int glp_read_maxflow(glp_graph *G, int *_s, int *_t, int a_cap,
 {     DMX _csa, *csa = &_csa;
       glp_arc *a;
       int i, j, k, s, t, nv, na, ret = 0;
-      double cap;
-      if (a_cap >= 0 && a_cap > G->a_size - (int)sizeof(double))
+      glp_double cap;
+      if (a_cap >= 0 && a_cap > G->a_size - (int)sizeof(glp_double))
          xerror("glp_read_maxflow: a_cap = %d; invalid offset\n",
             a_cap);
       glp_erase_graph(G, G->v_size, G->a_size);
@@ -151,7 +151,7 @@ int glp_read_maxflow(glp_graph *G, int *_s, int *_t, int a_cap,
          check_int(csa, cap);
          a = glp_add_arc(G, i, j);
          if (a_cap >= 0)
-            memcpy((char *)a->data + a_cap, &cap, sizeof(double));
+            memcpy((char *)a->data + a_cap, &cap, sizeof(glp_double));
          end_of_line(csa);
       }
       xprintf("%d lines were read\n", csa->count);

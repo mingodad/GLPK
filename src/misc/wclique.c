@@ -168,7 +168,7 @@ done: xfree(newtable);
 int wclique(int n_, const int w[], const unsigned char a_[], int ind[])
 {     struct csa csa_, *csa = &csa_;
       int i, j, p, max_wt, max_nwt, wth, *used, *nwt, *pos;
-      double timer;
+      glp_double timer;
       n = n_;
       xassert(n > 0);
       wt = &w[1];

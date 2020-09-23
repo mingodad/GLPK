@@ -34,7 +34,7 @@ FHVINT *fhvint_create(void)
 }
 
 int fhvint_factorize(FHVINT *fi, int n, int (*col)(void *info, int j,
-      int ind[], double val[]), void *info)
+      int ind[], glp_double val[]), void *info)
 {     /* compute FHV-factorization of specified matrix A */
       int nfs_max, old_n_max, n_max, k, ret;
       xassert(n > 0);
@@ -82,12 +82,12 @@ int fhvint_factorize(FHVINT *fi, int n, int (*col)(void *info, int j,
 }
 
 int fhvint_update(FHVINT *fi, int j, int len, const int ind[],
-      const double val[])
+      const glp_double val[])
 {     /* update FHV-factorization after replacing j-th column of A */
       SGF *sgf = fi->lufi->sgf;
       int *ind1 = sgf->rs_next;
-      double *val1 = sgf->vr_max;
-      double *work = sgf->work;
+      glp_double *val1 = sgf->vr_max;
+      glp_double *work = sgf->work;
       int ret;
       xassert(fi->valid);
       ret = fhv_ft_update(&fi->fhv, j, len, ind, val, ind1, val1, work);
@@ -96,7 +96,7 @@ int fhvint_update(FHVINT *fi, int j, int len, const int ind[],
       return ret;
 }
 
-void fhvint_ftran(FHVINT *fi, double x[])
+void fhvint_ftran(FHVINT *fi, glp_double x[])
 {     /* solve system A * x = b */
       FHV *fhv = &fi->fhv;
       LUF *luf = fhv->luf;
@@ -104,7 +104,7 @@ void fhvint_ftran(FHVINT *fi, double x[])
       int *pp_ind = luf->pp_ind;
       int *pp_inv = luf->pp_inv;
       SGF *sgf = fi->lufi->sgf;
-      double *work = sgf->work;
+      glp_double *work = sgf->work;
       xassert(fi->valid);
       /* A = F * H * V */
       /* x = inv(A) * b = inv(V) * inv(H) * inv(F) * b */
@@ -115,11 +115,11 @@ void fhvint_ftran(FHVINT *fi, double x[])
       luf->pp_inv = pp_inv;
       fhv_h_solve(fhv, x);
       luf_v_solve(luf, x, work);
-      memcpy(&x[1], &work[1], n * sizeof(double));
+      memcpy(&x[1], &work[1], n * sizeof(glp_double));
       return;
 }
 
-void fhvint_btran(FHVINT *fi, double x[])
+void fhvint_btran(FHVINT *fi, glp_double x[])
 {     /* solve system A'* x = b */
       FHV *fhv = &fi->fhv;
       LUF *luf = fhv->luf;
@@ -127,7 +127,7 @@ void fhvint_btran(FHVINT *fi, double x[])
       int *pp_ind = luf->pp_ind;
       int *pp_inv = luf->pp_inv;
       SGF *sgf = fi->lufi->sgf;
-      double *work = sgf->work;
+      glp_double *work = sgf->work;
       xassert(fi->valid);
       /* A' = (F * H * V)' = V'* H'* F' */
       /* x = inv(A') * b = inv(F') * inv(H') * inv(V') * b */
@@ -138,13 +138,13 @@ void fhvint_btran(FHVINT *fi, double x[])
       luf_ft_solve(luf, work);
       luf->pp_ind = pp_ind;
       luf->pp_inv = pp_inv;
-      memcpy(&x[1], &work[1], n * sizeof(double));
+      memcpy(&x[1], &work[1], n * sizeof(glp_double));
       return;
 }
 
-double fhvint_estimate(FHVINT *fi)
+glp_double fhvint_estimate(FHVINT *fi)
 {     /* estimate 1-norm of inv(A) */
-      double norm;
+      glp_double norm;
       xassert(fi->valid);
       xassert(fi->fhv.nfs == 0);
       norm = luf_estimate_norm(fi->fhv.luf, fi->lufi->sgf->vr_max,

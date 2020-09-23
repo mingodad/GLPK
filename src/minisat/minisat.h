@@ -134,8 +134,8 @@ typedef struct /* clause_t */
 
 typedef struct /* stats_t */
 {
-    double   starts, decisions, propagations, inspects, conflicts;
-    double   clauses, clauses_literals, learnts, learnts_literals,
+    glp_double   starts, decisions, propagations, inspects, conflicts;
+    glp_double   clauses, clauses_literals, learnts, learnts_literals,
              max_literals, tot_literals;
 } stats;
 
@@ -153,15 +153,15 @@ typedef struct /* solver_t */
                                (contains: clause*) */
 
     /* activities */
-    double   var_inc;       /* Amount to bump next variable with. */
-    double   var_decay;     /* INVERSE decay factor for variable
+    glp_double   var_inc;       /* Amount to bump next variable with. */
+    glp_double   var_decay;     /* INVERSE decay factor for variable
                                activity: stores 1/decay. */
     float    cla_inc;       /* Amount to bump next clause with. */
     float    cla_decay;     /* INVERSE decay factor for clause
                                activity: stores 1/decay. */
 
     vecp*    wlists;
-    double*  activity;      /* A heuristic measurement of the activity
+    glp_double*  activity;      /* A heuristic measurement of the activity
                                of a variable. */
     lbool*   assigns;       /* Current values of variables. */
     int*     orderpos;      /* Index in variable order. */
@@ -185,8 +185,8 @@ typedef struct /* solver_t */
                                'simplifyDB()'. */
     int      simpdb_props;  /* Number of propagations before next
                                'simplifyDB()'. */
-    double   random_seed;
-    double   progress_estimate;
+    glp_double   random_seed;
+    glp_double   progress_estimate;
     int      verbosity;     /* Verbosity level.
                                0=silent,
                                1=some progress report,

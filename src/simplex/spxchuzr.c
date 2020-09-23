@@ -95,17 +95,17 @@
 *  xB[p] and defines the active bound flag lp->flag[q] to be set in the
 *  adjacent basis for that basic variable. */
 
-int spx_chuzr_std(SPXLP *lp, int phase, const double beta[/*1+m*/],
-      int q, double s, const double tcol[/*1+m*/], int *p_flag,
-      double tol_piv, double tol, double tol1)
+int spx_chuzr_std(SPXLP *lp, int phase, const glp_double beta[/*1+m*/],
+      int q, glp_double s, const glp_double tcol[/*1+m*/], int *p_flag,
+      glp_double tol_piv, glp_double tol, glp_double tol1)
 {     int m = lp->m;
       int n = lp->n;
-      double *c = lp->c;
-      double *l = lp->l;
-      double *u = lp->u;
+      glp_double *c = lp->c;
+      glp_double *l = lp->l;
+      glp_double *u = lp->u;
       int *head = lp->head;
       int i, i_flag, k, p;
-      double alfa, biga, delta, lk, uk, teta, teta_min;
+      glp_double alfa, biga, delta, lk, uk, teta, teta_min;
       xassert(phase == 1 || phase == 2);
       xassert(1 <= q && q <= n-m);
       xassert(s == +1.0 || s == -1.0);
@@ -212,17 +212,17 @@ int spx_chuzr_std(SPXLP *lp, int phase, const double beta[/*1+m*/],
 *  tolerance is delta[i] = tol + tol1 |lB[i]|, and for the upper bound
 *  the tolerance is delta[i] = tol + tol1 |uB[i]|. */
 
-int spx_chuzr_harris(SPXLP *lp, int phase, const double beta[/*1+m*/],
-      int q, double s, const double tcol[/*1+m*/], int *p_flag,
-      double tol_piv, double tol, double tol1)
+int spx_chuzr_harris(SPXLP *lp, int phase, const glp_double beta[/*1+m*/],
+      int q, glp_double s, const glp_double tcol[/*1+m*/], int *p_flag,
+      glp_double tol_piv, glp_double tol, glp_double tol1)
 {     int m = lp->m;
       int n = lp->n;
-      double *c = lp->c;
-      double *l = lp->l;
-      double *u = lp->u;
+      glp_double *c = lp->c;
+      glp_double *l = lp->l;
+      glp_double *u = lp->u;
       int *head = lp->head;
       int i, i_flag, k, p;
-      double alfa, biga, delta, lk, uk, teta, teta_min;
+      glp_double alfa, biga, delta, lk, uk, teta, teta_min;
       xassert(phase == 1 || phase == 2);
       xassert(1 <= q && q <= n-m);
       xassert(s == +1.0 || s == -1.0);
@@ -399,17 +399,17 @@ done: return p;
 *  bp[1], ..., bp[nbp] in *arbitrary* order, where 0 <= nbp <= 2*m+1 is
 *  the number of break-points returned by the routine on exit. */
 
-int spx_ls_eval_bp(SPXLP *lp, const double beta[/*1+m*/],
-      int q, double dq, const double tcol[/*1+m*/], double tol_piv,
+int spx_ls_eval_bp(SPXLP *lp, const glp_double beta[/*1+m*/],
+      int q, glp_double dq, const glp_double tcol[/*1+m*/], glp_double tol_piv,
       SPXBP bp[/*1+2*m+1*/])
 {     int m = lp->m;
       int n = lp->n;
-      double *c = lp->c;
-      double *l = lp->l;
-      double *u = lp->u;
+      glp_double *c = lp->c;
+      glp_double *l = lp->l;
+      glp_double *u = lp->u;
       int *head = lp->head;
       int i, k, nbp;
-      double s, alfa;
+      glp_double s, alfa;
       xassert(1 <= q && q <= n-m);
       xassert(dq != 0.0);
       s = (dq < 0.0 ? +1.0 : -1.0);
@@ -546,12 +546,12 @@ static int CDECL fcmp(const void *v1, const void *v2)
          return 0;
 }
 
-int spx_ls_select_bp(SPXLP *lp, const double tcol[/*1+m*/],
-      int nbp, SPXBP bp[/*1+m+m+1*/], int num, double *slope, double
+int spx_ls_select_bp(SPXLP *lp, const glp_double tcol[/*1+m*/],
+      int nbp, SPXBP bp[/*1+m+m+1*/], int num, glp_double *slope, glp_double
       teta_lim)
 {     int m = lp->m;
       int i, t, num1;
-      double teta, dz;
+      glp_double teta, dz;
       xassert(0 <= num && num <= nbp && nbp <= m+m+1);
       /* select a new portion of break points */
       num1 = num;

@@ -128,6 +128,8 @@ typedef struct MODEL_STMT MODEL_STMT;
 #define A_REPEAT        133   /* repeat statement */
 #define A_MODEL         134   /* model statement */
 #define A_DATA          135   /* data statement */
+#define A_NODE          136   /* node statement */
+#define A_ARC           137   /* arc statement */
 
 #define MAX_LENGTH 100
 /* maximal length of any symbolic value (this includes symbolic names,
@@ -205,6 +207,7 @@ enum eGLP_TRAN_PHASE {
 #define T_APPEND        250   /* >> */
 #define T_TILDE         251   /* ~ */
 #define T_INPUT         252   /* <- */
+#define T_LAPPEND       253   /* << */
 
 typedef int (*glp_solve_callback)(MPL *mpl, int sol_type, void *udata);
 
@@ -544,6 +547,10 @@ void close_scope(MPL *mpl, DOMAIN *domain);
 #define iterated_expression _glp_mpl_iterated_expression
 CODE *iterated_expression(MPL *mpl);
 /* parse iterated expression */
+
+#define piecewise_expression _glp_mpl_piecewise_expression
+CODE *piecewise_expression(MPL *mpl);
+/* parse piecewise expression */
 
 #define domain_arity _glp_mpl_domain_arity
 int domain_arity(MPL *mpl, DOMAIN *domain);
@@ -2179,7 +2186,7 @@ double mpl_tab_get_num(TABDCA *dca, int k);
 const char *mpl_tab_get_str(TABDCA *dca, int k);
 
 #define mpl_tab_set_num _glp_mpl_tab_set_num
-void mpl_tab_set_num(TABDCA *dca, int k, double num);
+void mpl_tab_set_num(TABDCA *dca, int k, glp_double num);
 
 #define mpl_tab_set_str _glp_mpl_tab_set_str
 void mpl_tab_set_str(TABDCA *dca, int k, const char *str);
@@ -2390,8 +2397,9 @@ struct CODE
 #define O_EXISTS        383   /* disjunction (E-quantification) */
 #define O_SETOF         384   /* compute elemental set */
 #define O_BUILD         385   /* build elemental set */
+#define O_PIECEWISE     386   /* piecewise linear expression */
 
-#define O_VERSION       386   /* version */
+#define O_VERSION       387   /* version */
 #define GMPL_VERSION_STR "GLPK/GMPL 4.65"
       
       OPERANDS arg;
@@ -2829,8 +2837,16 @@ int mpl_get_row_kind(MPL *mpl, int i);
 int mpl_get_row_bnds(MPL *mpl, int i, double *lb, double *ub);
 /* obtain row bounds */
 
+#define mpl_get_row_bnds_gd _glp_mpl_get_row_bnds_gd
+int mpl_get_row_bnds_gd(MPL *mpl, int i, glp_double *lb, glp_double *ub);
+/* obtain row bounds */
+
 #define mpl_get_mat_row _glp_mpl_get_mat_row
 int mpl_get_mat_row(MPL *mpl, int i, int ndx[], double val[]);
+/* obtain row of the constraint matrix */
+
+#define mpl_get_mat_row_gd _glp_mpl_get_mat_row_gd
+int mpl_get_mat_row_gd(MPL *mpl, int i, int ndx[], glp_double val[]);
 /* obtain row of the constraint matrix */
 
 #define mpl_get_row_c0 _glp_mpl_get_row_c0
@@ -2847,6 +2863,10 @@ int mpl_get_col_kind(MPL *mpl, int j);
 
 #define mpl_get_col_bnds _glp_mpl_get_col_bnds
 int mpl_get_col_bnds(MPL *mpl, int j, double *lb, double *ub);
+/* obtain column bounds */
+
+#define mpl_get_col_bnds_gd _glp_mpl_get_col_bnds_gd
+int mpl_get_col_bnds_gd(MPL *mpl, int j, glp_double *lb, glp_double *ub);
 /* obtain column bounds */
 
 #define mpl_has_solve_stmt _glp_mpl_has_solve_stmt

@@ -48,10 +48,10 @@ struct LUFINT
       /* if n_max = 0, set n_max = n + delta_n0
        * if n_max < n, set n_max = n + delta_n */
       int sgf_updat;
-      double sgf_piv_tol;
+      glp_double sgf_piv_tol;
       int sgf_piv_lim;
       int sgf_suhl;
-      double sgf_eps_tol;
+      glp_double sgf_eps_tol;
       /* factorizer control parameters */
 };
 
@@ -61,7 +61,7 @@ LUFINT *lufint_create(void);
 
 #define lufint_factorize _glp_lufint_factorize
 int lufint_factorize(LUFINT *fi, int n, int (*col)(void *info, int j,
-      int ind[], double val[]), void *info);
+      int ind[], glp_double val[]), void *info);
 /* compute LU-factorization of specified matrix A */
 
 #define lufint_delete _glp_lufint_delete

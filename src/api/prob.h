@@ -71,7 +71,7 @@ struct glp_prob
       /* optimization direction flag (objective "sense"):
          GLP_MIN - minimization
          GLP_MAX - maximization */
-      double c0;
+      glp_double c0;
       /* constant term of the objective function ("shift") */
       int m_max;
       /* length of the array of rows (enlarged automatically) */
@@ -112,7 +112,7 @@ struct glp_prob
       /* allocated and used number of objective storage */
       int *cobj_idx;
       /* index of objective coefficients */
-      double *cobj_val;
+      glp_double *cobj_val;
       /* value of the objectives */
 #endif
       /*--------------------------------------------------------------*/
@@ -144,7 +144,7 @@ struct glp_prob
          GLP_FEAS   - dual solution is feasible
          GLP_INFEAS - dual solution is infeasible
          GLP_NOFEAS - no dual feasible solution exists */
-      double obj_val;
+      glp_double obj_val;
       /* objective function value */
       int it_cnt;
       /* simplex method iteration count; increases by one on performing
@@ -160,7 +160,7 @@ struct glp_prob
          GLP_OPT    - interior solution is optimal
          GLP_INFEAS - interior solution is infeasible
          GLP_NOFEAS - no feasible solution exists */
-      double ipt_obj;
+      glp_double ipt_obj;
       /* objective function value */
       /*--------------------------------------------------------------*/
       /* integer solution (MIP) */
@@ -170,7 +170,7 @@ struct glp_prob
          GLP_OPT    - integer solution is optimal
          GLP_FEAS   - integer solution is feasible
          GLP_NOFEAS - no integer solution exists */
-      double mip_obj;
+      glp_double mip_obj;
       /* objective function value */
       int use_col_row_names;
       /* when building the problem do not copy col/row names */
@@ -214,26 +214,26 @@ struct GLPROW
          GLP_NU - non-basic variable on upper bound
          GLP_NF - non-basic free variable
          GLP_NS - non-basic fixed variable */
-      double lb; /* non-scaled */
+      glp_double lb; /* non-scaled */
       /* lower bound; if the row has no lower bound, lb is zero */
-      double ub; /* non-scaled */
+      glp_double ub; /* non-scaled */
       /* upper bound; if the row has no upper bound, ub is zero */
       /* if the row type is GLP_FX, ub is equal to lb */
       GLPAIJ *ptr; /* non-scaled */
       /* pointer to doubly linked list of constraint coefficients which
          are placed in this row */
-      double rii;
+      glp_double rii;
       /* diagonal element r[i,i] of scaling matrix R for this row;
          if the scaling is not used, r[i,i] is 1 */
-      double prim; /* non-scaled */
+      glp_double prim; /* non-scaled */
       /* primal value of the auxiliary variable in basic solution */
-      double dual; /* non-scaled */
+      glp_double dual; /* non-scaled */
       /* dual value of the auxiliary variable in basic solution */
-      double pval; /* non-scaled */
+      glp_double pval; /* non-scaled */
       /* primal value of the auxiliary variable in interior solution */
-      double dval; /* non-scaled */
+      glp_double dval; /* non-scaled */
       /* dual value of the auxiliary variable in interior solution */
-      double mipx; /* non-scaled */
+      glp_double mipx; /* non-scaled */
       /* primal value of the auxiliary variable in integer solution */
 };
 
@@ -274,28 +274,28 @@ struct GLPCOL
          GLP_NU - non-basic variable on upper bound
          GLP_NF - non-basic free variable
          GLP_NS - non-basic fixed variable */
-      double lb; /* non-scaled */
+      glp_double lb; /* non-scaled */
       /* lower bound; if the column has no lower bound, lb is zero */
-      double ub; /* non-scaled */
+      glp_double ub; /* non-scaled */
       /* upper bound; if the column has no upper bound, ub is zero */
       /* if the column type is GLP_FX, ub is equal to lb */
-      double coef; /* non-scaled */
+      glp_double coef; /* non-scaled */
       /* objective coefficient at the structural variable */
       GLPAIJ *ptr; /* non-scaled */
       /* pointer to doubly linked list of constraint coefficients which
          are placed in this column */
-      double sjj;
+      glp_double sjj;
       /* diagonal element s[j,j] of scaling matrix S for this column;
          if the scaling is not used, s[j,j] is 1 */
-      double prim; /* non-scaled */
+      glp_double prim; /* non-scaled */
       /* primal value of the structural variable in basic solution */
-      double dual; /* non-scaled */
+      glp_double dual; /* non-scaled */
       /* dual value of the structural variable in basic solution */
-      double pval; /* non-scaled */
+      glp_double pval; /* non-scaled */
       /* primal value of the structural variable in interior solution */
-      double dval; /* non-scaled */
+      glp_double dval; /* non-scaled */
       /* dual value of the structural variable in interior solution */
-      double mipx; /* non-scaled */
+      glp_double mipx; /* non-scaled */
       /* primal value of the structural variable in integer solution */
 };
 
@@ -305,7 +305,7 @@ struct GLPAIJ
       /* pointer to row, where this coefficient is placed */
       GLPCOL *col;
       /* pointer to column, where this coefficient is placed */
-      double val;
+      glp_double val;
       /* numeric (non-zero) value of this coefficient */
       GLPAIJ *r_prev;
       /* pointer to previous coefficient in the same row */

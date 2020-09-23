@@ -89,7 +89,7 @@ int ios_choose_var(glp_tree *T, int *next)
 
 static int branch_first(glp_tree *T, int *_next)
 {     int j, next;
-      double beta;
+      glp_double beta;
       /* choose the column to branch on */
       for (j = 1; j <= T->n; j++)
          if (T->non_int[j]) break;
@@ -116,7 +116,7 @@ static int branch_first(glp_tree *T, int *_next)
 
 static int branch_last(glp_tree *T, int *_next)
 {     int j, next;
-      double beta;
+      glp_double beta;
       /* choose the column to branch on */
       for (j = T->n; j >= 1; j--)
          if (T->non_int[j]) break;
@@ -146,7 +146,7 @@ static int branch_last(glp_tree *T, int *_next)
 
 static int branch_mostf(glp_tree *T, int *_next)
 {     int j, jj, next;
-      double beta, most, temp;
+      glp_double beta, most, temp;
       /* choose the column to branch on */
       jj = 0, most = DBL_MAX;
       for (j = 1; j <= T->n; j++)
@@ -197,13 +197,13 @@ static int branch_drtom(glp_tree *T, int *_next)
       int n = mip->n;
       unsigned char *non_int = T->non_int;
       int j, jj, k, t, next, kase, len, stat, *ind;
-      double x, dk, alfa, delta_j, delta_k, delta_z, dz_dn, dz_up,
+      glp_double x, dk, alfa, delta_j, delta_k, delta_z, dz_dn, dz_up,
          dd_dn, dd_up, degrad, *val;
       /* basic solution of LP relaxation must be optimal */
       xassert(glp_get_status(mip) == GLP_OPT);
       /* allocate working arrays */
       ind = xcalloc(1+n, sizeof(int));
-      val = xcalloc(1+n, sizeof(double));
+      val = xcalloc(1+n, sizeof(glp_double));
       /* nothing has been chosen so far */
       jj = 0, degrad = -1.0;
       /* walk through the list of columns (structural variables) */
@@ -393,14 +393,14 @@ struct csa
       /* dn_cnt[j] is the number of subproblems, whose LP relaxations
          have been solved and which are down-branches for variable x[j];
          dn_cnt[j] = 0 means the down pseudocost is uninitialized */
-      double *dn_sum; /* double dn_sum[1+n]; */
+      glp_double *dn_sum; /* glp_double dn_sum[1+n]; */
       /* dn_sum[j] is the sum of per unit degradations of the objective
          over all dn_cnt[j] subproblems */
       int *up_cnt; /* int up_cnt[1+n]; */
       /* up_cnt[j] is the number of subproblems, whose LP relaxations
          have been solved and which are up-branches for variable x[j];
          up_cnt[j] = 0 means the up pseudocost is uninitialized */
-      double *up_sum; /* double up_sum[1+n]; */
+      glp_double *up_sum; /* glp_double up_sum[1+n]; */
       /* up_sum[j] is the sum of per unit degradations of the objective
          over all up_cnt[j] subproblems */
 };
@@ -411,9 +411,9 @@ void *ios_pcost_init(glp_tree *tree)
       int n = tree->n, j;
       csa = xmalloc(sizeof(struct csa));
       csa->dn_cnt = xcalloc(1+n, sizeof(int));
-      csa->dn_sum = xcalloc(1+n, sizeof(double));
+      csa->dn_sum = xcalloc(1+n, sizeof(glp_double));
       csa->up_cnt = xcalloc(1+n, sizeof(int));
-      csa->up_sum = xcalloc(1+n, sizeof(double));
+      csa->up_sum = xcalloc(1+n, sizeof(glp_double));
       for (j = 1; j <= n; j++)
       {  csa->dn_cnt[j] = csa->up_cnt[j] = 0;
          csa->dn_sum[j] = csa->up_sum[j] = 0.0;
@@ -421,7 +421,7 @@ void *ios_pcost_init(glp_tree *tree)
       return csa;
 }
 
-static double eval_degrad(glp_prob *P, int j, double bnd)
+static glp_double eval_degrad(glp_prob *P, int j, glp_double bnd)
 {     /* compute degradation of the objective on fixing x[j] at given
          value with a limited number of dual simplex iterations */
       /* this routine fixes column x[j] at specified value bnd,
@@ -430,7 +430,7 @@ static double eval_degrad(glp_prob *P, int j, double bnd)
       glp_prob *lp;
       glp_smcp parm;
       int ret;
-      double degrad;
+      glp_double degrad;
       /* the current basis must be optimal */
       xassert(glp_get_status(P) == GLP_OPT);
       /* create a copy of P */
@@ -489,7 +489,7 @@ void ios_pcost_update(glp_tree *tree)
          current subproblem has been solved to optimality with all lazy
          and cutting plane constraints included */
       int j;
-      double dx, dz, psi;
+      glp_double dx, dz, psi;
       struct csa *csa = tree->pcost;
       xassert(csa != NULL);
       xassert(tree->curr != NULL);
@@ -538,11 +538,11 @@ void ios_pcost_free(glp_tree *tree)
       return;
 }
 
-static double eval_psi(glp_tree *T, int j, int brnch)
+static glp_double eval_psi(glp_tree *T, int j, int brnch)
 {     /* compute estimation of pseudocost of variable x[j] for down-
          or up-branch */
       struct csa *csa = T->pcost;
-      double beta, degrad, psi;
+      glp_double beta, degrad, psi;
       xassert(csa != NULL);
       xassert(1 <= j && j <= T->n);
       if (brnch == GLP_DN_BRNCH)
@@ -558,7 +558,7 @@ static double eval_psi(glp_tree *T, int j, int brnch)
             csa->dn_cnt[j] = 1;
             csa->dn_sum[j] = degrad / (beta - floor(beta));
          }
-         psi = csa->dn_sum[j] / (double)csa->dn_cnt[j];
+         psi = csa->dn_sum[j] / (glp_double)csa->dn_cnt[j];
       }
       else if (brnch == GLP_UP_BRNCH)
       {  /* up-branch */
@@ -573,7 +573,7 @@ static double eval_psi(glp_tree *T, int j, int brnch)
             csa->up_cnt[j] = 1;
             csa->up_sum[j] = degrad / (ceil(beta) - beta);
          }
-         psi = csa->up_sum[j] / (double)csa->up_cnt[j];
+         psi = csa->up_sum[j] / (glp_double)csa->up_cnt[j];
       }
       else
          xassert(brnch != brnch);
@@ -600,10 +600,10 @@ int ios_pcost_branch(glp_tree *T, int *_next)
 #if 0 /* 10/VI-2013 */
       glp_long t = xtime();
 #else
-      double t = xtime();
+      glp_double t = xtime();
 #endif
       int j, jjj, sel;
-      double beta, psi, d1, d2, d, dmax;
+      glp_double beta, psi, d1, d2, d, dmax;
       /* initialize the working arrays */
       if (T->pcost == NULL)
          T->pcost = ios_pcost_init(T);

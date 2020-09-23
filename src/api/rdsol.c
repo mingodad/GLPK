@@ -49,7 +49,7 @@ int glp_read_sol(glp_prob *P, const char *fname)
 {     DMX dmx_, *dmx = &dmx_;
       int i, j, k, m, n, pst, dst, ret = 1;
       char *stat = NULL;
-      double obj, *prim = NULL, *dual = NULL;
+      glp_double obj, *prim = NULL, *dual = NULL;
 #if 0 /* 04/IV-2016 */
       if (P == NULL || P->magic != GLP_PROB_MAGIC)
          xerror("glp_read_sol: P = %p; invalid problem object\n", P);

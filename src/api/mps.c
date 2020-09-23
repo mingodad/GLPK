@@ -363,9 +363,9 @@ static void patch_name(struct csa *csa, char *name)
       return;
 }
 
-static double read_number(struct csa *csa)
+static glp_double read_number(struct csa *csa)
 {     /* read next field and convert it to floating-point number */
-      double x;
+      glp_double x;
       char *s;
       /* read next field */
       read_field(csa);
@@ -447,11 +447,11 @@ done: return;
 static void read_columns(struct csa *csa)
 {     /* read COLUMNS section */
       int i, j, f, len, kind = GLP_CV, *ind;
-      double aij, *val;
+      glp_double aij, *val;
       char name[255+1], *flag;
       /* allocate working arrays */
       csa->work1 = ind = xcalloc(1+csa->P->m, sizeof(int));
-      csa->work2 = val = xcalloc(1+csa->P->m, sizeof(double));
+      csa->work2 = val = xcalloc(1+csa->P->m, sizeof(glp_double));
       csa->work3 = flag = xcalloc(1+csa->P->m, sizeof(char));
       memset(&flag[1], 0, csa->P->m);
       /* no current column exists */
@@ -564,7 +564,7 @@ done: /* store the last column */
 static void read_rhs(struct csa *csa)
 {     /* read RHS section */
       int i, f, v, type;
-      double rhs;
+      glp_double rhs;
       char name[255+1], *flag;
       /* allocate working array */
       csa->work3 = flag = xcalloc(1+csa->P->m, sizeof(char));
@@ -644,7 +644,7 @@ done: /* free working array */
 static void read_ranges(struct csa *csa)
 {     /* read RANGES section */
       int i, f, v, type;
-      double rhs, rng;
+      glp_double rhs, rng;
       char name[255+1], *flag;
       /* allocate working array */
       csa->work3 = flag = xcalloc(1+csa->P->m, sizeof(char));
@@ -745,7 +745,7 @@ static void read_bounds(struct csa *csa)
 {     /* read BOUNDS section */
       GLPCOL *col;
       int j, v, mask, data;
-      double bnd, lb, ub;
+      glp_double bnd, lb, ub;
       char type[2+1], name[255+1], *flag;
       /* allocate working array */
       csa->work3 = flag = xcalloc(1+csa->P->n, sizeof(char));
@@ -1152,15 +1152,15 @@ static char *col_name(struct csa *csa, int j)
       return csa->field;
 }
 
-static char *mps_numb(struct csa *csa, double val)
+static char *mps_numb(struct csa *csa, glp_double val)
 {     /* format floating-point number */
       int dig;
       char *exp;
       for (dig = 12; dig >= 6; dig--)
       {  if (val != 0.0 && fabs(val) < 0.002)
-            sprintf(csa->field, "%.*E", dig-1, val);
+            sprintf(csa->field, "%.*" GLP_DBL_FMT_E, dig-1, val);
          else
-            sprintf(csa->field, "%.*G", dig, val);
+            sprintf(csa->field, "%.*" GLP_DBL_FMT_G, dig, val);
          exp = strchr(csa->field, 'E');
          if (exp != NULL)
             sprintf(exp+1, "%d", atoi(exp+1));
@@ -1329,7 +1329,7 @@ int glp_write_mps(glp_prob *P, int fmt, const glp_mpscp *parm,
       count = 0;
       for (i = (out_obj ? 0 : 1); i <= P->m; i++)
       {  int type;
-         double rhs;
+         glp_double rhs;
          if (i == 0)
             rhs = P->c0;
          else
@@ -1395,7 +1395,7 @@ bnds: /* write BOUNDS section */
       xfprintf(fp, "BOUNDS\n"), recno++;
       for (j = 1; j <= P->n; j++)
       {  int type, data[2];
-         double bnd[2];
+         glp_double bnd[2];
          char *spec[2];
          spec[0] = spec[1] = NULL;
          type = P->col[j]->type;

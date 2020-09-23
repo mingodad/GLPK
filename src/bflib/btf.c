@@ -36,7 +36,7 @@
 *  On exit the routine returns the number of non-zeros in matrix A. */
 
 int btf_store_a_cols(BTF *btf, int (*col)(void *info, int j, int ind[],
-      double val[]), void *info, int ind[], double val[])
+      glp_double val[]), void *info, int ind[], glp_double val[])
 {     int n = btf->n;
       SVA *sva = btf->sva;
       int *sv_ind = sva->ind;
@@ -209,7 +209,7 @@ void btf_build_a_rows(BTF *btf, int len[/*1+n*/])
 {     int n = btf->n;
       SVA *sva = btf->sva;
       int *sv_ind = sva->ind;
-      double *sv_val = sva->val;
+      glp_double *sv_val = sva->val;
       int ar_ref = btf->ar_ref;
       int *ar_ptr = &sva->ptr[ar_ref-1];
       int *ar_len = &sva->len[ar_ref-1];
@@ -266,11 +266,11 @@ void btf_build_a_rows(BTF *btf, int len[/*1+n*/])
 *  arrays w1 and w2, where max_size is the maximal size of diagonal
 *  blocks in BT-factorization (max_size <= n). */
 
-void btf_a_solve(BTF *btf, double b[/*1+n*/], double x[/*1+n*/],
-      double w1[/*1+n*/], double w2[/*1+n*/])
+void btf_a_solve(BTF *btf, glp_double b[/*1+n*/], glp_double x[/*1+n*/],
+      glp_double w1[/*1+n*/], glp_double w2[/*1+n*/])
 {     SVA *sva = btf->sva;
       int *sv_ind = sva->ind;
-      double *sv_val = sva->val;
+      glp_double *sv_val = sva->val;
       int *pp_inv = btf->pp_inv;
       int *qq_ind = btf->qq_ind;
       int num = btf->num;
@@ -278,11 +278,11 @@ void btf_a_solve(BTF *btf, double b[/*1+n*/], double x[/*1+n*/],
       int ac_ref = btf->ac_ref;
       int *ac_ptr = &sva->ptr[ac_ref-1];
       int *ac_len = &sva->len[ac_ref-1];
-      double *bb = w1;
-      double *xx = w2;
+      glp_double *bb = w1;
+      glp_double *xx = w2;
       LUF luf;
       int i, j, jj, k, beg_k, flag;
-      double t;
+      glp_double t;
       for (k = num; k >= 1; k--)
       {  /* determine order of diagonal block A~[k,k] */
          luf.n = beg[k+1] - (beg_k = beg[k]);
@@ -358,11 +358,11 @@ void btf_a_solve(BTF *btf, double b[/*1+n*/], double x[/*1+n*/],
 *  arrays w1 and w2, where max_size is the maximal size of diagonal
 *  blocks in BT-factorization (max_size <= n). */
 
-void btf_at_solve(BTF *btf, double b[/*1+n*/], double x[/*1+n*/],
-      double w1[/*1+n*/], double w2[/*1+n*/])
+void btf_at_solve(BTF *btf, glp_double b[/*1+n*/], glp_double x[/*1+n*/],
+      glp_double w1[/*1+n*/], glp_double w2[/*1+n*/])
 {     SVA *sva = btf->sva;
       int *sv_ind = sva->ind;
-      double *sv_val = sva->val;
+      glp_double *sv_val = sva->val;
       int *pp_inv = btf->pp_inv;
       int *qq_ind = btf->qq_ind;
       int num = btf->num;
@@ -370,11 +370,11 @@ void btf_at_solve(BTF *btf, double b[/*1+n*/], double x[/*1+n*/],
       int ar_ref = btf->ar_ref;
       int *ar_ptr = &sva->ptr[ar_ref-1];
       int *ar_len = &sva->len[ar_ref-1];
-      double *bb = w1;
-      double *xx = w2;
+      glp_double *bb = w1;
+      glp_double *xx = w2;
       LUF luf;
       int i, j, jj, k, beg_k, flag;
-      double t;
+      glp_double t;
       for (k = 1; k <= num; k++)
       {  /* determine order of diagonal block A~[k,k] */
          luf.n = beg[k+1] - (beg_k = beg[k]);
@@ -453,11 +453,11 @@ void btf_at_solve(BTF *btf, double b[/*1+n*/], double x[/*1+n*/],
 *  arrays w1 and w2, where max_size is the maximal size of diagonal
 *  blocks in BT-factorization (max_size <= n). */
 
-void btf_at_solve1(BTF *btf, double e[/*1+n*/], double y[/*1+n*/],
-      double w1[/*1+n*/], double w2[/*1+n*/])
+void btf_at_solve1(BTF *btf, glp_double e[/*1+n*/], glp_double y[/*1+n*/],
+      glp_double w1[/*1+n*/], glp_double w2[/*1+n*/])
 {     SVA *sva = btf->sva;
       int *sv_ind = sva->ind;
-      double *sv_val = sva->val;
+      glp_double *sv_val = sva->val;
       int *pp_inv = btf->pp_inv;
       int *qq_ind = btf->qq_ind;
       int num = btf->num;
@@ -465,11 +465,11 @@ void btf_at_solve1(BTF *btf, double e[/*1+n*/], double y[/*1+n*/],
       int ar_ref = btf->ar_ref;
       int *ar_ptr = &sva->ptr[ar_ref-1];
       int *ar_len = &sva->len[ar_ref-1];
-      double *ee = w1;
-      double *yy = w2;
+      glp_double *ee = w1;
+      glp_double *yy = w2;
       LUF luf;
       int i, j, jj, k, beg_k, ptr, end;
-      double e_k, y_k;
+      glp_double e_k, y_k;
       for (k = 1; k <= num; k++)
       {  /* determine order of diagonal block A~[k,k] */
          luf.n = beg[k+1] - (beg_k = beg[k]);
@@ -540,14 +540,14 @@ void btf_at_solve1(BTF *btf, double e[/*1+n*/], double y[/*1+n*/],
 *     Mathematical Computations. Prentice-Hall, Englewood Cliffs, N.J.,
 *     pp. 30-62 (subroutines DECOMP and SOLVE). */
 
-double btf_estimate_norm(BTF *btf, double w1[/*1+n*/], double
-      w2[/*1+n*/], double w3[/*1+n*/], double w4[/*1+n*/])
+glp_double btf_estimate_norm(BTF *btf, glp_double w1[/*1+n*/], glp_double
+      w2[/*1+n*/], glp_double w3[/*1+n*/], glp_double w4[/*1+n*/])
 {     int n = btf->n;
-      double *e = w1;
-      double *y = w2;
-      double *z = w1;
+      glp_double *e = w1;
+      glp_double *y = w2;
+      glp_double *z = w1;
       int i;
-      double y_norm, z_norm;
+      glp_double y_norm, z_norm;
       /* compute y = inv(A') * e to cause growth in y */
       for (i = 1; i <= n; i++)
          e[i] = 0.0;

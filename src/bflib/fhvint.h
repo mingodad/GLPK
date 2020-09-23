@@ -49,24 +49,24 @@ FHVINT *fhvint_create(void);
 
 #define fhvint_factorize _glp_fhvint_factorize
 int fhvint_factorize(FHVINT *fi, int n, int (*col)(void *info, int j,
-      int ind[], double val[]), void *info);
+      int ind[], glp_double val[]), void *info);
 /* compute FHV-factorization of specified matrix A */
 
 #define fhvint_update _glp_fhvint_update
 int fhvint_update(FHVINT *fi, int j, int len, const int ind[],
-      const double val[]);
+      const glp_double val[]);
 /* update FHV-factorization after replacing j-th column of A */
 
 #define fhvint_ftran _glp_fhvint_ftran
-void fhvint_ftran(FHVINT *fi, double x[]);
+void fhvint_ftran(FHVINT *fi, glp_double x[]);
 /* solve system A * x = b */
 
 #define fhvint_btran _glp_fhvint_btran
-void fhvint_btran(FHVINT *fi, double x[]);
+void fhvint_btran(FHVINT *fi, glp_double x[]);
 /* solve system A'* x = b */
 
 #define fhvint_estimate _glp_fhvint_estimate
-double fhvint_estimate(FHVINT *fi);
+glp_double fhvint_estimate(FHVINT *fi);
 /* estimate 1-norm of inv(A) */
 
 #define fhvint_delete _glp_fhvint_delete

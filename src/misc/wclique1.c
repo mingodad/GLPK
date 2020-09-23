@@ -32,7 +32,7 @@
 *  SYNOPSIS
 *
 *  #include "wclique1.h"
-*  int wclique1(int n, const double w[],
+*  int wclique1(int n, const glp_double w[],
 *     int (*func)(void *info, int i, int ind[]), void *info, int c[]);
 *
 *  DESCRIPTION
@@ -62,7 +62,7 @@
 *
 *  The routine wclique1 returns the size of the clique found. */
 
-struct vertex { int i; double cw; };
+struct vertex { int i; glp_double cw; };
 
 static int CDECL fcmp(const void *xx, const void *yy)
 {     const struct vertex *x = xx, *y = yy;
@@ -71,12 +71,12 @@ static int CDECL fcmp(const void *xx, const void *yy)
       return 0;
 }
 
-int wclique1(int n, const double w[],
+int wclique1(int n, const glp_double w[],
       int (*func)(void *info, int i, int ind[]), void *info, int c[])
 {     struct vertex *v_list;
       int deg, c_size, d_size, i, j, k, kk, l, *ind, *c_list, *d_list,
          size = 0;
-      double c_wght, d_wght, *sw, best = 0.0;
+      glp_double c_wght, d_wght, *sw, best = 0.0;
       char *d_flag, *skip;
       /* perform sanity checks */
       xassert(n >= 0);
@@ -91,7 +91,7 @@ int wclique1(int n, const double w[],
       d_list = xcalloc(1+n, sizeof(int));
       d_flag = xcalloc(1+n, sizeof(char));
       skip = xcalloc(1+n, sizeof(char));
-      sw = xcalloc(1+n, sizeof(double));
+      sw = xcalloc(1+n, sizeof(glp_double));
       /* build the vertex list */
       for (i = 1; i <= n; i++)
       {  v_list[i].i = i;
@@ -235,7 +235,7 @@ done: /* return to the calling program */
 #include "glpk.h"
 #include "rng.h"
 
-typedef struct { double w; } v_data;
+typedef struct { glp_double w; } v_data;
 
 #define weight(v) (((v_data *)((v)->data))->w)
 
@@ -267,7 +267,7 @@ int func(void *info, int i, int ind[])
 int main(int argc, char *argv[])
 {     RNG *rand;
       int i, k, kk, size, *c, *ind, deg;
-      double *w, sum, t;
+      glp_double *w, sum, t;
       /* read graph in DIMACS format */
       G = glp_create_graph(sizeof(v_data), 0);
       xassert(argc == 2);
@@ -275,7 +275,7 @@ int main(int argc, char *argv[])
       /* print the number of connected components */
       xprintf("nc = %d\n", glp_weak_comp(G, -1));
       /* assign random weights unformly distributed in [1,100] */
-      w = xcalloc(1+G->nv, sizeof(double));
+      w = xcalloc(1+G->nv, sizeof(glp_double));
       rand = rng_create_rand();
       for (i = 1; i <= G->nv; i++)
 #if 0

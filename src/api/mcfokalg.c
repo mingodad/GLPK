@@ -26,28 +26,28 @@
 #include "okalg.h"
 
 int glp_mincost_okalg(glp_graph *G, int v_rhs, int a_low, int a_cap,
-      int a_cost, double *sol, int a_x, int v_pi)
+      int a_cost, glp_double *sol, int a_x, int v_pi)
 {     /* find minimum-cost flow with out-of-kilter algorithm */
       glp_vertex *v;
       glp_arc *a;
       int nv, na, i, k, s, t, *tail, *head, *low, *cap, *cost, *x, *pi,
          ret;
-      double sum, temp;
-      if (v_rhs >= 0 && v_rhs > G->v_size - (int)sizeof(double))
+      glp_double sum, temp;
+      if (v_rhs >= 0 && v_rhs > G->v_size - (int)sizeof(glp_double))
          xerror("glp_mincost_okalg: v_rhs = %d; invalid offset\n",
             v_rhs);
-      if (a_low >= 0 && a_low > G->a_size - (int)sizeof(double))
+      if (a_low >= 0 && a_low > G->a_size - (int)sizeof(glp_double))
          xerror("glp_mincost_okalg: a_low = %d; invalid offset\n",
             a_low);
-      if (a_cap >= 0 && a_cap > G->a_size - (int)sizeof(double))
+      if (a_cap >= 0 && a_cap > G->a_size - (int)sizeof(glp_double))
          xerror("glp_mincost_okalg: a_cap = %d; invalid offset\n",
             a_cap);
-      if (a_cost >= 0 && a_cost > G->a_size - (int)sizeof(double))
+      if (a_cost >= 0 && a_cost > G->a_size - (int)sizeof(glp_double))
          xerror("glp_mincost_okalg: a_cost = %d; invalid offset\n",
             a_cost);
-      if (a_x >= 0 && a_x > G->a_size - (int)sizeof(double))
+      if (a_x >= 0 && a_x > G->a_size - (int)sizeof(glp_double))
          xerror("glp_mincost_okalg: a_x = %d; invalid offset\n", a_x);
-      if (v_pi >= 0 && v_pi > G->v_size - (int)sizeof(double))
+      if (v_pi >= 0 && v_pi > G->v_size - (int)sizeof(glp_double))
          xerror("glp_mincost_okalg: v_pi = %d; invalid offset\n", v_pi);
       /* s is artificial source node */
       s = G->nv + 1;
@@ -60,7 +60,7 @@ int glp_mincost_okalg(glp_graph *G, int v_rhs, int a_low, int a_cap,
       for (i = 1; i <= G->nv; i++)
       {  v = G->v[i];
          if (v_rhs >= 0)
-            memcpy(&temp, (char *)v->data + v_rhs, sizeof(double));
+            memcpy(&temp, (char *)v->data + v_rhs, sizeof(glp_double));
          else
             temp = 0.0;
          if (temp != 0.0) na++;
@@ -87,30 +87,30 @@ int glp_mincost_okalg(glp_graph *G, int v_rhs, int a_low, int a_cap,
                goto done;
             }
             if (a_low >= 0)
-               memcpy(&temp, (char *)a->data + a_low, sizeof(double));
+               memcpy(&temp, (char *)a->data + a_low, sizeof(glp_double));
             else
                temp = 0.0;
-            if (!(0.0 <= temp && temp <= (double)INT_MAX &&
+            if (!(0.0 <= temp && temp <= (glp_double)INT_MAX &&
                   temp == floor(temp)))
             {  ret = GLP_EDATA;
                goto done;
             }
             low[k] = (int)temp;
             if (a_cap >= 0)
-               memcpy(&temp, (char *)a->data + a_cap, sizeof(double));
+               memcpy(&temp, (char *)a->data + a_cap, sizeof(glp_double));
             else
                temp = 1.0;
-            if (!((double)low[k] <= temp && temp <= (double)INT_MAX &&
+            if (!((glp_double)low[k] <= temp && temp <= (glp_double)INT_MAX &&
                   temp == floor(temp)))
             {  ret = GLP_EDATA;
                goto done;
             }
             cap[k] = (int)temp;
             if (a_cost >= 0)
-               memcpy(&temp, (char *)a->data + a_cost, sizeof(double));
+               memcpy(&temp, (char *)a->data + a_cost, sizeof(glp_double));
             else
                temp = 0.0;
-            if (!(fabs(temp) <= (double)INT_MAX && temp == floor(temp)))
+            if (!(fabs(temp) <= (glp_double)INT_MAX && temp == floor(temp)))
             {  ret = GLP_EDATA;
                goto done;
             }
@@ -122,10 +122,10 @@ int glp_mincost_okalg(glp_graph *G, int v_rhs, int a_low, int a_cap,
       for (i = 1; i <= G->nv; i++)
       {  v = G->v[i];
          if (v_rhs >= 0)
-            memcpy(&temp, (char *)v->data + v_rhs, sizeof(double));
+            memcpy(&temp, (char *)v->data + v_rhs, sizeof(glp_double));
          else
             temp = 0.0;
-         if (!(fabs(temp) <= (double)INT_MAX && temp == floor(temp)))
+         if (!(fabs(temp) <= (glp_double)INT_MAX && temp == floor(temp)))
          {  ret = GLP_EDATA;
             goto done;
          }
@@ -136,7 +136,7 @@ int glp_mincost_okalg(glp_graph *G, int v_rhs, int a_low, int a_cap,
             head[k] = i;
             low[k] = cap[k] = (int)(+temp); /* supply */
             cost[k] = 0;
-            sum += (double)temp;
+            sum += (glp_double)temp;
          }
          else if (temp < 0.0)
          {  /* artificial arc from original sink i to t */
@@ -152,7 +152,7 @@ int glp_mincost_okalg(glp_graph *G, int v_rhs, int a_low, int a_cap,
       xassert(k == na);
       tail[k] = t;
       head[k] = s;
-      if (sum > (double)INT_MAX)
+      if (sum > (glp_double)INT_MAX)
       {  ret = GLP_EDATA;
          goto done;
       }
@@ -185,7 +185,7 @@ int glp_mincost_okalg(glp_graph *G, int v_rhs, int a_low, int a_cap,
       if (sol != NULL)
       {  temp = 0.0;
          for (k = 1; k <= na; k++)
-            temp += (double)cost[k] * (double)x[k];
+            temp += (glp_double)cost[k] * (glp_double)x[k];
          *sol = temp;
       }
       /* (arc flows) */
@@ -194,8 +194,8 @@ int glp_mincost_okalg(glp_graph *G, int v_rhs, int a_low, int a_cap,
          for (i = 1; i <= G->nv; i++)
          {  v = G->v[i];
             for (a = v->out; a != NULL; a = a->t_next)
-            {  temp = (double)x[++k];
-               memcpy((char *)a->data + a_x, &temp, sizeof(double));
+            {  temp = (glp_double)x[++k];
+               memcpy((char *)a->data + a_x, &temp, sizeof(glp_double));
             }
          }
       }
@@ -203,8 +203,8 @@ int glp_mincost_okalg(glp_graph *G, int v_rhs, int a_low, int a_cap,
       if (v_pi >= 0)
       {  for (i = 1; i <= G->nv; i++)
          {  v = G->v[i];
-            temp = - (double)pi[i];
-            memcpy((char *)v->data + v_pi, &temp, sizeof(double));
+            temp = - (glp_double)pi[i];
+            memcpy((char *)v->data + v_pi, &temp, sizeof(glp_double));
          }
       }
 done: /* free working arrays */

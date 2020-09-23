@@ -19,10 +19,10 @@
 
 GLOBAL void AMD_info
 (
-    double Info [ ]
+    glp_double Info [ ]
 )
 {
-    double n, ndiv, nmultsubs_ldl, nmultsubs_lu, lnz, lnzd ;
+    glp_double n, ndiv, nmultsubs_ldl, nmultsubs_lu, lnz, lnzd ;
 
     PRINTF (("\nAMD version %d.%d.%d, %s, results:\n",
         AMD_MAIN_VERSION, AMD_SUB_VERSION, AMD_SUBSUB_VERSION, AMD_DATE)) ;

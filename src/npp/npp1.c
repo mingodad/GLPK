@@ -203,7 +203,7 @@ NPPCOL *npp_add_col(NPP *npp)
       return col;
 }
 
-NPPAIJ *npp_add_aij(NPP *npp, NPPROW *row, NPPCOL *col, double val)
+NPPAIJ *npp_add_aij(NPP *npp, NPPROW *row, NPPCOL *col, glp_double val)
 {     /* add new element to the constraint matrix */
       NPPAIJ *aij;
       aij = dmp_get_atom(npp->pool, sizeof(NPPAIJ));
@@ -358,7 +358,7 @@ void npp_load_prob(NPP *npp, glp_prob *orig, int names, int sol,
       int n = orig->n;
       NPPROW **link;
       int i, j;
-      double dir;
+      glp_double dir;
       xassert(names == GLP_OFF || names == GLP_ON);
       xassert(sol == GLP_SOL || sol == GLP_IPT || sol == GLP_MIP);
       xassert(scaling == GLP_OFF || scaling == GLP_ON);
@@ -408,7 +408,7 @@ void npp_load_prob(NPP *npp, glp_prob *orig, int names, int sol,
                xassert(rrr != rrr);
          }
          else
-         {  double rii = rrr->rii;
+         {  glp_double rii = rrr->rii;
             if (rrr->type == GLP_FR)
                row->lb = -DBL_MAX, row->ub = +DBL_MAX;
             else if (rrr->type == GLP_LO)
@@ -458,7 +458,7 @@ void npp_load_prob(NPP *npp, glp_prob *orig, int names, int sol,
                npp_add_aij(npp, link[aaa->row->i], col, aaa->val);
          }
          else
-         {  double sjj = ccc->sjj;
+         {  glp_double sjj = ccc->sjj;
             if (ccc->type == GLP_FR)
                col->lb = -DBL_MAX, col->ub = +DBL_MAX;
             else if (ccc->type == GLP_LO)
@@ -490,7 +490,7 @@ void npp_build_prob(NPP *npp, glp_prob *prob)
       NPPCOL *col;
       NPPAIJ *aij;
       int i, j, type, len, *ind;
-      double dir, *val;
+      glp_double dir, *val;
       glp_erase_prob(prob);
       glp_set_prob_name(prob, npp->name);
       glp_set_obj_name(prob, npp->obj);
@@ -520,7 +520,7 @@ void npp_build_prob(NPP *npp, glp_prob *prob)
       }
       /* build columns and the constraint matrix */
       ind = xcalloc(1+prob->m, sizeof(int));
-      val = xcalloc(1+prob->m, sizeof(double));
+      val = xcalloc(1+prob->m, sizeof(glp_double));
       for (col = npp->c_head; col != NULL; col = col->next)
       {  j = glp_add_cols(prob, 1);
          glp_set_col_name(prob, j, col->name);
@@ -576,7 +576,7 @@ void npp_postprocess(NPP *npp, glp_prob *prob)
       GLPCOL *col;
       NPPTSE *tse;
       int i, j, k;
-      double dir;
+      glp_double dir;
       xassert(npp->orig_dir == prob->dir);
       if (npp->orig_dir == GLP_MIN)
          dir = +1.0;
@@ -621,22 +621,22 @@ void npp_postprocess(NPP *npp, glp_prob *prob)
       }
 #if 0
       if (npp->r_prim == NULL)
-         npp->r_prim = xcalloc(1+npp->nrows, sizeof(double));
+         npp->r_prim = xcalloc(1+npp->nrows, sizeof(glp_double));
       for (i = 1; i <= npp->nrows; i++)
          npp->r_prim[i] = DBL_MAX;
 #endif
       if (npp->c_value == NULL)
-         npp->c_value = xcalloc(1+npp->ncols, sizeof(double));
+         npp->c_value = xcalloc(1+npp->ncols, sizeof(glp_double));
       for (j = 1; j <= npp->ncols; j++)
          npp->c_value[j] = DBL_MAX;
       if (npp->sol != GLP_MIP)
       {  if (npp->r_pi == NULL)
-            npp->r_pi = xcalloc(1+npp->nrows, sizeof(double));
+            npp->r_pi = xcalloc(1+npp->nrows, sizeof(glp_double));
          for (i = 1; i <= npp->nrows; i++)
             npp->r_pi[i] = DBL_MAX;
 #if 0
          if (npp->c_dual == NULL)
-            npp->c_dual = xcalloc(1+npp->ncols, sizeof(double));
+            npp->c_dual = xcalloc(1+npp->ncols, sizeof(glp_double));
          for (j = 1; j <= npp->ncols; j++)
             npp->c_dual[j] = DBL_MAX;
 #endif
@@ -704,7 +704,7 @@ void npp_unload_sol(NPP *npp, glp_prob *orig)
       GLPROW *row;
       GLPCOL *col;
       int i, j;
-      double dir;
+      glp_double dir;
       xassert(npp->orig_dir == orig->dir);
       if (npp->orig_dir == GLP_MIN)
          dir = +1.0;
@@ -795,7 +795,7 @@ void npp_unload_sol(NPP *npp, glp_prob *orig)
          {  row = orig->row[i];
             if (row->stat == GLP_BS)
             {  GLPAIJ *aij;
-               double temp;
+               glp_double temp;
                temp = 0.0;
                for (aij = row->ptr; aij != NULL; aij = aij->r_next)
                   temp += aij->val * aij->col->prim;
@@ -807,7 +807,7 @@ void npp_unload_sol(NPP *npp, glp_prob *orig)
          {  col = orig->col[j];
             if (col->stat != GLP_BS)
             {  GLPAIJ *aij;
-               double temp;
+               glp_double temp;
                temp = col->coef;
                for (aij = col->ptr; aij != NULL; aij = aij->c_next)
                   temp -= aij->val * aij->row->dual;
@@ -848,7 +848,7 @@ void npp_unload_sol(NPP *npp, glp_prob *orig)
          for (i = 1; i <= orig->m; i++)
          {  row = orig->row[i];
             {  GLPAIJ *aij;
-               double temp;
+               glp_double temp;
                temp = 0.0;
                for (aij = row->ptr; aij != NULL; aij = aij->r_next)
                   temp += aij->val * aij->col->pval;
@@ -859,7 +859,7 @@ void npp_unload_sol(NPP *npp, glp_prob *orig)
          for (j = 1; j <= orig->n; j++)
          {  col = orig->col[j];
             {  GLPAIJ *aij;
-               double temp;
+               glp_double temp;
                temp = col->coef;
                for (aij = col->ptr; aij != NULL; aij = aij->c_next)
                   temp -= aij->val * aij->row->dval;
@@ -891,7 +891,7 @@ void npp_unload_sol(NPP *npp, glp_prob *orig)
          for (i = 1; i <= orig->m; i++)
          {  row = orig->row[i];
             {  GLPAIJ *aij;
-               double temp;
+               glp_double temp;
                temp = 0.0;
                for (aij = row->ptr; aij != NULL; aij = aij->r_next)
                   temp += aij->val * aij->col->mipx;

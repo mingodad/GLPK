@@ -97,16 +97,16 @@ struct FHV
 
 #define fhv_ft_update _glp_fhv_ft_update
 int fhv_ft_update(FHV *fhv, int q, int aq_len, const int aq_ind[],
-      const double aq_val[], int ind[/*1+n*/], double val[/*1+n*/],
-      double work[/*1+n*/]);
+      const glp_double aq_val[], int ind[/*1+n*/], glp_double val[/*1+n*/],
+      glp_double work[/*1+n*/]);
 /* update FHV-factorization (Forrest-Tomlin) */
 
 #define fhv_h_solve _glp_fhv_h_solve
-void fhv_h_solve(FHV *fhv, double x[/*1+n*/]);
+void fhv_h_solve(FHV *fhv, glp_double x[/*1+n*/]);
 /* solve system H * x = b */
 
 #define fhv_ht_solve _glp_fhv_ht_solve
-void fhv_ht_solve(FHV *fhv, double x[/*1+n*/]);
+void fhv_ht_solve(FHV *fhv, glp_double x[/*1+n*/]);
 /* solve system H' * x = b */
 
 #endif

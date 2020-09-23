@@ -27,8 +27,8 @@
 #define PROXY_H
 
 #define proxy _glp_proxy
-int proxy(glp_prob *lp, double *zstar, double *xstar,
-          const double initsol[], double rel_impr, int tlim,
+int proxy(glp_prob *lp, glp_double *zstar, glp_double *xstar,
+          const glp_double initsol[], glp_double rel_impr, int tlim,
           int verbose);
 
 #endif

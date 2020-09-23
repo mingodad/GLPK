@@ -37,9 +37,9 @@
 *
 *  If i-th row of the matrix is empty, the routine returns 1. */
 
-static double min_row_aij(glp_prob *lp, int i, int scaled)
+static glp_double min_row_aij(glp_prob *lp, int i, int scaled)
 {     GLPAIJ *aij;
-      double min_aij, temp;
+      glp_double min_aij, temp;
       xassert(1 <= i && i <= lp->m);
       min_aij = 1.0;
       for (aij = lp->row[i]->ptr; aij != NULL; aij = aij->r_next)
@@ -62,9 +62,9 @@ static double min_row_aij(glp_prob *lp, int i, int scaled)
 *
 *  If i-th row of the matrix is empty, the routine returns 1. */
 
-static double max_row_aij(glp_prob *lp, int i, int scaled)
+static glp_double max_row_aij(glp_prob *lp, int i, int scaled)
 {     GLPAIJ *aij;
-      double max_aij, temp;
+      glp_double max_aij, temp;
       xassert(1 <= i && i <= lp->m);
       max_aij = 1.0;
       for (aij = lp->row[i]->ptr; aij != NULL; aij = aij->r_next)
@@ -87,9 +87,9 @@ static double max_row_aij(glp_prob *lp, int i, int scaled)
 *
 *  If j-th column of the matrix is empty, the routine returns 1. */
 
-static double min_col_aij(glp_prob *lp, int j, int scaled)
+static glp_double min_col_aij(glp_prob *lp, int j, int scaled)
 {     GLPAIJ *aij;
-      double min_aij, temp;
+      glp_double min_aij, temp;
       xassert(1 <= j && j <= lp->n);
       min_aij = 1.0;
       for (aij = lp->col[j]->ptr; aij != NULL; aij = aij->c_next)
@@ -112,9 +112,9 @@ static double min_col_aij(glp_prob *lp, int j, int scaled)
 *
 *  If j-th column of the matrix is empty, the routine returns 1. */
 
-static double max_col_aij(glp_prob *lp, int j, int scaled)
+static glp_double max_col_aij(glp_prob *lp, int j, int scaled)
 {     GLPAIJ *aij;
-      double max_aij, temp;
+      glp_double max_aij, temp;
       xassert(1 <= j && j <= lp->n);
       max_aij = 1.0;
       for (aij = lp->col[j]->ptr; aij != NULL; aij = aij->c_next)
@@ -137,9 +137,9 @@ static double max_col_aij(glp_prob *lp, int j, int scaled)
 *
 *  If the matrix is empty, the routine returns 1. */
 
-static double min_mat_aij(glp_prob *lp, int scaled)
+static glp_double min_mat_aij(glp_prob *lp, int scaled)
 {     int i;
-      double min_aij, temp;
+      glp_double min_aij, temp;
       min_aij = 1.0;
       for (i = 1; i <= lp->m; i++)
       {  temp = min_row_aij(lp, i, scaled);
@@ -160,9 +160,9 @@ static double min_mat_aij(glp_prob *lp, int scaled)
 *
 *  If the matrix is empty, the routine returns 1. */
 
-static double max_mat_aij(glp_prob *lp, int scaled)
+static glp_double max_mat_aij(glp_prob *lp, int scaled)
 {     int i;
-      double max_aij, temp;
+      glp_double max_aij, temp;
       max_aij = 1.0;
       for (i = 1; i <= lp->m; i++)
       {  temp = max_row_aij(lp, i, scaled);
@@ -201,7 +201,7 @@ static double max_mat_aij(glp_prob *lp, int scaled)
 
 static void eq_scaling(glp_prob *lp, int flag)
 {     int i, j, pass;
-      double temp;
+      glp_double temp;
       xassert(flag == 0 || flag == 1);
       for (pass = 0; pass <= 1; pass++)
       {  if (pass == flag)
@@ -257,7 +257,7 @@ static void eq_scaling(glp_prob *lp, int flag)
 
 static void gm_scaling(glp_prob *lp, int flag)
 {     int i, j, pass;
-      double temp;
+      glp_double temp;
       xassert(flag == 0 || flag == 1);
       for (pass = 0; pass <= 1; pass++)
       {  if (pass == flag)
@@ -294,9 +294,9 @@ static void gm_scaling(glp_prob *lp, int flag)
 *
 *  is the scaling "quality" of i-th row. */
 
-static double max_row_ratio(glp_prob *lp)
+static glp_double max_row_ratio(glp_prob *lp)
 {     int i;
-      double ratio, temp;
+      glp_double ratio, temp;
       ratio = 1.0;
       for (i = 1; i <= lp->m; i++)
       {  temp = max_row_aij(lp, i, 1) / min_row_aij(lp, i, 1);
@@ -321,9 +321,9 @@ static double max_row_ratio(glp_prob *lp)
 *
 *  is the scaling "quality" of j-th column. */
 
-static double max_col_ratio(glp_prob *lp)
+static glp_double max_col_ratio(glp_prob *lp)
 {     int j;
-      double ratio, temp;
+      glp_double ratio, temp;
       ratio = 1.0;
       for (j = 1; j <= lp->n; j++)
       {  temp = max_col_aij(lp, j, 1) / min_col_aij(lp, j, 1);
@@ -351,9 +351,9 @@ static double max_col_ratio(glp_prob *lp)
 *  to be minimized, k is the iteration number. Recommended value of tau
 *  is 0.90. */
 
-static void gm_iterate(glp_prob *lp, int it_max, double tau)
+static void gm_iterate(glp_prob *lp, int it_max, glp_double tau)
 {     int k, flag;
-      double ratio = 0.0, r_old;
+      glp_double ratio = 0.0, r_old;
       /* if the scaling "quality" for rows is better than for columns,
          the rows are scaled first; otherwise, the columns are scaled
          first */
@@ -392,7 +392,7 @@ static void gm_iterate(glp_prob *lp, int it_max, double tau)
 static void scale_prob(glp_prob *lp, int flags)
 {     static const char *fmt =
          "%s: min|aij| = %10.3e  max|aij| = %10.3e  ratio = %10.3e\n";
-      double min_aij, max_aij, ratio;
+      glp_double min_aij, max_aij, ratio;
       xprintf("Scaling...\n");
       /* cancel the current scaling effect */
       glp_unscale_prob(lp);

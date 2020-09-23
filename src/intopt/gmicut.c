@@ -31,7 +31,7 @@
 *
 *  SYNOPSIS
 *
-*  int glp_gmi_cut(glp_prob *P, int j, int ind[], double val[], double
+*  int glp_gmi_cut(glp_prob *P, int j, int ind[], glp_double val[], glp_double
 *     phi[]);
 *
 *  DESCRIPTION
@@ -98,14 +98,14 @@
 /* compute fractional part of x */
 
 int glp_gmi_cut(glp_prob *P, int j,
-      int ind[/*1+n*/], double val[/*1+n*/], double phi[/*1+m+n*/])
+      int ind[/*1+n*/], glp_double val[/*1+n*/], glp_double phi[/*1+m+n*/])
 {     int m = P->m;
       int n = P->n;
       GLPROW *row;
       GLPCOL *col;
       GLPAIJ *aij;
       int i, k, len, kind, stat;
-      double lb, ub, alfa, beta, ksi, phi1, rhs;
+      glp_double lb, ub, alfa, beta, ksi, phi1, rhs;
       /* sanity checks */
       if (!(P->m == 0 || P->valid))
       {  /* current basis factorization is not valid */

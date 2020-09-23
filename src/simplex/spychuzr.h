@@ -27,12 +27,12 @@
 #include "spxlp.h"
 
 #define spy_chuzr_sel _glp_spy_chuzr_sel
-int spy_chuzr_sel(SPXLP *lp, const double beta[/*1+m*/], double tol,
-      double tol1, int list[/*1+m*/]);
+int spy_chuzr_sel(SPXLP *lp, const glp_double beta[/*1+m*/], glp_double tol,
+      glp_double tol1, int list[/*1+m*/]);
 /* select eligible basic variables */
 
 #define spy_chuzr_std _glp_spy_chuzr_std
-int spy_chuzr_std(SPXLP *lp, const double beta[/*1+m*/], int num,
+int spy_chuzr_std(SPXLP *lp, const glp_double beta[/*1+m*/], int num,
       const int list[]);
 /* choose basic variable (dual Dantzig's rule) */
 
@@ -46,12 +46,12 @@ struct SPYSE
       /* refsp[0] is not used;
        * refsp[k], 1 <= k <= n, is the flag meaning that dual variable
        * lambda[k] is in the dual reference space */
-      double *gamma; /* double gamma[1+m]; */
+      glp_double *gamma; /* glp_double gamma[1+m]; */
       /* gamma[0] is not used;
        * gamma[i], 1 <= i <= m, is the weight for reduced cost r[i]
        * of dual non-basic variable lambdaB[j] in the current basis
        * (r[i] is bound violation for basic variable xB[i]) */
-      double *work; /* double work[1+m]; */
+      glp_double *work; /* glp_double work[1+m]; */
       /* working array */
 #if 1 /* 30/III-2016 */
       FVS u; /* FVS u[1:m]; */
@@ -68,22 +68,22 @@ void spy_reset_refsp(SPXLP *lp, SPYSE *se);
 /* reset dual reference space */
 
 #define spy_eval_gamma_i _glp_spy_eval_gamma_i
-double spy_eval_gamma_i(SPXLP *lp, SPYSE *se, int i);
+glp_double spy_eval_gamma_i(SPXLP *lp, SPYSE *se, int i);
 /* compute dual projected steepest edge weight directly */
 
 #define spy_chuzr_pse _glp_spy_chuzr_pse
-int spy_chuzr_pse(SPXLP *lp, SPYSE *se, const double beta[/*1+m*/],
+int spy_chuzr_pse(SPXLP *lp, SPYSE *se, const glp_double beta[/*1+m*/],
       int num, const int list[]);
 /* choose basic variable (dual projected steepest edge) */
 
 #define spy_update_gamma _glp_spy_update_gamma
-double spy_update_gamma(SPXLP *lp, SPYSE *se, int p, int q,
-      const double trow[/*1+n-m*/], const double tcol[/*1+m*/]);
+glp_double spy_update_gamma(SPXLP *lp, SPYSE *se, int p, int q,
+      const glp_double trow[/*1+n-m*/], const glp_double tcol[/*1+m*/]);
 /* update dual projected steepest edge weights exactly */
 
 #if 1 /* 30/III-2016 */
 #define spy_update_gamma_s _glp_spy_update_gamma_s
-double spy_update_gamma_s(SPXLP *lp, SPYSE *se, int p, int q,
+glp_double spy_update_gamma_s(SPXLP *lp, SPYSE *se, int p, int q,
       const FVS *trow, const FVS *tcol);
 /* sparse version of spy_update_gamma */
 #endif

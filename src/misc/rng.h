@@ -55,11 +55,11 @@ void rng_delete_rand(RNG *rand);
 /* delete pseudo-random number generator */
 
 #define rng_unif_01 _glp_rng_unif_01
-double rng_unif_01(RNG *rand);
+glp_double rng_unif_01(RNG *rand);
 /* obtain pseudo-random number in the range [0, 1] */
 
 #define rng_uniform _glp_rng_uniform
-double rng_uniform(RNG *rand, double a, double b);
+glp_double rng_uniform(RNG *rand, glp_double a, glp_double b);
 /* obtain pseudo-random number in the range [a, b] */
 
 #endif

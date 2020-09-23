@@ -50,8 +50,8 @@ int glp_write_ccdata(glp_graph *G, int v_wgt, const char *fname)
       glp_vertex *v;
       glp_arc *e;
       int i, count = 0, ret;
-      double w;
-      if (v_wgt >= 0 && v_wgt > G->v_size - (int)sizeof(double))
+      glp_double w;
+      if (v_wgt >= 0 && v_wgt > G->v_size - (int)sizeof(glp_double))
          xerror("glp_write_ccdata: v_wgt = %d; invalid offset\n",
             v_wgt);
       xprintf("Writing graph to '%s'\n", fname);
@@ -67,7 +67,7 @@ int glp_write_ccdata(glp_graph *G, int v_wgt, const char *fname)
       if (v_wgt >= 0)
       {  for (i = 1; i <= G->nv; i++)
          {  v = G->v[i];
-            memcpy(&w, (char *)v->data + v_wgt, sizeof(double));
+            memcpy(&w, (char *)v->data + v_wgt, sizeof(glp_double));
             if (w != 1.0)
                xfprintf(fp, "n %d %.*g\n", i, DBL_DIG, w), count++;
          }

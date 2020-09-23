@@ -209,7 +209,7 @@ int glp_get_row_type(glp_prob *lp, int i)
 *
 *  SYNOPSIS
 *
-*  double glp_get_row_lb(glp_prob *lp, int i);
+*  glp_double glp_get_row_lb(glp_prob *lp, int i);
 *
 *  RETURNS
 *
@@ -217,8 +217,8 @@ int glp_get_row_type(glp_prob *lp, int i)
 *  the lower bound of corresponding auxiliary variable. However, if the
 *  row has no lower bound, the routine returns -DBL_MAX. */
 
-double glp_get_row_lb(glp_prob *lp, int i)
-{     double lb;
+glp_double glp_get_row_lb(glp_prob *lp, int i)
+{     glp_double lb;
       if (!(1 <= i && i <= lp->m))
          xerror("glp_get_row_lb: i = %d; row number out of range\n", i);
       switch (lp->row[i]->type)
@@ -242,7 +242,7 @@ double glp_get_row_lb(glp_prob *lp, int i)
 *
 *  SYNOPSIS
 *
-*  double glp_get_row_ub(glp_prob *lp, int i);
+*  glp_double glp_get_row_ub(glp_prob *lp, int i);
 *
 *  RETURNS
 *
@@ -250,8 +250,8 @@ double glp_get_row_lb(glp_prob *lp, int i)
 *  the upper bound of corresponding auxiliary variable. However, if the
 *  row has no upper bound, the routine returns +DBL_MAX. */
 
-double glp_get_row_ub(glp_prob *lp, int i)
-{     double ub;
+glp_double glp_get_row_ub(glp_prob *lp, int i)
+{     glp_double ub;
       if (!(1 <= i && i <= lp->m))
          xerror("glp_get_row_ub: i = %d; row number out of range\n", i);
       switch (lp->row[i]->type)
@@ -302,7 +302,7 @@ int glp_get_col_type(glp_prob *lp, int j)
 *
 *  SYNOPSIS
 *
-*  double glp_get_col_lb(glp_prob *lp, int j);
+*  glp_double glp_get_col_lb(glp_prob *lp, int j);
 *
 *  RETURNS
 *
@@ -310,8 +310,8 @@ int glp_get_col_type(glp_prob *lp, int j)
 *  i.e. the lower bound of corresponding structural variable. However,
 *  if the column has no lower bound, the routine returns -DBL_MAX. */
 
-double glp_get_col_lb(glp_prob *lp, int j)
-{     double lb;
+glp_double glp_get_col_lb(glp_prob *lp, int j)
+{     glp_double lb;
       if (!(1 <= j && j <= lp->n))
          xerror("glp_get_col_lb: j = %d; column number out of range\n",
             j);
@@ -336,7 +336,7 @@ double glp_get_col_lb(glp_prob *lp, int j)
 *
 *  SYNOPSIS
 *
-*  double glp_get_col_ub(glp_prob *lp, int j);
+*  glp_double glp_get_col_ub(glp_prob *lp, int j);
 *
 *  RETURNS
 *
@@ -344,8 +344,8 @@ double glp_get_col_lb(glp_prob *lp, int j)
 *  i.e. the upper bound of corresponding structural variable. However,
 *  if the column has no upper bound, the routine returns +DBL_MAX. */
 
-double glp_get_col_ub(glp_prob *lp, int j)
-{     double ub;
+glp_double glp_get_col_ub(glp_prob *lp, int j)
+{     glp_double ub;
       if (!(1 <= j && j <= lp->n))
          xerror("glp_get_col_ub: j = %d; column number out of range\n",
             j);
@@ -370,7 +370,7 @@ double glp_get_col_ub(glp_prob *lp, int j)
 *
 *  SYNOPSIS
 *
-*  double glp_get_obj_coef(glp_prob *lp, int j);
+*  glp_double glp_get_obj_coef(glp_prob *lp, int j);
 *
 *  RETURNS
 *
@@ -380,7 +380,7 @@ double glp_get_col_ub(glp_prob *lp, int j)
 *  If the parameter j is zero, the routine returns the constant term
 *  ("shift") of the objective function. */
 
-double glp_get_obj_coef(glp_prob *lp, int j)
+glp_double glp_get_obj_coef(glp_prob *lp, int j)
 {     if (!(0 <= j && j <= lp->n))
          xerror("glp_get_obj_coef: j = %d; column number out of range\n"
             , j);
@@ -394,14 +394,14 @@ double glp_get_obj_coef(glp_prob *lp, int j)
 *
 *  SYNOPSIS
 *
-*  double glp_get_obj_shift(glp_prob *lp);
+*  glp_double glp_get_obj_shift(glp_prob *lp);
 *
 *  RETURNS
 *
 *  The routine glp_get_obj_shift returns the objective shift
 *  of the specified problem object. */
 
-double glp_get_obj_shift(glp_prob *lp)
+glp_double glp_get_obj_shift(glp_prob *lp)
 {
       return lp->c0;
 }
@@ -414,7 +414,7 @@ double glp_get_obj_shift(glp_prob *lp)
 *
 *  SYNOPSIS
 *
-*  double glp_get_obj_coef(glp_prob *lp, int objno, int j);
+*  glp_double glp_get_obj_coef(glp_prob *lp, int objno, int j);
 *
 *  RETURNS
 *
@@ -424,7 +424,7 @@ double glp_get_obj_shift(glp_prob *lp)
 *  If the parameter j is zero, the routine returns the constant term
 *  ("shift") of the objective function. */
 
-double glp_get_multiobj_coef(glp_prob *lp, int objno, int j)
+glp_double glp_get_multiobj_coef(glp_prob *lp, int objno, int j)
 {     int idx;
       if (!(0 <= j && j <= lp->n))
          xerror("glp_get_multiobj_coef: j = %d; column number out of range\n"
@@ -468,7 +468,7 @@ int glp_get_num_nz(glp_prob *lp)
 *
 *  SYNOPSIS
 *
-*  int glp_get_mat_row(glp_prob *lp, int i, int ind[], double val[]);
+*  int glp_get_mat_row(glp_prob *lp, int i, int ind[], glp_double val[]);
 *
 *  DESCRIPTION
 *
@@ -486,7 +486,7 @@ int glp_get_num_nz(glp_prob *lp)
 *  The routine glp_get_mat_row returns the length len, i.e. the number
 *  of (non-zero) elements in i-th row. */
 
-int glp_get_mat_row(glp_prob *lp, int i, int ind[], double val[])
+int glp_get_mat_row(glp_prob *lp, int i, int ind[], glp_double val[])
 {     GLPAIJ *aij;
       int len;
       if (!(1 <= i && i <= lp->m))
@@ -509,7 +509,7 @@ int glp_get_mat_row(glp_prob *lp, int i, int ind[], double val[])
 *
 *  SYNOPSIS
 *
-*  int glp_get_mat_col(glp_prob *lp, int j, int ind[], double val[]);
+*  int glp_get_mat_col(glp_prob *lp, int j, int ind[], glp_double val[]);
 *
 *  DESCRIPTION
 *
@@ -527,7 +527,7 @@ int glp_get_mat_row(glp_prob *lp, int i, int ind[], double val[])
 *  The routine glp_get_mat_col returns the length len, i.e. the number
 *  of (non-zero) elements in j-th column. */
 
-int glp_get_mat_col(glp_prob *lp, int j, int ind[], double val[])
+int glp_get_mat_col(glp_prob *lp, int j, int ind[], glp_double val[])
 {     GLPAIJ *aij;
       int len;
       if (!(1 <= j && j <= lp->n))

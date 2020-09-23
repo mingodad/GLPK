@@ -33,11 +33,11 @@
 *  On exit the routine returns the number of non-zeros in matrix V. */
 
 int luf_store_v_cols(LUF *luf, int (*col)(void *info, int j, int ind[],
-      double val[]), void *info, int ind[], double val[])
+      glp_double val[]), void *info, int ind[], glp_double val[])
 {     int n = luf->n;
       SVA *sva = luf->sva;
       int *sv_ind = sva->ind;
-      double *sv_val = sva->val;
+      glp_double *sv_val = sva->val;
       int vc_ref = luf->vc_ref;
       int *vc_ptr = &sva->ptr[vc_ref-1];
       int *vc_len = &sva->len[vc_ref-1];
@@ -60,7 +60,7 @@ int luf_store_v_cols(LUF *luf, int (*col)(void *info, int j, int ind[],
          /* store j-th column */
          ptr = vc_ptr[j];
          memcpy(&sv_ind[ptr], &ind[1], len * sizeof(int));
-         memcpy(&sv_val[ptr], &val[1], len * sizeof(double));
+         memcpy(&sv_val[ptr], &val[1], len * sizeof(glp_double));
          vc_len[j] = len;
          nnz += len;
       }
@@ -82,7 +82,7 @@ void luf_check_all(LUF *luf, int k)
 {     int n = luf->n;
       SVA *sva = luf->sva;
       int *sv_ind = sva->ind;
-      double *sv_val = sva->val;
+      glp_double *sv_val = sva->val;
       int fr_ref = luf->fr_ref;
       int *fr_len = &sva->len[fr_ref-1];
       int fc_ref = luf->fc_ref;
@@ -199,7 +199,7 @@ void luf_build_v_rows(LUF *luf, int len[/*1+n*/])
 {     int n = luf->n;
       SVA *sva = luf->sva;
       int *sv_ind = sva->ind;
-      double *sv_val = sva->val;
+      glp_double *sv_val = sva->val;
       int vr_ref = luf->vr_ref;
       int *vr_ptr = &sva->ptr[vr_ref-1];
       int *vr_len = &sva->len[vr_ref-1];
@@ -256,7 +256,7 @@ void luf_build_f_rows(LUF *luf, int len[/*1+n*/])
 {     int n = luf->n;
       SVA *sva = luf->sva;
       int *sv_ind = sva->ind;
-      double *sv_val = sva->val;
+      glp_double *sv_val = sva->val;
       int fr_ref = luf->fr_ref;
       int *fr_ptr = &sva->ptr[fr_ref-1];
       int *fr_len = &sva->len[fr_ref-1];
@@ -314,7 +314,7 @@ void luf_build_v_cols(LUF *luf, int updat, int len[/*1+n*/])
 {     int n = luf->n;
       SVA *sva = luf->sva;
       int *sv_ind = sva->ind;
-      double *sv_val = sva->val;
+      glp_double *sv_val = sva->val;
       int vr_ref = luf->vr_ref;
       int *vr_ptr = &sva->ptr[vr_ref-1];
       int *vr_len = &sva->len[vr_ref-1];
@@ -371,7 +371,7 @@ void luf_check_f_rc(LUF *luf)
 {     int n = luf->n;
       SVA *sva = luf->sva;
       int *sv_ind = sva->ind;
-      double *sv_val = sva->val;
+      glp_double *sv_val = sva->val;
       int fr_ref = luf->fr_ref;
       int *fr_ptr = &sva->ptr[fr_ref-1];
       int *fr_len = &sva->len[fr_ref-1];
@@ -420,7 +420,7 @@ void luf_check_v_rc(LUF *luf)
 {     int n = luf->n;
       SVA *sva = luf->sva;
       int *sv_ind = sva->ind;
-      double *sv_val = sva->val;
+      glp_double *sv_val = sva->val;
       int vr_ref = luf->vr_ref;
       int *vr_ptr = &sva->ptr[vr_ref-1];
       int *vr_len = &sva->len[vr_ref-1];
@@ -468,17 +468,17 @@ void luf_check_v_rc(LUF *luf)
 *  matrix F. On exit this array will contain elements of the solution
 *  vector x in the same locations. */
 
-void luf_f_solve(LUF *luf, double x[/*1+n*/])
+void luf_f_solve(LUF *luf, glp_double x[/*1+n*/])
 {     int n = luf->n;
       SVA *sva = luf->sva;
       int *sv_ind = sva->ind;
-      double *sv_val = sva->val;
+      glp_double *sv_val = sva->val;
       int fc_ref = luf->fc_ref;
       int *fc_ptr = &sva->ptr[fc_ref-1];
       int *fc_len = &sva->len[fc_ref-1];
       int *pp_inv = luf->pp_inv;
       int j, k, ptr, end;
-      double x_j;
+      glp_double x_j;
       for (k = 1; k <= n; k++)
       {  /* k-th column of L = j-th column of F */
          j = pp_inv[k];
@@ -505,17 +505,17 @@ void luf_f_solve(LUF *luf, double x[/*1+n*/])
 *  matrix F. On exit this array will contain elements of the solution
 *  vector x in the same locations. */
 
-void luf_ft_solve(LUF *luf, double x[/*1+n*/])
+void luf_ft_solve(LUF *luf, glp_double x[/*1+n*/])
 {     int n = luf->n;
       SVA *sva = luf->sva;
       int *sv_ind = sva->ind;
-      double *sv_val = sva->val;
+      glp_double *sv_val = sva->val;
       int fr_ref = luf->fr_ref;
       int *fr_ptr = &sva->ptr[fr_ref-1];
       int *fr_len = &sva->len[fr_ref-1];
       int *pp_inv = luf->pp_inv;
       int i, k, ptr, end;
-      double x_i;
+      glp_double x_i;
       for (k = n; k >= 1; k--)
       {  /* k-th column of L' = i-th row of F */
          i = pp_inv[k];
@@ -542,19 +542,19 @@ void luf_ft_solve(LUF *luf, double x[/*1+n*/])
 *  vector x in locations x[1], ..., x[n]. Note that the array b will be
 *  clobbered on exit. */
 
-void luf_v_solve(LUF *luf, double b[/*1+n*/], double x[/*1+n*/])
+void luf_v_solve(LUF *luf, glp_double b[/*1+n*/], glp_double x[/*1+n*/])
 {     int n = luf->n;
       SVA *sva = luf->sva;
       int *sv_ind = sva->ind;
-      double *sv_val = sva->val;
-      double *vr_piv = luf->vr_piv;
+      glp_double *sv_val = sva->val;
+      glp_double *vr_piv = luf->vr_piv;
       int vc_ref = luf->vc_ref;
       int *vc_ptr = &sva->ptr[vc_ref-1];
       int *vc_len = &sva->len[vc_ref-1];
       int *pp_inv = luf->pp_inv;
       int *qq_ind = luf->qq_ind;
       int i, j, k, ptr, end;
-      double x_j;
+      glp_double x_j;
       for (k = n; k >= 1; k--)
       {  /* k-th row of U = i-th row of V */
          /* k-th column of U = j-th column of V */
@@ -584,19 +584,19 @@ void luf_v_solve(LUF *luf, double b[/*1+n*/], double x[/*1+n*/])
 *  vector x in locations x[1], ..., x[n]. Note that the array b will be
 *  clobbered on exit. */
 
-void luf_vt_solve(LUF *luf, double b[/*1+n*/], double x[/*1+n*/])
+void luf_vt_solve(LUF *luf, glp_double b[/*1+n*/], glp_double x[/*1+n*/])
 {     int n = luf->n;
       SVA *sva = luf->sva;
       int *sv_ind = sva->ind;
-      double *sv_val = sva->val;
-      double *vr_piv = luf->vr_piv;
+      glp_double *sv_val = sva->val;
+      glp_double *vr_piv = luf->vr_piv;
       int vr_ref = luf->vr_ref;
       int *vr_ptr = &sva->ptr[vr_ref-1];
       int *vr_len = &sva->len[vr_ref-1];
       int *pp_inv = luf->pp_inv;
       int *qq_ind = luf->qq_ind;
       int i, j, k, ptr, end;
-      double x_i;
+      glp_double x_i;
       for (k = 1; k <= n; k++)
       {  /* k-th row of U' = j-th column of V */
          /* k-th column of U' = i-th row of V */
@@ -628,19 +628,19 @@ void luf_vt_solve(LUF *luf, double b[/*1+n*/], double x[/*1+n*/])
 *  vector y in locations y[1], ..., y[n]. Note that the array e will be
 *  clobbered on exit. */
 
-void luf_vt_solve1(LUF *luf, double e[/*1+n*/], double y[/*1+n*/])
+void luf_vt_solve1(LUF *luf, glp_double e[/*1+n*/], glp_double y[/*1+n*/])
 {     int n = luf->n;
       SVA *sva = luf->sva;
       int *sv_ind = sva->ind;
-      double *sv_val = sva->val;
-      double *vr_piv = luf->vr_piv;
+      glp_double *sv_val = sva->val;
+      glp_double *vr_piv = luf->vr_piv;
       int vr_ref = luf->vr_ref;
       int *vr_ptr = &sva->ptr[vr_ref-1];
       int *vr_len = &sva->len[vr_ref-1];
       int *pp_inv = luf->pp_inv;
       int *qq_ind = luf->qq_ind;
       int i, j, k, ptr, end;
-      double e_j, y_i;
+      glp_double e_j, y_i;
       for (k = 1; k <= n; k++)
       {  /* k-th row of U' = j-th column of V */
          /* k-th column of U' = i-th row of V */
@@ -680,14 +680,14 @@ void luf_vt_solve1(LUF *luf, double e[/*1+n*/], double y[/*1+n*/])
 *     Mathematical Computations. Prentice-Hall, Englewood Cliffs, N.J.,
 *     pp. 30-62 (subroutines DECOMP and SOLVE). */
 
-double luf_estimate_norm(LUF *luf, double w1[/*1+n*/], double
+glp_double luf_estimate_norm(LUF *luf, glp_double w1[/*1+n*/], glp_double
       w2[/*1+n*/])
 {     int n = luf->n;
-      double *e = w1;
-      double *y = w2;
-      double *z = w1;
+      glp_double *e = w1;
+      glp_double *y = w2;
+      glp_double *z = w1;
       int i;
-      double y_norm, z_norm;
+      glp_double y_norm, z_norm;
       /* y = inv(A') * e = inv(F') * inv(V') * e */
       /* compute y' = inv(V') * e to cause growth in y' */
       for (i = 1; i <= n; i++)

@@ -60,9 +60,9 @@ struct info
       char flag;
       /* if this flag is set, the cut is included into the current
          subproblem */
-      double eff;
+      glp_double eff;
       /* cut efficacy (normalized residual) */
-      double deg;
+      glp_double deg;
       /* lower bound to objective degradation */
 };
 
@@ -79,7 +79,7 @@ static int CDECL fcmp(const void *arg1, const void *arg2)
       return 0;
 }
 
-static double parallel(IOSCUT *a, IOSCUT *b, double work[]);
+static glp_double parallel(IOSCUT *a, IOSCUT *b, glp_double work[]);
 
 #ifdef NEW_LOCAL /* 02/II-2018 */
 void ios_process_cuts(glp_tree *T)
@@ -88,7 +88,7 @@ void ios_process_cuts(glp_tree *T)
       GLPAIJ *aij;
       struct info *info;
       int k, kk, max_cuts, len, ret, *ind;
-      double *val, *work, rhs;
+      glp_double *val, *work, rhs;
       /* the current subproblem must exist */
       xassert(T->curr != NULL);
       /* the pool must exist and be non-empty */
@@ -98,15 +98,15 @@ void ios_process_cuts(glp_tree *T)
       /* allocate working arrays */
       info = xcalloc(1+pool->m, sizeof(struct info));
       ind = xcalloc(1+T->n, sizeof(int));
-      val = xcalloc(1+T->n, sizeof(double));
-      work = xcalloc(1+T->n, sizeof(double));
+      val = xcalloc(1+T->n, sizeof(glp_double));
+      work = xcalloc(1+T->n, sizeof(glp_double));
       for (k = 1; k <= T->n; k++) work[k] = 0.0;
       /* build the list of cuts stored in the cut pool */
       for (k = 1; k <= pool->m; k++)
          info[k].cut = pool->row[k], info[k].flag = 0;
       /* estimate efficiency of all cuts in the cut pool */
       for (k = 1; k <= pool->m; k++)
-      {  double temp, dy, dz;
+      {  glp_double temp, dy, dz;
          cut = info[k].cut;
          /* build the vector of cut coefficients and compute its
             Euclidean norm */
@@ -116,7 +116,7 @@ void ios_process_cuts(glp_tree *T)
             len++, ind[len] = aij->col->j, val[len] = aij->val;
             temp += aij->val * aij->val;
          }
-         if (temp < DBL_EPSILON * DBL_EPSILON) temp = DBL_EPSILON;
+         if (temp < GLP_DBL_EPSILON * GLP_DBL_EPSILON) temp = GLP_DBL_EPSILON;
          /* transform the cut to express it only through non-basic
             (auxiliary and structural) variables */
          len = glp_transform_row(T->mip, len, ind, val);
@@ -219,7 +219,7 @@ void ios_process_cuts(glp_tree *T)
       IOSAIJ *aij;
       struct info *info;
       int k, kk, max_cuts, len, ret, *ind;
-      double *val, *work;
+      glp_double *val, *work;
       /* the current subproblem must exist */
       xassert(T->curr != NULL);
       /* the pool must exist and be non-empty */
@@ -229,8 +229,8 @@ void ios_process_cuts(glp_tree *T)
       /* allocate working arrays */
       info = xcalloc(1+pool->size, sizeof(struct info));
       ind = xcalloc(1+T->n, sizeof(int));
-      val = xcalloc(1+T->n, sizeof(double));
-      work = xcalloc(1+T->n, sizeof(double));
+      val = xcalloc(1+T->n, sizeof(glp_double));
+      work = xcalloc(1+T->n, sizeof(glp_double));
       for (k = 1; k <= T->n; k++) work[k] = 0.0;
       /* build the list of cuts stored in the cut pool */
       for (k = 0, cut = pool->head; cut != NULL; cut = cut->next)
@@ -238,7 +238,7 @@ void ios_process_cuts(glp_tree *T)
       xassert(k == pool->size);
       /* estimate efficiency of all cuts in the cut pool */
       for (k = 1; k <= pool->size; k++)
-      {  double temp, dy, dz;
+      {  glp_double temp, dy, dz;
          cut = info[k].cut;
          /* build the vector of cut coefficients and compute its
             Euclidean norm */
@@ -248,7 +248,7 @@ void ios_process_cuts(glp_tree *T)
             len++, ind[len] = aij->j, val[len] = aij->val;
             temp += aij->val * aij->val;
          }
-         if (temp < DBL_EPSILON * DBL_EPSILON) temp = DBL_EPSILON;
+         if (temp < GLP_DBL_EPSILON * GLP_DBL_EPSILON) temp = GLP_DBL_EPSILON;
          /* transform the cut to express it only through non-basic
             (auxiliary and structural) variables */
          len = glp_transform_row(T->mip, len, ind, val);
@@ -357,17 +357,17 @@ void ios_process_cuts(glp_tree *T)
 *  this distance as a first-order measure of the expected efficacy of
 *  the cut: the larger the distance the better the cut [1]. */
 
-static double efficacy(glp_tree *T, IOSCUT *cut)
+static glp_double efficacy(glp_tree *T, IOSCUT *cut)
 {     glp_prob *mip = T->mip;
       IOSAIJ *aij;
-      double s = 0.0, t = 0.0, temp;
+      glp_double s = 0.0, t = 0.0, temp;
       for (aij = cut->ptr; aij != NULL; aij = aij->next)
       {  xassert(1 <= aij->j && aij->j <= mip->n);
          s += aij->val * mip->col[aij->j]->prim;
          t += aij->val * aij->val;
       }
       temp = sqrt(t);
-      if (temp < DBL_EPSILON) temp = DBL_EPSILON;
+      if (temp < GLP_DBL_EPSILON) temp = GLP_DBL_EPSILON;
       if (cut->type == GLP_LO)
          temp = (s >= cut->rhs ? 0.0 : (cut->rhs - s) / temp);
       else if (cut->type == GLP_UP)
@@ -395,9 +395,9 @@ static double efficacy(glp_tree *T, IOSCUT *cut)
 *  only avoiding duplicate (parallel) cuts [1]. */
 
 #ifdef NEW_LOCAL /* 02/II-2018 */
-static double parallel(IOSCUT *a, IOSCUT *b, double work[])
+static glp_double parallel(IOSCUT *a, IOSCUT *b, glp_double work[])
 {     GLPAIJ *aij;
-      double s = 0.0, sa = 0.0, sb = 0.0, temp;
+      glp_double s = 0.0, sa = 0.0, sb = 0.0, temp;
       for (aij = a->ptr; aij != NULL; aij = aij->r_next)
       {  work[aij->col->j] = aij->val;
          sa += aij->val * aij->val;
@@ -409,13 +409,13 @@ static double parallel(IOSCUT *a, IOSCUT *b, double work[])
       for (aij = a->ptr; aij != NULL; aij = aij->r_next)
          work[aij->col->j] = 0.0;
       temp = sqrt(sa) * sqrt(sb);
-      if (temp < DBL_EPSILON * DBL_EPSILON) temp = DBL_EPSILON;
+      if (temp < GLP_DBL_EPSILON * GLP_DBL_EPSILON) temp = GLP_DBL_EPSILON;
       return s / temp;
 }
 #else
-static double parallel(IOSCUT *a, IOSCUT *b, double work[])
+static glp_double parallel(IOSCUT *a, IOSCUT *b, glp_double work[])
 {     IOSAIJ *aij;
-      double s = 0.0, sa = 0.0, sb = 0.0, temp;
+      glp_double s = 0.0, sa = 0.0, sb = 0.0, temp;
       for (aij = a->ptr; aij != NULL; aij = aij->next)
       {  work[aij->j] = aij->val;
          sa += aij->val * aij->val;
@@ -427,7 +427,7 @@ static double parallel(IOSCUT *a, IOSCUT *b, double work[])
       for (aij = a->ptr; aij != NULL; aij = aij->next)
          work[aij->j] = 0.0;
       temp = sqrt(sa) * sqrt(sb);
-      if (temp < DBL_EPSILON * DBL_EPSILON) temp = DBL_EPSILON;
+      if (temp < GLP_DBL_EPSILON * GLP_DBL_EPSILON) temp = GLP_DBL_EPSILON;
       return s / temp;
 }
 #endif

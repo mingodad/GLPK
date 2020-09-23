@@ -101,15 +101,15 @@ static void printlits(lit* begin, lit* end)
 /* Random numbers: */
 
 /* Returns a random float 0 <= x < 1. Seed must never be 0. */
-static inline double drand(double* seed) {
+static inline glp_double drand(glp_double* seed) {
     int q;
     *seed *= 1389796;
     q = (int)(*seed / 2147483647);
-    *seed -= (double)q * 2147483647;
+    *seed -= (glp_double)q * 2147483647;
     return *seed / 2147483647; }
 
 /* Returns a random integer 0 <= x < size. Seed must never be 0. */
-static inline int irand(double* seed, int size) {
+static inline int irand(glp_double* seed, int size) {
     return (int)(drand(seed) * size); }
 
 /*====================================================================*/
@@ -190,7 +190,7 @@ static inline void    vecp_remove(vecp* v, void* e)
 static inline void order_update(solver* s, int v)
 {   /* updateorder */
     int*    orderpos = s->orderpos;
-    double* activity = s->activity;
+    glp_double* activity = s->activity;
     int*    heap     = veci_begin(&s->order);
     int     i        = orderpos[v];
     int     x        = heap[i];
@@ -223,7 +223,7 @@ static inline void order_unassigned(solver* s, int v)
 static int order_select(solver* s, float random_var_freq)
 {   /* selectvar */
     int*    heap;
-    double* activity;
+    glp_double* activity;
     int*    orderpos;
 
     lbool* values = s->assigns;
@@ -252,7 +252,7 @@ static int order_select(solver* s, float random_var_freq)
         orderpos[next] = -1;
 
         if (size > 0){
-            double act   = activity[x];
+            glp_double act   = activity[x];
 
             int    i     = 0;
             int    child = 1;
@@ -287,7 +287,7 @@ static int order_select(solver* s, float random_var_freq)
 /* Activity functions: */
 
 static inline void act_var_rescale(solver* s) {
-    double* activity = s->activity;
+    glp_double* activity = s->activity;
     int i;
     for (i = 0; i < s->size; i++)
         activity[i] *= 1e-100;
@@ -295,7 +295,7 @@ static inline void act_var_rescale(solver* s) {
 }
 
 static inline void act_var_bump(solver* s, int v) {
-    double* activity = s->activity;
+    glp_double* activity = s->activity;
     if ((activity[v] += s->var_inc) > 1e100)
         act_var_rescale(s);
 
@@ -432,8 +432,8 @@ void solver_setnvars(solver* s,int n)
 
         s->wlists    = (vecp*)   realloc(s->wlists,
                                  sizeof(vecp)*s->cap*2);
-        s->activity  = (double*) realloc(s->activity,
-                                 sizeof(double)*s->cap);
+        s->activity  = (glp_double*) realloc(s->activity,
+                                 sizeof(glp_double)*s->cap);
         s->assigns   = (lbool*)  realloc(s->assigns,
                                  sizeof(lbool)*s->cap);
         s->orderpos  = (int*)    realloc(s->orderpos,
@@ -558,14 +558,14 @@ static void solver_record(solver* s, veci* cls)
     }
 }
 
-static double solver_progress(solver* s)
+static glp_double solver_progress(solver* s)
 {
     lbool*  values = s->assigns;
     int*    levels = s->levels;
     int     i;
 
-    double  progress = 0;
-    double  F        = 1.0 / s->size;
+    glp_double  progress = 0;
+    glp_double  F        = 1.0 / s->size;
     for (i = 0; i < s->size; i++)
         if (values[i] != l_Undef)
             progress += pow(F, levels[i]);
@@ -858,7 +858,7 @@ static inline int clause_cmp (const void* x, const void* y) {
 void solver_reducedb(solver* s)
 {
     int      i, j;
-    double   extra_lim = s->cla_inc / vecp_size(&s->learnts);
+    glp_double   extra_lim = s->cla_inc / vecp_size(&s->learnts);
              /* Remove any clause below this activity */
     clause** learnts = (clause**)vecp_begin(&s->learnts);
     clause** reasons = s->reasons;
@@ -892,9 +892,9 @@ static lbool solver_search(solver* s, int nof_conflicts,
                            int nof_learnts)
 {
     int*    levels          = s->levels;
-    double  var_decay       = 0.95;
-    double  clause_decay    = 0.999;
-    double  random_var_freq = 0.02;
+    glp_double  var_decay       = 0.95;
+    glp_double  clause_decay    = 0.999;
+    glp_double  random_var_freq = 0.02;
 
     int     conflictC       = 0;
     veci    learnt_clause;
@@ -1179,8 +1179,8 @@ bool   solver_simplify(solver* s)
 
 bool   solver_solve(solver* s, lit* begin, lit* end)
 {
-    double  nof_conflicts = 100;
-    double  nof_learnts   = solver_nclauses(s) / 3;
+    glp_double  nof_conflicts = 100;
+    glp_double  nof_learnts   = solver_nclauses(s) / 3;
     lbool   status        = l_Undef;
     lbool*  values        = s->assigns;
     lit*    i;
@@ -1216,18 +1216,18 @@ bool   solver_solve(solver* s, lit* begin, lit* end)
     }
 
     while (status == l_Undef){
-        double Ratio = (s->stats.learnts == 0)? 0.0 :
-            s->stats.learnts_literals / (double)s->stats.learnts;
+        glp_double Ratio = (s->stats.learnts == 0)? 0.0 :
+            s->stats.learnts_literals / (glp_double)s->stats.learnts;
 
         if (s->verbosity >= 1){
             printf("| %9.0f | %7.0f %8.0f | %7.0f %7.0f %8.0f %7.1f | %"
                    "6.3f %% |\n",
-                (double)s->stats.conflicts,
-                (double)s->stats.clauses,
-                (double)s->stats.clauses_literals,
-                (double)nof_learnts,
-                (double)s->stats.learnts,
-                (double)s->stats.learnts_literals,
+                (glp_double)s->stats.conflicts,
+                (glp_double)s->stats.clauses,
+                (glp_double)s->stats.clauses_literals,
+                (glp_double)nof_learnts,
+                (glp_double)s->stats.learnts,
+                (glp_double)s->stats.learnts_literals,
                 Ratio,
                 s->progress_estimate*100);
             fflush(stdout);
@@ -1280,7 +1280,7 @@ static inline void selectionsort(void** array, int size,
 
 static void sortrnd(void** array, int size,
                     int(*comp)(const void *, const void *),
-                    double* seed)
+                    glp_double* seed)
 {
     if (size <= 15)
         selectionsort(array, size, comp);
@@ -1308,7 +1308,7 @@ static void sortrnd(void** array, int size,
 static void sort(void** array, int size,
           int(*comp)(const void *, const void *))
 {
-    double seed = 91648253;
+    glp_double seed = 91648253;
     sortrnd(array,size,comp,&seed);
 }
 

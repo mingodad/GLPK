@@ -36,8 +36,8 @@ void spx_alloc_at(SPXLP *lp, SPXAT *at)
       int nnz = lp->nnz;
       at->ptr = talloc(1+m+1, int);
       at->ind = talloc(1+nnz, int);
-      at->val = talloc(1+nnz, double);
-      at->work = talloc(1+n, double);
+      at->val = talloc(1+nnz, glp_double);
+      at->work = talloc(1+n, glp_double);
       return;
 }
 
@@ -54,10 +54,10 @@ void spx_build_at(SPXLP *lp, SPXAT *at)
       int nnz = lp->nnz;
       int *A_ptr = lp->A_ptr;
       int *A_ind = lp->A_ind;
-      double *A_val = lp->A_val;
+      glp_double *A_val = lp->A_val;
       int *AT_ptr = at->ptr;
       int *AT_ind = at->ind;
-      double *AT_val = at->val;
+      glp_double *AT_val = at->val;
       int i, k, ptr, end, pos;
       /* calculate AT_ptr[i] = number of non-zeros in i-th row */
       memset(&AT_ptr[1], 0, m * sizeof(int));
@@ -105,14 +105,14 @@ void spx_build_at(SPXLP *lp, SPXAT *at)
 *
 *  where A'[i] is i-th row of A, 1 <= i <= m. */
 
-void spx_at_prod(SPXLP *lp, SPXAT *at, double y[/*1+n*/], double s,
-      const double x[/*1+m*/])
+void spx_at_prod(SPXLP *lp, SPXAT *at, glp_double y[/*1+n*/], glp_double s,
+      const glp_double x[/*1+m*/])
 {     int m = lp->m;
       int *AT_ptr = at->ptr;
       int *AT_ind = at->ind;
-      double *AT_val = at->val;
+      glp_double *AT_val = at->val;
       int i, ptr, end;
-      double t;
+      glp_double t;
       for (i = 1; i <= m; i++)
       {  if (x[i] != 0.0)
          {  /* y := y + s * (i-th row of A) * x[i] */
@@ -140,12 +140,12 @@ void spx_at_prod(SPXLP *lp, SPXAT *at, double y[/*1+n*/], double s,
 *  If the flag ign is non-zero, the routine ignores the input content
 *  of the array y assuming that y = 0. */
 
-void spx_nt_prod1(SPXLP *lp, SPXAT *at, double y[/*1+n-m*/], int ign,
-      double s, const double x[/*1+m*/])
+void spx_nt_prod1(SPXLP *lp, SPXAT *at, glp_double y[/*1+n-m*/], int ign,
+      glp_double s, const glp_double x[/*1+m*/])
 {     int m = lp->m;
       int n = lp->n;
       int *head = lp->head;
-      double *work = at->work;
+      glp_double *work = at->work;
       int j, k;
       for (k = 1; k <= n; k++)
          work[k] = 0.0;
@@ -204,13 +204,13 @@ void spx_nt_prod1(SPXLP *lp, SPXAT *at, double y[/*1+n-m*/], int ign,
 *  On exit components of the simplex table row are stored in the array
 *  locations trow[1], ... trow[n-m]. */
 
-void spx_eval_trow1(SPXLP *lp, SPXAT *at, const double rho[/*1+m*/],
-      double trow[/*1+n-m*/])
+void spx_eval_trow1(SPXLP *lp, SPXAT *at, const glp_double rho[/*1+m*/],
+      glp_double trow[/*1+n-m*/])
 {     int m = lp->m;
       int n = lp->n;
       int nnz = lp->nnz;
       int i, j, nnz_rho;
-      double cnt1, cnt2;
+      glp_double cnt1, cnt2;
       /* determine nnz(rho) */
       nnz_rho = 0;
       for (i = 1; i <= m; i++)
@@ -218,17 +218,17 @@ void spx_eval_trow1(SPXLP *lp, SPXAT *at, const double rho[/*1+m*/],
             nnz_rho++;
       }
       /* estimate the number of operations for both ways */
-      cnt1 = (double)(n - m) * ((double)nnz / (double)n);
-      cnt2 = (double)nnz_rho * ((double)nnz / (double)m);
+      cnt1 = (glp_double)(n - m) * ((glp_double)nnz / (glp_double)n);
+      cnt2 = (glp_double)nnz_rho * ((glp_double)nnz / (glp_double)m);
       /* compute i-th row of simplex table */
       if (cnt1 < cnt2)
       {  /* as inner products */
          int *A_ptr = lp->A_ptr;
          int *A_ind = lp->A_ind;
-         double *A_val = lp->A_val;
+         glp_double *A_val = lp->A_val;
          int *head = lp->head;
          int k, ptr, end;
-         double tij;
+         glp_double tij;
          for (j = 1; j <= n-m; j++)
          {  k = head[m+j]; /* x[k] = xN[j] */
             /* compute t[i,j] = - N'[j] * pi */

@@ -40,6 +40,8 @@ extern "C" {
 typedef struct glp_prob glp_prob;
 /* LP/MIP problem object */
 
+#include "glpk_real.h"
+
 /* optimization direction flag: */
 #define GLP_MIN            1  /* minimization */
 #define GLP_MAX            2  /* maximization */
@@ -96,15 +98,15 @@ typedef struct
 #define GLP_BF_GR       0x03  /* Schur compl. + Givens rotation */
       int lu_size;            /* (not used) */
       int nfs_max;            /* fhvint.nfs_max */
-      double piv_tol;         /* sgf_piv_tol */
+      glp_double piv_tol;         /* sgf_piv_tol */
       int piv_lim;            /* sgf_piv_lim */
       int suhl;               /* sgf_suhl */
-      double eps_tol;         /* sgf_eps_tol */
-      double max_gro;         /* (not used) */
-      double upd_tol;         /* (not used) */
+      glp_double eps_tol;         /* sgf_eps_tol */
+      glp_double max_gro;         /* (not used) */
+      glp_double upd_tol;         /* (not used) */
       int nrs_max;            /* scfint.nn_max */
       int rs_size;            /* (not used) */
-      double foo_bar[38];     /* (reserved) */
+      glp_double foo_bar[38];     /* (reserved) */
 } glp_bfcp;
 
 typedef struct
@@ -128,11 +130,11 @@ typedef struct
 #if 1 /* 16/III-2016 */
 #define GLP_RT_FLIP     0x33  /* long-step (flip-flop) ratio test */
 #endif
-      double tol_bnd;         /* primal feasibility tolerance */
-      double tol_dj;          /* dual feasibility tolerance */
-      double tol_piv;         /* pivot tolerance */
-      double obj_ll;          /* lower objective limit */
-      double obj_ul;          /* upper objective limit */
+      glp_double tol_bnd;         /* primal feasibility tolerance */
+      glp_double tol_dj;          /* dual feasibility tolerance */
+      glp_double tol_piv;         /* pivot tolerance */
+      glp_double obj_ll;          /* lower objective limit */
+      glp_double obj_ul;          /* upper objective limit */
       int it_lim;             /* simplex iteration limit */
       int tm_lim;             /* time limit, ms */
       int out_frq;            /* display output frequency, ms */
@@ -146,9 +148,9 @@ typedef struct
 #define GLP_USE_NT         2  /* use N matrix in row-wise format */
 #ifdef CSL_MULTI_OBJECTIVE
      int mobj;               /* flag enable/disable multiobjective */
-     double foo_bar[33];     /* reserved */
+     glp_double foo_bar[33];     /* reserved */
 #else
-     double foo_bar[33];     /* (reserved) */
+     glp_double foo_bar[33];     /* (reserved) */
 #endif
 #endif
 } glp_smcp;
@@ -161,7 +163,7 @@ typedef struct
 #define GLP_ORD_QMD        1  /* quotient minimum degree (QMD) */
 #define GLP_ORD_AMD        2  /* approx. minimum degree (AMD) */
 #define GLP_ORD_SYMAMD     3  /* approx. minimum degree (SYMAMD) */
-      double foo_bar[48];     /* (reserved) */
+      glp_double foo_bar[48];     /* (reserved) */
 } glp_iptcp;
 
 typedef struct glp_tree glp_tree;
@@ -182,8 +184,8 @@ typedef struct
 #define GLP_BT_BLB         3  /* best local bound */
 #define GLP_BT_BPH         4  /* best projection heuristic */
       int tm_lim;             /* mip.tm_lim (milliseconds) */
-      double tol_int;         /* mip.tol_int */
-      double tol_obj;         /* mip.tol_obj */
+      glp_double tol_int;         /* mip.tol_int */
+      glp_double tol_obj;         /* mip.tol_obj */
       int out_frq;            /* mip.out_frq (milliseconds) */
       int out_dly;            /* mip.out_dly (milliseconds) */
       void (*cb_func)(glp_tree *T, void *info);
@@ -194,7 +196,7 @@ typedef struct
 #define GLP_PP_NONE        0  /* disable preprocessing */
 #define GLP_PP_ROOT        1  /* preprocessing only on root level */
 #define GLP_PP_ALL         2  /* preprocessing on all levels */
-      double mip_gap;         /* relative MIP gap tolerance */
+      glp_double mip_gap;         /* relative MIP gap tolerance */
       int mir_cuts;           /* MIR cuts       (GLP_ON/GLP_OFF) */
       int gmi_cuts;           /* Gomory's cuts  (GLP_ON/GLP_OFF) */
       int cov_cuts;           /* cover cuts     (GLP_ON/GLP_OFF) */
@@ -213,7 +215,7 @@ typedef struct
 #if 1 /* 16/III-2016; not documented--should not be used */
       int flip;               /* use long-step dual simplex */
 #endif
-      double foo_bar[23];     /* (reserved) */
+      glp_double foo_bar[23];     /* (reserved) */
 } glp_iocp;
 
 typedef struct
@@ -231,7 +233,7 @@ typedef struct
 #define GLP_RF_MIR         2  /* mixed integer rounding cut */
 #define GLP_RF_COV         3  /* mixed cover cut */
 #define GLP_RF_CLQ         4  /* clique cut */
-      double foo_bar[7];
+      glp_double foo_bar[7];
       /* (reserved) */
 } glp_attr;
 
@@ -291,15 +293,15 @@ typedef struct
       /* character code to replace blanks in symbolic names */
       char *obj_name;
       /* objective row name */
-      double tol_mps;
+      glp_double tol_mps;
       /* zero tolerance for MPS data */
-      double foo_bar[17];
+      glp_double foo_bar[17];
       /* (reserved for use in the future) */
 } glp_mpscp;
 
 typedef struct
 {     /* CPLEX LP format control parameters */
-      double foo_bar[20];
+      glp_double foo_bar[20];
       /* (reserved for use in the future) */
 } glp_cpxcp;
 
@@ -346,32 +348,32 @@ void glp_set_row_name(glp_prob *P, int i, const char *name);
 void glp_set_col_name(glp_prob *P, int j, const char *name);
 /* assign (change) column name */
 
-void glp_set_row_bnds(glp_prob *P, int i, int type, double lb,
-      double ub);
+void glp_set_row_bnds(glp_prob *P, int i, int type, glp_double lb,
+      glp_double ub);
 /* set (change) row bounds */
 
-void glp_set_col_bnds(glp_prob *P, int j, int type, double lb,
-      double ub);
+void glp_set_col_bnds(glp_prob *P, int j, int type, glp_double lb,
+      glp_double ub);
 /* set (change) column bounds */
 
-void glp_set_obj_coef(glp_prob *P, int j, double coef);
+void glp_set_obj_coef(glp_prob *P, int j, glp_double coef);
 /* set (change) obj. coefficient or constant term */
 
 #ifdef CSL_MULTI_OBJECTIVE
-void glp_set_multiobj_coef(glp_prob *P, int objno, int j, double coef);
+void glp_set_multiobj_coef(glp_prob *P, int objno, int j, glp_double coef);
 /* set (change) additional object coefficient or constant term */
 #endif
 
 void glp_set_mat_row(glp_prob *P, int i, int len, const int ind[],
-      const double val[]);
+      const glp_double val[]);
 /* set (replace) row of the constraint matrix */
 
 void glp_set_mat_col(glp_prob *P, int j, int len, const int ind[],
-      const double val[]);
+      const glp_double val[]);
 /* set (replace) column of the constraint matrix */
 
 void glp_load_matrix(glp_prob *P, int ne, const int ia[],
-      const int ja[], const double ar[]);
+      const int ja[], const glp_double ar[]);
 /* load (replace) the whole constraint matrix */
 
 int glp_check_dup(int m, int n, int ne, const int ia[], const int ja[]);
@@ -419,39 +421,39 @@ const char *glp_get_col_name(glp_prob *P, int j);
 int glp_get_row_type(glp_prob *P, int i);
 /* retrieve row type */
 
-double glp_get_row_lb(glp_prob *P, int i);
+glp_double glp_get_row_lb(glp_prob *P, int i);
 /* retrieve row lower bound */
 
-double glp_get_row_ub(glp_prob *P, int i);
+glp_double glp_get_row_ub(glp_prob *P, int i);
 /* retrieve row upper bound */
 
 int glp_get_col_type(glp_prob *P, int j);
 /* retrieve column type */
 
-double glp_get_col_lb(glp_prob *P, int j);
+glp_double glp_get_col_lb(glp_prob *P, int j);
 /* retrieve column lower bound */
 
-double glp_get_col_ub(glp_prob *P, int j);
+glp_double glp_get_col_ub(glp_prob *P, int j);
 /* retrieve column upper bound */
 
-double glp_get_obj_coef(glp_prob *P, int j);
+glp_double glp_get_obj_coef(glp_prob *P, int j);
 /* retrieve obj. coefficient or constant term */
 
-double glp_get_obj_shift(glp_prob *P);
+glp_double glp_get_obj_shift(glp_prob *P);
 /* retrieve obj. shift constant term */
 
 #ifdef CSL_MULTI_OBJECTIVE
-double glp_get_multiobj_coef(glp_prob *P, int objno, int j);
+glp_double glp_get_multiobj_coef(glp_prob *P, int objno, int j);
 /* retrieve extra obj coefficient of constant term */
 #endif
 
 int glp_get_num_nz(glp_prob *P);
 /* retrieve number of constraint coefficients */
 
-int glp_get_mat_row(glp_prob *P, int i, int ind[], double val[]);
+int glp_get_mat_row(glp_prob *P, int i, int ind[], glp_double val[]);
 /* retrieve row of the constraint matrix */
 
-int glp_get_mat_col(glp_prob *P, int j, int ind[], double val[]);
+int glp_get_mat_col(glp_prob *P, int j, int ind[], glp_double val[]);
 /* retrieve column of the constraint matrix */
 
 void glp_create_index(glp_prob *P);
@@ -466,16 +468,16 @@ int glp_find_col(glp_prob *P, const char *name);
 void glp_delete_index(glp_prob *P);
 /* delete the name index */
 
-void glp_set_rii(glp_prob *P, int i, double rii);
+void glp_set_rii(glp_prob *P, int i, glp_double rii);
 /* set (change) row scale factor */
 
-void glp_set_sjj(glp_prob *P, int j, double sjj);
+void glp_set_sjj(glp_prob *P, int j, glp_double sjj);
 /* set (change) column scale factor */
 
-double glp_get_rii(glp_prob *P, int i);
+glp_double glp_get_rii(glp_prob *P, int i);
 /* retrieve row scale factor */
 
-double glp_get_sjj(glp_prob *P, int j);
+glp_double glp_get_sjj(glp_prob *P, int j);
 /* retrieve column scale factor */
 
 void glp_scale_prob(glp_prob *P, int flags);
@@ -517,25 +519,25 @@ int glp_get_prim_stat(glp_prob *P);
 int glp_get_dual_stat(glp_prob *P);
 /* retrieve status of dual basic solution */
 
-double glp_get_obj_val(glp_prob *P);
+glp_double glp_get_obj_val(glp_prob *P);
 /* retrieve objective value (basic solution) */
 
 int glp_get_row_stat(glp_prob *P, int i);
 /* retrieve row status */
 
-double glp_get_row_prim(glp_prob *P, int i);
+glp_double glp_get_row_prim(glp_prob *P, int i);
 /* retrieve row primal value (basic solution) */
 
-double glp_get_row_dual(glp_prob *P, int i);
+glp_double glp_get_row_dual(glp_prob *P, int i);
 /* retrieve row dual value (basic solution) */
 
 int glp_get_col_stat(glp_prob *P, int j);
 /* retrieve column status */
 
-double glp_get_col_prim(glp_prob *P, int j);
+glp_double glp_get_col_prim(glp_prob *P, int j);
 /* retrieve column primal value (basic solution) */
 
-double glp_get_col_dual(glp_prob *P, int j);
+glp_double glp_get_col_dual(glp_prob *P, int j);
 /* retrieve column dual value (basic solution) */
 
 int glp_get_unbnd_ray(glp_prob *P);
@@ -560,19 +562,19 @@ void glp_init_iptcp(glp_iptcp *parm);
 int glp_ipt_status(glp_prob *P);
 /* retrieve status of interior-point solution */
 
-double glp_ipt_obj_val(glp_prob *P);
+glp_double glp_ipt_obj_val(glp_prob *P);
 /* retrieve objective value (interior point) */
 
-double glp_ipt_row_prim(glp_prob *P, int i);
+glp_double glp_ipt_row_prim(glp_prob *P, int i);
 /* retrieve row primal value (interior point) */
 
-double glp_ipt_row_dual(glp_prob *P, int i);
+glp_double glp_ipt_row_dual(glp_prob *P, int i);
 /* retrieve row dual value (interior point) */
 
-double glp_ipt_col_prim(glp_prob *P, int j);
+glp_double glp_ipt_col_prim(glp_prob *P, int j);
 /* retrieve column primal value (interior point) */
 
-double glp_ipt_col_dual(glp_prob *P, int j);
+glp_double glp_ipt_col_dual(glp_prob *P, int j);
 /* retrieve column dual value (interior point) */
 
 void glp_set_col_kind(glp_prob *P, int j, int kind);
@@ -596,17 +598,17 @@ void glp_init_iocp(glp_iocp *parm);
 int glp_mip_status(glp_prob *P);
 /* retrieve status of MIP solution */
 
-double glp_mip_obj_val(glp_prob *P);
+glp_double glp_mip_obj_val(glp_prob *P);
 /* retrieve objective value (MIP solution) */
 
-double glp_mip_row_val(glp_prob *P, int i);
+glp_double glp_mip_row_val(glp_prob *P, int i);
 /* retrieve row value (MIP solution) */
 
-double glp_mip_col_val(glp_prob *P, int j);
+glp_double glp_mip_col_val(glp_prob *P, int j);
 /* retrieve column value (MIP solution) */
 
-void glp_check_kkt(glp_prob *P, int sol, int cond, double *ae_max,
-      int *ae_ind, double *re_max, int *re_ind);
+void glp_check_kkt(glp_prob *P, int sol, int cond, glp_double *ae_max,
+      int *ae_ind, glp_double *re_max, int *re_ind);
 /* check feasibility/optimality conditions */
 
 int glp_print_sol(glp_prob *P, const char *fname);
@@ -664,41 +666,41 @@ int glp_get_row_bind(glp_prob *P, int i);
 int glp_get_col_bind(glp_prob *P, int j);
 /* retrieve column index in the basis header */
 
-void glp_ftran(glp_prob *P, double x[]);
+void glp_ftran(glp_prob *P, glp_double x[]);
 /* perform forward transformation (solve system B*x = b) */
 
-void glp_btran(glp_prob *P, double x[]);
+void glp_btran(glp_prob *P, glp_double x[]);
 /* perform backward transformation (solve system B'*x = b) */
 
 int glp_warm_up(glp_prob *P);
 /* "warm up" LP basis */
 
-int glp_eval_tab_row(glp_prob *P, int k, int ind[], double val[]);
+int glp_eval_tab_row(glp_prob *P, int k, int ind[], glp_double val[]);
 /* compute row of the simplex tableau */
 
-int glp_eval_tab_col(glp_prob *P, int k, int ind[], double val[]);
+int glp_eval_tab_col(glp_prob *P, int k, int ind[], glp_double val[]);
 /* compute column of the simplex tableau */
 
-int glp_transform_row(glp_prob *P, int len, int ind[], double val[]);
+int glp_transform_row(glp_prob *P, int len, int ind[], glp_double val[]);
 /* transform explicitly specified row */
 
-int glp_transform_col(glp_prob *P, int len, int ind[], double val[]);
+int glp_transform_col(glp_prob *P, int len, int ind[], glp_double val[]);
 /* transform explicitly specified column */
 
 int glp_prim_rtest(glp_prob *P, int len, const int ind[],
-      const double val[], int dir, double eps);
+      const glp_double val[], int dir, glp_double eps);
 /* perform primal ratio test */
 
 int glp_dual_rtest(glp_prob *P, int len, const int ind[],
-      const double val[], int dir, double eps);
+      const glp_double val[], int dir, glp_double eps);
 /* perform dual ratio test */
 
-void glp_analyze_bound(glp_prob *P, int k, double *value1, int *var1,
-      double *value2, int *var2);
+void glp_analyze_bound(glp_prob *P, int k, glp_double *value1, int *var1,
+      glp_double *value2, int *var2);
 /* analyze active bound of non-basic variable */
 
-void glp_analyze_coef(glp_prob *P, int k, double *coef1, int *var1,
-      double *value1, double *coef2, int *var2, double *value2);
+void glp_analyze_coef(glp_prob *P, int k, glp_double *coef1, int *var1,
+      glp_double *value1, glp_double *coef2, int *var2, glp_double *value2);
 /* analyze objective coefficient at basic variable */
 
 #if 1 /* 10/XII-2017 */
@@ -750,13 +752,13 @@ int glp_ios_up_node(glp_tree *T, int p);
 int glp_ios_node_level(glp_tree *T, int p);
 /* determine subproblem level */
 
-double glp_ios_node_bound(glp_tree *T, int p);
+glp_double glp_ios_node_bound(glp_tree *T, int p);
 /* determine subproblem local bound */
 
 int glp_ios_best_node(glp_tree *T);
 /* find active subproblem with best local bound */
 
-double glp_ios_mip_gap(glp_tree *T);
+glp_double glp_ios_mip_gap(glp_tree *T);
 /* compute relative MIP gap */
 
 void *glp_ios_node_data(glp_tree *T, int p);
@@ -770,7 +772,7 @@ int glp_ios_pool_size(glp_tree *T);
 
 int glp_ios_add_row(glp_tree *T,
       const char *name, int klass, int flags, int len, const int ind[],
-      const double val[], int type, double rhs);
+      const glp_double val[], int type, glp_double rhs);
 /* add row (constraint) to the cut pool */
 
 void glp_ios_del_row(glp_tree *T, int i);
@@ -788,14 +790,14 @@ void glp_ios_branch_upon(glp_tree *T, int j, int sel);
 void glp_ios_select_node(glp_tree *T, int p);
 /* select subproblem to continue the search */
 
-int glp_ios_heur_sol(glp_tree *T, const double x[]);
+int glp_ios_heur_sol(glp_tree *T, const glp_double x[]);
 /* provide solution found by heuristic */
 
 void glp_ios_terminate(glp_tree *T);
 /* terminate the solution process */
 
 #ifdef GLP_UNDOC
-int glp_gmi_cut(glp_prob *P, int j, int ind[], double val[], double
+int glp_gmi_cut(glp_prob *P, int j, int ind[], glp_double val[], glp_double
       phi[]);
 /* generate Gomory's mixed integer cut (core routine) */
 
@@ -835,7 +837,7 @@ glp_cfg *glp_cfg_init(glp_prob *P);
 void glp_cfg_free(glp_cfg *G);
 /* delete conflict graph descriptor */
 
-int glp_clq_cut(glp_prob *P, glp_cfg *G, int ind[], double val[]);
+int glp_clq_cut(glp_prob *P, glp_cfg *G, int ind[], glp_double val[]);
 /* generate clique cut from conflict graph */
 #endif /* GLP_UNDOC */
 
@@ -1034,10 +1036,10 @@ void glp_mem_usage(int *count, int *cpeak, size_t *total,
 void glp_show_mem_usage();
 /* show memory usage information */
 
-double glp_time(void);
+glp_double glp_time(void);
 /* determine current universal time */
 
-double glp_difftime(double t1, double t0);
+glp_double glp_difftime(glp_double t1, glp_double t0);
 /* compute difference between two time values */
 
 typedef struct glp_graph glp_graph;
@@ -1156,11 +1158,11 @@ void glp_mincost_lp(glp_prob *P, glp_graph *G, int names, int v_rhs,
 /* convert minimum cost flow problem to LP */
 
 int glp_mincost_okalg(glp_graph *G, int v_rhs, int a_low, int a_cap,
-      int a_cost, double *sol, int a_x, int v_pi);
+      int a_cost, glp_double *sol, int a_x, int v_pi);
 /* find minimum-cost flow with out-of-kilter algorithm */
 
 int glp_mincost_relax4(glp_graph *G, int v_rhs, int a_low, int a_cap,
-      int a_cost, int crash, double *sol, int a_x, int a_rc);
+      int a_cost, int crash, glp_double *sol, int a_x, int a_rc);
 /* find minimum-cost flow with Bertsekas-Tseng relaxation method */
 
 void glp_maxflow_lp(glp_prob *P, glp_graph *G, int names, int s,
@@ -1168,7 +1170,7 @@ void glp_maxflow_lp(glp_prob *P, glp_graph *G, int names, int s,
 /* convert maximum flow problem to LP */
 
 int glp_maxflow_ffalg(glp_graph *G, int s, int t, int a_cap,
-      double *sol, int a_x, int v_cut);
+      glp_double *sol, int a_x, int v_cut);
 /* find maximal flow with Ford-Fulkerson algorithm */
 
 int glp_check_asnprob(glp_graph *G, int v_set);
@@ -1184,13 +1186,13 @@ int glp_asnprob_lp(glp_prob *P, int form, glp_graph *G, int names,
 /* convert assignment problem to LP */
 
 int glp_asnprob_okalg(int form, glp_graph *G, int v_set, int a_cost,
-      double *sol, int a_x);
+      glp_double *sol, int a_x);
 /* solve assignment problem with out-of-kilter algorithm */
 
 int glp_asnprob_hall(glp_graph *G, int v_set, int a_x);
 /* find bipartite matching of maximum cardinality */
 
-double glp_cpp(glp_graph *G, int v_t, int v_es, int v_ls);
+glp_double glp_cpp(glp_graph *G, int v_t, int v_es, int v_ls);
 /* solve critical path problem */
 
 int glp_read_mincost(glp_graph *G, int v_rhs, int a_low, int a_cap,
@@ -1247,7 +1249,7 @@ int glp_strong_comp(glp_graph *G, int v_num);
 int glp_top_sort(glp_graph *G, int v_num);
 /* topological sorting of acyclic digraph */
 
-int glp_wclique_exact(glp_graph *G, int v_wgt, double *sol, int v_set);
+int glp_wclique_exact(glp_graph *G, int v_wgt, glp_double *sol, int v_set);
 /* find maximum weight clique with exact algorithm */
 
 #ifdef __cplusplus

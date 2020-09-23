@@ -56,9 +56,9 @@ int glp_read_ccdata(glp_graph *G, int v_wgt, const char *fname)
 {     DMX _csa, *csa = &_csa;
       glp_vertex *v;
       int i, j, k, nv, ne, ret = 0;
-      double w;
+      glp_double w;
       char *flag = NULL;
-      if (v_wgt >= 0 && v_wgt > G->v_size - (int)sizeof(double))
+      if (v_wgt >= 0 && v_wgt > G->v_size - (int)sizeof(glp_double))
          xerror("glp_read_ccdata: v_wgt = %d; invalid offset\n",
             v_wgt);
       glp_erase_graph(G, G->v_size, G->a_size);
@@ -102,7 +102,7 @@ int glp_read_ccdata(glp_graph *G, int v_wgt, const char *fname)
       {  w = 1.0;
          for (i = 1; i <= nv; i++)
          {  v = G->v[i];
-            memcpy((char *)v->data + v_wgt, &w, sizeof(double));
+            memcpy((char *)v->data + v_wgt, &w, sizeof(glp_double));
          }
       }
       for (;;)
@@ -121,7 +121,7 @@ int glp_read_ccdata(glp_graph *G, int v_wgt, const char *fname)
          check_int(csa, w);
          if (v_wgt >= 0)
          {  v = G->v[i];
-            memcpy((char *)v->data + v_wgt, &w, sizeof(double));
+            memcpy((char *)v->data + v_wgt, &w, sizeof(glp_double));
          }
          flag[i] = 1;
          end_of_line(csa);

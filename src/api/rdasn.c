@@ -59,12 +59,12 @@ int glp_read_asnprob(glp_graph *G, int v_set, int a_cost, const char
       glp_vertex *v;
       glp_arc *a;
       int nv, na, n1, i, j, k, ret = 0;
-      double cost;
+      glp_double cost;
       char *flag = NULL;
       if (v_set >= 0 && v_set > G->v_size - (int)sizeof(int))
          xerror("glp_read_asnprob: v_set = %d; invalid offset\n",
             v_set);
-      if (a_cost >= 0 && a_cost > G->a_size - (int)sizeof(double))
+      if (a_cost >= 0 && a_cost > G->a_size - (int)sizeof(glp_double))
          xerror("glp_read_asnprob: a_cost = %d; invalid offset\n",
             a_cost);
       glp_erase_graph(G, G->v_size, G->a_size);
@@ -151,7 +151,7 @@ int glp_read_asnprob(glp_graph *G, int v_set, int a_cost, const char
          check_int(csa, cost);
          a = glp_add_arc(G, i, j);
          if (a_cost >= 0)
-            memcpy((char *)a->data + a_cost, &cost, sizeof(double));
+            memcpy((char *)a->data + a_cost, &cost, sizeof(glp_double));
          end_of_line(csa);
       }
       xprintf("%d lines were read\n", csa->count);

@@ -32,7 +32,7 @@ int glp_print_sol(glp_prob *P, const char *fname)
       GLPROW *row;
       GLPCOL *col;
       int i, j, t, ae_ind, re_ind, ret;
-      double ae_max, re_max;
+      glp_double ae_max, re_max;
       xprintf("Writing basic solution to '%s'...\n", fname);
       fp = glp_open(fname, "w");
       if (fp == NULL)

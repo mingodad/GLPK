@@ -39,12 +39,12 @@ LUFINT *lufint_create(void)
       fi->sgf_piv_tol = 0.10;
       fi->sgf_piv_lim = 4;
       fi->sgf_suhl = 1;
-      fi->sgf_eps_tol = DBL_EPSILON;
+      fi->sgf_eps_tol = GLP_DBL_EPSILON;
       return fi;
 }
 
 int lufint_factorize(LUFINT *fi, int n, int (*col)(void *info, int j,
-      int ind[], double val[]), void *info)
+      int ind[], glp_double val[]), void *info)
 {     /* compute LU-factorization of specified matrix A */
       SVA *sva;
       LUF *luf;
@@ -85,7 +85,7 @@ int lufint_factorize(LUFINT *fi, int n, int (*col)(void *info, int j,
             tfree(luf->qq_ind);
             tfree(luf->qq_inv);
          }
-         luf->vr_piv = talloc(1+n_max, double);
+         luf->vr_piv = talloc(1+n_max, glp_double);
          luf->pp_ind = talloc(1+n_max, int);
          luf->pp_inv = talloc(1+n_max, int);
          luf->qq_ind = talloc(1+n_max, int);
@@ -114,9 +114,9 @@ int lufint_factorize(LUFINT *fi, int n, int (*col)(void *info, int j,
          sgf->cs_head = talloc(1+n_max, int);
          sgf->cs_prev = talloc(1+n_max, int);
          sgf->cs_next = talloc(1+n_max, int);
-         sgf->vr_max = talloc(1+n_max, double);
+         sgf->vr_max = talloc(1+n_max, glp_double);
          sgf->flag = talloc(1+n_max, char);
-         sgf->work = talloc(1+n_max, double);
+         sgf->work = talloc(1+n_max, glp_double);
       }
       luf = fi->luf;
       sgf = fi->sgf;

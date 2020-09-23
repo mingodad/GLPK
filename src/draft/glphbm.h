@@ -25,6 +25,8 @@
 #ifndef GLPHBM_H
 #define GLPHBM_H
 
+#include "glpk_real.h"
+
 typedef struct HBM HBM;
 
 struct HBM
@@ -104,13 +106,13 @@ struct HBM
       /* right-hand side pointers */
       int *rhsind;
       /* right-hand side indices */
-      double *values;
+      glp_double *values;
       /* matrix values */
-      double *rhsval;
+      glp_double *rhsval;
       /* right-hand side values */
-      double *sguess;
+      glp_double *sguess;
       /* starting guess values */
-      double *xexact;
+      glp_double *xexact;
       /* solution vector values */
 };
 

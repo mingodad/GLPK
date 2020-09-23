@@ -51,8 +51,8 @@ void spx_store_basis(SPXLP *lp, glp_prob *P, const int map[],
 
 #define spx_store_sol _glp_spx_store_sol
 void spx_store_sol(SPXLP *lp, glp_prob *P, int shift,
-      const int map[], const int daeh[], const double beta[],
-      const double pi[], const double d[]);
+      const int map[], const int daeh[], const glp_double beta[],
+      const glp_double pi[], const glp_double d[]);
 /* convert working LP solution to original LP solution */
 
 #define spx_free_lp _glp_spx_free_lp

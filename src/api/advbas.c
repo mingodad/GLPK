@@ -47,7 +47,7 @@
 *  The routine glp_adv_basis should be called after the constraint
 *  matrix has been scaled (if scaling is used). */
 
-static int mat(void *info, int k, int ind[], double val[])
+static int mat(void *info, int k, int ind[], glp_double val[])
 {     glp_prob *P = info;
       int m = P->m;
       int n = P->n;

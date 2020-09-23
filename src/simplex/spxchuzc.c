@@ -52,17 +52,17 @@
 *  number of such variables 0 <= num <= n-m. (If the parameter list is
 *  specified as NULL, no indices are stored.) */
 
-int spx_chuzc_sel(SPXLP *lp, const double d[/*1+n-m*/], double tol,
-      double tol1, int list[/*1+n-m*/])
+int spx_chuzc_sel(SPXLP *lp, const glp_double d[/*1+n-m*/], glp_double tol,
+      glp_double tol1, int list[/*1+n-m*/])
 {     int m = lp->m;
       int n = lp->n;
-      double *c = lp->c;
-      double *l = lp->l;
-      double *u = lp->u;
+      glp_double *c = lp->c;
+      glp_double *l = lp->l;
+      glp_double *u = lp->u;
       int *head = lp->head;
       char *flag = lp->flag;
       int j, k, num;
-      double ck, eps;
+      glp_double ck, eps;
       num = 0;
       /* walk thru list of non-basic variables */
       for (j = 1; j <= n-m; j++)
@@ -125,12 +125,12 @@ int spx_chuzc_sel(SPXLP *lp, const double d[/*1+n-m*/], double tol,
 *  On exit the routine returns q, the index of the non-basic variable
 *  xN[q] chosen. */
 
-int spx_chuzc_std(SPXLP *lp, const double d[/*1+n-m*/], int num,
+int spx_chuzc_std(SPXLP *lp, const glp_double d[/*1+n-m*/], int num,
       const int list[])
 {     int m = lp->m;
       int n = lp->n;
       int j, q, t;
-      double abs_dj, abs_dq;
+      glp_double abs_dj, abs_dq;
       xassert(0 < num && num <= n-m);
       q = 0, abs_dq = -1.0;
       for (t = 1; t <= num; t++)
@@ -154,8 +154,8 @@ void spx_alloc_se(SPXLP *lp, SPXSE *se)
       int n = lp->n;
       se->valid = 0;
       se->refsp = talloc(1+n, char);
-      se->gamma = talloc(1+n-m, double);
-      se->work = talloc(1+m, double);
+      se->gamma = talloc(1+n-m, glp_double);
+      se->work = talloc(1+m, glp_double);
       return;
 }
 
@@ -171,7 +171,7 @@ void spx_reset_refsp(SPXLP *lp, SPXSE *se)
       int n = lp->n;
       int *head = lp->head;
       char *refsp = se->refsp;
-      double *gamma = se->gamma;
+      glp_double *gamma = se->gamma;
       int j, k;
       se->valid = 1;
       memset(&refsp[1], 0, n * sizeof(char));
@@ -205,14 +205,14 @@ void spx_reset_refsp(SPXLP *lp, SPXSE *se)
 *
 *  NOTE: For testing/debugging only. */
 
-double spx_eval_gamma_j(SPXLP *lp, SPXSE *se, int j)
+glp_double spx_eval_gamma_j(SPXLP *lp, SPXSE *se, int j)
 {     int m = lp->m;
       int n = lp->n;
       int *head = lp->head;
       char *refsp = se->refsp;
-      double *tcol = se->work;
+      glp_double *tcol = se->work;
       int i, k;
-      double gamma_j;
+      glp_double gamma_j;
       xassert(se->valid);
       xassert(1 <= j && j <= n-m);
       k = head[m+j]; /* x[k] = xN[j] */
@@ -250,20 +250,20 @@ double spx_eval_gamma_j(SPXLP *lp, SPXSE *se, int j)
 *  On exit the routine returns q, the index of the non-basic variable
 *  xN[q] chosen. */
 
-int spx_chuzc_pse(SPXLP *lp, SPXSE *se, const double d[/*1+n-m*/],
+int spx_chuzc_pse(SPXLP *lp, SPXSE *se, const glp_double d[/*1+n-m*/],
       int num, const int list[])
 {     int m = lp->m;
       int n = lp->n;
-      double *gamma = se->gamma;
+      glp_double *gamma = se->gamma;
       int j, q, t;
-      double best, temp;
+      glp_double best, temp;
       xassert(se->valid);
       xassert(0 < num && num <= n-m);
       q = 0, best = -1.0;
       for (t = 1; t <= num; t++)
       {  j = list[t];
          /* FIXME */
-         if (gamma[j] < DBL_EPSILON)
+         if (gamma[j] < GLP_DBL_EPSILON)
             temp = 0.0;
          else
             temp = (d[j] * d[j]) / gamma[j];
@@ -307,16 +307,16 @@ int spx_chuzc_pse(SPXLP *lp, SPXSE *se, const double d[/*1+n-m*/],
 *  program may reset the reference space, since other weights also may
 *  be inaccurate.) */
 
-double spx_update_gamma(SPXLP *lp, SPXSE *se, int p, int q,
-      const double trow[/*1+n-m*/], const double tcol[/*1+m*/])
+glp_double spx_update_gamma(SPXLP *lp, SPXSE *se, int p, int q,
+      const glp_double trow[/*1+n-m*/], const glp_double tcol[/*1+m*/])
 {     int m = lp->m;
       int n = lp->n;
       int *head = lp->head;
       char *refsp = se->refsp;
-      double *gamma = se->gamma;
-      double *u = se->work;
+      glp_double *gamma = se->gamma;
+      glp_double *u = se->work;
       int i, j, k, ptr, end;
-      double gamma_q, delta_q, e, r, s, t1, t2;
+      glp_double gamma_q, delta_q, e, r, s, t1, t2;
       xassert(se->valid);
       xassert(1 <= p && p <= m);
       xassert(1 <= q && q <= n-m);

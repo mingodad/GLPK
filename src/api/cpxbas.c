@@ -28,7 +28,7 @@ struct var
 {     /* structural variable */
       int j;
       /* ordinal number */
-      double q;
+      glp_double q;
       /* penalty value */
 };
 
@@ -40,12 +40,12 @@ static int CDECL fcmp(const void *ptr1, const void *ptr2)
       return 0;
 }
 
-static int get_column(glp_prob *lp, int j, int ind[], double val[])
+static int get_column(glp_prob *lp, int j, int ind[], glp_double val[])
 {     /* Bixby's algorithm assumes that the constraint matrix is scaled
          such that the maximum absolute value in every non-zero row and
          column is 1 */
       int k, len;
-      double big;
+      glp_double big;
       len = glp_get_mat_col(lp, j, ind, val);
       big = 0.0;
       for (k = 1; k <= len; k++)
@@ -60,7 +60,7 @@ static void cpx_basis(glp_prob *lp)
       struct var *C, *C2, *C3, *C4;
       int m, n, i, j, jk, k, l, ll, t, n2, n3, n4, type, len, *I, *r,
          *ind;
-      double alpha, gamma, cmax, temp, *v, *val;
+      glp_double alpha, gamma, cmax, temp, *v, *val;
       xprintf("Constructing initial basis...\n");
       /* determine the number of rows and columns */
       m = glp_get_num_rows(lp);
@@ -69,9 +69,9 @@ static void cpx_basis(glp_prob *lp)
       C = xcalloc(1+n, sizeof(struct var));
       I = xcalloc(1+m, sizeof(int));
       r = xcalloc(1+m, sizeof(int));
-      v = xcalloc(1+m, sizeof(double));
+      v = xcalloc(1+m, sizeof(glp_double));
       ind = xcalloc(1+m, sizeof(int));
-      val = xcalloc(1+m, sizeof(double));
+      val = xcalloc(1+m, sizeof(glp_double));
       /* make all auxiliary variables non-basic */
       for (i = 1; i <= m; i++)
       {  if (glp_get_row_type(lp, i) != GLP_DB)

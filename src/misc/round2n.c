@@ -32,7 +32,7 @@
 *  SYNOPSIS
 *
 *  #include "misc.h"
-*  double round2n(double x);
+*  glp_double round2n(glp_double x);
 *
 *  RETURNS
 *
@@ -53,9 +53,9 @@
 *  otherwise. The latter condition can be written as 2 * x <= 1.5 * 2^e
 *  or 2 * f * 2^e <= 1.5 * 2^e or, finally, f <= 0.75. */
 
-double round2n(double x)
+glp_double round2n(glp_double x)
 {     int e;
-      double f;
+      glp_double f;
       xassert(x > 0.0);
       f = frexp(x, &e);
       return ldexp(1.0, f <= 0.75 ? e-1 : e);

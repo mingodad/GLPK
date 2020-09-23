@@ -58,7 +58,7 @@
 #define f(x) ((x) - floor(x))
 /* compute fractional part of x */
 
-struct var { int j; double f; };
+struct var { int j; glp_double f; };
 
 static int CDECL fcmp(const void *p1, const void *p2)
 {     const struct var *v1 = p1, *v2 = p2;
@@ -73,7 +73,7 @@ int glp_gmi_gen(glp_prob *P, glp_prob *pool, int max_cuts)
       GLPCOL *col;
       struct var *var;
       int i, j, k, t, len, nv, nnn, *ind;
-      double frac, *val, *phi;
+      glp_double frac, *val, *phi;
       /* sanity checks */
       if (!(P->m == 0 || P->valid))
          xerror("glp_gmi_gen: basis factorization does not exist\n");
@@ -84,8 +84,8 @@ int glp_gmi_gen(glp_prob *P, glp_prob *pool, int max_cuts)
       /* allocate working arrays */
       var = xcalloc(1+n, sizeof(struct var));
       ind = xcalloc(1+n, sizeof(int));
-      val = xcalloc(1+n, sizeof(double));
-      phi = xcalloc(1+m+n, sizeof(double));
+      val = xcalloc(1+n, sizeof(glp_double));
+      phi = xcalloc(1+m+n, sizeof(glp_double));
       /* build the list of integer structural variables, which are
        * basic and have integer infeasible (fractional) primal values
        * in optimal solution to specified LP */

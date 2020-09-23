@@ -36,7 +36,7 @@
 *  matrix R0. On exit the array x will contain elements of the solution
 *  vector in the same locations. */
 
-void scf_r0_solve(SCF *scf, int tr, double x[/*1+n0*/])
+void scf_r0_solve(SCF *scf, int tr, glp_double x[/*1+n0*/])
 {     switch (scf->type)
       {  case 1:
             /* A0 = F0 * V0, so R0 = F0 */
@@ -70,8 +70,8 @@ void scf_r0_solve(SCF *scf, int tr, double x[/*1+n0*/])
 *  w1, w2, and w3. (In case of type = 1 arrays w2 and w3 are not used
 *  and can be specified as NULL.) */
 
-void scf_s0_solve(SCF *scf, int tr, double x[/*1+n0*/],
-      double w1[/*1+n0*/], double w2[/*1+n0*/], double w3[/*1+n0*/])
+void scf_s0_solve(SCF *scf, int tr, glp_double x[/*1+n0*/],
+      glp_double w1[/*1+n0*/], glp_double w2[/*1+n0*/], glp_double w3[/*1+n0*/])
 {     int n0 = scf->n0;
       switch (scf->type)
       {  case 1:
@@ -91,7 +91,7 @@ void scf_s0_solve(SCF *scf, int tr, double x[/*1+n0*/],
          default:
             xassert(scf != scf);
       }
-      memcpy(&x[1], &w1[1], n0 * sizeof(double));
+      memcpy(&x[1], &w1[1], n0 * sizeof(glp_double));
       return;
 }
 
@@ -108,17 +108,17 @@ void scf_s0_solve(SCF *scf, int tr, double x[/*1+n0*/],
 *
 *  for i = 1, 2, ..., nn. */
 
-void scf_r_prod(SCF *scf, double y[/*1+nn*/], double a, const double
+void scf_r_prod(SCF *scf, glp_double y[/*1+nn*/], glp_double a, const glp_double
       x[/*1+n0*/])
 {     int nn = scf->nn;
       SVA *sva = scf->sva;
       int *sv_ind = sva->ind;
-      double *sv_val = sva->val;
+      glp_double *sv_val = sva->val;
       int rr_ref = scf->rr_ref;
       int *rr_ptr = &sva->ptr[rr_ref-1];
       int *rr_len = &sva->len[rr_ref-1];
       int i, ptr, end;
-      double t;
+      glp_double t;
       for (i = 1; i <= nn; i++)
       {  /* t := (i-th row of R) * x */
          t = 0.0;
@@ -144,17 +144,17 @@ void scf_r_prod(SCF *scf, double y[/*1+nn*/], double a, const double
 *
 *  where R'[i] is i-th row of R. */
 
-void scf_rt_prod(SCF *scf, double y[/*1+n0*/], double a, const double
+void scf_rt_prod(SCF *scf, glp_double y[/*1+n0*/], glp_double a, const glp_double
       x[/*1+nn*/])
 {     int nn = scf->nn;
       SVA *sva = scf->sva;
       int *sv_ind = sva->ind;
-      double *sv_val = sva->val;
+      glp_double *sv_val = sva->val;
       int rr_ref = scf->rr_ref;
       int *rr_ptr = &sva->ptr[rr_ref-1];
       int *rr_len = &sva->len[rr_ref-1];
       int i, ptr, end;
-      double t;
+      glp_double t;
       for (i = 1; i <= nn; i++)
       {  if (x[i] == 0.0)
             continue;
@@ -179,17 +179,17 @@ void scf_rt_prod(SCF *scf, double y[/*1+n0*/], double a, const double
 *
 *  where S[j] is j-th column of S. */
 
-void scf_s_prod(SCF *scf, double y[/*1+n0*/], double a, const double
+void scf_s_prod(SCF *scf, glp_double y[/*1+n0*/], glp_double a, const glp_double
       x[/*1+nn*/])
 {     int nn = scf->nn;
       SVA *sva = scf->sva;
       int *sv_ind = sva->ind;
-      double *sv_val = sva->val;
+      glp_double *sv_val = sva->val;
       int ss_ref = scf->ss_ref;
       int *ss_ptr = &sva->ptr[ss_ref-1];
       int *ss_len = &sva->len[ss_ref-1];
       int j, ptr, end;
-      double t;
+      glp_double t;
       for (j = 1; j <= nn; j++)
       {  if (x[j] == 0.0)
             continue;
@@ -215,17 +215,17 @@ void scf_s_prod(SCF *scf, double y[/*1+n0*/], double a, const double
 *
 *  for j = 1, 2, ..., nn. */
 
-void scf_st_prod(SCF *scf, double y[/*1+nn*/], double a, const double
+void scf_st_prod(SCF *scf, glp_double y[/*1+nn*/], glp_double a, const glp_double
       x[/*1+n0*/])
 {     int nn = scf->nn;
       SVA *sva = scf->sva;
       int *sv_ind = sva->ind;
-      double *sv_val = sva->val;
+      glp_double *sv_val = sva->val;
       int ss_ref = scf->ss_ref;
       int *ss_ptr = &sva->ptr[ss_ref-1];
       int *ss_len = &sva->len[ss_ref-1];
       int j, ptr, end;
-      double t;
+      glp_double t;
       for (j = 1; j <= nn; j++)
       {  /* t := (j-th column of S) * x */
          t = 0.0;
@@ -250,9 +250,9 @@ void scf_st_prod(SCF *scf, double y[/*1+nn*/], double a, const double
 *
 *  For details see the program documentation. */
 
-void scf_a_solve(SCF *scf, double x[/*1+n*/],
-      double w[/*1+n0+nn*/], double work1[/*1+max(n0,nn)*/],
-      double work2[/*1+n*/], double work3[/*1+n*/])
+void scf_a_solve(SCF *scf, glp_double x[/*1+n*/],
+      glp_double w[/*1+n0+nn*/], glp_double work1[/*1+max(n0,nn)*/],
+      glp_double work2[/*1+n*/], glp_double work3[/*1+n*/])
 {     int n = scf->n;
       int n0 = scf->n0;
       int nn = scf->nn;
@@ -295,9 +295,9 @@ void scf_a_solve(SCF *scf, double x[/*1+n*/],
 *
 *  For details see the program documentation. */
 
-void scf_at_solve(SCF *scf, double x[/*1+n*/],
-      double w[/*1+n0+nn*/], double work1[/*1+max(n0,nn)*/],
-      double work2[/*1+n*/], double work3[/*1+n*/])
+void scf_at_solve(SCF *scf, glp_double x[/*1+n*/],
+      glp_double w[/*1+n0+nn*/], glp_double work1[/*1+max(n0,nn)*/],
+      glp_double work2[/*1+n*/], glp_double work3[/*1+n*/])
 {     int n = scf->n;
       int n0 = scf->n0;
       int nn = scf->nn;
@@ -336,12 +336,12 @@ void scf_at_solve(SCF *scf, double x[/*1+n*/],
 *  This routine adds new (nn+1)-th row to matrix R, whose elements are
 *  specified in locations w[1,...,n0]. */
 
-void scf_add_r_row(SCF *scf, const double w[/*1+n0*/])
+void scf_add_r_row(SCF *scf, const glp_double w[/*1+n0*/])
 {     int n0 = scf->n0;
       int nn = scf->nn;
       SVA *sva = scf->sva;
       int *sv_ind = sva->ind;
-      double *sv_val = sva->val;
+      glp_double *sv_val = sva->val;
       int rr_ref = scf->rr_ref;
       int *rr_ptr = &sva->ptr[rr_ref-1];
       int *rr_len = &sva->len[rr_ref-1];
@@ -385,12 +385,12 @@ void scf_add_r_row(SCF *scf, const double w[/*1+n0*/])
 *  This routine adds new (nn+1)-th column to matrix S, whose elements
 *  are specified in locations v[1,...,n0]. */
 
-void scf_add_s_col(SCF *scf, const double v[/*1+n0*/])
+void scf_add_s_col(SCF *scf, const glp_double v[/*1+n0*/])
 {     int n0 = scf->n0;
       int nn = scf->nn;
       SVA *sva = scf->sva;
       int *sv_ind = sva->ind;
-      double *sv_val = sva->val;
+      glp_double *sv_val = sva->val;
       int ss_ref = scf->ss_ref;
       int *ss_ptr = &sva->ptr[ss_ref-1];
       int *ss_len = &sva->len[ss_ref-1];
@@ -469,12 +469,12 @@ void scf_add_s_col(SCF *scf, const double v[/*1+n0*/])
 *
 *  For details see the program documentation. */
 
-int scf_update_aug(SCF *scf, double b[/*1+n0*/], double d[/*1+n0*/],
-      double f[/*1+nn*/], double g[/*1+nn*/], double h, int upd,
-      double w1[/*1+n0*/], double w2[/*1+n0*/], double w3[/*1+n0*/])
+int scf_update_aug(SCF *scf, glp_double b[/*1+n0*/], glp_double d[/*1+n0*/],
+      glp_double f[/*1+nn*/], glp_double g[/*1+nn*/], glp_double h, int upd,
+      glp_double w1[/*1+n0*/], glp_double w2[/*1+n0*/], glp_double w3[/*1+n0*/])
 {     int n0 = scf->n0;
       int k, ret;
-      double *v, *w, *x, *y, z;
+      glp_double *v, *w, *x, *y, z;
       if (scf->nn == scf->nn_max)
       {  /* updating limit has been reached */
          return 1;

@@ -324,27 +324,27 @@ struct SSX
       int it_cnt;
       /* simplex iterations count; this count is increased by one each
          time when one simplex iteration has been performed */
-      double tm_lim;
+      glp_double tm_lim;
       /* searching time limit, in seconds; if this value is positive,
          it is decreased each time when one simplex iteration has been
          performed by the amount of time spent for the iteration, and
          reaching zero value signals the solver to stop the search;
          negative value means no time limit */
-      double out_frq;
+      glp_double out_frq;
       /* output frequency, in seconds; this parameter specifies how
          frequently the solver sends information about the progress of
          the search to the standard output */
 #if 0 /* 10/VI-2013 */
       glp_long tm_beg;
 #else
-      double tm_beg;
+      glp_double tm_beg;
 #endif
       /* starting time of the search, in seconds; the total time of the
          search is the difference between xtime() and tm_beg */
 #if 0 /* 10/VI-2013 */
       glp_long tm_lag;
 #else
-      double tm_lag;
+      glp_double tm_lag;
 #endif
       /* the most recent time, in seconds, at which the progress of the
          the search was displayed */

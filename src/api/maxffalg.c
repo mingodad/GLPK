@@ -26,13 +26,13 @@
 #include "glpk.h"
 
 int glp_maxflow_ffalg(glp_graph *G, int s, int t, int a_cap,
-      double *sol, int a_x, int v_cut)
+      glp_double *sol, int a_x, int v_cut)
 {     /* find maximal flow with Ford-Fulkerson algorithm */
       glp_vertex *v;
       glp_arc *a;
       int nv, na, i, k, flag, *tail, *head, *cap, *x, ret;
       char *cut;
-      double temp;
+      glp_double temp;
       if (!(1 <= s && s <= G->nv))
          xerror("glp_maxflow_ffalg: s = %d; source node number out of r"
             "ange\n", s);
@@ -42,7 +42,7 @@ int glp_maxflow_ffalg(glp_graph *G, int s, int t, int a_cap,
       if (s == t)
          xerror("glp_maxflow_ffalg: s = t = %d; source and sink nodes m"
             "ust be distinct\n", s);
-      if (a_cap >= 0 && a_cap > G->a_size - (int)sizeof(double))
+      if (a_cap >= 0 && a_cap > G->a_size - (int)sizeof(glp_double))
          xerror("glp_maxflow_ffalg: a_cap = %d; invalid offset\n",
             a_cap);
       if (v_cut >= 0 && v_cut > G->v_size - (int)sizeof(int))
@@ -72,10 +72,10 @@ int glp_maxflow_ffalg(glp_graph *G, int s, int t, int a_cap,
                goto done;
             }
             if (a_cap >= 0)
-               memcpy(&temp, (char *)a->data + a_cap, sizeof(double));
+               memcpy(&temp, (char *)a->data + a_cap, sizeof(glp_double));
             else
                temp = 1.0;
-            if (!(0.0 <= temp && temp <= (double)INT_MAX &&
+            if (!(0.0 <= temp && temp <= (glp_double)INT_MAX &&
                   temp == floor(temp)))
             {  ret = GLP_EDATA;
                goto done;
@@ -93,9 +93,9 @@ int glp_maxflow_ffalg(glp_graph *G, int s, int t, int a_cap,
       {  temp = 0.0;
          for (k = 1; k <= na; k++)
          {  if (tail[k] == s)
-               temp += (double)x[k];
+               temp += (glp_double)x[k];
             else if (head[k] == s)
-               temp -= (double)x[k];
+               temp -= (glp_double)x[k];
          }
          *sol = temp;
       }
@@ -105,8 +105,8 @@ int glp_maxflow_ffalg(glp_graph *G, int s, int t, int a_cap,
          for (i = 1; i <= G->nv; i++)
          {  v = G->v[i];
             for (a = v->out; a != NULL; a = a->t_next)
-            {  temp = (double)x[++k];
-               memcpy((char *)a->data + a_x, &temp, sizeof(double));
+            {  temp = (glp_double)x[++k];
+               memcpy((char *)a->data + a_x, &temp, sizeof(glp_double));
             }
          }
       }

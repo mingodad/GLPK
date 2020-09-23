@@ -604,8 +604,8 @@ void glp_set_col_name(glp_prob *lp, int j, const char *name)
 *
 *  SYNOPSIS
 *
-*  void glp_set_row_bnds(glp_prob *lp, int i, int type, double lb,
-*     double ub);
+*  void glp_set_row_bnds(glp_prob *lp, int i, int type, glp_double lb,
+*     glp_double ub);
 *
 *  DESCRIPTION
 *
@@ -631,8 +631,8 @@ void glp_set_col_name(glp_prob *lp, int j, const char *name)
 *  of fixed type), only the parameter lb is used while the parameter ub
 *  is ignored. */
 
-void glp_set_row_bnds(glp_prob *lp, int i, int type, double lb,
-      double ub)
+void glp_set_row_bnds(glp_prob *lp, int i, int type, glp_double lb,
+      glp_double ub)
 {     GLPROW *row;
       if (!(1 <= i && i <= lp->m))
          xerror("glp_set_row_bnds: i = %d; row number out of range\n",
@@ -676,8 +676,8 @@ void glp_set_row_bnds(glp_prob *lp, int i, int type, double lb,
 *
 *  SYNOPSIS
 *
-*  void glp_set_col_bnds(glp_prob *lp, int j, int type, double lb,
-*     double ub);
+*  void glp_set_col_bnds(glp_prob *lp, int j, int type, glp_double lb,
+*     glp_double ub);
 *
 *  DESCRIPTION
 *
@@ -702,8 +702,8 @@ void glp_set_row_bnds(glp_prob *lp, int i, int type, double lb,
 *  is of fixed type, only the parameter lb is used while the parameter
 *  ub is ignored. */
 
-void glp_set_col_bnds(glp_prob *lp, int j, int type, double lb,
-      double ub)
+void glp_set_col_bnds(glp_prob *lp, int j, int type, glp_double lb,
+      glp_double ub)
 {     GLPCOL *col;
       if (!(1 <= j && j <= lp->n))
          xerror("glp_set_col_bnds: j = %d; column number out of range\n"
@@ -747,7 +747,7 @@ void glp_set_col_bnds(glp_prob *lp, int j, int type, double lb,
 *
 *  SYNOPSIS
 *
-*  void glp_set_obj_coef(glp_prob *lp, int j, double coef);
+*  void glp_set_obj_coef(glp_prob *lp, int j, glp_double coef);
 *
 *  DESCRIPTION
 *
@@ -757,7 +757,7 @@ void glp_set_col_bnds(glp_prob *lp, int j, int type, double lb,
 *  If the parameter j is 0, the routine sets (changes) the constant term
 *  ("shift") of the objective function. */
 
-void glp_set_obj_coef(glp_prob *lp, int j, double coef)
+void glp_set_obj_coef(glp_prob *lp, int j, glp_double coef)
 {     glp_tree *tree = lp->tree;
       if (tree != NULL && tree->reason != 0)
          xerror("glp_set_obj_coef: operation not allowed\n");
@@ -779,7 +779,7 @@ void glp_set_obj_coef(glp_prob *lp, int j, double coef)
 *
 *  SYNOPSIS
 *
-*  void glp_set_multiobj_coef(glp_prob *lp, int objn, int j, double coef);
+*  void glp_set_multiobj_coef(glp_prob *lp, int objn, int j, glp_double coef);
 *
 *  DESCRIPTION
 *
@@ -817,11 +817,11 @@ static void mk_multiobj_space(glp_prob *lp, int idx)
       {  lp->cobj_max += 200;
          if (lp->cobj_max == 200)
          {  lp->cobj_idx = talloc(lp->cobj_max, int);
-            lp->cobj_val = talloc(lp->cobj_max, double);
+            lp->cobj_val = talloc(lp->cobj_max, glp_double);
          }
          else
          {  lp->cobj_idx = trealloc(lp->cobj_idx, lp->cobj_max, int);
-            lp->cobj_val = trealloc(lp->cobj_val, lp->cobj_max, double);
+            lp->cobj_val = trealloc(lp->cobj_val, lp->cobj_max, glp_double);
          }
       }
       /* shift idx .. cend to the right  by one */
@@ -836,7 +836,7 @@ static void mk_multiobj_space(glp_prob *lp, int idx)
       }
 }
 
-void glp_set_multiobj_coef(glp_prob *lp, int objn, int j, double coef)
+void glp_set_multiobj_coef(glp_prob *lp, int objn, int j, glp_double coef)
 {     glp_tree *tree = lp->tree;
       int idx;
       if (tree != NULL && tree->reason != 0)
@@ -889,7 +889,7 @@ void glp_set_multiobj_coef(glp_prob *lp, int objn, int j, double coef)
 *  SYNOPSIS
 *
 *  void glp_set_mat_row(glp_prob *lp, int i, int len, const int ind[],
-*     const double val[]);
+*     const glp_double val[]);
 *
 *  DESCRIPTION
 *
@@ -907,7 +907,7 @@ void glp_set_multiobj_coef(glp_prob *lp, int objn, int j, double coef)
 *  specified as NULL. */
 
 void glp_set_mat_row(glp_prob *lp, int i, int len, const int ind[],
-      const double val[])
+      const glp_double val[])
 {     glp_tree *tree = lp->tree;
       GLPROW *row;
       GLPCOL *col;
@@ -1015,7 +1015,7 @@ void glp_set_mat_row(glp_prob *lp, int i, int len, const int ind[],
 *  SYNOPSIS
 *
 *  void glp_set_mat_col(glp_prob *lp, int j, int len, const int ind[],
-*     const double val[]);
+*     const glp_double val[]);
 *
 *  DESCRIPTION
 *
@@ -1033,7 +1033,7 @@ void glp_set_mat_row(glp_prob *lp, int i, int len, const int ind[],
 *  specified as NULL. */
 
 void glp_set_mat_col(glp_prob *lp, int j, int len, const int ind[],
-      const double val[])
+      const glp_double val[])
 {     glp_tree *tree = lp->tree;
       GLPROW *row;
       GLPCOL *col;
@@ -1135,7 +1135,7 @@ void glp_set_mat_col(glp_prob *lp, int j, int len, const int ind[],
 *  SYNOPSIS
 *
 *  void glp_load_matrix(glp_prob *lp, int ne, const int ia[],
-*     const int ja[], const double ar[]);
+*     const int ja[], const glp_double ar[]);
 *
 *  DESCRIPTION
 *
@@ -1156,7 +1156,7 @@ void glp_set_mat_col(glp_prob *lp, int j, int len, const int ind[],
 *  specified as NULL. */
 
 void glp_load_matrix(glp_prob *lp, int ne, const int ia[],
-      const int ja[], const double ar[])
+      const int ja[], const glp_double ar[])
 {     glp_tree *tree = lp->tree;
       GLPROW *row;
       GLPCOL *col;
@@ -1622,7 +1622,7 @@ void glp_copy_prob(glp_prob *dest, glp_prob *prob, int names)
 {     glp_tree *tree = dest->tree;
       glp_bfcp bfcp;
       int i, j, len, *ind;
-      double *val;
+      glp_double *val;
       if (tree != NULL && tree->reason != 0)
          xerror("glp_copy_prob: operation not allowed\n");
       if (dest == prob)
@@ -1653,9 +1653,9 @@ void glp_copy_prob(glp_prob *dest, glp_prob *prob, int names)
          dest->cobj_max = prob->cobj_max;
          dest->cobj_end = prob->cobj_end;
          dest->cobj_idx = talloc(prob->cobj_max,int);
-         dest->cobj_val = talloc(prob->cobj_max,double);
+         dest->cobj_val = talloc(prob->cobj_max,glp_double);
          memcpy(dest->cobj_idx,prob->cobj_idx,prob->cobj_end*sizeof(int));
-         memcpy(dest->cobj_val,prob->cobj_val,prob->cobj_end*sizeof(double));
+         memcpy(dest->cobj_val,prob->cobj_val,prob->cobj_end*sizeof(glp_double));
       }
       else
       {  dest->cobj_end = 0;
@@ -1685,7 +1685,7 @@ void glp_copy_prob(glp_prob *dest, glp_prob *prob, int names)
          to->mipx = from->mipx;
       }
       ind = xcalloc(1+prob->m, sizeof(int));
-      val = xcalloc(1+prob->m, sizeof(double));
+      val = xcalloc(1+prob->m, sizeof(glp_double));
       for (j = 1; j <= prob->n; j++)
       {  GLPCOL *to = dest->col[j];
          GLPCOL *from = prob->col[j];

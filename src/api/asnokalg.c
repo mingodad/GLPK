@@ -26,12 +26,12 @@
 #include "okalg.h"
 
 int glp_asnprob_okalg(int form, glp_graph *G, int v_set, int a_cost,
-      double *sol, int a_x)
+      glp_double *sol, int a_x)
 {     /* solve assignment problem with out-of-kilter algorithm */
       glp_vertex *v;
       glp_arc *a;
       int nv, na, i, k, *tail, *head, *low, *cap, *cost, *x, *pi, ret;
-      double temp;
+      glp_double temp;
       if (!(form == GLP_ASN_MIN || form == GLP_ASN_MAX ||
             form == GLP_ASN_MMP))
          xerror("glp_asnprob_okalg: form = %d; invalid parameter\n",
@@ -39,7 +39,7 @@ int glp_asnprob_okalg(int form, glp_graph *G, int v_set, int a_cost,
       if (v_set >= 0 && v_set > G->v_size - (int)sizeof(int))
          xerror("glp_asnprob_okalg: v_set = %d; invalid offset\n",
             v_set);
-      if (a_cost >= 0 && a_cost > G->a_size - (int)sizeof(double))
+      if (a_cost >= 0 && a_cost > G->a_size - (int)sizeof(glp_double))
          xerror("glp_asnprob_okalg: a_cost = %d; invalid offset\n",
             a_cost);
       if (a_x >= 0 && a_x > G->a_size - (int)sizeof(int))
@@ -70,10 +70,10 @@ int glp_asnprob_okalg(int form, glp_graph *G, int v_set, int a_cost,
             low[k] = 0;
             cap[k] = 1;
             if (a_cost >= 0)
-               memcpy(&temp, (char *)a->data + a_cost, sizeof(double));
+               memcpy(&temp, (char *)a->data + a_cost, sizeof(glp_double));
             else
                temp = 1.0;
-            if (!(fabs(temp) <= (double)INT_MAX && temp == floor(temp)))
+            if (!(fabs(temp) <= (glp_double)INT_MAX && temp == floor(temp)))
             {  ret = GLP_EDATA;
                goto done;
             }
@@ -123,7 +123,7 @@ int glp_asnprob_okalg(int form, glp_graph *G, int v_set, int a_cost,
       if (sol != NULL)
       {  temp = 0.0;
          for (k = 1; k <= na; k++)
-            temp += (double)cost[k] * (double)x[k];
+            temp += (glp_double)cost[k] * (glp_double)x[k];
          if (form != GLP_ASN_MIN) temp = - temp;
          *sol = temp;
       }

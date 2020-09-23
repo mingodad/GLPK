@@ -115,7 +115,7 @@ static void trivial_lp(glp_prob *P, const glp_smcp *parm)
       GLPROW *row;
       GLPCOL *col;
       int i, j;
-      double p_infeas, d_infeas, zeta;
+      glp_double p_infeas, d_infeas, zeta;
       P->valid = 0;
       P->pbs_stat = P->dbs_stat = GLP_FEAS;
       P->obj_val = P->c0;
@@ -640,16 +640,16 @@ int glp_get_dual_stat(glp_prob *lp)
 *
 *  SYNOPSIS
 *
-*  double glp_get_obj_val(glp_prob *lp);
+*  glp_double glp_get_obj_val(glp_prob *lp);
 *
 *  RETURNS
 *
 *  The routine glp_get_obj_val returns value of the objective function
 *  for basic solution. */
 
-double glp_get_obj_val(glp_prob *lp)
+glp_double glp_get_obj_val(glp_prob *lp)
 {     /*struct LPXCPS *cps = lp->cps;*/
-      double z;
+      glp_double z;
       z = lp->obj_val;
       /*if (cps->round && fabs(z) < 1e-9) z = 0.0;*/
       return z;
@@ -689,16 +689,16 @@ int glp_get_row_stat(glp_prob *lp, int i)
 *
 *  SYNOPSIS
 *
-*  double glp_get_row_prim(glp_prob *lp, int i);
+*  glp_double glp_get_row_prim(glp_prob *lp, int i);
 *
 *  RETURNS
 *
 *  The routine glp_get_row_prim returns primal value of the auxiliary
 *  variable associated with i-th row. */
 
-double glp_get_row_prim(glp_prob *lp, int i)
+glp_double glp_get_row_prim(glp_prob *lp, int i)
 {     /*struct LPXCPS *cps = lp->cps;*/
-      double prim;
+      glp_double prim;
       if (!(1 <= i && i <= lp->m))
          xerror("glp_get_row_prim: i = %d; row number out of range\n",
             i);
@@ -714,16 +714,16 @@ double glp_get_row_prim(glp_prob *lp, int i)
 *
 *  SYNOPSIS
 *
-*  double glp_get_row_dual(glp_prob *lp, int i);
+*  glp_double glp_get_row_dual(glp_prob *lp, int i);
 *
 *  RETURNS
 *
 *  The routine glp_get_row_dual returns dual value (i.e. reduced cost)
 *  of the auxiliary variable associated with i-th row. */
 
-double glp_get_row_dual(glp_prob *lp, int i)
+glp_double glp_get_row_dual(glp_prob *lp, int i)
 {     /*struct LPXCPS *cps = lp->cps;*/
-      double dual;
+      glp_double dual;
       if (!(1 <= i && i <= lp->m))
          xerror("glp_get_row_dual: i = %d; row number out of range\n",
             i);
@@ -766,16 +766,16 @@ int glp_get_col_stat(glp_prob *lp, int j)
 *
 *  SYNOPSIS
 *
-*  double glp_get_col_prim(glp_prob *lp, int j);
+*  glp_double glp_get_col_prim(glp_prob *lp, int j);
 *
 *  RETURNS
 *
 *  The routine glp_get_col_prim returns primal value of the structural
 *  variable associated with j-th column. */
 
-double glp_get_col_prim(glp_prob *lp, int j)
+glp_double glp_get_col_prim(glp_prob *lp, int j)
 {     /*struct LPXCPS *cps = lp->cps;*/
-      double prim;
+      glp_double prim;
       if (!(1 <= j && j <= lp->n))
          xerror("glp_get_col_prim: j = %d; column number out of range\n"
             , j);
@@ -791,16 +791,16 @@ double glp_get_col_prim(glp_prob *lp, int j)
 *
 *  SYNOPSIS
 *
-*  double glp_get_col_dual(glp_prob *lp, int j);
+*  glp_double glp_get_col_dual(glp_prob *lp, int j);
 *
 *  RETURNS
 *
 *  The routine glp_get_col_dual returns dual value (i.e. reduced cost)
 *  of the structural variable associated with j-th column. */
 
-double glp_get_col_dual(glp_prob *lp, int j)
+glp_double glp_get_col_dual(glp_prob *lp, int j)
 {     /*struct LPXCPS *cps = lp->cps;*/
-      double dual;
+      glp_double dual;
       if (!(1 <= j && j <= lp->n))
          xerror("glp_get_col_dual: j = %d; column number out of range\n"
             , j);

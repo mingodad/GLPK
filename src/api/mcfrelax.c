@@ -33,30 +33,30 @@ static int overflow(int u, int v)
 }
 
 int glp_mincost_relax4(glp_graph *G, int v_rhs, int a_low, int a_cap,
-      int a_cost, int crash, double *sol, int a_x, int a_rc)
+      int a_cost, int crash, glp_double *sol, int a_x, int a_rc)
 {     /* find minimum-cost flow with Bertsekas-Tseng relaxation method
          (RELAX-IV) */
       glp_vertex *v;
       glp_arc *a;
       struct relax4_csa csa;
       int i, k, large, n, na, ret;
-      double cap, cost, low, rc, rhs, sum, x;
-      if (v_rhs >= 0 && v_rhs > G->v_size - (int)sizeof(double))
+      glp_double cap, cost, low, rc, rhs, sum, x;
+      if (v_rhs >= 0 && v_rhs > G->v_size - (int)sizeof(glp_double))
          xerror("glp_mincost_relax4: v_rhs = %d; invalid offset\n",
             v_rhs);
-      if (a_low >= 0 && a_low > G->a_size - (int)sizeof(double))
+      if (a_low >= 0 && a_low > G->a_size - (int)sizeof(glp_double))
          xerror("glp_mincost_relax4: a_low = %d; invalid offset\n",
             a_low);
-      if (a_cap >= 0 && a_cap > G->a_size - (int)sizeof(double))
+      if (a_cap >= 0 && a_cap > G->a_size - (int)sizeof(glp_double))
          xerror("glp_mincost_relax4: a_cap = %d; invalid offset\n",
             a_cap);
-      if (a_cost >= 0 && a_cost > G->a_size - (int)sizeof(double))
+      if (a_cost >= 0 && a_cost > G->a_size - (int)sizeof(glp_double))
          xerror("glp_mincost_relax4: a_cost = %d; invalid offset\n",
             a_cost);
-      if (a_x >= 0 && a_x > G->a_size - (int)sizeof(double))
+      if (a_x >= 0 && a_x > G->a_size - (int)sizeof(glp_double))
          xerror("glp_mincost_relax4: a_x = %d; invalid offset\n",
             a_x);
-      if (a_rc >= 0 && a_rc > G->a_size - (int)sizeof(double))
+      if (a_rc >= 0 && a_rc > G->a_size - (int)sizeof(glp_double))
          xerror("glp_mincost_relax4: a_rc = %d; invalid offset\n",
             a_rc);
       csa.n = n = G->nv; /* number of nodes */
@@ -100,10 +100,10 @@ int glp_mincost_relax4(glp_graph *G, int v_rhs, int a_low, int a_cap,
       {  v = G->v[i];
          /* get supply at i-th node */
          if (v_rhs >= 0)
-            memcpy(&rhs, (char *)v->data + v_rhs, sizeof(double));
+            memcpy(&rhs, (char *)v->data + v_rhs, sizeof(glp_double));
          else
             rhs = 0.0;
-         if (!(fabs(rhs) <= (double)large && rhs == floor(rhs)))
+         if (!(fabs(rhs) <= (glp_double)large && rhs == floor(rhs)))
          {  ret = GLP_EDATA;
             goto done;
          }
@@ -126,30 +126,30 @@ int glp_mincost_relax4(glp_graph *G, int v_rhs, int a_low, int a_cap,
             csa.endn[k] = a->head->i;
             /* set per-unit cost for k-th arc flow */
             if (a_cost >= 0)
-               memcpy(&cost, (char *)a->data + a_cost, sizeof(double));
+               memcpy(&cost, (char *)a->data + a_cost, sizeof(glp_double));
             else
                cost = 0.0;
-            if (!(fabs(cost) <= (double)large && cost == floor(cost)))
+            if (!(fabs(cost) <= (glp_double)large && cost == floor(cost)))
             {  ret = GLP_EDATA;
                goto done;
             }
             csa.rc[k] = (int)cost;
             /* get lower bound for k-th arc flow */
             if (a_low >= 0)
-               memcpy(&low, (char *)a->data + a_low, sizeof(double));
+               memcpy(&low, (char *)a->data + a_low, sizeof(glp_double));
             else
                low = 0.0;
-            if (!(0.0 <= low && low <= (double)large &&
+            if (!(0.0 <= low && low <= (glp_double)large &&
                   low == floor(low)))
             {  ret = GLP_EDATA;
                goto done;
             }
             /* get upper bound for k-th arc flow */
             if (a_cap >= 0)
-               memcpy(&cap, (char *)a->data + a_cap, sizeof(double));
+               memcpy(&cap, (char *)a->data + a_cap, sizeof(glp_double));
             else
                cap = 1.0;
-            if (!(low <= cap && cap <= (double)large &&
+            if (!(low <= cap && cap <= (glp_double)large &&
                   cap == floor(cap)))
             {  ret = GLP_EDATA;
                goto done;
@@ -196,20 +196,20 @@ int glp_mincost_relax4(glp_graph *G, int v_rhs, int a_low, int a_cap,
          {  k++;
             /* get lower bound for k-th arc flow */
             if (a_low >= 0)
-               memcpy(&low, (char *)a->data + a_low, sizeof(double));
+               memcpy(&low, (char *)a->data + a_low, sizeof(glp_double));
             else
                low = 0.0;
             /* store original flow x = x' + low thru k-th arc */
-            x = (double)csa.x[k] + low;
+            x = (glp_double)csa.x[k] + low;
             if (a_x >= 0)
-               memcpy((char *)a->data + a_x, &x, sizeof(double));
+               memcpy((char *)a->data + a_x, &x, sizeof(glp_double));
             /* store reduced cost for k-th arc flow */
-            rc = (double)csa.rc[k];
+            rc = (glp_double)csa.rc[k];
             if (a_rc >= 0)
-               memcpy((char *)a->data + a_rc, &rc, sizeof(double));
+               memcpy((char *)a->data + a_rc, &rc, sizeof(glp_double));
             /* get per-unit cost for k-th arc flow */
             if (a_cost >= 0)
-               memcpy(&cost, (char *)a->data + a_cost, sizeof(double));
+               memcpy(&cost, (char *)a->data + a_cost, sizeof(glp_double));
             else
                cost = 0.0;
             /* compute the total cost */

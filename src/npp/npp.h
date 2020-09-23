@@ -65,7 +65,7 @@ struct glp_prep
       char *obj;
       /* objective function name (1 to 255 chars); NULL means no name
          is assigned to the objective function */
-      double c0;
+      glp_double c0;
       /* constant term of the objective function */
       int nrows;
       /* number of rows introduced into the problem; this count
@@ -156,10 +156,10 @@ struct glp_prep
          GLP_NU - non-basic variable on upper bound
          GLP_NF - non-basic free variable
          GLP_NS - non-basic fixed variable */
-      double *r_pi; /* double r_pi[1+nrows]; */
+      glp_double *r_pi; /* glp_double r_pi[1+nrows]; */
       /* r_pi[i], 1 <= i <= nrows, is Lagrange multiplier (dual value)
          for i-th row (constraint) */
-      double *c_value; /* double c_value[1+ncols]; */
+      glp_double *c_value; /* glp_double c_value[1+ncols]; */
       /* c_value[j], 1 <= j <= ncols, is primal value of j-th column
          (structural variable) */
 };
@@ -173,9 +173,9 @@ struct NPPROW
       char *name;
       /* row name (1 to 255 chars); NULL means no name is assigned to
          the row */
-      double lb;
+      glp_double lb;
       /* lower bound; -DBL_MAX means the row has no lower bound */
-      double ub;
+      glp_double ub;
       /* upper bound; +DBL_MAX means the row has no upper bound */
       NPPAIJ *ptr;
       /* pointer to the linked list of constraint coefficients */
@@ -196,24 +196,24 @@ struct NPPCOL
       char *name;
       /* column name (1 to 255 chars); NULL means no name is assigned
          to the column */
-      double lb;
+      glp_double lb;
       /* lower bound; -DBL_MAX means the column has no lower bound */
-      double ub;
+      glp_double ub;
       /* upper bound; +DBL_MAX means the column has no upper bound */
-      double coef;
+      glp_double coef;
       /* objective coefficient */
       NPPAIJ *ptr;
       /* pointer to the linked list of constraint coefficients */
 #if 1 /* 28/XII-2009 */
       union
-      {  double ll;
+      {  glp_double ll;
          /* implied column lower bound */
          int pos;
          /* vertex ordinal number corresponding to this binary column
             in the conflict graph (0, if the vertex does not exist) */
       }  ll;
       union
-      {  double uu;
+      {  glp_double uu;
          /* implied column upper bound */
          int neg;
          /* vertex ordinal number corresponding to complement of this
@@ -233,7 +233,7 @@ struct NPPAIJ
       /* pointer to corresponding row */
       NPPCOL *col;
       /* pointer to corresponding column */
-      double val;
+      glp_double val;
       /* (non-zero) coefficient value */
       NPPAIJ *r_prev;
       /* pointer to previous coefficient in the same row */
@@ -259,7 +259,7 @@ struct NPPLFE
 {     /* linear form element */
       int ref;
       /* row/column reference number */
-      double val;
+      glp_double val;
       /* (non-zero) coefficient value */
       NPPLFE *next;
       /* pointer to another element */
@@ -310,7 +310,7 @@ NPPCOL *npp_add_col(NPP *npp);
 /* add new column to the current problem */
 
 #define npp_add_aij _glp_npp_add_aij
-NPPAIJ *npp_add_aij(NPP *npp, NPPROW *row, NPPCOL *col, double val);
+NPPAIJ *npp_add_aij(NPP *npp, NPPROW *row, NPPCOL *col, glp_double val);
 /* add new element to the constraint matrix */
 
 #define npp_row_nnz _glp_npp_row_nnz
@@ -414,7 +414,7 @@ int npp_empty_col(NPP *npp, NPPCOL *q);
 /* process empty column */
 
 #define npp_implied_value _glp_npp_implied_value
-int npp_implied_value(NPP *npp, NPPCOL *q, double s);
+int npp_implied_value(NPP *npp, NPPCOL *q, glp_double s);
 /* process implied column value */
 
 #define npp_eq_singlet _glp_npp_eq_singlet
@@ -422,11 +422,11 @@ int npp_eq_singlet(NPP *npp, NPPROW *p);
 /* process row singleton (equality constraint) */
 
 #define npp_implied_lower _glp_npp_implied_lower
-int npp_implied_lower(NPP *npp, NPPCOL *q, double l);
+int npp_implied_lower(NPP *npp, NPPCOL *q, glp_double l);
 /* process implied column lower bound */
 
 #define npp_implied_upper _glp_npp_implied_upper
-int npp_implied_upper(NPP *npp, NPPCOL *q, double u);
+int npp_implied_upper(NPP *npp, NPPCOL *q, glp_double u);
 /* process implied upper bound of column */
 
 #define npp_ineq_singlet _glp_npp_ineq_singlet

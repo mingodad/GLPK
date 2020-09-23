@@ -38,7 +38,7 @@ struct SPV
        * v[j] is structural zero */
       int *ind; /* int ind[1+n]; */
       /* ind[k] = j, 1 <= k <= nnz, is index of v[j] */
-      double *val; /* double val[1+n]; */
+      glp_double *val; /* glp_double val[1+n]; */
       /* val[k], 1 <= k <= nnz, is a numeric value of v[j] */
 };
 
@@ -51,11 +51,11 @@ void spv_check_vec(SPV *v);
 /* check that sparse vector has correct representation */
 
 #define spv_get_vj _glp_spv_get_vj
-double spv_get_vj(SPV *v, int j);
+glp_double spv_get_vj(SPV *v, int j);
 /* retrieve component of sparse vector */
 
 #define spv_set_vj _glp_spv_set_vj
-void spv_set_vj(SPV *v, int j, double val);
+void spv_set_vj(SPV *v, int j, glp_double val);
 /* set/change component of sparse vector */
 
 #define spv_clear_vec _glp_spv_clear_vec
@@ -63,7 +63,7 @@ void spv_clear_vec(SPV *v);
 /* set all components of sparse vector to zero */
 
 #define spv_clean_vec _glp_spv_clean_vec
-void spv_clean_vec(SPV *v, double eps);
+void spv_clean_vec(SPV *v, glp_double eps);
 /* remove zero or small components from sparse vector */
 
 #define spv_copy_vec _glp_spv_copy_vec
@@ -71,7 +71,7 @@ void spv_copy_vec(SPV *x, SPV *y);
 /* copy sparse vector (x := y) */
 
 #define spv_linear_comb _glp_spv_linear_comb
-void spv_linear_comb(SPV *x, double a, SPV *y);
+void spv_linear_comb(SPV *x, glp_double a, SPV *y);
 /* compute linear combination (x := x + a * y) */
 
 #define spv_delete_vec _glp_spv_delete_vec

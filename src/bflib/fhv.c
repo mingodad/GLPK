@@ -143,18 +143,18 @@
 *     Math. Prog. 2 (1972), pp. 263-78. */
 
 int fhv_ft_update(FHV *fhv, int q, int aq_len, const int aq_ind[],
-      const double aq_val[], int ind[/*1+n*/], double val[/*1+n*/],
-      double work[/*1+n*/])
+      const glp_double aq_val[], int ind[/*1+n*/], glp_double val[/*1+n*/],
+      glp_double work[/*1+n*/])
 {     LUF *luf = fhv->luf;
       int n = luf->n;
       SVA *sva = luf->sva;
       int *sv_ind = sva->ind;
-      double *sv_val = sva->val;
+      glp_double *sv_val = sva->val;
       int vr_ref = luf->vr_ref;
       int *vr_ptr = &sva->ptr[vr_ref-1];
       int *vr_len = &sva->len[vr_ref-1];
       int *vr_cap = &sva->cap[vr_ref-1];
-      double *vr_piv = luf->vr_piv;
+      glp_double *vr_piv = luf->vr_piv;
       int vc_ref = luf->vc_ref;
       int *vc_ptr = &sva->ptr[vc_ref-1];
       int *vc_len = &sva->len[vc_ref-1];
@@ -168,13 +168,13 @@ int fhv_ft_update(FHV *fhv, int q, int aq_len, const int aq_ind[],
       int *hh_ptr = &sva->ptr[hh_ref-1];
       int *hh_len = &sva->len[hh_ref-1];
 #if 1 /* FIXME */
-      const double eps_tol = DBL_EPSILON;
-      const double vpq_tol = 1e-5;
-      const double err_tol = 1e-10;
+      const glp_double eps_tol = GLP_DBL_EPSILON;
+      const glp_double vpq_tol = 1e-5;
+      const glp_double err_tol = 1e-10;
 #endif
       int end, i, i_end, i_ptr, j, j_end, j_ptr, k, len, nnz, p, p_end,
          p_ptr, ptr, q_end, q_ptr, s, t;
-      double f, vpq, temp;
+      glp_double f, vpq, temp;
       /*--------------------------------------------------------------*/
       /* replace current q-th column of matrix V by new one           */
       /*--------------------------------------------------------------*/
@@ -250,7 +250,7 @@ int fhv_ft_update(FHV *fhv, int q, int aq_len, const int aq_ind[],
          }
          ptr = vc_ptr[q];
          memcpy(&sv_ind[ptr], &ind[1], len * sizeof(int));
-         memcpy(&sv_val[ptr], &val[1], len * sizeof(double));
+         memcpy(&sv_val[ptr], &val[1], len * sizeof(glp_double));
          vc_len[q] = len;
       }
       /* put new q-th column of V (except element v[p,q] = u[s,s]) in
@@ -429,7 +429,7 @@ int fhv_ft_update(FHV *fhv, int q, int aq_len, const int aq_ind[],
          sva_reserve_cap(sva, fhv->hh_ref-1+k, nnz);
          ptr = hh_ptr[k];
          memcpy(&sv_ind[ptr], &ind[1], nnz * sizeof(int));
-         memcpy(&sv_val[ptr], &val[1], nnz * sizeof(double));
+         memcpy(&sv_val[ptr], &val[1], nnz * sizeof(glp_double));
          hh_len[k] = nnz;
       }
       /*--------------------------------------------------------------*/
@@ -483,7 +483,7 @@ int fhv_ft_update(FHV *fhv, int q, int aq_len, const int aq_ind[],
       }
       ptr = vr_ptr[p];
       memcpy(&sv_ind[ptr], &ind[1], len * sizeof(int));
-      memcpy(&sv_val[ptr], &val[1], len * sizeof(double));
+      memcpy(&sv_val[ptr], &val[1], len * sizeof(glp_double));
       vr_len[p] = len;
       /* store new diagonal element u[t,t] = v[p,q] */
       vr_piv[p] = work[q];
@@ -531,17 +531,17 @@ int fhv_ft_update(FHV *fhv, int q, int aq_len, const int aq_ind[],
 *  matrix H. On exit this array will contain elements of the solution
 *  vector x in the same locations. */
 
-void fhv_h_solve(FHV *fhv, double x[/*1+n*/])
+void fhv_h_solve(FHV *fhv, glp_double x[/*1+n*/])
 {     SVA *sva = fhv->luf->sva;
       int *sv_ind = sva->ind;
-      double *sv_val = sva->val;
+      glp_double *sv_val = sva->val;
       int nfs = fhv->nfs;
       int *hh_ind = fhv->hh_ind;
       int hh_ref = fhv->hh_ref;
       int *hh_ptr = &sva->ptr[hh_ref-1];
       int *hh_len = &sva->len[hh_ref-1];
       int i, k, end, ptr;
-      double x_i;
+      glp_double x_i;
       for (k = 1; k <= nfs; k++)
       {  x_i = x[i = hh_ind[k]];
          for (end = (ptr = hh_ptr[k]) + hh_len[k]; ptr < end; ptr++)
@@ -563,17 +563,17 @@ void fhv_h_solve(FHV *fhv, double x[/*1+n*/])
 *  matrix H. On exit this array will contain elements of the solution
 *  vector x in the same locations. */
 
-void fhv_ht_solve(FHV *fhv, double x[/*1+n*/])
+void fhv_ht_solve(FHV *fhv, glp_double x[/*1+n*/])
 {     SVA *sva = fhv->luf->sva;
       int *sv_ind = sva->ind;
-      double *sv_val = sva->val;
+      glp_double *sv_val = sva->val;
       int nfs = fhv->nfs;
       int *hh_ind = fhv->hh_ind;
       int hh_ref = fhv->hh_ref;
       int *hh_ptr = &sva->ptr[hh_ref-1];
       int *hh_len = &sva->len[hh_ref-1];
       int k, end, ptr;
-      double x_j;
+      glp_double x_j;
       for (k = nfs; k >= 1; k--)
       {  if ((x_j = x[hh_ind[k]]) == 0.0)
             continue;

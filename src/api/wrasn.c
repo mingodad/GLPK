@@ -52,11 +52,11 @@ int glp_write_asnprob(glp_graph *G, int v_set, int a_cost, const char
       glp_vertex *v;
       glp_arc *a;
       int i, k, count = 0, ret;
-      double cost;
+      glp_double cost;
       if (v_set >= 0 && v_set > G->v_size - (int)sizeof(int))
          xerror("glp_write_asnprob: v_set = %d; invalid offset\n",
             v_set);
-      if (a_cost >= 0 && a_cost > G->a_size - (int)sizeof(double))
+      if (a_cost >= 0 && a_cost > G->a_size - (int)sizeof(glp_double))
          xerror("glp_write_asnprob: a_cost = %d; invalid offset\n",
             a_cost);
       xprintf("Writing assignment problem data to '%s'...\n", fname);
@@ -82,7 +82,7 @@ int glp_write_asnprob(glp_graph *G, int v_set, int a_cost, const char
       {  v = G->v[i];
          for (a = v->out; a != NULL; a = a->t_next)
          {  if (a_cost >= 0)
-               memcpy(&cost, (char *)a->data + a_cost, sizeof(double));
+               memcpy(&cost, (char *)a->data + a_cost, sizeof(glp_double));
             else
                cost = 1.0;
             xfprintf(fp, "a %d %d %.*g\n",

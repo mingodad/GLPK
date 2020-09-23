@@ -130,7 +130,7 @@ CFG *cfg_build_graph(void /* glp_prob */ *P);
 
 #define cfg_find_clique _glp_cfg_find_clique
 int cfg_find_clique(void /* glp_prob */ *P, CFG *G, int ind[],
-      double *sum);
+      glp_double *sum);
 /* find maximum weight clique in conflict graph */
 
 #endif

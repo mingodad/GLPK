@@ -422,7 +422,7 @@ int npp_improve_bounds(NPP *npp, NPPROW *row, int flag)
       NPPCOL *col;
       NPPAIJ *aij, *next_aij, *aaa;
       int kase, ret, count = 0;
-      double lb, ub;
+      glp_double lb, ub;
       xassert(npp->sol == GLP_MIP);
       /* row must not be free */
       xassert(!(row->lb == -DBL_MAX && row->ub == +DBL_MAX));

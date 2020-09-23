@@ -26,14 +26,14 @@
 
 #define xfprintf glp_format
 
-static char *format(char buf[13+1], double x)
+static char *format(char buf[13+1], glp_double x)
 {     /* format floating-point number in MPS/360-like style */
       if (x == -DBL_MAX)
          strcpy(buf, "         -Inf");
       else if (x == +DBL_MAX)
          strcpy(buf, "         +Inf");
       else if (fabs(x) <= 999999.99998)
-      {  sprintf(buf, "%13.5f", x);
+      {  sprintf(buf, "%13.5" GLP_DBL_FMT_F, x);
 #if 1
          if (strcmp(buf, "      0.00000") == 0 ||
              strcmp(buf, "     -0.00000") == 0)
@@ -45,7 +45,7 @@ static char *format(char buf[13+1], double x)
 #endif
       }
       else
-         sprintf(buf, "%13.6g", x);
+         sprintf(buf, "%13.6" GLP_DBL_FMT_G, x);
       return buf;
 }
 
@@ -57,7 +57,7 @@ int glp_print_ranges(glp_prob *P, int len, const int list[],
       GLPCOL *col;
       int m, n, pass, k, t, numb, type, stat, var1, var2, count, page,
          ret;
-      double lb, ub, slack, coef, prim, dual, value1, value2, coef1,
+      glp_double lb, ub, slack, coef, prim, dual, value1, value2, coef1,
          coef2, obj1, obj2;
       const char *name, *limit;
       char buf[13+1];

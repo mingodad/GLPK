@@ -54,9 +54,9 @@ struct BFD
       int upd_cnt;
       /* factorization update count */
 #if 1 /* 21/IV-2014 */
-      double b_norm;
+      glp_double b_norm;
       /* 1-norm of matrix B */
-      double i_norm;
+      glp_double i_norm;
       /* estimated 1-norm of matrix inv(B) */
 #endif
 };
@@ -102,7 +102,7 @@ void bfd_set_bfcp(BFD *bfd, const void /* glp_bfcp */ *parm)
          bfd->parm.piv_tol = 0.10;
          bfd->parm.piv_lim = 4;
          bfd->parm.suhl = 1;
-         bfd->parm.eps_tol = DBL_EPSILON;
+         bfd->parm.eps_tol = GLP_DBL_EPSILON;
          bfd->parm.nfs_max = 100;
          bfd->parm.nrs_max = 70;
       }
@@ -114,14 +114,14 @@ void bfd_set_bfcp(BFD *bfd, const void /* glp_bfcp */ *parm)
 #if 1 /* 21/IV-2014 */
 struct bfd_info
 {     BFD *bfd;
-      int (*col)(void *info, int j, int ind[], double val[]);
+      int (*col)(void *info, int j, int ind[], glp_double val[]);
       void *info;
 };
 
-static int bfd_col(void *info_, int j, int ind[], double val[])
+static int bfd_col(void *info_, int j, int ind[], glp_double val[])
 {     struct bfd_info *info = info_;
       int t, len;
-      double sum;
+      glp_double sum;
       len = info->col(info->info, j, ind, val);
       sum = 0.0;
       for (t = 1; t <= len; t++)
@@ -137,7 +137,7 @@ static int bfd_col(void *info_, int j, int ind[], double val[])
 #endif
 
 int bfd_factorize(BFD *bfd, int m, /*const int bh[],*/ int (*col1)
-      (void *info, int j, int ind[], double val[]), void *info1)
+      (void *info, int j, int ind[], glp_double val[]), void *info1)
 {     /* compute LP basis factorization */
 #if 1 /* 21/IV-2014 */
       struct bfd_info info;
@@ -256,7 +256,7 @@ int bfd_factorize(BFD *bfd, int m, /*const int bh[],*/ int (*col1)
          spm_delete_mat(bfd->B);
       bfd->B = spm_create_mat(m, m);
       {  int *ind = talloc(1+m, int);
-         double *val = talloc(1+m, double);
+         glp_double *val = talloc(1+m, glp_double);
          int j, k, len;
          for (j = 1; j <= m; j++)
          {  len = col(info, j, ind, val);
@@ -269,7 +269,7 @@ int bfd_factorize(BFD *bfd, int m, /*const int bh[],*/ int (*col1)
 #endif
       if (ret == 0)
       {  /* factorization has been successfully computed */
-         double cond;
+         glp_double cond;
          bfd->valid = 1;
 #ifdef GLP_DEBUG
          cond = bfd_condest(bfd);
@@ -285,9 +285,9 @@ int bfd_factorize(BFD *bfd, int m, /*const int bh[],*/ int (*col1)
 }
 
 #if 0 /* 21/IV-2014 */
-double bfd_estimate(BFD *bfd)
+glp_double bfd_estimate(BFD *bfd)
 {     /* estimate 1-norm of inv(B) */
-      double norm;
+      glp_double norm;
       xassert(bfd->valid);
       xassert(bfd->upd_cnt == 0);
       switch (bfd->type)
@@ -305,9 +305,9 @@ double bfd_estimate(BFD *bfd)
 #endif
 
 #if 1 /* 21/IV-2014 */
-double bfd_condest(BFD *bfd)
+glp_double bfd_condest(BFD *bfd)
 {     /* estimate condition of B */
-      double cond;
+      glp_double cond;
       xassert(bfd->valid);
       /*xassert(bfd->upd_cnt == 0);*/
       cond = bfd->b_norm * bfd->i_norm;
@@ -317,15 +317,15 @@ double bfd_condest(BFD *bfd)
 }
 #endif
 
-void bfd_ftran(BFD *bfd, double x[])
+void bfd_ftran(BFD *bfd, glp_double x[])
 {     /* perform forward transformation (solve system B * x = b) */
 #ifdef GLP_DEBUG
       SPM *B = bfd->B;
       int m = B->m;
-      double *b = talloc(1+m, double);
+      glp_double *b = talloc(1+m, glp_double);
       SPME *e;
       int k;
-      double s, relerr, maxerr;
+      glp_double s, relerr, maxerr;
       for (k = 1; k <= m; k++)
          b[k] = x[k];
 #endif
@@ -364,7 +364,7 @@ void bfd_ftran_s(BFD *bfd, FVS *x)
       /* (sparse mode is not implemented yet) */
       int n = x->n;
       int *ind = x->ind;
-      double *vec = x->vec;
+      glp_double *vec = x->vec;
       int j, nnz = 0;
       bfd_ftran(bfd, vec);
       for (j = n; j >= 1; j--)
@@ -376,15 +376,15 @@ void bfd_ftran_s(BFD *bfd, FVS *x)
 }
 #endif
 
-void bfd_btran(BFD *bfd, double x[])
+void bfd_btran(BFD *bfd, glp_double x[])
 {     /* perform backward transformation (solve system B'* x = b) */
 #ifdef GLP_DEBUG
       SPM *B = bfd->B;
       int m = B->m;
-      double *b = talloc(1+m, double);
+      glp_double *b = talloc(1+m, glp_double);
       SPME *e;
       int k;
-      double s, relerr, maxerr;
+      glp_double s, relerr, maxerr;
       for (k = 1; k <= m; k++)
          b[k] = x[k];
 #endif
@@ -423,7 +423,7 @@ void bfd_btran_s(BFD *bfd, FVS *x)
       /* (sparse mode is not implemented yet) */
       int n = x->n;
       int *ind = x->ind;
-      double *vec = x->vec;
+      glp_double *vec = x->vec;
       int j, nnz = 0;
       bfd_btran(bfd, vec);
       for (j = n; j >= 1; j--)
@@ -435,7 +435,7 @@ void bfd_btran_s(BFD *bfd, FVS *x)
 }
 #endif
 
-int bfd_update(BFD *bfd, int j, int len, const int ind[], const double
+int bfd_update(BFD *bfd, int j, int len, const int ind[], const glp_double
       val[])
 {     /* update LP basis factorization */
       int ret;

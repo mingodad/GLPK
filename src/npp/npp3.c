@@ -75,7 +75,7 @@
 
 int npp_empty_row(NPP *npp, NPPROW *p)
 {     /* process empty row */
-      double eps = 1e-3;
+      glp_double eps = 1e-3;
       /* the row must be empty */
       xassert(p->ptr == NULL);
       /* check primal feasibility */
@@ -183,7 +183,7 @@ static int rcv_empty_col(NPP *npp, void *info);
 int npp_empty_col(NPP *npp, NPPCOL *q)
 {     /* process empty column */
       struct empty_col *info;
-      double eps = 1e-3;
+      glp_double eps = 1e-3;
       /* the column must be empty */
       xassert(q->ptr == NULL);
       /* check dual feasibility */
@@ -213,8 +213,8 @@ up:   {  /* column with upper bound */
       }
       else if (q->lb != q->ub)
       {  /* double-bounded column */
-         if (q->coef >= +DBL_EPSILON) goto lo;
-         if (q->coef <= -DBL_EPSILON) goto up;
+         if (q->coef >= +GLP_DBL_EPSILON) goto lo;
+         if (q->coef <= -GLP_DBL_EPSILON) goto up;
          if (fabs(q->lb) <= fabs(q->ub)) goto lo; else goto up;
       }
       else
@@ -242,7 +242,7 @@ static int rcv_empty_col(NPP *npp, void *_info)
 *  SYNOPSIS
 *
 *  #include "glpnpp.h"
-*  int npp_implied_value(NPP *npp, NPPCOL *q, double s);
+*  int npp_implied_value(NPP *npp, NPPCOL *q, glp_double s);
 *
 *  DESCRIPTION
 *
@@ -287,9 +287,9 @@ static int rcv_empty_col(NPP *npp, void *_info)
 *  fix the column at its lower or upper bound, resp. rather than at the
 *  implied value. */
 
-int npp_implied_value(NPP *npp, NPPCOL *q, double s)
+int npp_implied_value(NPP *npp, NPPCOL *q, glp_double s)
 {     /* process implied column value */
-      double eps, nint;
+      glp_double eps, nint;
       xassert(npp == npp);
       /* column must not be fixed */
       xassert(q->lb < q->ub);
@@ -410,9 +410,9 @@ struct eq_singlet
       /* row reference number */
       int q;
       /* column reference number */
-      double apq;
+      glp_double apq;
       /* constraint coefficient a[p,q] */
-      double c;
+      glp_double c;
       /* objective coefficient at x[q] */
       NPPLFE *ptr;
       /* list of non-zero coefficients a[i,q], i != p */
@@ -427,7 +427,7 @@ int npp_eq_singlet(NPP *npp, NPPROW *p)
       NPPAIJ *aij;
       NPPLFE *lfe;
       int ret;
-      double s;
+      glp_double s;
       /* the row must be singleton equality constraint */
       xassert(p->lb == p->ub);
       xassert(p->ptr != NULL && p->ptr->r_next == NULL);
@@ -467,7 +467,7 @@ static int rcv_eq_singlet(NPP *npp, void *_info)
 {     /* recover row singleton (equality constraint) */
       struct eq_singlet *info = _info;
       NPPLFE *lfe;
-      double temp;
+      glp_double temp;
       if (npp->sol == GLP_SOL)
       {  /* column q must be already recovered as GLP_NS */
          if (npp->c_stat[info->q] != GLP_NS)
@@ -495,7 +495,7 @@ static int rcv_eq_singlet(NPP *npp, void *_info)
 *  SYNOPSIS
 *
 *  #include "glpnpp.h"
-*  int npp_implied_lower(NPP *npp, NPPCOL *q, double l);
+*  int npp_implied_lower(NPP *npp, NPPCOL *q, glp_double l);
 *
 *  DESCRIPTION
 *
@@ -547,10 +547,10 @@ static int rcv_eq_singlet(NPP *npp, void *_info)
 *     column upper bound u[q], in which case the problem has no primal
 *     feasible solution. */
 
-int npp_implied_lower(NPP *npp, NPPCOL *q, double l)
+int npp_implied_lower(NPP *npp, NPPCOL *q, glp_double l)
 {     /* process implied column lower bound */
       int ret;
-      double eps, nint;
+      glp_double eps, nint;
       xassert(npp == npp);
       /* column must not be fixed */
       xassert(q->lb < q->ub);
@@ -608,7 +608,7 @@ done: return ret;
 *  SYNOPSIS
 *
 *  #include "glpnpp.h"
-*  int npp_implied_upper(NPP *npp, NPPCOL *q, double u);
+*  int npp_implied_upper(NPP *npp, NPPCOL *q, glp_double u);
 *
 *  DESCRIPTION
 *
@@ -660,9 +660,9 @@ done: return ret;
 *     column lower bound l[q], in which case the problem has no primal
 *     feasible solution. */
 
-int npp_implied_upper(NPP *npp, NPPCOL *q, double u)
+int npp_implied_upper(NPP *npp, NPPCOL *q, glp_double u)
 {     int ret;
-      double eps, nint;
+      glp_double eps, nint;
       xassert(npp == npp);
       /* column must not be fixed */
       xassert(q->lb < q->ub);
@@ -863,13 +863,13 @@ struct ineq_singlet
       /* row reference number */
       int q;
       /* column reference number */
-      double apq;
+      glp_double apq;
       /* constraint coefficient a[p,q] */
-      double c;
+      glp_double c;
       /* objective coefficient at x[q] */
-      double lb;
+      glp_double lb;
       /* row lower bound */
-      double ub;
+      glp_double ub;
       /* row upper bound */
       char lb_changed;
       /* this flag is set if column lower bound was changed */
@@ -888,7 +888,7 @@ int npp_ineq_singlet(NPP *npp, NPPROW *p)
       NPPAIJ *apq, *aij;
       NPPLFE *lfe;
       int lb_changed, ub_changed;
-      double ll, uu;
+      glp_double ll, uu;
       /* the row must be singleton inequality constraint */
       xassert(p->lb != -DBL_MAX || p->ub != +DBL_MAX);
       xassert(p->lb < p->ub);
@@ -966,7 +966,7 @@ static int rcv_ineq_singlet(NPP *npp, void *_info)
 {     /* recover row singleton (inequality constraint) */
       struct ineq_singlet *info = _info;
       NPPLFE *lfe;
-      double lambda;
+      glp_double lambda;
       if (npp->sol == GLP_MIP) goto done;
       /* compute lambda~[q] in solution to the transformed problem
          with formula (8) */
@@ -1078,8 +1078,8 @@ nu:      {  /* column q is non-basic with upper bound active */
       }
       if (npp->sol == GLP_IPT)
       {  /* recover interior-point solution */
-         if (lambda > +DBL_EPSILON && info->lb_changed ||
-             lambda < -DBL_EPSILON && info->ub_changed)
+         if (lambda > +GLP_DBL_EPSILON && info->lb_changed ||
+             lambda < -GLP_DBL_EPSILON && info->ub_changed)
          {  /* actually row p has corresponding active bound */
             npp->r_pi[info->p] = lambda / info->apq;
          }
@@ -1224,11 +1224,11 @@ struct implied_slack
       /* row reference number */
       int q;
       /* column reference number */
-      double apq;
+      glp_double apq;
       /* constraint coefficient a[p,q] */
-      double b;
+      glp_double b;
       /* right-hand side of original equality constraint */
-      double c;
+      glp_double c;
       /* original objective coefficient at x[q] */
       NPPLFE *ptr;
       /* list of non-zero coefficients a[p,j], j != q */
@@ -1293,7 +1293,7 @@ static int rcv_implied_slack(NPP *npp, void *_info)
 {     /* recover column singleton (implied slack variable) */
       struct implied_slack *info = _info;
       NPPLFE *lfe;
-      double temp;
+      glp_double temp;
       if (npp->sol == GLP_SOL)
       {  /* assign statuses to row p and column q */
          if (npp->r_stat[info->p] == GLP_BS ||
@@ -1491,7 +1491,7 @@ int npp_implied_free(NPP *npp, NPPCOL *q)
       struct implied_free *info;
       NPPROW *p;
       NPPAIJ *apq, *aij;
-      double alfa, beta, l, u, pi, eps;
+      glp_double alfa, beta, l, u, pi, eps;
       /* the column must be non-fixed singleton */
       xassert(q->lb < q->ub);
       xassert(q->ptr != NULL && q->ptr->c_next == NULL);
@@ -1572,7 +1572,7 @@ int npp_implied_free(NPP *npp, NPPCOL *q)
       /* compute row multiplier pi[p] */
       pi = q->coef / apq->val;
       /* check dual feasibility for row p */
-      if (pi > +DBL_EPSILON)
+      if (pi > +GLP_DBL_EPSILON)
       {  /* lower bound L[p] must be active */
          if (p->lb != -DBL_MAX)
 nl:      {  info->stat = GLP_NL;
@@ -1585,7 +1585,7 @@ nl:      {  info->stat = GLP_NL;
             goto nu;
          }
       }
-      else if (pi < -DBL_EPSILON)
+      else if (pi < -GLP_DBL_EPSILON)
       {  /* upper bound U[p] must be active */
          if (p->ub != +DBL_MAX)
 nu:      {  info->stat = GLP_NU;
@@ -1752,7 +1752,7 @@ struct eq_doublet
 {     /* row doubleton (equality constraint) */
       int p;
       /* row reference number */
-      double apq;
+      glp_double apq;
       /* constraint coefficient a[p,q] */
       NPPLFE *ptr;
       /* list of non-zero coefficients a[i,q], i != p */
@@ -1767,7 +1767,7 @@ NPPCOL *npp_eq_doublet(NPP *npp, NPPROW *p)
       NPPCOL *q, *r;
       NPPAIJ *apq, *apr, *aiq, *air, *next;
       NPPLFE *lfe;
-      double gamma;
+      glp_double gamma;
       /* the row must be doubleton equality constraint */
       xassert(p->lb == p->ub);
       xassert(p->ptr != NULL && p->ptr->r_next != NULL &&
@@ -1855,7 +1855,7 @@ static int rcv_eq_doublet(NPP *npp, void *_info)
 {     /* recover row doubleton (equality constraint) */
       struct eq_doublet *info = _info;
       NPPLFE *lfe;
-      double gamma, temp;
+      glp_double gamma, temp;
       /* we assume that processing row p is followed by processing
          column q as singleton of type "implied slack variable", in
          which case row p must always be active equality constraint */
@@ -2062,9 +2062,9 @@ struct forcing_col
       /* original column status:
          GLP_NL - fixed on lower bound
          GLP_NU - fixed on upper bound */
-      double a;
+      glp_double a;
       /* constraint coefficient a[p,j] */
-      double c;
+      glp_double c;
       /* objective coefficient c[j] */
       NPPLFE *ptr;
       /* list of non-zero coefficients a[i,j], i != p */
@@ -2095,7 +2095,7 @@ int npp_forcing_row(NPP *npp, NPPROW *p, int at)
       NPPCOL *j;
       NPPAIJ *apj, *aij;
       NPPLFE *lfe;
-      double big;
+      glp_double big;
       xassert(at == 0 || at == 1);
       /* determine maximal magnitude of the row coefficients */
       big = 1.0;
@@ -2179,7 +2179,7 @@ static int rcv_forcing_row(NPP *npp, void *_info)
       struct forcing_row *info = _info;
       struct forcing_col *col, *piv;
       NPPLFE *lfe;
-      double d, big, temp;
+      glp_double d, big, temp;
       if (npp->sol == GLP_MIP) goto done;
       /* initially solution to the original problem is the same as
          to the transformed problem, where row p is inactive constraint
@@ -2339,7 +2339,7 @@ int npp_analyze_row(NPP *npp, NPPROW *p)
 {     /* perform general row analysis */
       NPPAIJ *aij;
       int ret = 0x00;
-      double l, u, eps;
+      glp_double l, u, eps;
       xassert(npp == npp);
       /* compute implied lower bound L'[p]; see (3) */
       l = 0.0;
@@ -2747,7 +2747,7 @@ static int rcv_inactive_bound(NPP *npp, void *_info)
 
 void npp_implied_bounds(NPP *npp, NPPROW *p)
 {     NPPAIJ *apj, *apk;
-      double big, eps, temp;
+      glp_double big, eps, temp;
       xassert(npp == npp);
       /* initialize implied bounds for all variables and determine
          maximal magnitude of row coefficients a[p,j] */

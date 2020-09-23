@@ -291,7 +291,7 @@ err:     xerror("glp_ios_node_level: p = %d; invalid subproblem referen"
 *
 *  SYNOPSIS
 *
-*  double glp_ios_node_bound(glp_tree *tree, int p);
+*  glp_double glp_ios_node_bound(glp_tree *tree, int p);
 *
 *  RETURNS
 *
@@ -315,7 +315,7 @@ err:     xerror("glp_ios_node_level: p = %d; invalid subproblem referen"
 *  Note that the local bound is not necessarily the optimal objective
 *  value to corresponding LP relaxation; it may be stronger. */
 
-double glp_ios_node_bound(glp_tree *tree, int p)
+glp_double glp_ios_node_bound(glp_tree *tree, int p)
 {     IOSNPD *node;
       /* obtain pointer to the specified subproblem */
       if (!(1 <= p && p <= tree->nslots))
@@ -361,14 +361,14 @@ int glp_ios_best_node(glp_tree *tree)
 *
 *  SYNOPSIS
 *
-*  double glp_ios_mip_gap(glp_tree *tree);
+*  glp_double glp_ios_mip_gap(glp_tree *tree);
 *
 *  DESCRIPTION
 *
 *  The routine glp_ios_mip_gap computes the relative MIP gap with the
 *  following formula:
 *
-*     gap = |best_mip - best_bnd| / (|best_mip| + DBL_EPSILON),
+*     gap = |best_mip - best_bnd| / (|best_mip| + GLP_DBL_EPSILON),
 *
 *  where best_mip is the best integer feasible solution found so far,
 *  best_bnd is the best (global) bound. If no integer feasible solution
@@ -378,7 +378,7 @@ int glp_ios_best_node(glp_tree *tree)
 *
 *  The routine glp_ios_mip_gap returns the relative MIP gap. */
 
-double glp_ios_mip_gap(glp_tree *tree)
+glp_double glp_ios_mip_gap(glp_tree *tree)
 {     return
          ios_relative_gap(tree);
 }
@@ -468,7 +468,7 @@ int glp_ios_pool_size(glp_tree *tree)
 
 int glp_ios_add_row(glp_tree *tree,
       const char *name, int klass, int flags, int len, const int ind[],
-      const double val[], int type, double rhs)
+      const glp_double val[], int type, glp_double rhs)
 {     /* add row (constraint) to the cut pool */
       int num;
       if (tree->reason != GLP_ICUTGEN)
@@ -606,7 +606,7 @@ err:     xerror("glp_ios_select_node: p = %d; invalid subproblem refere"
 *
 *  SYNOPSIS
 *
-*  int glp_ios_heur_sol(glp_tree *tree, const double x[]);
+*  int glp_ios_heur_sol(glp_tree *tree, const glp_double x[]);
 *
 *  DESCRIPTION
 *
@@ -632,12 +632,12 @@ err:     xerror("glp_ios_select_node: p = %d; invalid subproblem refere"
 *  returns zero. Otherwise, if the provided solution is rejected, the
 *  routine returns non-zero. */
 
-int glp_ios_heur_sol(glp_tree *tree, const double x[])
+int glp_ios_heur_sol(glp_tree *tree, const glp_double x[])
 {     glp_prob *mip = tree->mip;
       int m = tree->orig_m;
       int n = tree->n;
       int i, j;
-      double obj;
+      glp_double obj;
       xassert(mip->m >= m);
       xassert(mip->n == n);
       /* check values of integer variables and compute value of the

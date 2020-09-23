@@ -156,20 +156,20 @@ void mpz_set_si(mpz_t x, int val)
       return;
 }
 
-double mpz_get_d(mpz_t x)
-{     /* convert x to a double, truncating if necessary */
+glp_double mpz_get_d(mpz_t x)
+{     /* convert x to a glp_double, truncating if necessary */
       struct mpz_seg *e;
       int j;
-      double val, deg;
+      glp_double val, deg;
       if (x->ptr == NULL)
-         val = (double)x->val;
+         val = (glp_double)x->val;
       else
       {  xassert(x->val != 0);
          val = 0.0;
          deg = 1.0;
          for (e = x->ptr; e != NULL; e = e->next)
          {  for (j = 0; j <= 5; j++)
-            {  val += deg * (double)((int)e->d[j]);
+            {  val += deg * (glp_double)((int)e->d[j]);
                deg *= 65536.0;
             }
          }
@@ -179,8 +179,8 @@ double mpz_get_d(mpz_t x)
       return val;
 }
 
-double mpz_get_d_2exp(int *exp, mpz_t x)
-{     /* convert x to a double, truncating if necessary (i.e. rounding
+glp_double mpz_get_d_2exp(int *exp, mpz_t x)
+{     /* convert x to a glp_double, truncating if necessary (i.e. rounding
        * towards zero), and returning the exponent separately;
        * the return value is in the range 0.5 <= |d| < 1 and the
        * exponent is stored to *exp; d*2^exp is the (truncated) x value;
@@ -188,15 +188,15 @@ double mpz_get_d_2exp(int *exp, mpz_t x)
        * this is similar to the standard C frexp function */
       struct mpz_seg *e;
       int j, n, n1;
-      double val;
+      glp_double val;
       if (x->ptr == NULL)
-         val = (double)x->val, n = 0;
+         val = (glp_double)x->val, n = 0;
       else
       {  xassert(x->val != 0);
          val = 0.0, n = 0;
          for (e = x->ptr; e != NULL; e = e->next)
          {  for (j = 0; j <= 5; j++)
-            {  val += (double)((int)e->d[j]);
+            {  val += (glp_double)((int)e->d[j]);
                val /= 65536.0, n += 16;
             }
          }
@@ -986,19 +986,19 @@ void mpq_set_si(mpq_t x, int p, unsigned int q)
       return;
 }
 
-double mpq_get_d(mpq_t x)
-{     /* convert x to a double, truncating if necessary */
+glp_double mpq_get_d(mpq_t x)
+{     /* convert x to a glp_double, truncating if necessary */
       int np, nq;
-      double p, q;
+      glp_double p, q;
       p = mpz_get_d_2exp(&np, &x->p);
       q = mpz_get_d_2exp(&nq, &x->q);
       return ldexp(p / q, np - nq);
 }
 
-void mpq_set_d(mpq_t x, double val)
+void mpq_set_d(mpq_t x, glp_double val)
 {     /* set x to val; there is no rounding, the conversion is exact */
       int s, n, d, j;
-      double f;
+      glp_double f;
       mpz_t temp;
       xassert(-DBL_MAX <= val && val <= +DBL_MAX);
       mpq_set_si(x, 0, 1);
@@ -1015,7 +1015,7 @@ void mpq_set_d(mpq_t x, double val)
       {  f *= 16.0, n -= 4;
          d = (int)f;
          xassert(0 <= d && d <= 15);
-         f -= (double)d;
+         f -= (glp_double)d;
          /* x := 16 * x + d */
          mpz_set_si(temp, 16);
          mpz_mul(&x->p, &x->p, temp);

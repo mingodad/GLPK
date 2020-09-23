@@ -29,7 +29,7 @@ int glp_intfeas1(glp_prob *P, int use_bound, int obj_bound)
       NPP *npp = NULL;
       glp_prob *mip = NULL;
       int *obj_ind = NULL;
-      double *obj_val = NULL;
+      glp_double *obj_val = NULL;
       int obj_row = 0;
       int i, j, k, obj_len, temp, ret;
 #if 0 /* 04/IV-2016 */
@@ -60,7 +60,7 @@ int glp_intfeas1(glp_prob *P, int use_bound, int obj_bound)
             goto done;
          }
          temp = (int)col->lb;
-         if ((double)temp != col->lb)
+         if ((glp_double)temp != col->lb)
          {  if (col->type == GLP_FX)
                xprintf("glp_intfeas1: column %d: fixed value %g is non-"
                   "integer or out of range\n", j, col->lb);
@@ -71,7 +71,7 @@ int glp_intfeas1(glp_prob *P, int use_bound, int obj_bound)
             goto done;
          }
          temp = (int)col->ub;
-         if ((double)temp != col->ub)
+         if ((glp_double)temp != col->ub)
          {  xprintf("glp_intfeas1: column %d: upper bound %g is non-int"
                "eger or out of range\n", j, col->ub);
             ret = GLP_EDATA;
@@ -90,7 +90,7 @@ int glp_intfeas1(glp_prob *P, int use_bound, int obj_bound)
          GLPAIJ *aij;
          for (aij = row->ptr; aij != NULL; aij = aij->r_next)
          {  temp = (int)aij->val;
-            if ((double)temp != aij->val)
+            if ((glp_double)temp != aij->val)
             {  xprintf("glp_intfeas1: row = %d, column %d: constraint c"
                   "oefficient %g is non-integer or out of range\n",
                   i, aij->col->j, aij->val);
@@ -99,7 +99,7 @@ int glp_intfeas1(glp_prob *P, int use_bound, int obj_bound)
             }
          }
          temp = (int)row->lb;
-         if ((double)temp != row->lb)
+         if ((glp_double)temp != row->lb)
          {  if (row->type == GLP_FX)
                xprintf("glp_intfeas1: row = %d: fixed value %g is non-i"
                   "nteger or out of range\n", i, row->lb);
@@ -110,7 +110,7 @@ int glp_intfeas1(glp_prob *P, int use_bound, int obj_bound)
             goto done;
          }
          temp = (int)row->ub;
-         if ((double)temp != row->ub)
+         if ((glp_double)temp != row->ub)
          {  xprintf("glp_intfeas1: row = %d: upper bound %g is non-inte"
                "ger or out of range\n", i, row->ub);
             ret = GLP_EDATA;
@@ -131,7 +131,7 @@ int glp_intfeas1(glp_prob *P, int use_bound, int obj_bound)
       }
 #endif
       temp = (int)P->c0;
-      if ((double)temp != P->c0)
+      if ((glp_double)temp != P->c0)
       {  xprintf("glp_intfeas1: objective constant term %g is non-integ"
             "er or out of range\n", P->c0);
          ret = GLP_EDATA;
@@ -139,7 +139,7 @@ int glp_intfeas1(glp_prob *P, int use_bound, int obj_bound)
       }
       for (j = 1; j <= P->n; j++)
       {  temp = (int)P->col[j]->coef;
-         if ((double)temp != P->col[j]->coef)
+         if ((glp_double)temp != P->col[j]->coef)
          {  xprintf("glp_intfeas1: column %d: objective coefficient is "
                "non-integer or out of range\n", j, P->col[j]->coef);
             ret = GLP_EDATA;
@@ -151,7 +151,7 @@ skip: ;
 #endif
       /* save the objective function and set it to zero */
       obj_ind = xcalloc(1+P->n, sizeof(int));
-      obj_val = xcalloc(1+P->n, sizeof(double));
+      obj_val = xcalloc(1+P->n, sizeof(glp_double));
       obj_len = 0;
       obj_ind[0] = 0;
       obj_val[0] = P->c0;
@@ -174,10 +174,10 @@ skip: ;
          glp_set_mat_row(P, obj_row, obj_len, obj_ind, obj_val);
          if (P->dir == GLP_MIN)
             glp_set_row_bnds(P, obj_row,
-               GLP_UP, 0.0, (double)obj_bound - obj_val[0]);
+               GLP_UP, 0.0, (glp_double)obj_bound - obj_val[0]);
          else if (P->dir == GLP_MAX)
             glp_set_row_bnds(P, obj_row,
-               GLP_LO, (double)obj_bound - obj_val[0], 0.0);
+               GLP_LO, (glp_double)obj_bound - obj_val[0], 0.0);
          else
             xassert(P != P);
       }
@@ -223,7 +223,7 @@ skip: ;
       for (i = 1; i <= P->m; i++)
       {  GLPROW *row;
          GLPAIJ *aij;
-         double sum;
+         glp_double sum;
          row = P->row[i];
          sum = 0.0;
          for (aij = row->ptr; aij != NULL; aij = aij->r_next)

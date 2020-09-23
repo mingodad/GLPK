@@ -59,14 +59,14 @@
 *  number of such variables 0 <= num <= m. (If the parameter list is
 *  specified as NULL, no indices are stored.) */
 
-int spy_chuzr_sel(SPXLP *lp, const double beta[/*1+m*/], double tol,
-      double tol1, int list[/*1+m*/])
+int spy_chuzr_sel(SPXLP *lp, const glp_double beta[/*1+m*/], glp_double tol,
+      glp_double tol1, int list[/*1+m*/])
 {     int m = lp->m;
-      double *l = lp->l;
-      double *u = lp->u;
+      glp_double *l = lp->l;
+      glp_double *u = lp->u;
       int *head = lp->head;
       int i, k, num;
-      double lk, uk, eps;
+      glp_double lk, uk, eps;
       num = 0;
       /* walk thru list of basic variables */
       for (i = 1; i <= m; i++)
@@ -126,14 +126,14 @@ int spy_chuzr_sel(SPXLP *lp, const double beta[/*1+m*/], double tol,
 *  On exit the routine returns p, the index of the basic variable xB[p]
 *  chosen. */
 
-int spy_chuzr_std(SPXLP *lp, const double beta[/*1+m*/], int num,
+int spy_chuzr_std(SPXLP *lp, const glp_double beta[/*1+m*/], int num,
       const int list[])
 {     int m = lp->m;
-      double *l = lp->l;
-      double *u = lp->u;
+      glp_double *l = lp->l;
+      glp_double *u = lp->u;
       int *head = lp->head;
       int i, k, p, t;
-      double abs_ri, abs_rp;
+      glp_double abs_ri, abs_rp;
       xassert(0 < num && num <= m);
       p = 0, abs_rp = -1.0;
       for (t = 1; t <= num; t++)
@@ -166,13 +166,13 @@ void spy_alloc_se(SPXLP *lp, SPYSE *se)
 #endif
       se->valid = 0;
       se->refsp = talloc(1+n, char);
-      se->gamma = talloc(1+m, double);
-      se->work = talloc(1+m, double);
+      se->gamma = talloc(1+m, glp_double);
+      se->work = talloc(1+m, glp_double);
 #if 1 /* 30/III-2016 */
       se->u.n = m;
       se->u.nnz = 0;
       se->u.ind = talloc(1+m, int);
-      se->u.vec = talloc(1+m, double);
+      se->u.vec = talloc(1+m, glp_double);
       for (i = 1; i <= m; i++)
          se->u.vec[i] = 0.0;
 #endif
@@ -192,7 +192,7 @@ void spy_reset_refsp(SPXLP *lp, SPYSE *se)
       int n = lp->n;
       int *head = lp->head;
       char *refsp = se->refsp;
-      double *gamma = se->gamma;
+      glp_double *gamma = se->gamma;
       int i, k;
       se->valid = 1;
       memset(&refsp[1], 0, n * sizeof(char));
@@ -230,14 +230,14 @@ void spy_reset_refsp(SPXLP *lp, SPYSE *se)
 *
 *  NOTE: For testing/debugging only. */
 
-double spy_eval_gamma_i(SPXLP *lp, SPYSE *se, int i)
+glp_double spy_eval_gamma_i(SPXLP *lp, SPYSE *se, int i)
 {     int m = lp->m;
       int n = lp->n;
       int *head = lp->head;
       char *refsp = se->refsp;
-      double *rho = se->work;
+      glp_double *rho = se->work;
       int j, k;
-      double gamma_i, t_ij;
+      glp_double gamma_i, t_ij;
       xassert(se->valid);
       xassert(1 <= i && i <= m);
       k = head[i]; /* x[k] = xB[i] */
@@ -283,15 +283,15 @@ double spy_eval_gamma_i(SPXLP *lp, SPYSE *se, int i)
 *  On exit the routine returns p, the index of the basic variable xB[p]
 *  chosen. */
 
-int spy_chuzr_pse(SPXLP *lp, SPYSE *se, const double beta[/*1+m*/],
+int spy_chuzr_pse(SPXLP *lp, SPYSE *se, const glp_double beta[/*1+m*/],
       int num, const int list[])
 {     int m = lp->m;
-      double *l = lp->l;
-      double *u = lp->u;
+      glp_double *l = lp->l;
+      glp_double *u = lp->u;
       int *head = lp->head;
-      double *gamma = se->gamma;
+      glp_double *gamma = se->gamma;
       int i, k, p, t;
-      double best, ri, temp;
+      glp_double best, ri, temp;
       xassert(0 < num && num <= m);
       p = 0, best = -1.0;
       for (t = 1; t <= num; t++)
@@ -304,7 +304,7 @@ int spy_chuzr_pse(SPXLP *lp, SPYSE *se, const double beta[/*1+m*/],
          else
             xassert(t != t);
          /* FIXME */
-         if (gamma[i] < DBL_EPSILON)
+         if (gamma[i] < GLP_DBL_EPSILON)
             temp = 0.0;
          else
             temp = (ri * ri) / gamma[i];
@@ -349,16 +349,16 @@ int spy_chuzr_pse(SPXLP *lp, SPYSE *se, const double beta[/*1+m*/],
 *  program may reset the reference space, since other weights also may
 *  be inaccurate.) */
 
-double spy_update_gamma(SPXLP *lp, SPYSE *se, int p, int q,
-      const double trow[/*1+n-m*/], const double tcol[/*1+m*/])
+glp_double spy_update_gamma(SPXLP *lp, SPYSE *se, int p, int q,
+      const glp_double trow[/*1+n-m*/], const glp_double tcol[/*1+m*/])
 {     int m = lp->m;
       int n = lp->n;
       int *head = lp->head;
       char *refsp = se->refsp;
-      double *gamma = se->gamma;
-      double *u = se->work;
+      glp_double *gamma = se->gamma;
+      glp_double *u = se->work;
       int i, j, k, ptr, end;
-      double gamma_p, delta_p, e, r, t1, t2;
+      glp_double gamma_p, delta_p, e, r, t1, t2;
       xassert(se->valid);
       xassert(1 <= p && p <= m);
       xassert(1 <= q && q <= n-m);
@@ -401,23 +401,23 @@ double spy_update_gamma(SPXLP *lp, SPYSE *se, int p, int q,
 }
 
 #if 1 /* 30/III-2016 */
-double spy_update_gamma_s(SPXLP *lp, SPYSE *se, int p, int q,
+glp_double spy_update_gamma_s(SPXLP *lp, SPYSE *se, int p, int q,
       const FVS *trow, const FVS *tcol)
 {     /* sparse version of spy_update_gamma */
       int m = lp->m;
       int n = lp->n;
       int *head = lp->head;
       char *refsp = se->refsp;
-      double *gamma = se->gamma;
-      double *u = se->work;
+      glp_double *gamma = se->gamma;
+      glp_double *u = se->work;
       int trow_nnz = trow->nnz;
       int *trow_ind = trow->ind;
-      double *trow_vec = trow->vec;
+      glp_double *trow_vec = trow->vec;
       int tcol_nnz = tcol->nnz;
       int *tcol_ind = tcol->ind;
-      double *tcol_vec = tcol->vec;
+      glp_double *tcol_vec = tcol->vec;
       int i, j, k, t, ptr, end;
-      double gamma_p, delta_p, e, r, t1, t2;
+      glp_double gamma_p, delta_p, e, r, t1, t2;
       xassert(se->valid);
       xassert(1 <= p && p <= m);
       xassert(1 <= q && q <= n-m);

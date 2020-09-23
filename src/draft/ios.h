@@ -65,17 +65,17 @@ struct glp_tree
       /* number of rows */
       unsigned char *orig_type; /* uchar orig_type[1+orig_m+n]; */
       /* types of all variables */
-      double *orig_lb; /* double orig_lb[1+orig_m+n]; */
+      glp_double *orig_lb; /* glp_double orig_lb[1+orig_m+n]; */
       /* lower bounds of all variables */
-      double *orig_ub; /* double orig_ub[1+orig_m+n]; */
+      glp_double *orig_ub; /* glp_double orig_ub[1+orig_m+n]; */
       /* upper bounds of all variables */
       unsigned char *orig_stat; /* uchar orig_stat[1+orig_m+n]; */
       /* statuses of all variables */
-      double *orig_prim; /* double orig_prim[1+orig_m+n]; */
+      glp_double *orig_prim; /* glp_double orig_prim[1+orig_m+n]; */
       /* primal values of all variables */
-      double *orig_dual; /* double orig_dual[1+orig_m+n]; */
+      glp_double *orig_dual; /* glp_double orig_dual[1+orig_m+n]; */
       /* dual values of all variables */
-      double orig_obj;
+      glp_double orig_obj;
       /* optimal objective value for LP relaxation */
       /*--------------------------------------------------------------*/
       /* branch-and-bound tree */
@@ -114,9 +114,9 @@ struct glp_tree
       /* number of rows */
       unsigned char *root_type; /* uchar root_type[1+root_m+n]; */
       /* types of all variables */
-      double *root_lb; /* double root_lb[1+root_m+n]; */
+      glp_double *root_lb; /* glp_double root_lb[1+root_m+n]; */
       /* lower bounds of all variables */
-      double *root_ub; /* double root_ub[1+root_m+n]; */
+      glp_double *root_ub; /* glp_double root_ub[1+root_m+n]; */
       /* upper bounds of all variables */
       unsigned char *root_stat; /* uchar root_stat[1+root_m+n]; */
       /* statuses of all variables */
@@ -151,9 +151,9 @@ struct glp_tree
          pred_max >= pred_m + n */
       unsigned char *pred_type; /* uchar pred_type[1+pred_m+n]; */
       /* types of all variables */
-      double *pred_lb; /* double pred_lb[1+pred_m+n]; */
+      glp_double *pred_lb; /* glp_double pred_lb[1+pred_m+n]; */
       /* lower bounds of all variables */
-      double *pred_ub; /* double pred_ub[1+pred_m+n]; */
+      glp_double *pred_ub; /* glp_double pred_ub[1+pred_m+n]; */
       /* upper bounds of all variables */
       unsigned char *pred_stat; /* uchar pred_stat[1+pred_m+n]; */
       /* statuses of all variables */
@@ -174,16 +174,16 @@ struct glp_tree
       /* pointer to working area used on pseudocost branching */
       int *iwrk; /* int iwrk[1+n]; */
       /* working array */
-      double *dwrk; /* double dwrk[1+n]; */
+      glp_double *dwrk; /* glp_double dwrk[1+n]; */
       /* working array */
       /*--------------------------------------------------------------*/
       /* control parameters and statistics */
       const glp_iocp *parm;
       /* copy of control parameters passed to the solver */
-      double tm_beg;
+      glp_double tm_beg;
       /* starting time of the search, in seconds; the total time of the
          search is the difference between xtime() and tm_beg */
-      double tm_lag;
+      glp_double tm_lag;
       /* the most recent time, in seconds, at which the progress of the
          the search was displayed */
       int sol_cnt;
@@ -265,14 +265,14 @@ struct IOSNPD
          statuses were changed */
       IOSROW *r_ptr;
       /* linked list of rows (cuts) added to the parent subproblem */
-      double lp_obj;
+      glp_double lp_obj;
       /* optimal objective value to LP relaxation of this subproblem;
          on creating a subproblem this value is inherited from its
          parent; for the root subproblem, which has no parent, this
          value is initially set to -DBL_MAX (minimization) or +DBL_MAX
          (maximization); each time the subproblem is re-optimized, this
          value is appropriately changed */
-      double bound;
+      glp_double bound;
       /* local lower (minimization) or upper (maximization) bound for
          integer optimal solution to *this* subproblem; this bound is
          local in the sense that only subproblems in the subtree rooted
@@ -287,7 +287,7 @@ struct IOSNPD
       int ii_cnt;
       /* number of integer variables whose value in optimal solution to
          LP relaxation of this subproblem is fractional */
-      double ii_sum;
+      glp_double ii_sum;
       /* sum of integer infeasibilities */
 #if 1 /* 30/XI-2009 */
       int changed;
@@ -298,7 +298,7 @@ struct IOSNPD
       /* ordinal number of branching variable, 1 <= br_var <= n, used
          to split this subproblem; 0 means that either this subproblem
          is active or branching was made on a constraint */
-      double br_val;
+      glp_double br_val;
       /* (fractional) value of branching variable in optimal solution
          to final LP relaxation of this subproblem */
       void *data; /* char data[tree->cb_size]; */
@@ -319,9 +319,9 @@ struct IOSBND
          columns, resp., in the parent subproblem */
       unsigned char type;
       /* new type */
-      double lb;
+      glp_double lb;
       /* new lower bound */
-      double ub;
+      glp_double ub;
       /* new upper bound */
       IOSBND *next;
       /* pointer to next entry for the same subproblem */
@@ -351,13 +351,13 @@ struct IOSROW
       /* row type (GLP_LO, GLP_UP, etc.) */
       unsigned char stat;
       /* row status (GLP_BS, GLP_NL, etc.) */
-      double lb;
+      glp_double lb;
       /* row lower bound */
-      double ub;
+      glp_double ub;
       /* row upper bound */
       IOSAIJ *ptr;
       /* pointer to the row coefficient list */
-      double rii;
+      glp_double rii;
       /* row scale factor */
       IOSROW *next;
       /* pointer to next entry for the same subproblem */
@@ -367,7 +367,7 @@ struct IOSAIJ
 {     /* constraint coefficient */
       int j;
       /* variable (column) number, 1 <= j <= n */
-      double val;
+      glp_double val;
       /* non-zero coefficient value */
       IOSAIJ *next;
       /* pointer to next coefficient for the same row */
@@ -403,7 +403,7 @@ struct IOSCUT
          GLP_LO: sum a[j] * x[j] >= b
          GLP_UP: sum a[j] * x[j] <= b
          GLP_FX: sum a[j] * x[j]  = b */
-      double rhs;
+      glp_double rhs;
       /* cut right-hand side */
       IOSCUT *prev;
       /* pointer to previous cut */
@@ -437,15 +437,15 @@ void ios_delete_tree(glp_tree *tree);
 /* delete branch-and-bound tree */
 
 #define ios_eval_degrad _glp_ios_eval_degrad
-void ios_eval_degrad(glp_tree *tree, int j, double *dn, double *up);
+void ios_eval_degrad(glp_tree *tree, int j, glp_double *dn, glp_double *up);
 /* estimate obj. degrad. for down- and up-branches */
 
 #define ios_round_bound _glp_ios_round_bound
-double ios_round_bound(glp_tree *tree, double bound);
+glp_double ios_round_bound(glp_tree *tree, glp_double bound);
 /* improve local bound by rounding */
 
 #define ios_is_hopeful _glp_ios_is_hopeful
-int ios_is_hopeful(glp_tree *tree, double bound);
+int ios_is_hopeful(glp_tree *tree, glp_double bound);
 /* check if subproblem is hopeful */
 
 #define ios_best_node _glp_ios_best_node
@@ -453,7 +453,7 @@ int ios_best_node(glp_tree *tree);
 /* find active node with best local bound */
 
 #define ios_relative_gap _glp_ios_relative_gap
-double ios_relative_gap(glp_tree *tree);
+glp_double ios_relative_gap(glp_tree *tree);
 /* compute relative mip gap */
 
 #define ios_solve_node _glp_ios_solve_node
@@ -467,7 +467,7 @@ IOSPOOL *ios_create_pool(glp_tree *tree);
 #define ios_add_row _glp_ios_add_row
 int ios_add_row(glp_tree *tree, IOSPOOL *pool,
       const char *name, int klass, int flags, int len, const int ind[],
-      const double val[], int type, double rhs);
+      const glp_double val[], int type, glp_double rhs);
 /* add row (constraint) to the cut pool */
 
 #define ios_find_row _glp_ios_find_row

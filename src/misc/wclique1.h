@@ -25,7 +25,7 @@
 #define WCLIQUE1_H
 
 #define wclique1 _glp_wclique1
-int wclique1(int n, const double w[],
+int wclique1(int n, const glp_double w[],
       int (*func)(void *info, int i, int ind[]), void *info, int c[]);
 /* find maximum weight clique with greedy heuristic */
 

@@ -69,14 +69,14 @@ struct glp_mir
       char *isint; /* char isint[1+m+n]; */
       /* isint[k], 1 <= k <= m+n, is a flag that means that variable
          x[k] is integer (otherwise, continuous) */
-      double *lb; /* double lb[1+m+n]; */
+      glp_double *lb; /* glp_double lb[1+m+n]; */
       /* lb[k], 1 <= k <= m+n, is lower bound of x[k]; -DBL_MAX means
          that x[k] has no lower bound */
       int *vlb; /* int vlb[1+m+n]; */
       /* vlb[k] = k', 1 <= k <= m+n, is the number of integer variable,
          which defines variable lower bound x[k] >= lb[k] * x[k']; zero
          means that x[k] has simple lower bound */
-      double *ub; /* double ub[1+m+n]; */
+      glp_double *ub; /* glp_double ub[1+m+n]; */
       /* ub[k], 1 <= k <= m+n, is upper bound of x[k]; +DBL_MAX means
          that x[k] has no upper bound */
       int *vub; /* int vub[1+m+n]; */
@@ -85,7 +85,7 @@ struct glp_mir
          means that x[k] has simple upper bound */
       /*--------------------------------------------------------------*/
       /* current (fractional) point to be separated */
-      double *x; /* double x[1+m+n]; */
+      glp_double *x; /* glp_double x[1+m+n]; */
       /* x[k] is current value of auxiliary (1 <= k <= m) or structural
          (m+1 <= k <= m+n) variable */
       /*--------------------------------------------------------------*/
@@ -100,7 +100,7 @@ struct glp_mir
          aggregated constraint */
       SPV *agg_vec; /* SPV agg_vec[1:m+n]; */
       /* sparse vector of aggregated constraint coefficients, a[k] */
-      double agg_rhs;
+      glp_double agg_rhs;
       /* right-hand side of the aggregated constraint, b */
       /*--------------------------------------------------------------*/
       /* bound substitution flags for modified constraint */
@@ -117,13 +117,13 @@ struct glp_mir
          additional terms in the modified constraint */
       SPV *mod_vec; /* SPV mod_vec[1:m+n]; */
       /* sparse vector of modified constraint coefficients, a'[k] */
-      double mod_rhs;
+      glp_double mod_rhs;
       /* right-hand side of the modified constraint, b' */
       /*--------------------------------------------------------------*/
       /* cutting plane sum alpha[k] * x[k] <= beta */
       SPV *cut_vec; /* SPV cut_vec[1:m+n]; */
       /* sparse vector of cutting plane coefficients, alpha[k] */
-      double cut_rhs;
+      glp_double cut_rhs;
       /* right-hand size of the cutting plane, beta */
 };
 
@@ -211,7 +211,7 @@ static void set_var_bounds(glp_prob *mip, glp_mir *mir)
       int m = mir->m;
       GLPAIJ *aij;
       int i, k1, k2;
-      double a1, a2;
+      glp_double a1, a2;
       for (i = 1; i <= m; i++)
       {  /* we need the row to be '>= 0' or '<= 0' */
          if (!(mir->lb[i] == 0.0 && mir->ub[i] == +DBL_MAX ||
@@ -321,11 +321,11 @@ glp_mir *glp_mir_init(glp_prob *mip)
       mir->n = n;
       mir->skip = xcalloc(1+m, sizeof(char));
       mir->isint = xcalloc(1+m+n, sizeof(char));
-      mir->lb = xcalloc(1+m+n, sizeof(double));
+      mir->lb = xcalloc(1+m+n, sizeof(glp_double));
       mir->vlb = xcalloc(1+m+n, sizeof(int));
-      mir->ub = xcalloc(1+m+n, sizeof(double));
+      mir->ub = xcalloc(1+m+n, sizeof(glp_double));
       mir->vub = xcalloc(1+m+n, sizeof(int));
-      mir->x = xcalloc(1+m+n, sizeof(double));
+      mir->x = xcalloc(1+m+n, sizeof(glp_double));
       mir->agg_row = xcalloc(1+MAXAGGR, sizeof(int));
       mir->agg_vec = spv_create_vec(m+n);
       mir->subst = xcalloc(1+m+n, sizeof(char));
@@ -382,7 +382,7 @@ static void check_current_point(glp_mir *mir)
       int m = mir->m;
       int n = mir->n;
       int k, kk;
-      double lb, ub, eps;
+      glp_double lb, ub, eps;
       for (k = 1; k <= m+n; k++)
       {  /* determine lower bound */
          lb = mir->lb[k];
@@ -447,7 +447,7 @@ static void check_agg_row(glp_mir *mir)
       int m = mir->m;
       int n = mir->n;
       int j, k;
-      double r, big;
+      glp_double r, big;
       /* compute the residual r = sum a[k] * x[k] - b and determine
          big = max(1, |a[k]|, |b|) */
       r = 0.0, big = 1.0;
@@ -483,7 +483,7 @@ static void subst_fixed_vars(glp_mir *mir)
          }
       }
       /* remove terms corresponding to fixed variables */
-      spv_clean_vec(mir->agg_vec, DBL_EPSILON);
+      spv_clean_vec(mir->agg_vec, GLP_DBL_EPSILON);
 #if MIR_DEBUG
       spv_check_vec(mir->agg_vec);
 #endif
@@ -495,7 +495,7 @@ static void bound_subst_heur(glp_mir *mir)
       int m = mir->m;
       int n = mir->n;
       int j, k, kk;
-      double d1, d2;
+      glp_double d1, d2;
       for (j = 1; j <= mir->agg_vec->nnz; j++)
       {  k = mir->agg_vec->ind[j];
          xassert(1 <= k && k <= m+n);
@@ -639,7 +639,7 @@ static void check_mod_row(glp_mir *mir)
       int m = mir->m;
       int n = mir->n;
       int j, k, kk;
-      double r, big, x;
+      glp_double r, big, x;
       /* compute the residual r = sum a'[k] * x'[k] - b' and determine
          big = max(1, |a[k]|, |b|) */
       r = 0.0, big = 1.0;
@@ -700,10 +700,10 @@ static void check_mod_row(glp_mir *mir)
 *  be numeric difficulties due to big coefficients; so in this case the
 *  routine returns non-zero. */
 
-static int mir_ineq(const int n, const double a[], const double b,
-      double alpha[], double *beta, double *gamma)
+static int mir_ineq(const int n, const glp_double a[], const glp_double b,
+      glp_double alpha[], glp_double *beta, glp_double *gamma)
 {     int j;
-      double f, t;
+      glp_double f, t;
       if (fabs(b - floor(b + .5)) < 0.01)
          return 1;
       f = b - floor(b);
@@ -743,11 +743,11 @@ static int mir_ineq(const int n, const double a[], const double b,
 *  difficulties due to big coefficients (see comments to the routine
 *  mir_ineq), the routine cmir_ineq returns non-zero. */
 
-static int cmir_ineq(const int n, const double a[], const double b,
-      const double u[], const char cset[], const double delta,
-      double alpha[], double *beta, double *gamma)
+static int cmir_ineq(const int n, const glp_double a[], const glp_double b,
+      const glp_double u[], const char cset[], const glp_double delta,
+      glp_double alpha[], glp_double *beta, glp_double *gamma)
 {     int j;
-      double *aa, bb;
+      glp_double *aa, bb;
       aa = alpha, bb = b;
       for (j = 1; j <= n; j++)
       {  aa[j] = a[j] / delta;
@@ -796,7 +796,7 @@ static int cmir_ineq(const int n, const double a[], const double b,
 *
 *  which is positive. In case of failure the routine returns zero. */
 
-struct vset { int j; double v; };
+struct vset { int j; glp_double v; };
 
 static int CDECL cmir_cmp(const void *p1, const void *p2)
 {     const struct vset *v1 = p1, *v2 = p2;
@@ -805,11 +805,11 @@ static int CDECL cmir_cmp(const void *p1, const void *p2)
       return 0;
 }
 
-static double cmir_sep(const int n, const double a[], const double b,
-      const double u[], const double x[], const double s,
-      double alpha[], double *beta, double *gamma)
+static glp_double cmir_sep(const int n, const glp_double a[], const glp_double b,
+      const glp_double u[], const glp_double x[], const glp_double s,
+      glp_double alpha[], glp_double *beta, glp_double *gamma)
 {     int fail, j, k, nv, v;
-      double delta, eps, d_try[1+3], r, r_best;
+      glp_double delta, eps, d_try[1+3], r, r_best;
       char *cset;
       struct vset *vset;
       /* allocate working arrays */
@@ -892,17 +892,17 @@ done: /* free working arrays */
       return r_best;
 }
 
-static double generate(glp_mir *mir)
+static glp_double generate(glp_mir *mir)
 {     /* try to generate violated c-MIR cut for modified constraint */
       int m = mir->m;
       int n = mir->n;
       int j, k, kk, nint;
-      double s, *u, *x, *alpha, r_best = 0.0, b, beta, gamma;
+      glp_double s, *u, *x, *alpha, r_best = 0.0, b, beta, gamma;
       spv_copy_vec(mir->cut_vec, mir->mod_vec);
       mir->cut_rhs = mir->mod_rhs;
       /* remove small terms, which can appear due to substitution of
          variable bounds */
-      spv_clean_vec(mir->cut_vec, DBL_EPSILON);
+      spv_clean_vec(mir->cut_vec, GLP_DBL_EPSILON);
 #if MIR_DEBUG
       spv_check_vec(mir->cut_vec);
 #endif
@@ -924,7 +924,7 @@ static double generate(glp_mir *mir)
       {  k = mir->cut_vec->ind[j];
          xassert(1 <= k && k <= m+n);
          if (mir->isint[k])
-         {  double temp;
+         {  glp_double temp;
             nint++;
             /* interchange elements [nint] and [j] */
             kk = mir->cut_vec->ind[nint];
@@ -943,9 +943,9 @@ static double generate(glp_mir *mir)
       /* if there is no integer variable, nothing to generate */
       if (nint == 0) goto done;
       /* allocate working arrays */
-      u = xcalloc(1+nint, sizeof(double));
-      x = xcalloc(1+nint, sizeof(double));
-      alpha = xcalloc(1+nint, sizeof(double));
+      u = xcalloc(1+nint, sizeof(glp_double));
+      x = xcalloc(1+nint, sizeof(glp_double));
+      alpha = xcalloc(1+nint, sizeof(glp_double));
       /* determine u and x */
       for (j = 1; j <= nint; j++)
       {  k = mir->cut_vec->ind[j];
@@ -973,7 +973,7 @@ static double generate(glp_mir *mir)
       /* compute s = - sum of continuous terms */
       s = 0.0;
       for (j = nint+1; j <= mir->cut_vec->nnz; j++)
-      {  double x;
+      {  glp_double x;
          k = mir->cut_vec->ind[j];
          xassert(1 <= k && k <= m+n);
          /* must be continuous */
@@ -1035,12 +1035,12 @@ done: return r_best;
 }
 
 #if MIR_DEBUG
-static void check_raw_cut(glp_mir *mir, double r_best)
+static void check_raw_cut(glp_mir *mir, glp_double r_best)
 {     /* check raw cut before back bound substitution */
       int m = mir->m;
       int n = mir->n;
       int j, k, kk;
-      double r, big, x;
+      glp_double r, big, x;
       /* compute the residual r = sum a[k] * x[k] - b and determine
          big = max(1, |a[k]|, |b|) */
       r = 0.0, big = 1.0;
@@ -1168,13 +1168,13 @@ static void back_subst(glp_mir *mir)
 }
 
 #if MIR_DEBUG
-static void check_cut_row(glp_mir *mir, double r_best)
+static void check_cut_row(glp_mir *mir, glp_double r_best)
 {     /* check the cut after back bound substitution or elimination of
          auxiliary variables */
       int m = mir->m;
       int n = mir->n;
       int j, k;
-      double r, big;
+      glp_double r, big;
       /* compute the residual r = sum a[k] * x[k] - b and determine
          big = max(1, |a[k]|, |b|) */
       r = 0.0, big = 1.0;
@@ -1226,7 +1226,7 @@ static void add_cut(glp_mir *mir, glp_prob *pool)
       int n = mir->n;
       int j, k, len;
       int *ind = xcalloc(1+n, sizeof(int));
-      double *val = xcalloc(1+n, sizeof(double));
+      glp_double *val = xcalloc(1+n, sizeof(glp_double));
       len = 0;
       for (j = mir->cut_vec->nnz; j >= 1; j--)
       {  k = mir->cut_vec->ind[j];
@@ -1266,7 +1266,7 @@ static int aggregate_row(glp_prob *mip, glp_mir *mir, SPV *v)
       SPV *v;
 #endif
       int ii, j, jj, k, kk, kappa = 0, ret = 0;
-      double d1, d2, d, d_max = 0.0;
+      glp_double d1, d2, d, d_max = 0.0;
       /* choose appropriate structural variable in the aggregated row
          to be substituted */
       for (j = 1; j <= mir->agg_vec->nnz; j++)
@@ -1388,7 +1388,7 @@ int glp_mir_gen(glp_prob *mip, glp_mir *mir, glp_prob *pool)
       int m = mir->m;
       int n = mir->n;
       int i, nnn = 0;
-      double r_best;
+      glp_double r_best;
 #if 1 /* 29/II-2016 by Chris */
       SPV *work;
 #endif

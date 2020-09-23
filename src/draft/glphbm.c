@@ -283,7 +283,7 @@ static int read_int_array(struct dsa *dsa, char *name, char *fmt,
 *  non-zero. */
 
 static int read_real_array(struct dsa *dsa, char *name, char *fmt,
-      int n, double val[])
+      int n, glp_double val[])
 {     int k, pos;
       char str[80+1], *ptr;
       if (parse_fmt(dsa, fmt)) return 1;
@@ -423,13 +423,13 @@ HBM *hbm_read_mat(const char *fname)
       if (hbm->valcrd <= 0) goto done;
       if (hbm->mxtype[2] == 'A')
       {  /* assembled matrix */
-         hbm->values = xcalloc(1+hbm->nnzero, sizeof(double));
+         hbm->values = xcalloc(1+hbm->nnzero, sizeof(glp_double));
          if (read_real_array(dsa, "values", hbm->valfmt, hbm->nnzero,
             hbm->values)) goto fail;
       }
       else
       {  /* elemental (unassembled) matrix */
-         hbm->values = xcalloc(1+hbm->neltvl, sizeof(double));
+         hbm->values = xcalloc(1+hbm->neltvl, sizeof(glp_double));
          if (read_real_array(dsa, "values", hbm->valfmt, hbm->neltvl,
             hbm->values)) goto fail;
       }
@@ -438,7 +438,7 @@ HBM *hbm_read_mat(const char *fname)
       if (hbm->rhstyp[0] == 'F')
       {  /* dense format */
          hbm->nrhsvl = hbm->nrow * hbm->nrhs;
-         hbm->rhsval = xcalloc(1+hbm->nrhsvl, sizeof(double));
+         hbm->rhsval = xcalloc(1+hbm->nrhsvl, sizeof(glp_double));
          if (read_real_array(dsa, "rhsval", hbm->rhsfmt, hbm->nrhsvl,
             hbm->rhsval)) goto fail;
       }
@@ -453,13 +453,13 @@ HBM *hbm_read_mat(const char *fname)
          if (read_int_array(dsa, "rhsind", hbm->indfmt, hbm->nrhsix,
             hbm->rhsind)) goto fail;
          /* read values */
-         hbm->rhsval = xcalloc(1+hbm->nrhsix, sizeof(double));
+         hbm->rhsval = xcalloc(1+hbm->nrhsix, sizeof(glp_double));
          if (read_real_array(dsa, "rhsval", hbm->rhsfmt, hbm->nrhsix,
             hbm->rhsval)) goto fail;
       }
       else if (hbm->rhstyp[0] == 'M' && hbm->mxtype[2] == 'E')
       {  /* elemental format */
-         hbm->rhsval = xcalloc(1+hbm->nrhsvl, sizeof(double));
+         hbm->rhsval = xcalloc(1+hbm->nrhsvl, sizeof(glp_double));
          if (read_real_array(dsa, "rhsval", hbm->rhsfmt, hbm->nrhsvl,
             hbm->rhsval)) goto fail;
       }
@@ -471,14 +471,14 @@ HBM *hbm_read_mat(const char *fname)
       /* read starting guesses */
       if (hbm->rhstyp[1] == 'G')
       {  hbm->nguess = hbm->nrow * hbm->nrhs;
-         hbm->sguess = xcalloc(1+hbm->nguess, sizeof(double));
+         hbm->sguess = xcalloc(1+hbm->nguess, sizeof(glp_double));
          if (read_real_array(dsa, "sguess", hbm->rhsfmt, hbm->nguess,
             hbm->sguess)) goto fail;
       }
       /* read solution vectors */
       if (hbm->rhstyp[2] == 'X')
       {  hbm->nexact = hbm->nrow * hbm->nrhs;
-         hbm->xexact = xcalloc(1+hbm->nexact, sizeof(double));
+         hbm->xexact = xcalloc(1+hbm->nexact, sizeof(glp_double));
          if (read_real_array(dsa, "xexact", hbm->rhsfmt, hbm->nexact,
             hbm->xexact)) goto fail;
       }

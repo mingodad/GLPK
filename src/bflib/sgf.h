@@ -71,7 +71,7 @@ struct SGF
        *       pivoting routine according to Uwe Suhl's heuristic */
       /*--------------------------------------------------------------*/
       /* working arrays */
-      double *vr_max; /* int vr_max[1+n]; */
+      glp_double *vr_max; /* int vr_max[1+n]; */
       /* vr_max[0] is not used;
        * vr_max[i], 1 <= i <= n, is used only if i-th row of matrix V
        * is active (i.e. belongs to the active submatrix), and is the
@@ -79,7 +79,7 @@ struct SGF
        * the largest magnitude is unknown yet */
       char *flag; /* char flag[1+n]; */
       /* boolean working array */
-      double *work; /* double work[1+n]; */
+      glp_double *work; /* glp_double work[1+n]; */
       /* floating-point working array */
       /*--------------------------------------------------------------*/
       /* control parameters */
@@ -87,7 +87,7 @@ struct SGF
       /* if this flag is set, the matrix V is assumed to be updatable;
        * in this case factorized (non-active) part of V is stored in
        * the left part of SVA rather than in its right part */
-      double piv_tol;
+      glp_double piv_tol;
       /* threshold pivoting tolerance, 0 < piv_tol < 1; element v[i,j]
        * of the active submatrix fits to be pivot if it satisfies to
        * the stability criterion |v[i,j]| >= piv_tol * max |v[i,*]|,
@@ -107,11 +107,11 @@ struct SGF
        * from futher consideration until it becomes column singleton;
        * in many cases this allows reducing the time needed to choose
        * the pivot */
-      double eps_tol;
+      glp_double eps_tol;
       /* epsilon tolerance; each element of the active submatrix, whose
        * magnitude is less than eps_tol, is replaced by exact zero */
 #if 0 /* FIXME */
-      double den_lim;
+      glp_double den_lim;
       /* density limit; if the density of the active submatrix reaches
        * this limit, the factorization routine switches from sparse to
        * dense mode */
@@ -175,7 +175,7 @@ int sgf_reduce_nuc(LUF *luf, int *k1, int *k2, int cnt[/*1+n*/],
 
 #define sgf_singl_phase _glp_sgf_singl_phase
 int sgf_singl_phase(LUF *luf, int k1, int k2, int updat,
-      int ind[/*1+n*/], double val[/*1+n*/]);
+      int ind[/*1+n*/], glp_double val[/*1+n*/]);
 /* compute LU-factorization (singleton phase) */
 
 #define sgf_choose_pivot _glp_sgf_choose_pivot
@@ -187,7 +187,7 @@ int sgf_eliminate(SGF *sgf, int p, int q);
 /* perform gaussian elimination */
 
 #define sgf_dense_lu _glp_sgf_dense_lu
-int sgf_dense_lu(int n, double a[], int r[], int c[], double eps);
+int sgf_dense_lu(int n, glp_double a[], int r[], int c[], glp_double eps);
 /* compute dense LU-factorization with full pivoting */
 
 #define sgf_dense_phase _glp_sgf_dense_phase

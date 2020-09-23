@@ -152,7 +152,7 @@ struct BTF
       int vr_ref;
       /* reference number of sparse vector in SVA, which is the first
          row of matrix V for first diagonal block A~[1,1] */
-      double *vr_piv; /* double vr_piv[1+n]; */
+      glp_double *vr_piv; /* glp_double vr_piv[1+n]; */
       /* vr_piv[0] is not used;
          vr_piv[1,...,n] are pivot elements for all diagonal blocks */
       int vc_ref;
@@ -167,7 +167,7 @@ struct BTF
 
 #define btf_store_a_cols _glp_btf_store_a_cols
 int btf_store_a_cols(BTF *btf, int (*col)(void *info, int j, int ind[],
-      double val[]), void *info, int ind[], double val[]);
+      glp_double val[]), void *info, int ind[], glp_double val[]);
 /* store pattern of matrix A in column-wise format */
 
 #define btf_make_blocks _glp_btf_make_blocks
@@ -183,23 +183,23 @@ void btf_build_a_rows(BTF *btf, int len[/*1+n*/]);
 /* build matrix A in row-wise format */
 
 #define btf_a_solve _glp_btf_a_solve
-void btf_a_solve(BTF *btf, double b[/*1+n*/], double x[/*1+n*/],
-      double w1[/*1+n*/], double w2[/*1+n*/]);
+void btf_a_solve(BTF *btf, glp_double b[/*1+n*/], glp_double x[/*1+n*/],
+      glp_double w1[/*1+n*/], glp_double w2[/*1+n*/]);
 /* solve system A * x = b */
 
 #define btf_at_solve _glp_btf_at_solve
-void btf_at_solve(BTF *btf, double b[/*1+n*/], double x[/*1+n*/],
-      double w1[/*1+n*/], double w2[/*1+n*/]);
+void btf_at_solve(BTF *btf, glp_double b[/*1+n*/], glp_double x[/*1+n*/],
+      glp_double w1[/*1+n*/], glp_double w2[/*1+n*/]);
 /* solve system A'* x = b */
 
 #define btf_at_solve1 _glp_btf_at_solve1
-void btf_at_solve1(BTF *btf, double e[/*1+n*/], double y[/*1+n*/],
-      double w1[/*1+n*/], double w2[/*1+n*/]);
+void btf_at_solve1(BTF *btf, glp_double e[/*1+n*/], glp_double y[/*1+n*/],
+      glp_double w1[/*1+n*/], glp_double w2[/*1+n*/]);
 /* solve system A'* y = e' to cause growth in y */
 
 #define btf_estimate_norm _glp_btf_estimate_norm
-double btf_estimate_norm(BTF *btf, double w1[/*1+n*/], double
-      w2[/*1+n*/], double w3[/*1+n*/], double w4[/*1+n*/]);
+glp_double btf_estimate_norm(BTF *btf, glp_double w1[/*1+n*/], glp_double
+      w2[/*1+n*/], glp_double w3[/*1+n*/], glp_double w4[/*1+n*/]);
 /* estimate 1-norm of inv(A) */
 
 #endif

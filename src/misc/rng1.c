@@ -32,16 +32,16 @@
 *  SYNOPSIS
 *
 *  #include "rng.h"
-*  double rng_unif_01(RNG *rand);
+*  glp_double rng_unif_01(RNG *rand);
 *
 *  RETURNS
 *
 *  The routine rng_unif_01 returns a next pseudo-random number which is
 *  uniformly distributed in the range [0, 1]. */
 
-double rng_unif_01(RNG *rand)
-{     double x;
-      x = (double)rng_next_rand(rand) / 2147483647.0;
+glp_double rng_unif_01(RNG *rand)
+{     glp_double x;
+      x = (glp_double)rng_next_rand(rand) / 2147483647.0;
       xassert(0.0 <= x && x <= 1.0);
       return x;
 }
@@ -54,15 +54,15 @@ double rng_unif_01(RNG *rand)
 *  SYNOPSIS
 *
 *  #include "rng.h"
-*  double rng_uniform(RNG *rand, double a, double b);
+*  glp_double rng_uniform(RNG *rand, glp_double a, glp_double b);
 *
 *  RETURNS
 *
 *  The routine rng_uniform returns a next pseudo-random number which is
 *  uniformly distributed in the range [a, b]. */
 
-double rng_uniform(RNG *rand, double a, double b)
-{     double x;
+glp_double rng_uniform(RNG *rand, glp_double a, glp_double b)
+{     glp_double x;
       xassert(a < b);
       x = rng_unif_01(rand);
       x = a * (1.0 - x) + b * x;

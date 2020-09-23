@@ -49,7 +49,7 @@ int glp_asnprob_lp(glp_prob *P, int form, glp_graph *G, int names,
 {     glp_vertex *v;
       glp_arc *a;
       int i, j, ret, ind[1+2];
-      double cost, val[1+2];
+      glp_double cost, val[1+2];
       if (!(form == GLP_ASN_MIN || form == GLP_ASN_MAX ||
             form == GLP_ASN_MMP))
          xerror("glp_asnprob_lp: form = %d; invalid parameter\n",
@@ -60,7 +60,7 @@ int glp_asnprob_lp(glp_prob *P, int form, glp_graph *G, int names,
       if (v_set >= 0 && v_set > G->v_size - (int)sizeof(int))
          xerror("glp_asnprob_lp: v_set = %d; invalid offset\n",
             v_set);
-      if (a_cost >= 0 && a_cost > G->a_size - (int)sizeof(double))
+      if (a_cost >= 0 && a_cost > G->a_size - (int)sizeof(glp_double))
          xerror("glp_asnprob_lp: a_cost = %d; invalid offset\n",
             a_cost);
       ret = glp_check_asnprob(G, v_set);
@@ -91,7 +91,7 @@ int glp_asnprob_lp(glp_prob *P, int form, glp_graph *G, int names,
             glp_set_mat_col(P, j, 2, ind, val);
             glp_set_col_bnds(P, j, GLP_DB, 0.0, 1.0);
             if (a_cost >= 0)
-               memcpy(&cost, (char *)a->data + a_cost, sizeof(double));
+               memcpy(&cost, (char *)a->data + a_cost, sizeof(glp_double));
             else
                cost = 1.0;
             glp_set_obj_coef(P, j, cost);

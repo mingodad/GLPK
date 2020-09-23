@@ -91,11 +91,11 @@ void spx_alloc_lp(SPXLP *lp)
       int nnz = lp->nnz;
       lp->A_ptr = talloc(1+n+1, int);
       lp->A_ind = talloc(1+nnz, int);
-      lp->A_val = talloc(1+nnz, double);
-      lp->b = talloc(1+m, double);
-      lp->c = talloc(1+n, double);
-      lp->l = talloc(1+n, double);
-      lp->u = talloc(1+n, double);
+      lp->A_val = talloc(1+nnz, glp_double);
+      lp->b = talloc(1+m, glp_double);
+      lp->c = talloc(1+n, glp_double);
+      lp->l = talloc(1+n, glp_double);
+      lp->u = talloc(1+n, glp_double);
       lp->head = talloc(1+n, int);
       lp->flag = talloc(1+n-m, char);
       return;
@@ -147,13 +147,13 @@ void spx_build_lp(SPXLP *lp, glp_prob *P, int excl, int shift,
       int nnz = lp->nnz;
       int *A_ptr = lp->A_ptr;
       int *A_ind = lp->A_ind;
-      double *A_val = lp->A_val;
-      double *b = lp->b;
-      double *c = lp->c;
-      double *l = lp->l;
-      double *u = lp->u;
+      glp_double *A_val = lp->A_val;
+      glp_double *b = lp->b;
+      glp_double *c = lp->c;
+      glp_double *l = lp->l;
+      glp_double *u = lp->u;
       int i, j, k, kk, ptr, end;
-      double dir, delta;
+      glp_double dir, delta;
       /* working LP is always minimization */
       switch (P->dir)
       {  case GLP_MIN:
@@ -568,12 +568,12 @@ void spx_store_basis(SPXLP *lp, glp_prob *P, const int map[],
 *  non-basic variables d = (d[j]). */
 
 void spx_store_sol(SPXLP *lp, glp_prob *P, int shift,
-      const int map[], const int daeh[], const double beta[],
-      const double pi[], const double d[])
+      const int map[], const int daeh[], const glp_double beta[],
+      const glp_double pi[], const glp_double d[])
 {     int m = lp->m;
       char *flag = lp->flag;
       int i, j, k, kk;
-      double dir;
+      glp_double dir;
       /* working LP is always minimization */
       switch (P->dir)
       {  case GLP_MIN:
@@ -625,7 +625,7 @@ void spx_store_sol(SPXLP *lp, glp_prob *P, int shift,
          if (k == 0)
          {  /* non-basic fixed structural variable was excluded */
             GLPAIJ *aij;
-            double dk;
+            glp_double dk;
             xassert(col->type == GLP_FX);
             col->prim = col->lb;
             /* compute reduced cost d[k] = c[k] - A'[k] * pi as if x[k]

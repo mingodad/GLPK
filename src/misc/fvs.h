@@ -38,7 +38,7 @@ struct FVS
        * non-zero indices in the array ind are stored in arbitrary
        * order; if vec[j] = 0, its index j SHOULD NOT be presented in
        * the array ind */
-      double *vec; /* double vec[1+n]; */
+      glp_double *vec; /* glp_double vec[1+n]; */
       /* vec[0] is not used;
        * vec[j], 1 <= j <= n, is a numeric value of j-th element */
 };
@@ -52,7 +52,7 @@ void fvs_check_vec(const FVS *x);
 /* check sparse vector */
 
 #define fvs_gather_vec _glp_fvs_gather_vec
-void fvs_gather_vec(FVS *x, double eps);
+void fvs_gather_vec(FVS *x, glp_double eps);
 /* gather sparse vector */
 
 #define fvs_clear_vec _glp_fvs_clear_vec
@@ -64,7 +64,7 @@ void fvs_copy_vec(FVS *x, const FVS *y);
 /* copy sparse vector */
 
 #define fvs_adjust_vec _glp_fvs_adjust_vec
-void fvs_adjust_vec(FVS *x, double eps);
+void fvs_adjust_vec(FVS *x, glp_double eps);
 /* replace tiny vector elements by exact zeros */
 
 #define fvs_free_vec _glp_fvs_free_vec

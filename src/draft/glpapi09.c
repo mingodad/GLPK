@@ -730,16 +730,16 @@ int glp_mip_status(glp_prob *mip)
 *
 *  SYNOPSIS
 *
-*  double glp_mip_obj_val(glp_prob *mip);
+*  glp_double glp_mip_obj_val(glp_prob *mip);
 *
 *  RETURNS
 *
 *  The routine glp_mip_obj_val returns value of the objective function
 *  for MIP solution. */
 
-double glp_mip_obj_val(glp_prob *mip)
+glp_double glp_mip_obj_val(glp_prob *mip)
 {     /*struct LPXCPS *cps = mip->cps;*/
-      double z;
+      glp_double z;
       z = mip->mip_obj;
       /*if (cps->round && fabs(z) < 1e-9) z = 0.0;*/
       return z;
@@ -752,16 +752,16 @@ double glp_mip_obj_val(glp_prob *mip)
 *
 *  SYNOPSIS
 *
-*  double glp_mip_row_val(glp_prob *mip, int i);
+*  glp_double glp_mip_row_val(glp_prob *mip, int i);
 *
 *  RETURNS
 *
 *  The routine glp_mip_row_val returns value of the auxiliary variable
 *  associated with i-th row. */
 
-double glp_mip_row_val(glp_prob *mip, int i)
+glp_double glp_mip_row_val(glp_prob *mip, int i)
 {     /*struct LPXCPS *cps = mip->cps;*/
-      double mipx;
+      glp_double mipx;
       if (!(1 <= i && i <= mip->m))
          xerror("glp_mip_row_val: i = %d; row number out of range\n", i)
             ;
@@ -777,16 +777,16 @@ double glp_mip_row_val(glp_prob *mip, int i)
 *
 *  SYNOPSIS
 *
-*  double glp_mip_col_val(glp_prob *mip, int j);
+*  glp_double glp_mip_col_val(glp_prob *mip, int j);
 *
 *  RETURNS
 *
 *  The routine glp_mip_col_val returns value of the structural variable
 *  associated with j-th column. */
 
-double glp_mip_col_val(glp_prob *mip, int j)
+glp_double glp_mip_col_val(glp_prob *mip, int j)
 {     /*struct LPXCPS *cps = mip->cps;*/
-      double mipx;
+      glp_double mipx;
       if (!(1 <= j && j <= mip->n))
          xerror("glp_mip_col_val: j = %d; column number out of range\n",
             j);

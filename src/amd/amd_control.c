@@ -18,13 +18,13 @@
 
 GLOBAL void AMD_control
 (
-    double Control [ ]
+    glp_double Control [ ]
 )
 {
-    double alpha ;
+    glp_double alpha ;
     Int aggressive ;
 
-    if (Control != (double *) NULL)
+    if (Control != (glp_double *) NULL)
     {
         alpha = Control [AMD_DENSE] ;
         aggressive = Control [AMD_AGGRESSIVE] != 0 ;

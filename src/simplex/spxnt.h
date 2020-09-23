@@ -47,7 +47,7 @@ struct SPXNT
        * of current matrix N */
       int *ind; /* int ind[1+nnz]; */
       /* column indices */
-      double *val; /* double val[1+nnz]; */
+      glp_double *val; /* glp_double val[1+nnz]; */
       /* non-zero element values */
 };
 
@@ -76,14 +76,14 @@ void spx_update_nt(SPXLP *lp, SPXNT *nt, int p, int q);
 /* update matrix N for adjacent basis */
 
 #define spx_nt_prod _glp_spx_nt_prod
-void spx_nt_prod(SPXLP *lp, SPXNT *nt, double y[/*1+n-m*/], int ign,
-      double s, const double x[/*1+m*/]);
+void spx_nt_prod(SPXLP *lp, SPXNT *nt, glp_double y[/*1+n-m*/], int ign,
+      glp_double s, const glp_double x[/*1+m*/]);
 /* compute product y := y + s * N'* x */
 
 #if 1 /* 31/III-2016 */
 #define spx_nt_prod_s _glp_spx_nt_prod_s
-void spx_nt_prod_s(SPXLP *lp, SPXNT *nt, FVS *y, int ign, double s,
-      const FVS *x, double eps);
+void spx_nt_prod_s(SPXLP *lp, SPXNT *nt, FVS *y, int ign, glp_double s,
+      const FVS *x, glp_double eps);
 /* sparse version of spx_nt_prod */
 #endif
 

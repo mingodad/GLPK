@@ -139,11 +139,11 @@
 #define MAXTRY 10000
 #endif
 
-static int cover2(int n, double a[], double b, double u, double x[],
-      double y, int cov[], double *_alfa, double *_beta)
+static int cover2(int n, glp_double a[], glp_double b, glp_double u, glp_double x[],
+      glp_double y, int cov[], glp_double *_alfa, glp_double *_beta)
 {     /* try to generate mixed cover cut using two-element cover */
       int i, j, try = 0, ret = 0;
-      double eps, alfa, beta, temp, rmax = 0.001;
+      glp_double eps, alfa, beta, temp, rmax = 0.001;
       eps = 0.001 * (1.0 + fabs(b));
       for (i = 0+1; i <= n; i++)
       for (j = i+1; j <= n; j++)
@@ -172,11 +172,11 @@ static int cover2(int n, double a[], double b, double u, double x[],
 done: return ret;
 }
 
-static int cover3(int n, double a[], double b, double u, double x[],
-      double y, int cov[], double *_alfa, double *_beta)
+static int cover3(int n, glp_double a[], glp_double b, glp_double u, glp_double x[],
+      glp_double y, int cov[], glp_double *_alfa, glp_double *_beta)
 {     /* try to generate mixed cover cut using three-element cover */
       int i, j, k, try = 0, ret = 0;
-      double eps, alfa, beta, temp, rmax = 0.001;
+      glp_double eps, alfa, beta, temp, rmax = 0.001;
       eps = 0.001 * (1.0 + fabs(b));
       for (i = 0+1; i <= n; i++)
       for (j = i+1; j <= n; j++)
@@ -207,11 +207,11 @@ static int cover3(int n, double a[], double b, double u, double x[],
 done: return ret;
 }
 
-static int cover4(int n, double a[], double b, double u, double x[],
-      double y, int cov[], double *_alfa, double *_beta)
+static int cover4(int n, glp_double a[], glp_double b, glp_double u, glp_double x[],
+      glp_double y, int cov[], glp_double *_alfa, glp_double *_beta)
 {     /* try to generate mixed cover cut using four-element cover */
       int i, j, k, l, try = 0, ret = 0;
-      double eps, alfa, beta, temp, rmax = 0.001;
+      glp_double eps, alfa, beta, temp, rmax = 0.001;
       eps = 0.001 * (1.0 + fabs(b));
       for (i = 0+1; i <= n; i++)
       for (j = i+1; j <= n; j++)
@@ -244,8 +244,8 @@ static int cover4(int n, double a[], double b, double u, double x[],
 done: return ret;
 }
 
-static int cover(int n, double a[], double b, double u, double x[],
-      double y, int cov[], double *alfa, double *beta)
+static int cover(int n, glp_double a[], glp_double b, glp_double u, glp_double x[],
+      glp_double y, int cov[], glp_double *alfa, glp_double *beta)
 {     /* try to generate mixed cover cut;
          input (see (5)):
          n        is the number of binary variables;
@@ -287,8 +287,8 @@ static int cover(int n, double a[], double b, double u, double x[],
 --
 -- SYNOPSIS
 --
--- int lpx_cover_cut(LPX *lp, int len, int ind[], double val[],
---    double work[]);
+-- int lpx_cover_cut(LPX *lp, int len, int ind[], glp_double val[],
+--    glp_double work[]);
 --
 -- DESCRIPTION
 --
@@ -320,9 +320,9 @@ static int cover(int n, double a[], double b, double u, double x[],
 -- in the inequality constraint. Otherwise, the routine returns zero. */
 
 static int lpx_cover_cut(glp_prob *lp, int len, int ind[],
-      double val[], double work[])
+      glp_double val[], glp_double work[])
 {     int cov[1+4], j, k, nb, newlen, r;
-      double f_min, f_max, alfa, beta, u, *x = work, y;
+      glp_double f_min, f_max, alfa, beta, u, *x = work, y;
       /* substitute and remove fixed variables */
       newlen = 0;
       for (k = 1; k <= len; k++)
@@ -345,7 +345,7 @@ static int lpx_cover_cut(glp_prob *lp, int len, int ind[],
          if (glp_get_col_kind(lp, j) == GLP_BV)
          {  /* binary variable */
             int ind_k;
-            double val_k;
+            glp_double val_k;
             nb++;
             ind_k = ind[nb], val_k = val[nb];
             ind[nb] = ind[k], val[nb] = val[k];
@@ -449,7 +449,7 @@ static int lpx_cover_cut(glp_prob *lp, int len, int ind[],
 --
 -- SYNOPSIS
 --
--- double lpx_eval_row(LPX *lp, int len, int ind[], double val[]);
+-- glp_double lpx_eval_row(LPX *lp, int len, int ind[], glp_double val[]);
 --
 -- DESCRIPTION
 --
@@ -473,11 +473,11 @@ static int lpx_cover_cut(glp_prob *lp, int len, int ind[],
 -- The routine returns a computed value of y, the auxiliary variable of
 -- the specified row. */
 
-static double lpx_eval_row(glp_prob *lp, int len, int ind[],
-      double val[])
+static glp_double lpx_eval_row(glp_prob *lp, int len, int ind[],
+      glp_double val[])
 {     int n = glp_get_num_cols(lp);
       int j, k;
-      double sum = 0.0;
+      glp_double sum = 0.0;
       if (len < 0)
          xerror("lpx_eval_row: len = %d; invalid row length\n", len);
       for (k = 1; k <= len; k++)
@@ -510,12 +510,12 @@ void ios_cov_gen(glp_tree *tree)
       int m = glp_get_num_rows(prob);
       int n = glp_get_num_cols(prob);
       int i, k, type, kase, len, *ind;
-      double r, *val, *work;
+      glp_double r, *val, *work;
       xassert(glp_get_status(prob) == GLP_OPT);
       /* allocate working arrays */
       ind = xcalloc(1+n, sizeof(int));
-      val = xcalloc(1+n, sizeof(double));
-      work = xcalloc(1+n, sizeof(double));
+      val = xcalloc(1+n, sizeof(glp_double));
+      work = xcalloc(1+n, sizeof(glp_double));
       /* look through all rows */
       for (i = 1; i <= m; i++)
       for (kase = 1; kase <= 2; kase++)

@@ -59,18 +59,18 @@ int glp_read_mincost(glp_graph *G, int v_rhs, int a_low, int a_cap,
       glp_vertex *v;
       glp_arc *a;
       int i, j, k, nv, na, ret = 0;
-      double rhs, low, cap, cost;
+      glp_double rhs, low, cap, cost;
       char *flag = NULL;
-      if (v_rhs >= 0 && v_rhs > G->v_size - (int)sizeof(double))
+      if (v_rhs >= 0 && v_rhs > G->v_size - (int)sizeof(glp_double))
          xerror("glp_read_mincost: v_rhs = %d; invalid offset\n",
             v_rhs);
-      if (a_low >= 0 && a_low > G->a_size - (int)sizeof(double))
+      if (a_low >= 0 && a_low > G->a_size - (int)sizeof(glp_double))
          xerror("glp_read_mincost: a_low = %d; invalid offset\n",
             a_low);
-      if (a_cap >= 0 && a_cap > G->a_size - (int)sizeof(double))
+      if (a_cap >= 0 && a_cap > G->a_size - (int)sizeof(glp_double))
          xerror("glp_read_mincost: a_cap = %d; invalid offset\n",
             a_cap);
-      if (a_cost >= 0 && a_cost > G->a_size - (int)sizeof(double))
+      if (a_cost >= 0 && a_cost > G->a_size - (int)sizeof(glp_double))
          xerror("glp_read_mincost: a_cost = %d; invalid offset\n",
             a_cost);
       glp_erase_graph(G, G->v_size, G->a_size);
@@ -115,7 +115,7 @@ int glp_read_mincost(glp_graph *G, int v_rhs, int a_low, int a_cap,
       {  rhs = 0.0;
          for (i = 1; i <= nv; i++)
          {  v = G->v[i];
-            memcpy((char *)v->data + v_rhs, &rhs, sizeof(double));
+            memcpy((char *)v->data + v_rhs, &rhs, sizeof(glp_double));
          }
       }
       for (;;)
@@ -134,7 +134,7 @@ int glp_read_mincost(glp_graph *G, int v_rhs, int a_low, int a_cap,
          check_int(csa, rhs);
          if (v_rhs >= 0)
          {  v = G->v[i];
-            memcpy((char *)v->data + v_rhs, &rhs, sizeof(double));
+            memcpy((char *)v->data + v_rhs, &rhs, sizeof(glp_double));
          }
          flag[i] = 1;
          end_of_line(csa);
@@ -169,11 +169,11 @@ int glp_read_mincost(glp_graph *G, int v_rhs, int a_low, int a_cap,
          check_int(csa, cost);
          a = glp_add_arc(G, i, j);
          if (a_low >= 0)
-            memcpy((char *)a->data + a_low, &low, sizeof(double));
+            memcpy((char *)a->data + a_low, &low, sizeof(glp_double));
          if (a_cap >= 0)
-            memcpy((char *)a->data + a_cap, &cap, sizeof(double));
+            memcpy((char *)a->data + a_cap, &cap, sizeof(glp_double));
          if (a_cost >= 0)
-            memcpy((char *)a->data + a_cost, &cost, sizeof(double));
+            memcpy((char *)a->data + a_cost, &cost, sizeof(glp_double));
          end_of_line(csa);
       }
       xprintf("%d lines were read\n", csa->count);

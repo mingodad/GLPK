@@ -34,7 +34,7 @@
 *  the factorization and returns the code provided by the factorization
 *  driver (bfd_factorize). */
 
-static int jth_col(void *info, int j, int ind[], double val[])
+static int jth_col(void *info, int j, int ind[], glp_double val[])
 {     /* provide column B[j] */
       SPXLP *lp = info;
       int m = lp->m;
@@ -46,7 +46,7 @@ static int jth_col(void *info, int j, int ind[], double val[])
       ptr = A_ptr[k];
       len = A_ptr[k+1] - ptr;
       memcpy(&ind[1], &lp->A_ind[ptr], len * sizeof(int));
-      memcpy(&val[1], &lp->A_val[ptr], len * sizeof(double));
+      memcpy(&val[1], &lp->A_val[ptr], len * sizeof(glp_double));
       return len;
 }
 
@@ -87,23 +87,23 @@ int spx_factorize(SPXLP *lp)
 *  On exit the routine stores components of the vector beta to array
 *  locations beta[1], ..., beta[m]. */
 
-void spx_eval_beta(SPXLP *lp, double beta[/*1+m*/])
+void spx_eval_beta(SPXLP *lp, glp_double beta[/*1+m*/])
 {     int m = lp->m;
       int n = lp->n;
       int *A_ptr = lp->A_ptr;
       int *A_ind = lp->A_ind;
-      double *A_val = lp->A_val;
-      double *b = lp->b;
-      double *l = lp->l;
-      double *u = lp->u;
+      glp_double *A_val = lp->A_val;
+      glp_double *b = lp->b;
+      glp_double *l = lp->l;
+      glp_double *u = lp->u;
       int *head = lp->head;
       char *flag = lp->flag;
       int j, k, ptr, end;
-      double fj, *y;
+      glp_double fj, *y;
       /* compute y = b - N * xN */
       /* y := b */
       y = beta;
-      memcpy(&y[1], &b[1], m * sizeof(double));
+      memcpy(&y[1], &b[1], m * sizeof(glp_double));
       /* y := y - N * f */
       for (j = 1; j <= n-m; j++)
       {  k = head[m+j]; /* x[k] = xN[j] */
@@ -148,16 +148,16 @@ void spx_eval_beta(SPXLP *lp, double beta[/*1+m*/])
 *  It as assumed that components of the vector beta are stored in the
 *  array locations beta[1], ..., beta[m]. */
 
-double spx_eval_obj(SPXLP *lp, const double beta[/*1+m*/])
+glp_double spx_eval_obj(SPXLP *lp, const glp_double beta[/*1+m*/])
 {     int m = lp->m;
       int n = lp->n;
-      double *c = lp->c;
-      double *l = lp->l;
-      double *u = lp->u;
+      glp_double *c = lp->c;
+      glp_double *l = lp->l;
+      glp_double *u = lp->u;
       int *head = lp->head;
       char *flag = lp->flag;
       int i, j, k;
-      double fj, z;
+      glp_double fj, z;
       /* compute z = cB'* beta + cN'* f + c0 */
       /* z := c0 */
       z = c[0];
@@ -198,12 +198,12 @@ double spx_eval_obj(SPXLP *lp, const double beta[/*1+m*/])
 *  On exit components of vector pi are stored in the array locations
 *  pi[1], ..., pi[m]. */
 
-void spx_eval_pi(SPXLP *lp, double pi[/*1+m*/])
+void spx_eval_pi(SPXLP *lp, glp_double pi[/*1+m*/])
 {     int m = lp->m;
-      double *c = lp->c;
+      glp_double *c = lp->c;
       int *head = lp->head;
       int i;
-      double *cB;
+      glp_double *cB;
       /* construct cB */
       cB = pi;
       for (i = 1; i <= m; i++)
@@ -228,14 +228,14 @@ void spx_eval_pi(SPXLP *lp, double pi[/*1+m*/])
 *  It as assumed that components of the vector pi are stored in the
 *  array locations pi[1], ..., pi[m]. */
 
-double spx_eval_dj(SPXLP *lp, const double pi[/*1+m*/], int j)
+glp_double spx_eval_dj(SPXLP *lp, const glp_double pi[/*1+m*/], int j)
 {     int m = lp->m;
       int n = lp->n;
       int *A_ptr = lp->A_ptr;
       int *A_ind = lp->A_ind;
-      double *A_val = lp->A_val;
+      glp_double *A_val = lp->A_val;
       int k, ptr, end;
-      double dj;
+      glp_double dj;
       xassert(1 <= j && j <= n-m);
       k = lp->head[m+j]; /* x[k] = xN[j] */
       /* dj := c[k] */
@@ -265,12 +265,12 @@ double spx_eval_dj(SPXLP *lp, const double pi[/*1+m*/], int j)
 *  On exit components of the simplex table column are stored in the
 *  array locations tcol[1], ... tcol[m]. */
 
-void spx_eval_tcol(SPXLP *lp, int j, double tcol[/*1+m*/])
+void spx_eval_tcol(SPXLP *lp, int j, glp_double tcol[/*1+m*/])
 {     int m = lp->m;
       int n = lp->n;
       int *A_ptr = lp->A_ptr;
       int *A_ind = lp->A_ind;
-      double *A_val = lp->A_val;
+      glp_double *A_val = lp->A_val;
       int *head = lp->head;
       int i, k, ptr, end;
       xassert(1 <= j && j <= n-m);
@@ -302,7 +302,7 @@ void spx_eval_tcol(SPXLP *lp, int j, double tcol[/*1+m*/])
 *  On exit components of the row are stored in the array locations
 *  row[1], ..., row[m]. */
 
-void spx_eval_rho(SPXLP *lp, int i, double rho[/*1+m*/])
+void spx_eval_rho(SPXLP *lp, int i, glp_double rho[/*1+m*/])
 {     int m = lp->m;
       int j;
       xassert(1 <= i && i <= m);
@@ -346,14 +346,14 @@ void spx_eval_rho_s(SPXLP *lp, int i, FVS *rho)
 *  It as assumed that components of the inverse row rho = (rho[j]) are
 *  stored in the array locations rho[1], ..., rho[m]. */
 
-double spx_eval_tij(SPXLP *lp, const double rho[/*1+m*/], int j)
+glp_double spx_eval_tij(SPXLP *lp, const glp_double rho[/*1+m*/], int j)
 {     int m = lp->m;
       int n = lp->n;
       int *A_ptr = lp->A_ptr;
       int *A_ind = lp->A_ind;
-      double *A_val = lp->A_val;
+      glp_double *A_val = lp->A_val;
       int k, ptr, end;
-      double tij;
+      glp_double tij;
       xassert(1 <= j && j <= n-m);
       k = lp->head[m+j]; /* x[k] = xN[j] */
       /* compute t[i,j] = - N'[j] * pi */
@@ -384,7 +384,7 @@ double spx_eval_tij(SPXLP *lp, const double rho[/*1+m*/], int j)
 *
 *  NOTE: For testing/debugging only. */
 
-void spx_eval_trow(SPXLP *lp, const double rho[/*1+m*/], double
+void spx_eval_trow(SPXLP *lp, const glp_double rho[/*1+m*/], glp_double
       trow[/*1+n-m*/])
 {     int m = lp->m;
       int n = lp->n;
@@ -455,16 +455,16 @@ void spx_eval_trow(SPXLP *lp, const double rho[/*1+m*/], double
 *  On exit the routine stores updated components of the vector beta to
 *  the same locations, where the input vector beta was stored. */
 
-void spx_update_beta(SPXLP *lp, double beta[/*1+m*/], int p,
-      int p_flag, int q, const double tcol[/*1+m*/])
+void spx_update_beta(SPXLP *lp, glp_double beta[/*1+m*/], int p,
+      int p_flag, int q, const glp_double tcol[/*1+m*/])
 {     int m = lp->m;
       int n = lp->n;
-      double *l = lp->l;
-      double *u = lp->u;
+      glp_double *l = lp->l;
+      glp_double *u = lp->u;
       int *head = lp->head;
       char *flag = lp->flag;
       int i, k;
-      double delta_p, delta_q;
+      glp_double delta_p, delta_q;
       if (p < 0)
       {  /* special case: xN[q] goes to its opposite bound */
          xassert(1 <= q && q <= n-m);
@@ -531,20 +531,20 @@ void spx_update_beta(SPXLP *lp, double beta[/*1+m*/], int p,
 }
 
 #if 1 /* 30/III-2016 */
-void spx_update_beta_s(SPXLP *lp, double beta[/*1+m*/], int p,
+void spx_update_beta_s(SPXLP *lp, glp_double beta[/*1+m*/], int p,
       int p_flag, int q, const FVS *tcol)
 {     /* sparse version of spx_update_beta */
       int m = lp->m;
       int n = lp->n;
-      double *l = lp->l;
-      double *u = lp->u;
+      glp_double *l = lp->l;
+      glp_double *u = lp->u;
       int *head = lp->head;
       char *flag = lp->flag;
       int nnz = tcol->nnz;
       int *ind = tcol->ind;
-      double *vec = tcol->vec;
+      glp_double *vec = tcol->vec;
       int i, k;
-      double delta_p, delta_q;
+      glp_double delta_p, delta_q;
       xassert(tcol->n == m);
       if (p < 0)
       {  /* special case: xN[q] goes to its opposite bound */
@@ -669,14 +669,14 @@ void spx_update_beta_s(SPXLP *lp, double beta[/*1+m*/], int p,
 *  On exit the routine stores updated components of the vector d to the
 *  same locations, where the input vector d was stored. */
 
-double spx_update_d(SPXLP *lp, double d[/*1+n-m*/], int p, int q,
-      const double trow[/*1+n-m*/], const double tcol[/*1+m*/])
+glp_double spx_update_d(SPXLP *lp, glp_double d[/*1+n-m*/], int p, int q,
+      const glp_double trow[/*1+n-m*/], const glp_double tcol[/*1+m*/])
 {     int m = lp->m;
       int n = lp->n;
-      double *c = lp->c;
+      glp_double *c = lp->c;
       int *head = lp->head;
       int i, j, k;
-      double dq, e;
+      glp_double dq, e;
       xassert(1 <= p && p <= m);
       xassert(1 <= q && q <= n);
       /* compute d[q] in current basis more accurately */
@@ -698,21 +698,21 @@ double spx_update_d(SPXLP *lp, double d[/*1+n-m*/], int p, int q,
 }
 
 #if 1 /* 30/III-2016 */
-double spx_update_d_s(SPXLP *lp, double d[/*1+n-m*/], int p, int q,
+glp_double spx_update_d_s(SPXLP *lp, glp_double d[/*1+n-m*/], int p, int q,
       const FVS *trow, const FVS *tcol)
 {     /* sparse version of spx_update_d */
       int m = lp->m;
       int n = lp->n;
-      double *c = lp->c;
+      glp_double *c = lp->c;
       int *head = lp->head;
       int trow_nnz = trow->nnz;
       int *trow_ind = trow->ind;
-      double *trow_vec = trow->vec;
+      glp_double *trow_vec = trow->vec;
       int tcol_nnz = tcol->nnz;
       int *tcol_ind = tcol->ind;
-      double *tcol_vec = tcol->vec;
+      glp_double *tcol_vec = tcol->vec;
       int i, j, k;
-      double dq, e;
+      glp_double dq, e;
       xassert(1 <= p && p <= m);
       xassert(1 <= q && q <= n);
       xassert(trow->n == n-m);
@@ -751,8 +751,8 @@ double spx_update_d_s(SPXLP *lp, double d[/*1+n-m*/], int p, int q,
 void spx_change_basis(SPXLP *lp, int p, int p_flag, int q)
 {     int m = lp->m;
       int n = lp->n;
-      double *l = lp->l;
-      double *u = lp->u;
+      glp_double *l = lp->l;
+      glp_double *u = lp->u;
       int *head = lp->head;
       char *flag = lp->flag;
       int k;
@@ -805,7 +805,7 @@ int spx_update_invb(SPXLP *lp, int i, int k)
       int n = lp->n;
       int *A_ptr = lp->A_ptr;
       int *A_ind = lp->A_ind;
-      double *A_val = lp->A_val;
+      glp_double *A_val = lp->A_val;
       int ptr, len, ret;
       xassert(1 <= i && i <= m);
       xassert(1 <= k && k <= n);

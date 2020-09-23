@@ -34,13 +34,13 @@ static void set_edge(int nv, unsigned char a[], int i, int j)
       return;
 }
 
-int glp_wclique_exact(glp_graph *G, int v_wgt, double *sol, int v_set)
+int glp_wclique_exact(glp_graph *G, int v_wgt, glp_double *sol, int v_set)
 {     /* find maximum weight clique with exact algorithm */
       glp_arc *e;
       int i, j, k, len, x, *w, *ind, ret = 0;
       unsigned char *a;
-      double s, t;
-      if (v_wgt >= 0 && v_wgt > G->v_size - (int)sizeof(double))
+      glp_double s, t;
+      if (v_wgt >= 0 && v_wgt > G->v_size - (int)sizeof(glp_double))
          xerror("glp_wclique_exact: v_wgt = %d; invalid parameter\n",
             v_wgt);
       if (v_set >= 0 && v_set > G->v_size - (int)sizeof(int))
@@ -63,8 +63,8 @@ int glp_wclique_exact(glp_graph *G, int v_wgt, double *sol, int v_set)
       s = 0.0;
       for (i = 1; i <= G->nv; i++)
       {  if (v_wgt >= 0)
-         {  memcpy(&t, (char *)G->v[i]->data + v_wgt, sizeof(double));
-            if (!(0.0 <= t && t <= (double)INT_MAX && t == floor(t)))
+         {  memcpy(&t, (char *)G->v[i]->data + v_wgt, sizeof(glp_double));
+            if (!(0.0 <= t && t <= (glp_double)INT_MAX && t == floor(t)))
             {  ret = GLP_EDATA;
                goto done;
             }
@@ -72,9 +72,9 @@ int glp_wclique_exact(glp_graph *G, int v_wgt, double *sol, int v_set)
          }
          else
             w[i] = 1;
-         s += (double)w[i];
+         s += (glp_double)w[i];
       }
-      if (s > (double)INT_MAX)
+      if (s > (glp_double)INT_MAX)
       {  ret = GLP_EDATA;
          goto done;
       }
@@ -98,7 +98,7 @@ int glp_wclique_exact(glp_graph *G, int v_wgt, double *sol, int v_set)
       for (k = 1; k <= len; k++)
       {  i = ind[k];
          xassert(1 <= i && i <= G->nv);
-         s += (double)w[i];
+         s += (glp_double)w[i];
       }
       if (sol != NULL) *sol = s;
       /* mark vertices included in the clique */

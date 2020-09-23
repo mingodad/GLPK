@@ -57,7 +57,7 @@
 *  The pointer t specifies a location, to which the routine stores the
 *  sink node number. If t is NULL, the node number is not stored.
 *
-*  The parameter a_cap specifies an offset of the field of type double
+*  The parameter a_cap specifies an offset of the field of type glp_double
 *  in the arc data block, to which the routine stores the arc capacity.
 *  If a_cap < 0, the capacity is not stored.
 *
@@ -169,7 +169,7 @@ struct csa
 #define Ec     (csa->Ec)
 
 #undef random
-#define random(A) (int)(rng_unif_01(csa->rand) * (double)(A))
+#define random(A) (int)(rng_unif_01(csa->rand) * (glp_double)(A))
 #define RANDOM(A, B) (int)(random((B) - (A) + 1) + (A))
 #define sgn(A) (((A) > 0) ? 1 : ((A) == 0) ? 0 : -1)
 
@@ -272,8 +272,8 @@ static void print_max_format(struct csa *csa, network *n, char *comm[],
          else
          {  glp_arc *a = glp_add_arc(G, e->from, e->to);
             if (a_cap >= 0)
-            {  double temp = (double)e->cap;
-               memcpy((char *)a->data + a_cap, &temp, sizeof(double));
+            {  glp_double temp = (glp_double)e->cap;
+               memcpy((char *)a->data + a_cap, &temp, sizeof(glp_double));
             }
          }
       }
@@ -297,7 +297,7 @@ int glp_rmfgen(glp_graph *G_, int *_s, int *_t, int _a_cap,
       t = _t;
       a_cap = _a_cap;
       if (G != NULL)
-      {  if (a_cap >= 0 && a_cap > G->a_size - (int)sizeof(double))
+      {  if (a_cap >= 0 && a_cap > G->a_size - (int)sizeof(glp_double))
            xerror("glp_rmfgen: a_cap = %d; invalid offset\n", a_cap);
       }
       seed = parm[1];

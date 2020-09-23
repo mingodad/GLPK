@@ -38,7 +38,7 @@ int glp_read_cnfsat(glp_prob *P, const char *fname)
 {     /* read CNF-SAT problem data in DIMACS format */
       DMX _csa, *csa = &_csa;
       int m, n, i, j, len, neg, rhs, ret = 0, *ind = NULL;
-      double *val = NULL;
+      glp_double *val = NULL;
       char *map = NULL;
 #if 0 /* 04/IV-2016 */
       if (P == NULL || P->magic != GLP_PROB_MAGIC)
@@ -90,7 +90,7 @@ int glp_read_cnfsat(glp_prob *P, const char *fname)
       }
       /* allocate working arrays */
       ind = xcalloc(1+n, sizeof(int));
-      val = xcalloc(1+n, sizeof(double));
+      val = xcalloc(1+n, sizeof(glp_double));
       map = xcalloc(1+n, sizeof(char));
       for (j = 1; j <= n; j++) map[j] = 0;
       /* read clauses */
@@ -118,7 +118,7 @@ int glp_read_cnfsat(glp_prob *P, const char *fname)
             len++, ind[len] = j, val[len] = (neg ? -1.0 : +1.0);
             map[j] = 1;
          }
-         glp_set_row_bnds(P, i, GLP_LO, (double)rhs, 0.0);
+         glp_set_row_bnds(P, i, GLP_LO, (glp_double)rhs, 0.0);
          glp_set_mat_row(P, i, len, ind, val);
          while (len > 0) map[ind[len--]] = 0;
       }

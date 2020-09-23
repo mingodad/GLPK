@@ -13,7 +13,7 @@ int main(int argc, char **argv)
 {
     glp_prob *lp;
     int ncols, status;
-    double *initsol, zstar, *xstar;
+    glp_double *initsol, zstar, *xstar;
 
     /* check arguments */
     if ( (argc == 1) || (argc > 3) ) {
@@ -42,7 +42,7 @@ int main(int argc, char **argv)
 
     ncols = glp_get_num_cols(lp);
 
-    initsol = (double *) calloc(ncols+1, sizeof(double));
+    initsol = (glp_double *) calloc(ncols+1, sizeof(glp_double));
 
     if (argc == 3) {
         FILE *fp=fopen(argv[2],"r");
@@ -53,10 +53,10 @@ int main(int argc, char **argv)
             char *valini = strstr(tmp, "value");
             if (valini!=NULL){
                 int num;
-                double dnum;
+                glp_double dnum;
                 valini +=7;
                 sscanf(valini, "%d%*s",&num);
-                dnum = (double)num;
+                dnum = (glp_double)num;
                 initsol[counter] = dnum;
                 counter++;
             }
@@ -64,7 +64,7 @@ int main(int argc, char **argv)
         fclose(fp);
     }
 
-    xstar = (double *) calloc(ncols+1, sizeof(double));
+    xstar = (glp_double *) calloc(ncols+1, sizeof(glp_double));
 
     if (argc == 3) {
         status = proxy(lp, &zstar, xstar, initsol, 0.0, 0, 1);

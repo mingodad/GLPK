@@ -44,17 +44,17 @@ void glp_mincost_lp(glp_prob *lp, glp_graph *G, int names, int v_rhs,
 {     glp_vertex *v;
       glp_arc *a;
       int i, j, type, ind[1+2];
-      double rhs, low, cap, cost, val[1+2];
+      glp_double rhs, low, cap, cost, val[1+2];
       if (!(names == GLP_ON || names == GLP_OFF))
          xerror("glp_mincost_lp: names = %d; invalid parameter\n",
             names);
-      if (v_rhs >= 0 && v_rhs > G->v_size - (int)sizeof(double))
+      if (v_rhs >= 0 && v_rhs > G->v_size - (int)sizeof(glp_double))
          xerror("glp_mincost_lp: v_rhs = %d; invalid offset\n", v_rhs);
-      if (a_low >= 0 && a_low > G->a_size - (int)sizeof(double))
+      if (a_low >= 0 && a_low > G->a_size - (int)sizeof(glp_double))
          xerror("glp_mincost_lp: a_low = %d; invalid offset\n", a_low);
-      if (a_cap >= 0 && a_cap > G->a_size - (int)sizeof(double))
+      if (a_cap >= 0 && a_cap > G->a_size - (int)sizeof(glp_double))
          xerror("glp_mincost_lp: a_cap = %d; invalid offset\n", a_cap);
-      if (a_cost >= 0 && a_cost > G->a_size - (int)sizeof(double))
+      if (a_cost >= 0 && a_cost > G->a_size - (int)sizeof(glp_double))
          xerror("glp_mincost_lp: a_cost = %d; invalid offset\n", a_cost)
             ;
       glp_erase_prob(lp);
@@ -64,7 +64,7 @@ void glp_mincost_lp(glp_prob *lp, glp_graph *G, int names, int v_rhs,
       {  v = G->v[i];
          if (names) glp_set_row_name(lp, i, v->name);
          if (v_rhs >= 0)
-            memcpy(&rhs, (char *)v->data + v_rhs, sizeof(double));
+            memcpy(&rhs, (char *)v->data + v_rhs, sizeof(glp_double));
          else
             rhs = 0.0;
          glp_set_row_bnds(lp, i, GLP_FX, rhs, rhs);
@@ -86,11 +86,11 @@ void glp_mincost_lp(glp_prob *lp, glp_graph *G, int names, int v_rhs,
                glp_set_mat_col(lp, j, 2, ind, val);
             }
             if (a_low >= 0)
-               memcpy(&low, (char *)a->data + a_low, sizeof(double));
+               memcpy(&low, (char *)a->data + a_low, sizeof(glp_double));
             else
                low = 0.0;
             if (a_cap >= 0)
-               memcpy(&cap, (char *)a->data + a_cap, sizeof(double));
+               memcpy(&cap, (char *)a->data + a_cap, sizeof(glp_double));
             else
                cap = 1.0;
             if (cap == DBL_MAX)
@@ -101,7 +101,7 @@ void glp_mincost_lp(glp_prob *lp, glp_graph *G, int names, int v_rhs,
                type = GLP_FX;
             glp_set_col_bnds(lp, j, type, low, cap);
             if (a_cost >= 0)
-               memcpy(&cost, (char *)a->data + a_cost, sizeof(double));
+               memcpy(&cost, (char *)a->data + a_cost, sizeof(glp_double));
             else
                cost = 0.0;
             glp_set_obj_coef(lp, j, cost);

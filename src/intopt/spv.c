@@ -52,7 +52,7 @@ SPV *spv_create_vec(int n)
       v->pos = xcalloc(1+n, sizeof(int));
       memset(&v->pos[1], 0, n * sizeof(int));
       v->ind = xcalloc(1+n, sizeof(int));
-      v->val = xcalloc(1+n, sizeof(double));
+      v->val = xcalloc(1+n, sizeof(glp_double));
       return v;
 }
 
@@ -99,14 +99,14 @@ void spv_check_vec(SPV *v)
 *  SYNOPSIS
 *
 *  #include "glpios.h"
-*  double spv_get_vj(SPV *v, int j);
+*  glp_double spv_get_vj(SPV *v, int j);
 *
 *  RETURNS
 *
 *  The routine spv_get_vj returns j-th component of a sparse vector
 *  specified by the parameter v. */
 
-double spv_get_vj(SPV *v, int j)
+glp_double spv_get_vj(SPV *v, int j)
 {     int k;
       xassert(1 <= j && j <= v->n);
       k = v->pos[j];
@@ -122,14 +122,14 @@ double spv_get_vj(SPV *v, int j)
 *  SYNOPSIS
 *
 *  #include "glpios.h"
-*  void spv_set_vj(SPV *v, int j, double val);
+*  void spv_set_vj(SPV *v, int j, glp_double val);
 *
 *  DESCRIPTION
 *
 *  The routine spv_set_vj assigns val to j-th component of a sparse
 *  vector specified by the parameter v. */
 
-void spv_set_vj(SPV *v, int j, double val)
+void spv_set_vj(SPV *v, int j, glp_double val)
 {     int k;
       xassert(1 <= j && j <= v->n);
       k = v->pos[j];
@@ -188,7 +188,7 @@ void spv_clear_vec(SPV *v)
 *  SYNOPSIS
 *
 *  #include "glpios.h"
-*  void spv_clean_vec(SPV *v, double eps);
+*  void spv_clean_vec(SPV *v, glp_double eps);
 *
 *  DESCRIPTION
 *
@@ -196,7 +196,7 @@ void spv_clear_vec(SPV *v)
 *  whose magnitude is less than eps from a sparse vector specified by
 *  the parameter v. If eps is 0.0, only zero components are removed. */
 
-void spv_clean_vec(SPV *v, double eps)
+void spv_clean_vec(SPV *v, glp_double eps)
 {     int k, nnz;
       nnz = 0;
       for (k = 1; k <= v->nnz; k++)
@@ -238,7 +238,7 @@ void spv_copy_vec(SPV *x, SPV *y)
       spv_clear_vec(x);
       x->nnz = y->nnz;
       memcpy(&x->ind[1], &y->ind[1], x->nnz * sizeof(int));
-      memcpy(&x->val[1], &y->val[1], x->nnz * sizeof(double));
+      memcpy(&x->val[1], &y->val[1], x->nnz * sizeof(glp_double));
       for (j = 1; j <= x->nnz; j++)
          x->pos[x->ind[j]] = j;
       return;
@@ -252,7 +252,7 @@ void spv_copy_vec(SPV *x, SPV *y)
 *  SYNOPSIS
 *
 *  #include "glpios.h"
-*  void spv_linear_comb(SPV *x, double a, SPV *y);
+*  void spv_linear_comb(SPV *x, glp_double a, SPV *y);
 *
 *  DESCRIPTION
 *
@@ -262,9 +262,9 @@ void spv_copy_vec(SPV *x, SPV *y)
 *
 *  where x and y are sparse vectors, a is a scalar. */
 
-void spv_linear_comb(SPV *x, double a, SPV *y)
+void spv_linear_comb(SPV *x, glp_double a, SPV *y)
 {     int j, k;
-      double xj, yj;
+      glp_double xj, yj;
       xassert(x != y);
       xassert(x->n == y->n);
       for (k = 1; k <= y->nnz; k++)

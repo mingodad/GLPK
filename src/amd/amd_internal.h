@@ -78,11 +78,11 @@
 
 #define amd_aat _glp_amd_aat
 size_t AMD_aat(Int n, const Int Ap[], const Int Ai[], Int Len[],
-      Int Tp[], double Info[]);
+      Int Tp[], glp_double Info[]);
 
 #define amd_1 _glp_amd_1
 void AMD_1(Int n, const Int Ap[], const Int Ai[], Int P[], Int Pinv[],
-      Int Len[], Int slen, Int S[], double Control[], double Info[]);
+      Int Len[], Int slen, Int S[], glp_double Control[], glp_double Info[]);
 
 #define amd_postorder _glp_amd_postorder
 void AMD_postorder(Int nn, Int Parent[], Int Npiv[], Int Fsize[],

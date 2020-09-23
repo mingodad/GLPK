@@ -31,7 +31,7 @@ void fvs_alloc_vec(FVS *x, int n)
       x->n = n;
       x->nnz = 0;
       x->ind = talloc(1+n, int);
-      x->vec = talloc(1+n, double);
+      x->vec = talloc(1+n, glp_double);
       for (j = 1; j <= n; j++)
          x->vec[j] = 0.0;
       return;
@@ -43,7 +43,7 @@ void fvs_check_vec(const FVS *x)
       int n = x->n;
       int nnz = x->nnz;
       int *ind = x->ind;
-      double *vec = x->vec;
+      glp_double *vec = x->vec;
       char *map;
       int j, k;
       xassert(n >= 0);
@@ -63,11 +63,11 @@ void fvs_check_vec(const FVS *x)
       return;
 }
 
-void fvs_gather_vec(FVS *x, double eps)
+void fvs_gather_vec(FVS *x, glp_double eps)
 {     /* gather sparse vector */
       int n = x->n;
       int *ind = x->ind;
-      double *vec = x->vec;
+      glp_double *vec = x->vec;
       int j, nnz = 0;
       for (j = n; j >= 1; j--)
       {  if (-eps < vec[j] && vec[j] < +eps)
@@ -82,7 +82,7 @@ void fvs_gather_vec(FVS *x, double eps)
 void fvs_clear_vec(FVS *x)
 {     /* clear sparse vector */
       int *ind = x->ind;
-      double *vec = x->vec;
+      glp_double *vec = x->vec;
       int k;
       for (k = x->nnz; k >= 1; k--)
          vec[ind[k]] = 0.0;
@@ -93,9 +93,9 @@ void fvs_clear_vec(FVS *x)
 void fvs_copy_vec(FVS *x, const FVS *y)
 {     /* copy sparse vector */
       int *x_ind = x->ind;
-      double *x_vec = x->vec;
+      glp_double *x_vec = x->vec;
       int *y_ind = y->ind;
-      double *y_vec = y->vec;
+      glp_double *y_vec = y->vec;
       int j, k;
       xassert(x != y);
       xassert(x->n == y->n);
@@ -107,11 +107,11 @@ void fvs_copy_vec(FVS *x, const FVS *y)
       return;
 }
 
-void fvs_adjust_vec(FVS *x, double eps)
+void fvs_adjust_vec(FVS *x, glp_double eps)
 {     /* replace tiny vector elements by exact zeros */
       int nnz = x->nnz;
       int *ind = x->ind;
-      double *vec = x->vec;
+      glp_double *vec = x->vec;
       int j, k, cnt = 0;
       for (k = 1; k <= nnz; k++)
       {  j = ind[k];

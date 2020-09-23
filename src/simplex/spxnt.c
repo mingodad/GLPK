@@ -36,7 +36,7 @@ void spx_alloc_nt(SPXLP *lp, SPXNT *nt)
       nt->ptr = talloc(1+m, int);
       nt->len = talloc(1+m, int);
       nt->ind = talloc(1+nnz, int);
-      nt->val = talloc(1+nnz, double);
+      nt->val = talloc(1+nnz, glp_double);
       return;
 }
 
@@ -88,11 +88,11 @@ void spx_nt_add_col(SPXLP *lp, SPXNT *nt, int j, int k)
       int nnz = lp->nnz;
       int *A_ptr = lp->A_ptr;
       int *A_ind = lp->A_ind;
-      double *A_val = lp->A_val;
+      glp_double *A_val = lp->A_val;
       int *NT_ptr = nt->ptr;
       int *NT_len = nt->len;
       int *NT_ind = nt->ind;
-      double *NT_val = nt->val;
+      glp_double *NT_val = nt->val;
       int i, ptr, end, pos;
       xassert(1 <= j && j <= n-m);
       xassert(1 <= k && k <= n);
@@ -151,7 +151,7 @@ void spx_nt_del_col(SPXLP *lp, SPXNT *nt, int j, int k)
       int *NT_ptr = nt->ptr;
       int *NT_len = nt->len;
       int *NT_ind = nt->ind;
-      double *NT_val = nt->val;
+      glp_double *NT_val = nt->val;
       int i, ptr, end, ptr1, end1;
       xassert(1 <= j && j <= n-m);
       xassert(1 <= k && k <= n);
@@ -214,16 +214,16 @@ void spx_update_nt(SPXLP *lp, SPXNT *nt, int p, int q)
 *
 *  where N'[i] is i-th row of N, 1 <= i <= m. */
 
-void spx_nt_prod(SPXLP *lp, SPXNT *nt, double y[/*1+n-m*/], int ign,
-      double s, const double x[/*1+m*/])
+void spx_nt_prod(SPXLP *lp, SPXNT *nt, glp_double y[/*1+n-m*/], int ign,
+      glp_double s, const glp_double x[/*1+m*/])
 {     int m = lp->m;
       int n = lp->n;
       int *NT_ptr = nt->ptr;
       int *NT_len = nt->len;
       int *NT_ind = nt->ind;
-      double *NT_val = nt->val;
+      glp_double *NT_val = nt->val;
       int i, j, ptr, end;
-      double t;
+      glp_double t;
       if (ign)
       {  /* y := 0 */
          for (j = 1; j <= n-m; j++)
@@ -243,19 +243,19 @@ void spx_nt_prod(SPXLP *lp, SPXNT *nt, double y[/*1+n-m*/], int ign,
 }
 
 #if 1 /* 31/III-2016 */
-void spx_nt_prod_s(SPXLP *lp, SPXNT *nt, FVS *y, int ign, double s,
-      const FVS *x, double eps)
+void spx_nt_prod_s(SPXLP *lp, SPXNT *nt, FVS *y, int ign, glp_double s,
+      const FVS *x, glp_double eps)
 {     /* sparse version of spx_nt_prod */
       int *NT_ptr = nt->ptr;
       int *NT_len = nt->len;
       int *NT_ind = nt->ind;
-      double *NT_val = nt->val;
+      glp_double *NT_val = nt->val;
       int *x_ind = x->ind;
-      double *x_vec = x->vec;
+      glp_double *x_vec = x->vec;
       int *y_ind = y->ind;
-      double *y_vec = y->vec;
+      glp_double *y_vec = y->vec;
       int i, j, k, nnz, ptr, end;
-      double t;
+      glp_double t;
       xassert(x->n == lp->m);
       xassert(y->n == lp->n-lp->m);
       if (ign)

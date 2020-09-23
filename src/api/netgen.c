@@ -47,15 +47,15 @@
 *  problem data have to be stored. Note that on entry the graph object
 *  is erased with the routine glp_erase_graph.
 *
-*  The parameter v_rhs specifies an offset of the field of type double
+*  The parameter v_rhs specifies an offset of the field of type glp_double
 *  in the vertex data block, to which the routine stores the supply or
 *  demand value. If v_rhs < 0, the value is not stored.
 *
-*  The parameter a_cap specifies an offset of the field of type double
+*  The parameter a_cap specifies an offset of the field of type glp_double
 *  in the arc data block, to which the routine stores the arc capacity.
 *  If a_cap < 0, the capacity is not stored.
 *
-*  The parameter a_cost specifies an offset of the field of type double
+*  The parameter a_cost specifies an offset of the field of type glp_double
 *  in the arc data block, to which the routine stores the per-unit cost
 *  if the arc flow. If a_cost < 0, the cost is not stored.
 *
@@ -172,11 +172,11 @@ int glp_netgen(glp_graph *G_, int _v_rhs, int _a_cap, int _a_cost,
       a_cap = _a_cap;
       a_cost = _a_cost;
       if (G != NULL)
-      {  if (v_rhs >= 0 && v_rhs > G->v_size - (int)sizeof(double))
+      {  if (v_rhs >= 0 && v_rhs > G->v_size - (int)sizeof(glp_double))
             xerror("glp_netgen: v_rhs = %d; invalid offset\n", v_rhs);
-         if (a_cap >= 0 && a_cap > G->a_size - (int)sizeof(double))
+         if (a_cap >= 0 && a_cap > G->a_size - (int)sizeof(glp_double))
             xerror("glp_netgen: a_cap = %d; invalid offset\n", a_cap);
-         if (a_cost >= 0 && a_cost > G->a_size - (int)sizeof(double))
+         if (a_cost >= 0 && a_cost > G->a_size - (int)sizeof(glp_double))
             xerror("glp_netgen: a_cost = %d; invalid offset\n", a_cost);
       }
       /* Input the user's random number seed and fix it if
@@ -246,10 +246,10 @@ int glp_netgen(glp_graph *G_, int _v_rhs, int _a_cap, int _a_cost,
       {  glp_erase_graph(G, G->v_size, G->a_size);
          glp_add_vertices(G, nodes);
          if (v_rhs >= 0)
-         {  double zero = 0.0;
+         {  glp_double zero = 0.0;
             for (i = 1; i <= nodes; i++)
             {  glp_vertex *v = G->v[i];
-               memcpy((char *)v->data + v_rhs, &zero, sizeof(double));
+               memcpy((char *)v->data + v_rhs, &zero, sizeof(glp_double));
             }
          }
       }
@@ -303,9 +303,9 @@ int glp_netgen(glp_graph *G_, int _v_rhs, int _a_cap, int _a_cost,
       else
       {  if (v_rhs >= 0)
          {  for (i = 1; i <= nsorc; i++)
-            {  double temp = (double)isup[i];
+            {  glp_double temp = (glp_double)isup[i];
                glp_vertex *v = G->v[i];
-               memcpy((char *)v->data + v_rhs, &temp, sizeof(double));
+               memcpy((char *)v->data + v_rhs, &temp, sizeof(glp_double));
             }
          }
       }
@@ -438,12 +438,12 @@ L320:    ih = ihead[i];
          else
          {  glp_arc *a = glp_add_arc(G, it, ih);
             if (a_cap >= 0)
-            {  double temp = (double)icap;
-               memcpy((char *)a->data + a_cap, &temp, sizeof(double));
+            {  glp_double temp = (glp_double)icap;
+               memcpy((char *)a->data + a_cap, &temp, sizeof(glp_double));
             }
             if (a_cost >= 0)
-            {  double temp = (double)icost;
-               memcpy((char *)a->data + a_cost, &temp, sizeof(double));
+            {  glp_double temp = (glp_double)icost;
+               memcpy((char *)a->data + a_cost, &temp, sizeof(glp_double));
             }
          }
          i++;
@@ -471,9 +471,9 @@ L390: /* Print the demand records and end record. */
       else
       {  if (v_rhs >= 0)
          {  for (i = nfsink; i <= nodes; i++)
-            {  double temp = - (double)ipred[i];
+            {  glp_double temp = - (glp_double)ipred[i];
                glp_vertex *v = G->v[i];
-               memcpy((char *)v->data + v_rhs, &temp, sizeof(double));
+               memcpy((char *)v->data + v_rhs, &temp, sizeof(glp_double));
             }
          }
       }
@@ -617,12 +617,12 @@ L70:     iflag[l] = 1;
          else
          {  glp_arc *a = glp_add_arc(G, it, l);
             if (a_cap >= 0)
-            {  double temp = (double)icap;
-               memcpy((char *)a->data + a_cap, &temp, sizeof(double));
+            {  glp_double temp = (glp_double)icap;
+               memcpy((char *)a->data + a_cap, &temp, sizeof(glp_double));
             }
             if (a_cost >= 0)
-            {  double temp = (double)icost;
-               memcpy((char *)a->data + a_cost, &temp, sizeof(double));
+            {  glp_double temp = (glp_double)icost;
+               memcpy((char *)a->data + a_cost, &temp, sizeof(glp_double));
             }
          }
          narcs++;
@@ -645,9 +645,9 @@ static void assign(struct csa *csa)
             xprintf("%6s%6d%18s%10d\n", "", i, "", isup[i]);
          else
          {  if (v_rhs >= 0)
-            {  double temp = (double)isup[i];
+            {  glp_double temp = (glp_double)isup[i];
                glp_vertex *v = G->v[i];
-               memcpy((char *)v->data + v_rhs, &temp, sizeof(double));
+               memcpy((char *)v->data + v_rhs, &temp, sizeof(glp_double));
             }
          }
       }
@@ -675,12 +675,12 @@ static void assign(struct csa *csa)
          else
          {  glp_arc *a = glp_add_arc(G, it, ll);
             if (a_cap >= 0)
-            {  double temp = (double)isup[1];
-               memcpy((char *)a->data + a_cap, &temp, sizeof(double));
+            {  glp_double temp = (glp_double)isup[1];
+               memcpy((char *)a->data + a_cap, &temp, sizeof(glp_double));
             }
             if (a_cost >= 0)
-            {  double temp = (double)icost;
-               memcpy((char *)a->data + a_cost, &temp, sizeof(double));
+            {  glp_double temp = (glp_double)icost;
+               memcpy((char *)a->data + a_cost, &temp, sizeof(glp_double));
             }
          }
          iflag[l] = 1;

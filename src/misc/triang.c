@@ -103,21 +103,21 @@
 *  number of non-zeros in the original matrix A. */
 
 int triang(int m, int n, int (*mat)(void *info, int k, int ind[],
-      double val[]), void *info, double tol, int rn[], int cn[])
+      glp_double val[]), void *info, glp_double tol, int rn[], int cn[])
 {     int head, i, j, jj, k, kk, ks, len, len2, next_j, ns, size;
       int *cind, *rind, *cnt, *ptr, *list, *prev, *next;
-      double *cval, *rval, *big;
+      glp_double *cval, *rval, *big;
       char *flag;
       /* allocate working arrays */
       cind = talloc(1+m, int);
-      cval = talloc(1+m, double);
+      cval = talloc(1+m, glp_double);
       rind = talloc(1+n, int);
-      rval = talloc(1+n, double);
+      rval = talloc(1+n, glp_double);
       cnt = ptr = talloc(1+m, int);
       list = talloc(1+n, int);
       prev = talloc(1+n, int);
       next = talloc(1+n, int);
-      big = talloc(1+n, double);
+      big = talloc(1+n, glp_double);
       flag = talloc(1+n, char);
       /*--------------------------------------------------------------*/
       /* build linked lists of columns having equal lengths           */

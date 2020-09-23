@@ -102,22 +102,22 @@ int npp_sat_fixed_col(NPP *npp, NPPCOL *q)
          rcv_sat_fixed_col, sizeof(struct sat_fixed_col));
       info->q = q->j;
       info->s = (int)q->lb;
-      xassert((double)info->s == q->lb);
+      xassert((glp_double)info->s == q->lb);
       /* substitute x[q] = s[q] into constraint rows */
       if (info->s == 0)
          goto skip;
       for (aij = q->ptr; aij != NULL; aij = aij->c_next)
       {  i = aij->row;
          if (i->lb != -DBL_MAX)
-         {  i->lb -= aij->val * (double)info->s;
+         {  i->lb -= aij->val * (glp_double)info->s;
             temp = (int)i->lb;
-            if ((double)temp != i->lb)
+            if ((glp_double)temp != i->lb)
                return 1; /* integer arithmetic error */
          }
          if (i->ub != +DBL_MAX)
-         {  i->ub -= aij->val * (double)info->s;
+         {  i->ub -= aij->val * (glp_double)info->s;
             temp = (int)i->ub;
-            if ((double)temp != i->ub)
+            if ((glp_double)temp != i->ub)
                return 2; /* integer arithmetic error */
          }
       }
@@ -128,7 +128,7 @@ skip: /* remove the column from the problem */
 
 static int rcv_sat_fixed_col(NPP *npp, void *info_)
 {     struct sat_fixed_col *info = info_;
-      npp->c_value[info->q] = (double)info->s;
+      npp->c_value[info->q] = (glp_double)info->s;
       return 0;
 }
 
@@ -377,12 +377,12 @@ int npp_sat_is_partn_eq(NPP *npp, NPPROW *row)
 int npp_sat_reverse_row(NPP *npp, NPPROW *row)
 {     NPPAIJ *aij;
       int temp, ret = 0;
-      double old_lb, old_ub;
+      glp_double old_lb, old_ub;
       xassert(npp == npp);
       for (aij = row->ptr; aij != NULL; aij = aij->r_next)
       {  aij->val = -aij->val;
          temp = (int)aij->val;
-         if ((double)temp != aij->val)
+         if ((glp_double)temp != aij->val)
             ret = 1;
       }
       old_lb = row->lb, old_ub = row->ub;
@@ -391,7 +391,7 @@ int npp_sat_reverse_row(NPP *npp, NPPROW *row)
       else
       {  row->lb = -old_ub;
          temp = (int)row->lb;
-         if ((double)temp != row->lb)
+         if ((glp_double)temp != row->lb)
             ret = 2;
       }
       if (old_lb == -DBL_MAX)
@@ -399,7 +399,7 @@ int npp_sat_reverse_row(NPP *npp, NPPROW *row)
       else
       {  row->ub = -old_lb;
          temp = (int)row->ub;
-         if ((double)temp != row->ub)
+         if ((glp_double)temp != row->ub)
             ret = 3;
       }
       return ret;
@@ -838,14 +838,14 @@ int npp_sat_encode_sum_ax(NPP *npp, NPPROW *row, NPPLIT y[])
       NPPLSE *set[1+NBIT_MAX], *lse;
       NPPSED sed;
       int k, n, temp;
-      double sum;
+      glp_double sum;
       /* compute the sum (sum |a[j]|) */
       sum = 0.0;
       for (aij = row->ptr; aij != NULL; aij = aij->r_next)
          sum += fabs(aij->val);
       /* determine n, the number of bits in the sum */
       temp = (int)sum;
-      if ((double)temp != sum)
+      if ((glp_double)temp != sum)
          return -1; /* integer arithmetic error */
       for (n = 0; temp > 0; n++, temp >>= 1);
       xassert(0 <= n && n <= NBIT_MAX);
@@ -1324,7 +1324,7 @@ int npp_sat_encode_row(NPP *npp, NPPROW *row)
 {     NPPAIJ *aij;
       NPPLIT y[1+NBIT_MAX];
       int n, rhs;
-      double lb, ub;
+      glp_double lb, ub;
       /* the row should not be free */
       xassert(!(row->lb == -DBL_MAX && row->ub == +DBL_MAX));
       /* compute new bounds L' and U' (3) */
@@ -1345,7 +1345,7 @@ int npp_sat_encode_row(NPP *npp, NPPROW *row)
       /* encode the condition (5) */
       if (lb != -DBL_MAX)
       {  rhs = (int)lb;
-         if ((double)rhs != lb)
+         if ((glp_double)rhs != lb)
             return 2; /* integer arithmetic error */
          if (npp_sat_encode_geq(npp, n, y, rhs) != 0)
             return 1; /* original constraint is infeasible */
@@ -1353,7 +1353,7 @@ int npp_sat_encode_row(NPP *npp, NPPROW *row)
       /* encode the condition (6) */
       if (ub != +DBL_MAX)
       {  rhs = (int)ub;
-         if ((double)rhs != ub)
+         if ((glp_double)rhs != ub)
             return 2; /* integer arithmetic error */
          if (npp_sat_encode_leq(npp, n, y, rhs) != 0)
             return 1; /* original constraint is infeasible */

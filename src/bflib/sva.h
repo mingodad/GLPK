@@ -63,6 +63,8 @@
 *  part of SVA. This part is used to store vectors, whose capacity is
 *  not changed. */
 
+#include "glpk_real.h"
+
 typedef struct SVA SVA;
 
 struct SVA
@@ -107,7 +109,7 @@ struct SVA
       int *ind; /* int ind[1+size]; */
       /* ind[0] is not used;
        * ind[p], 1 <= p <= size, is index field of location p */
-      double *val; /* double val[1+size]; */
+      glp_double *val; /* glp_double val[1+size]; */
       /* val[0] is not used;
        * val[p], 1 <= p <= size, is value field of location p */
 #if 1

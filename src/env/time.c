@@ -35,7 +35,7 @@
 *
 *  SYNOPSIS
 *
-*  double glp_time(void);
+*  glp_double glp_time(void);
 *
 *  RETURNS
 *
@@ -52,11 +52,11 @@
 #include <sys/time.h>
 #include <time.h>
 
-double glp_time(void)
+glp_double glp_time(void)
 {     struct timeval tv;
       struct tm *tm;
       int j;
-      double t;
+      glp_double t;
       gettimeofday(&tv, NULL);
 #if 0 /* 29/I-2017 */
       tm = gmtime(&tv.tv_sec);
@@ -65,19 +65,19 @@ double glp_time(void)
 #endif
       j = jday(tm->tm_mday, tm->tm_mon + 1, 1900 + tm->tm_year);
       xassert(j >= 0);
-      t = ((((double)(j - EPOCH) * 24.0 + (double)tm->tm_hour) * 60.0 +
-         (double)tm->tm_min) * 60.0 + (double)tm->tm_sec) * 1000.0 +
-         (double)(tv.tv_usec / 1000);
+      t = ((((glp_double)(j - EPOCH) * 24.0 + (glp_double)tm->tm_hour) * 60.0 +
+         (glp_double)tm->tm_min) * 60.0 + (glp_double)tm->tm_sec) * 1000.0 +
+         (glp_double)(tv.tv_usec / 1000);
       return t;
 }
 #else
 #include <sys/time.h>
 
-double glp_time(void)
+glp_double glp_time(void)
 {     struct timeval tv;
-      double t;
+      glp_double t;
       gettimeofday(&tv, NULL);
-      t = (double)tv.tv_sec + (double)(tv.tv_usec) / 1e6;
+      t = (glp_double)tv.tv_sec + (glp_double)(tv.tv_usec) / 1e6;
       xassert(0.0 <= t && t < 4294967296.0);
       return 1000.0 * t;
 }
@@ -142,7 +142,7 @@ double glp_time(void)
 *  The routine glp_difftime returns the difference between two time
 *  values t1 and t0, expressed in seconds. */
 
-double glp_difftime(double t1, double t0)
+glp_double glp_difftime(glp_double t1, glp_double t0)
 {     return
          (t1 - t0) / 1000.0;
 }

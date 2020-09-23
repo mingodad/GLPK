@@ -258,18 +258,18 @@ done: *k1_ = k1, *k2_ = k2;
 *  k2' = n+1 means that matrix U is already upper triangular. */
 
 int sgf_singl_phase(LUF *luf, int k1, int k2, int updat,
-      int ind[/*1+n*/], double val[/*1+n*/])
+      int ind[/*1+n*/], glp_double val[/*1+n*/])
 {     int n = luf->n;
       SVA *sva = luf->sva;
       int *sv_ind = sva->ind;
-      double *sv_val = sva->val;
+      glp_double *sv_val = sva->val;
       int fc_ref = luf->fc_ref;
       int *fc_ptr = &sva->ptr[fc_ref-1];
       int *fc_len = &sva->len[fc_ref-1];
       int vr_ref = luf->vr_ref;
       int *vr_ptr = &sva->ptr[vr_ref-1];
       int *vr_len = &sva->len[vr_ref-1];
-      double *vr_piv = luf->vr_piv;
+      glp_double *vr_piv = luf->vr_piv;
       int vc_ref = luf->vc_ref;
       int *vc_ptr = &sva->ptr[vc_ref-1];
       int *vc_len = &sva->len[vc_ref-1];
@@ -278,7 +278,7 @@ int sgf_singl_phase(LUF *luf, int k1, int k2, int updat,
       int *qq_ind = luf->qq_ind;
       int *qq_inv = luf->qq_inv;
       int i, j, k, ptr, ptr1, end, len;
-      double piv;
+      glp_double piv;
       /* (see routine sgf_reduce_nuc) */
       xassert((1 <= k1 && k1 < k2 && k2 <= n)
          || (k1 == n+1 && k2 == n));
@@ -472,7 +472,7 @@ int sgf_choose_pivot(SGF *sgf, int *p_, int *q_)
       int n = luf->n;
       SVA *sva = luf->sva;
       int *sv_ind = sva->ind;
-      double *sv_val = sva->val;
+      glp_double *sv_val = sva->val;
       int vr_ref = luf->vr_ref;
       int *vr_ptr = &sva->ptr[vr_ref-1];
       int *vr_len = &sva->len[vr_ref-1];
@@ -484,13 +484,13 @@ int sgf_choose_pivot(SGF *sgf, int *p_, int *q_)
       int *cs_head = sgf->cs_head;
       int *cs_prev = sgf->cs_prev;
       int *cs_next = sgf->cs_next;
-      double *vr_max = sgf->vr_max;
-      double piv_tol = sgf->piv_tol;
+      glp_double *vr_max = sgf->vr_max;
+      glp_double piv_tol = sgf->piv_tol;
       int piv_lim = sgf->piv_lim;
       int suhl = sgf->suhl;
       int i, i_ptr, i_end, j, j_ptr, j_end, len, min_i, min_j, min_len,
          ncand, next_j, p, q;
-      double best, big, cost, temp;
+      glp_double best, big, cost, temp;
       /* no pivot candidate has been chosen so far */
       p = q = 0, best = DBL_MAX, ncand = 0;
       /* if the active submatrix contains a column having the only
@@ -566,7 +566,7 @@ int sgf_choose_pivot(SGF *sgf, int *p_, int *q_)
             {  /* element v[min_i,min_j] is a next pivot candidate */
                ncand++;
                /* compute its Markowitz cost */
-               cost = (double)(min_len - 1) * (double)(len - 1);
+               cost = (glp_double)(min_len - 1) * (glp_double)(len - 1);
                /* if this element is better, choose it as the pivot */
                if (cost < best)
                   p = min_i, q = min_j, best = cost;
@@ -634,7 +634,7 @@ int sgf_choose_pivot(SGF *sgf, int *p_, int *q_)
             {  /* element v[min_i,min_j] is a next pivot candidate */
                ncand++;
                /* compute its Markowitz cost */
-               cost = (double)(len - 1) * (double)(min_len - 1);
+               cost = (glp_double)(len - 1) * (glp_double)(min_len - 1);
                /* if this element is better, choose it as the pivot */
                if (cost < best)
                   p = min_i, q = min_j, best = cost;
@@ -715,7 +715,7 @@ int sgf_eliminate(SGF *sgf, int p, int q)
       int n = luf->n;
       SVA *sva = luf->sva;
       int *sv_ind = sva->ind;
-      double *sv_val = sva->val;
+      glp_double *sv_val = sva->val;
       int fc_ref = luf->fc_ref;
       int *fc_ptr = &sva->ptr[fc_ref-1];
       int *fc_len = &sva->len[fc_ref-1];
@@ -723,7 +723,7 @@ int sgf_eliminate(SGF *sgf, int p, int q)
       int *vr_ptr = &sva->ptr[vr_ref-1];
       int *vr_len = &sva->len[vr_ref-1];
       int *vr_cap = &sva->cap[vr_ref-1];
-      double *vr_piv = luf->vr_piv;
+      glp_double *vr_piv = luf->vr_piv;
       int vc_ref = luf->vc_ref;
       int *vc_ptr = &sva->ptr[vc_ref-1];
       int *vc_len = &sva->len[vc_ref-1];
@@ -734,13 +734,13 @@ int sgf_eliminate(SGF *sgf, int p, int q)
       int *cs_head = sgf->cs_head;
       int *cs_prev = sgf->cs_prev;
       int *cs_next = sgf->cs_next;
-      double *vr_max = sgf->vr_max;
+      glp_double *vr_max = sgf->vr_max;
       char *flag = sgf->flag;
-      double *work = sgf->work;
-      double eps_tol = sgf->eps_tol;
+      glp_double *work = sgf->work;
+      glp_double eps_tol = sgf->eps_tol;
       int nnz_diff = 0;
       int fill, i, i_ptr, i_end, j, j_ptr, j_end, ptr, len, loc, loc1;
-      double vpq, fip, vij;
+      glp_double vpq, fip, vij;
       xassert(1 <= p && p <= n);
       xassert(1 <= q && q <= n);
       /* remove p-th row from the active set; this row will never
@@ -1004,10 +1004,10 @@ skip:    /* return i-th row to the active set with new length */
 *  returns k, in which case a partial factorization is stored in the
 *  array a. */
 
-int sgf_dense_lu(int n, double a_[], int r[], int c[], double eps)
+int sgf_dense_lu(int n, glp_double a_[], int r[], int c[], glp_double eps)
 {     /* non-optimized version */
       int i, j, k, p, q, ref;
-      double akk, big, temp;
+      glp_double akk, big, temp;
 #     define a(i,j) a_[(i)*n+(j)]
       /* initially U = A, L = P = Q = I */
       /* main elimination loop */
@@ -1105,7 +1105,7 @@ int sgf_dense_phase(LUF *luf, int k, int updat)
 {     int n = luf->n;
       SVA *sva = luf->sva;
       int *sv_ind = sva->ind;
-      double *sv_val = sva->val;
+      glp_double *sv_val = sva->val;
       int fc_ref = luf->fc_ref;
       int *fc_ptr = &sva->ptr[fc_ref-1];
       int *fc_len = &sva->len[fc_ref-1];
@@ -1114,7 +1114,7 @@ int sgf_dense_phase(LUF *luf, int k, int updat)
       int *vr_ptr = &sva->ptr[vr_ref-1];
       int *vr_len = &sva->len[vr_ref-1];
       int *vr_cap = &sva->cap[vr_ref-1];
-      double *vr_piv = luf->vr_piv;
+      glp_double *vr_piv = luf->vr_piv;
       int vc_ref = luf->vc_ref;
       int *vc_len = &sva->len[vc_ref-1];
       int *pp_inv = luf->pp_inv;
@@ -1123,7 +1123,7 @@ int sgf_dense_phase(LUF *luf, int k, int updat)
       int *qq_inv = luf->qq_inv;
       int a_end, a_ptr, end, i, ia, ii, j, ja, jj, ka, len, na, ne,
          need, ptr;
-      double *a_;
+      glp_double *a_;
       xassert(1 <= k && k <= n);
       /* active columns of V are not longer needed; make them empty */
       for (jj = k; jj <= n; jj++)
@@ -1308,7 +1308,7 @@ int sgf_factorize(SGF *sgf, int singl)
       SVA *sva = luf->sva;
       int vr_ref = luf->vr_ref;
       int *vr_len = &sva->len[vr_ref-1];
-      double *vr_piv = luf->vr_piv;
+      glp_double *vr_piv = luf->vr_piv;
       int vc_ref = luf->vc_ref;
       int *vc_len = &sva->len[vc_ref-1];
       int *pp_ind = luf->pp_ind;
@@ -1321,9 +1321,9 @@ int sgf_factorize(SGF *sgf, int singl)
       int *cs_head = sgf->cs_head;
       int *cs_prev = sgf->cs_prev;
       int *cs_next = sgf->cs_next;
-      double *vr_max = sgf->vr_max;
+      glp_double *vr_max = sgf->vr_max;
       char *flag = sgf->flag;
-      double *work = sgf->work;
+      glp_double *work = sgf->work;
       int i, j, k, k1, k2, p, q, nnz;
       /* build matrix V = A in row-wise format */
       luf_build_v_rows(luf, rs_prev);
@@ -1380,13 +1380,13 @@ int sgf_factorize(SGF *sgf, int singl)
       /* main factorization loop */
       for (k = k2; k <= n; k++)
       {  int na;
-         double den;
+         glp_double den;
          /* calculate density of active submatrix */
          na = n - k + 1; /* order of active submatrix */
 #if 0 /* 21/VIII-2014 */
-         den = (double)nnz / (double)(na * na);
+         den = (glp_double)nnz / (glp_double)(na * na);
 #else
-         den = (double)nnz / ((double)(na) * (double)(na));
+         den = (glp_double)nnz / ((glp_double)(na) * (glp_double)(na));
 #endif
          /* if active submatrix is relatively dense, switch to dense
           * phase */

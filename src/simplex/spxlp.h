@@ -115,23 +115,23 @@ struct SPXLP
        * that column) can be calculated as A_ptr[k+1] - A_ptr[k] */
       int *A_ind; /* int A_ind[1+nnz]; */
       /* row indices */
-      double *A_val; /* double A_val[1+nnz]; */
+      glp_double *A_val; /* glp_double A_val[1+nnz]; */
       /* non-zero element values (constraint coefficients) */
       /*--------------------------------------------------------------*/
       /* principal vectors of LP formulation */
-      double *b; /* double b[1+m]; */
+      glp_double *b; /* glp_double b[1+m]; */
       /* b[0] is not used;
        * b[i], 1 <= i <= m, is the right-hand side of i-th equality
        * constraint */
-      double *c; /* double c[1+n]; */
+      glp_double *c; /* glp_double c[1+n]; */
       /* c[0] is the constant term of the objective function;
        * c[k], 1 <= k <= n, is the objective function coefficient at
        * variable x[k] */
-      double *l; /* double l[1+n]; */
+      glp_double *l; /* glp_double l[1+n]; */
       /* l[0] is not used;
        * l[k], 1 <= k <= n, is the lower bound of variable x[k];
        * if x[k] has no lower bound, l[k] = -DBL_MAX */
-      double *u; /* double u[1+n]; */
+      glp_double *u; /* glp_double u[1+n]; */
       /* u[0] is not used;
        * u[k], 1 <= k <= n, is the upper bound of variable u[k];
        * if x[k] has no upper bound, u[k] = +DBL_MAX;
@@ -159,27 +159,27 @@ int spx_factorize(SPXLP *lp);
 /* compute factorization of current basis matrix */
 
 #define spx_eval_beta _glp_spx_eval_beta
-void spx_eval_beta(SPXLP *lp, double beta[/*1+m*/]);
+void spx_eval_beta(SPXLP *lp, glp_double beta[/*1+m*/]);
 /* compute values of basic variables */
 
 #define spx_eval_obj _glp_spx_eval_obj
-double spx_eval_obj(SPXLP *lp, const double beta[/*1+m*/]);
+glp_double spx_eval_obj(SPXLP *lp, const glp_double beta[/*1+m*/]);
 /* compute value of objective function */
 
 #define spx_eval_pi _glp_spx_eval_pi
-void spx_eval_pi(SPXLP *lp, double pi[/*1+m*/]);
+void spx_eval_pi(SPXLP *lp, glp_double pi[/*1+m*/]);
 /* compute simplex multipliers */
 
 #define spx_eval_dj _glp_spx_eval_dj
-double spx_eval_dj(SPXLP *lp, const double pi[/*1+m*/], int j);
+glp_double spx_eval_dj(SPXLP *lp, const glp_double pi[/*1+m*/], int j);
 /* compute reduced cost of j-th non-basic variable */
 
 #define spx_eval_tcol _glp_spx_eval_tcol
-void spx_eval_tcol(SPXLP *lp, int j, double tcol[/*1+m*/]);
+void spx_eval_tcol(SPXLP *lp, int j, glp_double tcol[/*1+m*/]);
 /* compute j-th column of simplex table */
 
 #define spx_eval_rho _glp_spx_eval_rho
-void spx_eval_rho(SPXLP *lp, int i, double rho[/*1+m*/]);
+void spx_eval_rho(SPXLP *lp, int i, glp_double rho[/*1+m*/]);
 /* compute i-th row of basis matrix inverse */
 
 #if 1 /* 31/III-2016 */
@@ -189,34 +189,34 @@ void spx_eval_rho_s(SPXLP *lp, int i, FVS *rho);
 #endif
 
 #define spx_eval_tij _glp_spx_eval_tij
-double spx_eval_tij(SPXLP *lp, const double rho[/*1+m*/], int j);
+glp_double spx_eval_tij(SPXLP *lp, const glp_double rho[/*1+m*/], int j);
 /* compute element T[i,j] of simplex table */
 
 #define spx_eval_trow _glp_spx_eval_trow
-void spx_eval_trow(SPXLP *lp, const double rho[/*1+m*/], double
+void spx_eval_trow(SPXLP *lp, const glp_double rho[/*1+m*/], glp_double
       trow[/*1+n-m*/]);
 /* compute i-th row of simplex table */
 
 #define spx_update_beta _glp_spx_update_beta
-void spx_update_beta(SPXLP *lp, double beta[/*1+m*/], int p,
-      int p_flag, int q, const double tcol[/*1+m*/]);
+void spx_update_beta(SPXLP *lp, glp_double beta[/*1+m*/], int p,
+      int p_flag, int q, const glp_double tcol[/*1+m*/]);
 /* update values of basic variables */
 
 #if 1 /* 30/III-2016 */
 #define spx_update_beta_s _glp_spx_update_beta_s
-void spx_update_beta_s(SPXLP *lp, double beta[/*1+m*/], int p,
+void spx_update_beta_s(SPXLP *lp, glp_double beta[/*1+m*/], int p,
       int p_flag, int q, const FVS *tcol);
 /* sparse version of spx_update_beta */
 #endif
 
 #define spx_update_d _glp_spx_update_d
-double spx_update_d(SPXLP *lp, double d[/*1+n-m*/], int p, int q,
-      const double trow[/*1+n-m*/], const double tcol[/*1+m*/]);
+glp_double spx_update_d(SPXLP *lp, glp_double d[/*1+n-m*/], int p, int q,
+      const glp_double trow[/*1+n-m*/], const glp_double tcol[/*1+m*/]);
 /* update reduced costs of non-basic variables */
 
 #if 1 /* 30/III-2016 */
 #define spx_update_d_s _glp_spx_update_d_s
-double spx_update_d_s(SPXLP *lp, double d[/*1+n-m*/], int p, int q,
+glp_double spx_update_d_s(SPXLP *lp, glp_double d[/*1+n-m*/], int p, int q,
       const FVS *trow, const FVS *tcol);
 /* sparse version of spx_update_d */
 #endif

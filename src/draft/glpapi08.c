@@ -196,7 +196,7 @@ int glp_interior(glp_prob *P, const glp_iptcp *parm)
       {  int len, cnt = 0;
          for (j = 1; j <= prob->n; j++)
          {  len = glp_get_mat_col(prob, j, NULL, NULL);
-            if ((double)len >= 0.20 * (double)prob->m) cnt++;
+            if ((glp_double)len >= 0.20 * (glp_double)prob->m) cnt++;
          }
          if (cnt == 1)
             xprintf("WARNING: PROBLEM HAS ONE DENSE COLUMN\n");
@@ -270,16 +270,16 @@ int glp_ipt_status(glp_prob *lp)
 *
 *  SYNOPSIS
 *
-*  double glp_ipt_obj_val(glp_prob *lp);
+*  glp_double glp_ipt_obj_val(glp_prob *lp);
 *
 *  RETURNS
 *
 *  The routine glp_ipt_obj_val returns value of the objective function
 *  for interior-point solution. */
 
-double glp_ipt_obj_val(glp_prob *lp)
+glp_double glp_ipt_obj_val(glp_prob *lp)
 {     /*struct LPXCPS *cps = lp->cps;*/
-      double z;
+      glp_double z;
       z = lp->ipt_obj;
       /*if (cps->round && fabs(z) < 1e-9) z = 0.0;*/
       return z;
@@ -292,16 +292,16 @@ double glp_ipt_obj_val(glp_prob *lp)
 *
 *  SYNOPSIS
 *
-*  double glp_ipt_row_prim(glp_prob *lp, int i);
+*  glp_double glp_ipt_row_prim(glp_prob *lp, int i);
 *
 *  RETURNS
 *
 *  The routine glp_ipt_row_prim returns primal value of the auxiliary
 *  variable associated with i-th row. */
 
-double glp_ipt_row_prim(glp_prob *lp, int i)
+glp_double glp_ipt_row_prim(glp_prob *lp, int i)
 {     /*struct LPXCPS *cps = lp->cps;*/
-      double pval;
+      glp_double pval;
       if (!(1 <= i && i <= lp->m))
          xerror("glp_ipt_row_prim: i = %d; row number out of range\n",
             i);
@@ -317,16 +317,16 @@ double glp_ipt_row_prim(glp_prob *lp, int i)
 *
 *  SYNOPSIS
 *
-*  double glp_ipt_row_dual(glp_prob *lp, int i);
+*  glp_double glp_ipt_row_dual(glp_prob *lp, int i);
 *
 *  RETURNS
 *
 *  The routine glp_ipt_row_dual returns dual value (i.e. reduced cost)
 *  of the auxiliary variable associated with i-th row. */
 
-double glp_ipt_row_dual(glp_prob *lp, int i)
+glp_double glp_ipt_row_dual(glp_prob *lp, int i)
 {     /*struct LPXCPS *cps = lp->cps;*/
-      double dval;
+      glp_double dval;
       if (!(1 <= i && i <= lp->m))
          xerror("glp_ipt_row_dual: i = %d; row number out of range\n",
             i);
@@ -342,16 +342,16 @@ double glp_ipt_row_dual(glp_prob *lp, int i)
 *
 *  SYNOPSIS
 *
-*  double glp_ipt_col_prim(glp_prob *lp, int j);
+*  glp_double glp_ipt_col_prim(glp_prob *lp, int j);
 *
 *  RETURNS
 *
 *  The routine glp_ipt_col_prim returns primal value of the structural
 *  variable associated with j-th column. */
 
-double glp_ipt_col_prim(glp_prob *lp, int j)
+glp_double glp_ipt_col_prim(glp_prob *lp, int j)
 {     /*struct LPXCPS *cps = lp->cps;*/
-      double pval;
+      glp_double pval;
       if (!(1 <= j && j <= lp->n))
          xerror("glp_ipt_col_prim: j = %d; column number out of range\n"
             , j);
@@ -367,16 +367,16 @@ double glp_ipt_col_prim(glp_prob *lp, int j)
 *
 *  SYNOPSIS
 *
-*  double glp_ipt_col_dual(glp_prob *lp, int j);
+*  glp_double glp_ipt_col_dual(glp_prob *lp, int j);
 *
 *  RETURNS
 *
 *  The routine glp_ipt_col_dual returns dual value (i.e. reduced cost)
 *  of the structural variable associated with j-th column. */
 
-double glp_ipt_col_dual(glp_prob *lp, int j)
+glp_double glp_ipt_col_dual(glp_prob *lp, int j)
 {     /*struct LPXCPS *cps = lp->cps;*/
-      double dval;
+      glp_double dval;
       if (!(1 <= j && j <= lp->n))
          xerror("glp_ipt_col_dual: j = %d; column number out of range\n"
             , j);

@@ -86,7 +86,7 @@ static int most_feas(glp_tree *T)
          infeasibilities */
       IOSNPD *node;
       int p;
-      double best;
+      glp_double best;
       p = 0, best = DBL_MAX;
       for (node = T->head; node != NULL; node = node->next)
       {  xassert(node->up != NULL);
@@ -100,7 +100,7 @@ static int best_proj(glp_tree *T)
 {     /* select subproblem using the best projection heuristic */
       IOSNPD *root, *node;
       int p;
-      double best, deg, obj;
+      glp_double best, deg, obj;
       /* the global bound must exist */
       xassert(T->mip->mip_stat == GLP_FEAS);
       /* obtain pointer to the root node, which must exist */
@@ -129,7 +129,7 @@ static int best_proj(glp_tree *T)
 static int best_node(glp_tree *T)
 {     /* select subproblem with best local bound */
       IOSNPD *node, *best = NULL;
-      double bound, eps;
+      glp_double bound, eps;
       switch (T->mip->dir)
       {  case GLP_MIN:
             bound = +DBL_MAX;

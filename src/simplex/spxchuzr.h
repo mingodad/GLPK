@@ -27,15 +27,15 @@
 #include "spxlp.h"
 
 #define spx_chuzr_std _glp_spx_chuzr_std
-int spx_chuzr_std(SPXLP *lp, int phase, const double beta[/*1+m*/],
-      int q, double s, const double tcol[/*1+m*/], int *p_flag,
-      double tol_piv, double tol, double tol1);
+int spx_chuzr_std(SPXLP *lp, int phase, const glp_double beta[/*1+m*/],
+      int q, glp_double s, const glp_double tcol[/*1+m*/], int *p_flag,
+      glp_double tol_piv, glp_double tol, glp_double tol1);
 /* choose basic variable (textbook ratio test) */
 
 #define spx_chuzr_harris _glp_spx_chuzr_harris
-int spx_chuzr_harris(SPXLP *lp, int phase, const double beta[/*1+m*/],
-      int q, double s, const double tcol[/*1+m*/], int *p_flag,
-      double tol_piv, double tol, double tol1);
+int spx_chuzr_harris(SPXLP *lp, int phase, const glp_double beta[/*1+m*/],
+      int q, glp_double s, const glp_double tcol[/*1+m*/], int *p_flag,
+      glp_double tol_piv, glp_double tol, glp_double tol1);
 /* choose basic variable (Harris' ratio test) */
 
 #if 1 /* 22/VI-2017 */
@@ -49,25 +49,25 @@ struct SPXBP
        * i > 0 if xB[i] intersects its lower bound (or fixed value)
        * i < 0 if xB[i] intersects its upper bound
        * i = 0 if xN[q] intersects its opposite bound */
-      double teta;
+      glp_double teta;
       /* ray parameter value, teta >= 0, at this break point */
-      double dc;
+      glp_double dc;
       /* increment of the penalty function coefficient cB[i] at this
        * break point */
-      double dz;
+      glp_double dz;
       /* increment, z[t] - z[0], of the penalty function at this break
        * point */
 };
 
 #define spx_ls_eval_bp _glp_spx_ls_eval_bp
-int spx_ls_eval_bp(SPXLP *lp, const double beta[/*1+m*/],
-      int q, double dq, const double tcol[/*1+m*/], double tol_piv,
+int spx_ls_eval_bp(SPXLP *lp, const glp_double beta[/*1+m*/],
+      int q, glp_double dq, const glp_double tcol[/*1+m*/], glp_double tol_piv,
       SPXBP bp[/*1+2*m+1*/]);
 /* determine penalty function break points */
 
 #define spx_ls_select_bp _glp_spx_ls_select_bp
-int spx_ls_select_bp(SPXLP *lp, const double tcol[/*1+m*/],
-      int nbp, SPXBP bp[/*1+m+m+1*/], int num, double *slope, double
+int spx_ls_select_bp(SPXLP *lp, const glp_double tcol[/*1+m*/],
+      int nbp, SPXBP bp[/*1+m+m+1*/], int num, glp_double *slope, glp_double
       teta_lim);
 /* select and process penalty function break points */
 #endif

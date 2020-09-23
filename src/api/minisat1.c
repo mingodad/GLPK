@@ -30,7 +30,7 @@ int glp_minisat1(glp_prob *P)
       solver *s;
       GLPAIJ *aij;
       int i, j, len, ret, *ind;
-      double sum;
+      glp_double sum;
 #if 0 /* 04/IV-2016 */
       /* check problem object */
       if (P == NULL || P->magic != GLP_PROB_MAGIC)

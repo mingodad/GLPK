@@ -77,7 +77,7 @@ int glp_bf_exists(glp_prob *lp)
 *  GLP_ECOND
 *     The basis matrix is ill-conditioned. */
 
-static int b_col(void *info, int j, int ind[], double val[])
+static int b_col(void *info, int j, int ind[], glp_double val[])
 {     glp_prob *lp = info;
       int m = lp->m;
       GLPAIJ *aij;
@@ -377,7 +377,7 @@ int glp_get_col_bind(glp_prob *lp, int j)
 *
 *  SYNOPSIS
 *
-*  void glp_ftran(glp_prob *lp, double x[]);
+*  void glp_ftran(glp_prob *lp, glp_double x[]);
 *
 *  DESCRIPTION
 *
@@ -424,7 +424,7 @@ int glp_get_col_bind(glp_prob *lp, int j)
 *
 *  which is the scaled basis matrix. */
 
-void glp_ftran(glp_prob *lp, double x[])
+void glp_ftran(glp_prob *lp, glp_double x[])
 {     int m = lp->m;
       GLPROW **row = lp->row;
       GLPCOL **col = lp->col;
@@ -456,7 +456,7 @@ void glp_ftran(glp_prob *lp, double x[])
 *
 *  SYNOPSIS
 *
-*  void glp_btran(glp_prob *lp, double x[]);
+*  void glp_btran(glp_prob *lp, glp_double x[]);
 *
 *  DESCRIPTION
 *
@@ -474,7 +474,7 @@ void glp_ftran(glp_prob *lp, double x[])
 *
 *  See comments to the routine glp_ftran. */
 
-void glp_btran(glp_prob *lp, double x[])
+void glp_btran(glp_prob *lp, glp_double x[])
 {     int m = lp->m;
       GLPROW **row = lp->row;
       GLPCOL **col = lp->col;
@@ -538,7 +538,7 @@ int glp_warm_up(glp_prob *P)
       GLPCOL *col;
       GLPAIJ *aij;
       int i, j, type, stat, ret;
-      double eps, temp, *work;
+      glp_double eps, temp, *work;
       /* invalidate basic solution */
       P->pbs_stat = P->dbs_stat = GLP_UNDEF;
       P->obj_val = 0.0;
@@ -557,7 +557,7 @@ int glp_warm_up(glp_prob *P)
          if (ret != 0) goto done;
       }
       /* allocate working array */
-      work = xcalloc(1+P->m, sizeof(double));
+      work = xcalloc(1+P->m, sizeof(glp_double));
       /* determine and store values of non-basic variables, compute
          vector (- N * xN) */
       for (i = 1; i <= P->m; i++)
@@ -715,7 +715,7 @@ done: return ret;
 *
 *  SYNOPSIS
 *
-*  int glp_eval_tab_row(glp_prob *lp, int k, int ind[], double val[]);
+*  int glp_eval_tab_row(glp_prob *lp, int k, int ind[], glp_double val[]);
 *
 *  DESCRIPTION
 *
@@ -802,11 +802,11 @@ done: return ret;
 *  where N[j] is a column of the augmented constraint matrix A~, which
 *  corresponds to some non-basic auxiliary or structural variable. */
 
-int glp_eval_tab_row(glp_prob *lp, int k, int ind[], double val[])
+int glp_eval_tab_row(glp_prob *lp, int k, int ind[], glp_double val[])
 {     int m = lp->m;
       int n = lp->n;
       int i, t, len, lll, *iii;
-      double alfa, *rho, *vvv;
+      glp_double alfa, *rho, *vvv;
       if (!(m == 0 || lp->valid))
          xerror("glp_eval_tab_row: basis factorization does not exist\n"
             );
@@ -822,9 +822,9 @@ int glp_eval_tab_row(glp_prob *lp, int k, int ind[], double val[])
          xerror("glp_eval_tab_row: k = %d; variable must be basic", k);
       xassert(1 <= i && i <= m);
       /* allocate working arrays */
-      rho = xcalloc(1+m, sizeof(double));
+      rho = xcalloc(1+m, sizeof(glp_double));
       iii = xcalloc(1+m, sizeof(int));
-      vvv = xcalloc(1+m, sizeof(double));
+      vvv = xcalloc(1+m, sizeof(glp_double));
       /* compute i-th row of the inverse; see (8) */
       for (t = 1; t <= m; t++) rho[t] = 0.0;
       rho[i] = 1.0;
@@ -866,7 +866,7 @@ int glp_eval_tab_row(glp_prob *lp, int k, int ind[], double val[])
 *
 *  SYNOPSIS
 *
-*  int glp_eval_tab_col(glp_prob *lp, int k, int ind[], double val[]);
+*  int glp_eval_tab_col(glp_prob *lp, int k, int ind[], glp_double val[]);
 *
 *  DESCRIPTION
 *
@@ -917,11 +917,11 @@ int glp_eval_tab_row(glp_prob *lp, int k, int ind[], double val[])
 *  is a column of the augmented constraint matrix A~, which corresponds
 *  to the given non-basic auxiliary or structural variable. */
 
-int glp_eval_tab_col(glp_prob *lp, int k, int ind[], double val[])
+int glp_eval_tab_col(glp_prob *lp, int k, int ind[], glp_double val[])
 {     int m = lp->m;
       int n = lp->n;
       int t, len, stat;
-      double *col;
+      glp_double *col;
       if (!(m == 0 || lp->valid))
          xerror("glp_eval_tab_col: basis factorization does not exist\n"
             );
@@ -936,7 +936,7 @@ int glp_eval_tab_col(glp_prob *lp, int k, int ind[], double val[])
          xerror("glp_eval_tab_col: k = %d; variable must be non-basic",
             k);
       /* obtain column N[k] with negative sign */
-      col = xcalloc(1+m, sizeof(double));
+      col = xcalloc(1+m, sizeof(glp_double));
       for (t = 1; t <= m; t++) col[t] = 0.0;
       if (k <= m)
       {  /* x[k] is auxiliary variable, so N[k] is a unity column */
@@ -971,7 +971,7 @@ int glp_eval_tab_col(glp_prob *lp, int k, int ind[], double val[])
 *
 *  SYNOPSIS
 *
-*  int glp_transform_row(glp_prob *P, int len, int ind[], double val[]);
+*  int glp_transform_row(glp_prob *P, int len, int ind[], glp_double val[]);
 *
 *  DESCRIPTION
 *
@@ -1046,16 +1046,16 @@ int glp_eval_tab_col(glp_prob *lp, int k, int ind[], double val[])
 *
 *  is the resultant row computed by the routine. */
 
-int glp_transform_row(glp_prob *P, int len, int ind[], double val[])
+int glp_transform_row(glp_prob *P, int len, int ind[], glp_double val[])
 {     int i, j, k, m, n, t, lll, *iii;
-      double alfa, *a, *aB, *rho, *vvv;
+      glp_double alfa, *a, *aB, *rho, *vvv;
       if (!glp_bf_exists(P))
          xerror("glp_transform_row: basis factorization does not exist "
             "\n");
       m = glp_get_num_rows(P);
       n = glp_get_num_cols(P);
       /* unpack the row to be transformed to the array a */
-      a = xcalloc(1+n, sizeof(double));
+      a = xcalloc(1+n, sizeof(glp_double));
       for (j = 1; j <= n; j++) a[j] = 0.0;
       if (!(0 <= len && len <= n))
          xerror("glp_transform_row: len = %d; invalid row length\n",
@@ -1074,7 +1074,7 @@ int glp_transform_row(glp_prob *P, int len, int ind[], double val[])
          a[j] = val[t];
       }
       /* construct the vector aB */
-      aB = xcalloc(1+m, sizeof(double));
+      aB = xcalloc(1+m, sizeof(glp_double));
       for (i = 1; i <= m; i++)
       {  k = glp_get_bhead(P, i);
          /* xB[i] is k-th original variable */
@@ -1097,7 +1097,7 @@ int glp_transform_row(glp_prob *P, int len, int ind[], double val[])
       }
       /* compute coefficients at non-basic structural variables */
       iii = xcalloc(1+m, sizeof(int));
-      vvv = xcalloc(1+m, sizeof(double));
+      vvv = xcalloc(1+m, sizeof(glp_double));
       for (j = 1; j <= n; j++)
       {  if (glp_get_col_stat(P, j) != GLP_BS)
          {  alfa = a[j];
@@ -1125,7 +1125,7 @@ int glp_transform_row(glp_prob *P, int len, int ind[], double val[])
 *
 *  SYNOPSIS
 *
-*  int glp_transform_col(glp_prob *P, int len, int ind[], double val[]);
+*  int glp_transform_col(glp_prob *P, int len, int ind[], glp_double val[]);
 *
 *  DESCRIPTION
 *
@@ -1186,15 +1186,15 @@ int glp_transform_row(glp_prob *P, int len, int ind[], double val[])
 *
 *  where alfa is the resultant column computed by the routine. */
 
-int glp_transform_col(glp_prob *P, int len, int ind[], double val[])
+int glp_transform_col(glp_prob *P, int len, int ind[], glp_double val[])
 {     int i, m, t;
-      double *a, *alfa;
+      glp_double *a, *alfa;
       if (!glp_bf_exists(P))
          xerror("glp_transform_col: basis factorization does not exist "
             "\n");
       m = glp_get_num_rows(P);
       /* unpack the column to be transformed to the array a */
-      a = xcalloc(1+m, sizeof(double));
+      a = xcalloc(1+m, sizeof(glp_double));
       for (i = 1; i <= m; i++) a[i] = 0.0;
       if (!(0 <= len && len <= m))
          xerror("glp_transform_col: len = %d; invalid column length\n",
@@ -1235,7 +1235,7 @@ int glp_transform_col(glp_prob *P, int len, int ind[], double val[])
 *  SYNOPSIS
 *
 *  int glp_prim_rtest(glp_prob *P, int len, const int ind[],
-*     const double val[], int dir, double eps);
+*     const glp_double val[], int dir, glp_double eps);
 *
 *  DESCRIPTION
 *
@@ -1286,9 +1286,9 @@ int glp_transform_col(glp_prob *P, int len, int ind[], double val[])
 *  otherwise it can be computed with the routine glp_transform_col. */
 
 int glp_prim_rtest(glp_prob *P, int len, const int ind[],
-      const double val[], int dir, double eps)
+      const glp_double val[], int dir, glp_double eps)
 {     int k, m, n, piv, t, type, stat;
-      double alfa, big, beta, lb, ub, temp, teta;
+      glp_double alfa, big, beta, lb, ub, temp, teta;
       if (glp_get_prim_stat(P) != GLP_FEAS)
          xerror("glp_prim_rtest: basic solution is not primal feasible "
             "\n");
@@ -1379,7 +1379,7 @@ up:      {  /* xB[i] has an upper bound */
 *  SYNOPSIS
 *
 *  int glp_dual_rtest(glp_prob *P, int len, const int ind[],
-*     const double val[], int dir, double eps);
+*     const glp_double val[], int dir, glp_double eps);
 *
 *  DESCRIPTION
 *
@@ -1428,9 +1428,9 @@ up:      {  /* xB[i] has an upper bound */
 *  it can be computed with the routine glp_transform_row. */
 
 int glp_dual_rtest(glp_prob *P, int len, const int ind[],
-      const double val[], int dir, double eps)
+      const glp_double val[], int dir, glp_double eps)
 {     int k, m, n, piv, t, stat;
-      double alfa, big, cost, obj, temp, teta;
+      glp_double alfa, big, cost, obj, temp, teta;
       if (glp_get_dual_stat(P) != GLP_FEAS)
          xerror("glp_dual_rtest: basic solution is not dual feasible\n")
             ;
@@ -1513,8 +1513,8 @@ int glp_dual_rtest(glp_prob *P, int len, const int ind[],
 *  SYNOPSIS
 *
 *  int glp_analyze_row(glp_prob *P, int len, const int ind[],
-*     const double val[], int type, double rhs, double eps, int *piv,
-*     double *x, double *dx, double *y, double *dy, double *dz);
+*     const glp_double val[], int type, glp_double rhs, glp_double eps, int *piv,
+*     glp_double *x, glp_double *dx, glp_double *y, glp_double *dy, glp_double *dz);
 *
 *  DESCRIPTION
 *
@@ -1584,10 +1584,10 @@ int glp_dual_rtest(glp_prob *P, int len, const int ind[],
 *        always gets worse (degrades). */
 
 int _glp_analyze_row(glp_prob *P, int len, const int ind[],
-      const double val[], int type, double rhs, double eps, int *_piv,
-      double *_x, double *_dx, double *_y, double *_dy, double *_dz)
+      const glp_double val[], int type, glp_double rhs, glp_double eps, int *_piv,
+      glp_double *_x, glp_double *_dx, glp_double *_y, glp_double *_dy, glp_double *_dz)
 {     int t, k, dir, piv, ret = 0;
-      double x, dx, y, dy, dz;
+      glp_double x, dx, y, dy, dz;
       if (P->pbs_stat == GLP_UNDEF)
          xerror("glp_analyze_row: primal basic solution components are "
             "undefined\n");
@@ -1687,7 +1687,7 @@ int main(void)
       glp_prob *P;
       glp_smcp parm;
       int i, k, len, piv, ret, ind[1+100];
-      double rhs, x, dx, y, dy, dz, val[1+100];
+      glp_double rhs, x, dx, y, dy, dz, val[1+100];
       P = glp_create_prob();
       /* read plan.mps (see glpk/examples) */
       ret = glp_read_mps(P, GLP_MPS_DECK, NULL, "plan.mps");
@@ -1758,8 +1758,8 @@ int main(void)
 *
 *  SYNOPSIS
 *
-*  void glp_analyze_bound(glp_prob *P, int k, double *limit1, int *var1,
-*     double *limit2, int *var2);
+*  void glp_analyze_bound(glp_prob *P, int k, glp_double *limit1, int *var1,
+*     glp_double *limit2, int *var2);
 *
 *  DESCRIPTION
 *
@@ -1793,12 +1793,12 @@ int main(void)
 *  limits further increasing the active bound being analyzed.
 *  if value2 = +DBL_MAX, var2 is set to 0. */
 
-void glp_analyze_bound(glp_prob *P, int k, double *value1, int *var1,
-      double *value2, int *var2)
+void glp_analyze_bound(glp_prob *P, int k, glp_double *value1, int *var1,
+      glp_double *value2, int *var2)
 {     GLPROW *row;
       GLPCOL *col;
       int m, n, stat, kase, p, len, piv, *ind;
-      double x, new_x, ll, uu, xx, delta, *val;
+      glp_double x, new_x, ll, uu, xx, delta, *val;
 #if 0 /* 04/IV-2016 */
       /* sanity checks */
       if (P == NULL || P->magic != GLP_PROB_MAGIC)
@@ -1830,7 +1830,7 @@ void glp_analyze_bound(glp_prob *P, int k, double *value1, int *var1,
             "\n", k);
       /* allocate working arrays */
       ind = xcalloc(1+m, sizeof(int));
-      val = xcalloc(1+m, sizeof(double));
+      val = xcalloc(1+m, sizeof(glp_double));
       /* compute column of the simplex table corresponding to the
          non-basic variable x[k] */
       len = glp_eval_tab_col(P, k, ind, val);
@@ -1907,8 +1907,8 @@ store:   /* store analysis results */
 *
 *  SYNOPSIS
 *
-*  void glp_analyze_coef(glp_prob *P, int k, double *coef1, int *var1,
-*     double *value1, double *coef2, int *var2, double *value2);
+*  void glp_analyze_coef(glp_prob *P, int k, glp_double *coef1, int *var1,
+*     glp_double *value1, glp_double *coef2, int *var2, glp_double *value2);
 *
 *  DESCRIPTION
 *
@@ -1959,12 +1959,12 @@ store:   /* store analysis results */
 *  basis, which is defined exactly in the same way as value1 above with
 *  exception that now the objective coefficient is increasing. */
 
-void glp_analyze_coef(glp_prob *P, int k, double *coef1, int *var1,
-      double *value1, double *coef2, int *var2, double *value2)
+void glp_analyze_coef(glp_prob *P, int k, glp_double *coef1, int *var1,
+      glp_double *value1, glp_double *coef2, int *var2, glp_double *value2)
 {     GLPROW *row; GLPCOL *col;
       int m, n, type, stat, kase, p, q, dir, clen, cpiv, rlen, rpiv,
          *cind, *rind;
-      double lb, ub, coef, x, lim_coef, new_x, d, delta, ll, uu, xx,
+      glp_double lb, ub, coef, x, lim_coef, new_x, d, delta, ll, uu, xx,
          *rval, *cval;
 #if 0 /* 04/IV-2016 */
       /* sanity checks */
@@ -2005,9 +2005,9 @@ void glp_analyze_coef(glp_prob *P, int k, double *coef1, int *var1,
             "ed\n", k);
       /* allocate working arrays */
       cind = xcalloc(1+m, sizeof(int));
-      cval = xcalloc(1+m, sizeof(double));
+      cval = xcalloc(1+m, sizeof(glp_double));
       rind = xcalloc(1+n, sizeof(int));
-      rval = xcalloc(1+n, sizeof(double));
+      rval = xcalloc(1+n, sizeof(glp_double));
       /* compute row of the simplex table corresponding to the basic
          variable x[k] */
       rlen = glp_eval_tab_row(P, k, rind, rval);

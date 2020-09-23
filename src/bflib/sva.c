@@ -55,7 +55,7 @@ SVA *sva_create_area(int n_max, int size)
       sva->prev = talloc(1+n_max, int);
       sva->next = talloc(1+n_max, int);
       sva->ind = talloc(1+size, int);
-      sva->val = talloc(1+size, double);
+      sva->val = talloc(1+size, glp_double);
       sva->talky = 0;
       return sva;
 }
@@ -153,20 +153,20 @@ void sva_resize_area(SVA *sva, int delta)
          memmove(&sva->ind[sva->r_ptr], &sva->ind[r_ptr],
             r_size * sizeof(int));
          memmove(&sva->val[sva->r_ptr], &sva->val[r_ptr],
-            r_size * sizeof(double));
+            r_size * sizeof(glp_double));
       }
       /* reallocate the storage arrays */
       xassert(delta < INT_MAX - sva->size);
       sva->size += delta;
       sva->ind = trealloc(sva->ind, 1+sva->size, int);
-      sva->val = trealloc(sva->val, 1+sva->size, double);
+      sva->val = trealloc(sva->val, 1+sva->size, glp_double);
       /* relocate the right part in case of positive delta */
       if (delta > 0)
       {  sva->r_ptr += delta;
          memmove(&sva->ind[sva->r_ptr], &sva->ind[r_ptr],
             r_size * sizeof(int));
          memmove(&sva->val[sva->r_ptr], &sva->val[r_ptr],
-            r_size * sizeof(double));
+            r_size * sizeof(glp_double));
       }
       /* update pointers to vectors stored in the right part */
       for (k = 1; k <= n; k++)
@@ -196,7 +196,7 @@ void sva_defrag_area(SVA *sva)
       int *prev = sva->prev;
       int *next = sva->next;
       int *ind = sva->ind;
-      double *val = sva->val;
+      glp_double *val = sva->val;
       int k, next_k, ptr_k, len_k, m_ptr, head, tail;
 #if 1
       if (sva->talky)
@@ -229,7 +229,7 @@ void sva_defrag_area(SVA *sva)
             {  memmove(&ind[m_ptr], &ind[ptr_k],
                   len_k * sizeof(int));
                memmove(&val[m_ptr], &val[ptr_k],
-                  len_k * sizeof(double));
+                  len_k * sizeof(glp_double));
                ptr[k] = m_ptr;
             }
             /* remove unused locations from k-th vector */
@@ -332,7 +332,7 @@ void sva_enlarge_cap(SVA *sva, int k, int new_cap, int skip)
       int *prev = sva->prev;
       int *next = sva->next;
       int *ind = sva->ind;
-      double *val = sva->val;
+      glp_double *val = sva->val;
       xassert(1 <= k && k <= sva->n);
       xassert(new_cap > cap[k]);
       /* there should be at least new_cap free locations */
@@ -353,7 +353,7 @@ void sva_enlarge_cap(SVA *sva, int k, int new_cap, int skip)
                len[k] * sizeof(int));
             if (!skip)
                memcpy(&val[sva->m_ptr], &val[ptr[k]],
-                  len[k] * sizeof(double));
+                  len[k] * sizeof(glp_double));
          }
          /* remove the vector from the linked list */
          if (prev[k] == 0)
@@ -439,7 +439,7 @@ void sva_make_static(SVA *sva, int k)
       int *prev = sva->prev;
       int *next = sva->next;
       int *ind = sva->ind;
-      double *val = sva->val;
+      glp_double *val = sva->val;
       int ptr_k, len_k;
       xassert(1 <= k && k <= sva->n);
       /* if the vector has zero capacity, do nothing */
@@ -471,7 +471,7 @@ void sva_make_static(SVA *sva, int k)
       /* copy the vector content to the beginning of the right part */
       ptr_k = sva->r_ptr - len_k;
       memcpy(&ind[ptr_k], &ind[ptr[k]], len_k * sizeof(int));
-      memcpy(&val[ptr_k], &val[ptr[k]], len_k * sizeof(double));
+      memcpy(&val[ptr_k], &val[ptr[k]], len_k * sizeof(glp_double));
       /* set new pointer and capacity of the vector */
       ptr[k] = ptr_k;
       cap[k] = len_k;

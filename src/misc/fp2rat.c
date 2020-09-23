@@ -32,7 +32,7 @@
 *  SYNOPSIS
 *
 *  #include "misc.h"
-*  int fp2rat(double x, double eps, double *p, double *q);
+*  int fp2rat(glp_double x, glp_double eps, glp_double *p, glp_double *q);
 *
 *  DESCRIPTION
 *
@@ -113,9 +113,9 @@
 *  and Applications," Encyclopedia on Mathematics and Its Applications,
 *  Addison-Wesley, 1980. */
 
-int fp2rat(double x, double eps, double *p, double *q)
+int fp2rat(glp_double x, glp_double eps, glp_double *p, glp_double *q)
 {     int k;
-      double xk, Akm1, Ak, Bkm1, Bk, ak, bk, fk, temp;
+      glp_double xk, Akm1, Ak, Bkm1, Bk, ak, bk, fk, temp;
       xassert(0.0 <= x && x < 1.0);
       for (k = 0; ; k++)
       {  xassert(k <= 100);

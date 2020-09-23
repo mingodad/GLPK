@@ -3990,7 +3990,7 @@ double eval_numeric(MPL *mpl, CODE *code)
                if (nanbox_is_double(sym.sym))
                   value = nanbox_to_double(sym.sym);
                else
-               {  if (str2num(nanbox_to_pointer(sym.sym), &value))
+               {  if (str2double(nanbox_to_pointer(sym.sym), &value))
                      error(mpl, "cannot convert %s to floating-point nu"
                         "mber", format_symbol(mpl, sym));
                }
@@ -5398,7 +5398,7 @@ const char *mpl_tab_get_str(TABDCA *dca, int k)
       return dca->str[k];
 }
 
-void mpl_tab_set_num(TABDCA *dca, int k, double num)
+void mpl_tab_set_num(TABDCA *dca, int k, glp_double num)
 {     /* assign numeric value to k-th field */
       xassert(1 <= k && k <= dca->nf);
       xassert(dca->type[k] == '?');

@@ -124,17 +124,17 @@ struct csa
       /* image of current token */
       int imlen;
       /* length of token image */
-      double value;
+      glp_double value;
       /* value of numeric constant */
       int n_max;
       /* length of the following five arrays (enlarged automatically,
          if necessary) */
       int *ind; /* int ind[1+n_max]; */
-      double *val; /* double val[1+n_max]; */
+      glp_double *val; /* glp_double val[1+n_max]; */
       char *flag; /* char flag[1+n_max]; */
       /* working arrays used to construct linear forms */
-      double *lb; /* double lb[1+n_max]; */
-      double *ub; /* double ub[1+n_max]; */
+      glp_double *lb; /* glp_double lb[1+n_max]; */
+      glp_double *ub; /* glp_double ub[1+n_max]; */
       /* lower and upper bounds of variables (columns) */
 #if 1 /* 27/VII-2013 */
       int lb_warn, ub_warn;
@@ -397,26 +397,26 @@ static int find_col(struct csa *csa, char *name)
          if (csa->n_max < j)
          {  int n_max = csa->n_max;
             int *ind = csa->ind;
-            double *val = csa->val;
+            glp_double *val = csa->val;
             char *flag = csa->flag;
-            double *lb = csa->lb;
-            double *ub = csa->ub;
+            glp_double *lb = csa->lb;
+            glp_double *ub = csa->ub;
             csa->n_max += csa->n_max;
             csa->ind = xcalloc(1+csa->n_max, sizeof(int));
             memcpy(&csa->ind[1], &ind[1], n_max * sizeof(int));
             xfree(ind);
-            csa->val = xcalloc(1+csa->n_max, sizeof(double));
-            memcpy(&csa->val[1], &val[1], n_max * sizeof(double));
+            csa->val = xcalloc(1+csa->n_max, sizeof(glp_double));
+            memcpy(&csa->val[1], &val[1], n_max * sizeof(glp_double));
             xfree(val);
             csa->flag = xcalloc(1+csa->n_max, sizeof(char));
             memset(&csa->flag[1], 0, csa->n_max * sizeof(char));
             memcpy(&csa->flag[1], &flag[1], n_max * sizeof(char));
             xfree(flag);
-            csa->lb = xcalloc(1+csa->n_max, sizeof(double));
-            memcpy(&csa->lb[1], &lb[1], n_max * sizeof(double));
+            csa->lb = xcalloc(1+csa->n_max, sizeof(glp_double));
+            memcpy(&csa->lb[1], &lb[1], n_max * sizeof(glp_double));
             xfree(lb);
-            csa->ub = xcalloc(1+csa->n_max, sizeof(double));
-            memcpy(&csa->ub[1], &ub[1], n_max * sizeof(double));
+            csa->ub = xcalloc(1+csa->n_max, sizeof(glp_double));
+            memcpy(&csa->ub[1], &ub[1], n_max * sizeof(glp_double));
             xfree(ub);
          }
          csa->lb[j] = +DBL_MAX, csa->ub[j] = -DBL_MAX;
@@ -439,7 +439,7 @@ static int find_col(struct csa *csa, char *name)
 
 static int parse_linear_form(struct csa *csa)
 {     int j, k, len = 0, newlen;
-      double s, coef;
+      glp_double s, coef;
 loop: /* parse an optional sign */
       if (csa->token == T_PLUS)
          s = +1.0, scan_token(csa);
@@ -540,7 +540,7 @@ static void parse_objective(struct csa *csa)
 
 static void parse_constraints(struct csa *csa)
 {     int i, len, type;
-      double s;
+      glp_double s;
       /* parse the keyword 'subject to' */
       xassert(csa->token == T_SUBJECT_TO);
       scan_token(csa);
@@ -596,7 +596,7 @@ loop: /* create new row (constraint) */
       return;
 }
 
-static void set_lower_bound(struct csa *csa, int j, double lb)
+static void set_lower_bound(struct csa *csa, int j, glp_double lb)
 {     /* set lower bound of j-th variable */
       if (csa->lb[j] != +DBL_MAX && !csa->lb_warn)
       {  warning(csa, "lower bound of variable '%s' redefined\n",
@@ -607,7 +607,7 @@ static void set_lower_bound(struct csa *csa, int j, double lb)
       return;
 }
 
-static void set_upper_bound(struct csa *csa, int j, double ub)
+static void set_upper_bound(struct csa *csa, int j, glp_double ub)
 {     /* set upper bound of j-th variable */
       if (csa->ub[j] != -DBL_MAX && !csa->ub_warn)
       {  warning(csa, "upper bound of variable '%s' redefined\n",
@@ -638,7 +638,7 @@ static void set_upper_bound(struct csa *csa, int j, double ub)
 
 static void parse_bounds(struct csa *csa)
 {     int j, lb_flag;
-      double lb, s;
+      glp_double lb, s;
       /* parse the keyword 'bounds' */
       xassert(csa->token == T_BOUNDS);
       scan_token(csa);
@@ -868,11 +868,11 @@ int glp_read_lp(glp_prob *P, const glp_cpxcp *parm, const char *fname)
       csa->value = 0.0;
       csa->n_max = 100;
       csa->ind = xcalloc(1+csa->n_max, sizeof(int));
-      csa->val = xcalloc(1+csa->n_max, sizeof(double));
+      csa->val = xcalloc(1+csa->n_max, sizeof(glp_double));
       csa->flag = xcalloc(1+csa->n_max, sizeof(char));
       memset(&csa->flag[1], 0, csa->n_max * sizeof(char));
-      csa->lb = xcalloc(1+csa->n_max, sizeof(double));
-      csa->ub = xcalloc(1+csa->n_max, sizeof(double));
+      csa->lb = xcalloc(1+csa->n_max, sizeof(glp_double));
+      csa->ub = xcalloc(1+csa->n_max, sizeof(glp_double));
 #if 1 /* 27/VII-2013 */
       csa->lb_warn = csa->ub_warn = 0;
 #endif
@@ -914,7 +914,7 @@ int glp_read_lp(glp_prob *P, const glp_cpxcp *parm, const char *fname)
          error(csa, "extra symbol(s) detected beyond 'end'\n");
       /* set bounds of variables */
       {  int j, type;
-         double lb, ub;
+         glp_double lb, ub;
          for (j = 1; j <= P->n; j++)
          {  lb = csa->lb[j];
             ub = csa->ub[j];
@@ -1151,9 +1151,9 @@ int glp_write_lp(glp_prob *P, const glp_cpxcp *parm, const char *fname)
             else if (col->coef == -1.0)
                sprintf(term, " - %s", name);
             else if (col->coef > 0.0)
-               sprintf(term, " + %.*g %s", DBL_DIG, +col->coef, name);
+               sprintf(term, " + %.*" GLP_DBL_FMT_G " %s", DBL_DIG, +col->coef, name);
             else
-               sprintf(term, " - %.*g %s", DBL_DIG, -col->coef, name);
+               sprintf(term, " - %.*" GLP_DBL_FMT_G " %s", DBL_DIG, -col->coef, name);
             if (strlen(line) + strlen(term) > 72)
                xfprintf(fp, "%s\n", line), line[0] = '\0', count++;
             strcat(line, term);
@@ -1166,7 +1166,7 @@ int glp_write_lp(glp_prob *P, const glp_cpxcp *parm, const char *fname)
       }
       xfprintf(fp, "%s\n", line), count++;
       if (P->c0 != 0.0)
-         xfprintf(fp, "\\* constant term = %.*g *\\\n", DBL_DIG, P->c0),
+         xfprintf(fp, "\\* constant term = %.*" GLP_DBL_FMT_G " *\\\n", DBL_DIG, P->c0),
             count++;
       xfprintf(fp, "\n"), count++;
       /* write the constraints section */
@@ -1184,9 +1184,9 @@ int glp_write_lp(glp_prob *P, const glp_cpxcp *parm, const char *fname)
             else if (aij->val == -1.0)
                sprintf(term, " - %s", name);
             else if (aij->val > 0.0)
-               sprintf(term, " + %.*g %s", DBL_DIG, +aij->val, name);
+               sprintf(term, " + %.*" GLP_DBL_FMT_G " %s", DBL_DIG, +aij->val, name);
             else
-               sprintf(term, " - %.*g %s", DBL_DIG, -aij->val, name);
+               sprintf(term, " - %.*" GLP_DBL_FMT_G " %s", DBL_DIG, -aij->val, name);
             if (strlen(line) + strlen(term) > 72)
                xfprintf(fp, "%s\n", line), line[0] = '\0', count++;
             strcat(line, term);
@@ -1205,11 +1205,11 @@ int glp_write_lp(glp_prob *P, const glp_cpxcp *parm, const char *fname)
          }
          /* right hand-side */
          if (row->type == GLP_LO)
-            sprintf(term, " >= %.*g", DBL_DIG, row->lb);
+            sprintf(term, " >= %.*" GLP_DBL_FMT_G, DBL_DIG, row->lb);
          else if (row->type == GLP_UP)
-            sprintf(term, " <= %.*g", DBL_DIG, row->ub);
+            sprintf(term, " <= %.*" GLP_DBL_FMT_G, DBL_DIG, row->ub);
          else if (row->type == GLP_DB || row->type == GLP_FX)
-            sprintf(term, " = %.*g", DBL_DIG, row->lb);
+            sprintf(term, " = %.*" GLP_DBL_FMT_G , DBL_DIG, row->lb);
          else
             xassert(row != row);
          if (strlen(line) + strlen(term) > 72)
@@ -1225,7 +1225,7 @@ int glp_write_lp(glp_prob *P, const glp_cpxcp *parm, const char *fname)
          if (row->type != GLP_DB) continue;
          if (!flag)
             xfprintf(fp, "Bounds\n"), flag = 1, count++;
-         xfprintf(fp, " 0 <= ~r_%d <= %.*g\n",
+         xfprintf(fp, " 0 <= ~r_%d <= %.*" GLP_DBL_FMT_G "\n",
             i, DBL_DIG, row->ub - row->lb), count++;
       }
       for (j = 1; j <= P->n; j++)
@@ -1246,7 +1246,7 @@ int glp_write_lp(glp_prob *P, const glp_cpxcp *parm, const char *fname)
             xfprintf(fp, " %.*g <= %s <= %.*g\n",
                DBL_DIG, col->lb, name, DBL_DIG, col->ub), count++;
          else if (col->type == GLP_FX)
-            xfprintf(fp, " %s = %.*g\n",
+            xfprintf(fp, " %s = %.*" GLP_DBL_FMT_G "\n",
                name, DBL_DIG, col->lb), count++;
          else
             xassert(col != col);

@@ -79,8 +79,8 @@
 *     The search was prematurely terminated, because the time limit has
 *     been exceeded. */
 
-static void set_d_eps(mpq_t x, double val)
-{     /* convert double val to rational x obtaining a more adequate
+static void set_d_eps(mpq_t x, glp_double val)
+{     /* convert glp_double val to rational x obtaining a more adequate
          fraction than provided by mpq_set_d due to allowing a small
          approximation error specified by a given relative tolerance;
          for example, mpq_set_d would give the following
@@ -88,7 +88,7 @@ static void set_d_eps(mpq_t x, double val)
              -> 6004799503160661/18014398509481984
          while this routine gives exactly 1/3 */
       int s, n, j;
-      double f, p, q, eps = 1e-9;
+      glp_double f, p, q, eps = 1e-9;
       mpq_t temp;
       xassert(-DBL_MAX <= val && val <= +DBL_MAX);
 #if 1 /* 30/VII-2008 */
@@ -134,7 +134,7 @@ static void load_data(SSX *ssx, glp_prob *lp)
       int n = ssx->n;
       int nnz = ssx->A_ptr[n+1]-1;
       int j, k, type, loc, len, *ind;
-      double lb, ub, coef, *val;
+      glp_double lb, ub, coef, *val;
       xassert(lp->m == m);
       xassert(lp->n == n);
       xassert(lp->nnz == nnz);
@@ -180,7 +180,7 @@ static void load_data(SSX *ssx, glp_prob *lp)
       }
       /* constraint coefficients */
       ind = xcalloc(1+m, sizeof(int));
-      val = xcalloc(1+m, sizeof(double));
+      val = xcalloc(1+m, sizeof(glp_double));
       loc = 0;
       for (j = 1; j <= n; j++)
       {  ssx->A_ptr[j] = loc+1;
@@ -263,7 +263,7 @@ int glp_exact(glp_prob *lp, const glp_smcp *parm)
       int n = lp->n;
       int nnz = lp->nnz;
       int i, j, k, type, pst, dst, ret, stat;
-      double lb, ub, prim, dual, sum;
+      glp_double lb, ub, prim, dual, sum;
       if (parm == NULL)
          parm = &_parm, glp_init_smcp((glp_smcp *)parm);
       /* check control parameters */
@@ -368,7 +368,7 @@ int glp_exact(glp_prob *lp, const glp_smcp *parm)
 #endif
       ssx->it_lim = parm->it_lim;
       ssx->it_cnt = lp->it_cnt;
-      ssx->tm_lim = (double)parm->tm_lim / 1000.0;
+      ssx->tm_lim = (glp_double)parm->tm_lim / 1000.0;
 #endif
       ssx->out_frq = 5.0;
       ssx->tm_beg = xtime();

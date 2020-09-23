@@ -50,7 +50,7 @@ struct SPME
       /* row number */
       int j;
       /* column number */
-      double val;
+      glp_double val;
       /* element value */
       SPME *r_prev;
       /* pointer to previous element in the same row */
@@ -79,7 +79,7 @@ SPM *spm_create_mat(int m, int n);
 /* create general sparse matrix */
 
 #define spm_new_elem _glp_spm_new_elem
-SPME *spm_new_elem(SPM *A, int i, int j, double val);
+SPME *spm_new_elem(SPM *A, int i, int j, glp_double val);
 /* add new element to sparse matrix */
 
 #define spm_delete_mat _glp_spm_delete_mat
@@ -107,7 +107,7 @@ int spm_count_nnz(const SPM *A);
 /* determine number of non-zeros in sparse matrix */
 
 #define spm_drop_zeros _glp_spm_drop_zeros
-int spm_drop_zeros(SPM *A, double eps);
+int spm_drop_zeros(SPM *A, glp_double eps);
 /* remove zero elements from sparse matrix */
 
 #define spm_read_mat _glp_spm_read_mat
@@ -127,12 +127,12 @@ SPM *spm_add_sym(const SPM *A, const SPM *B);
 /* add two sparse matrices (symbolic phase) */
 
 #define spm_add_num _glp_spm_add_num
-void spm_add_num(SPM *C, double alfa, const SPM *A, double beta,
+void spm_add_num(SPM *C, glp_double alfa, const SPM *A, glp_double beta,
       const SPM *B);
 /* add two sparse matrices (numeric phase) */
 
 #define spm_add_mat _glp_spm_add_mat
-SPM *spm_add_mat(double alfa, const SPM *A, double beta,
+SPM *spm_add_mat(glp_double alfa, const SPM *A, glp_double beta,
       const SPM *B);
 /* add two sparse matrices (driver routine) */
 

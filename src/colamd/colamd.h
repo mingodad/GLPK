@@ -45,15 +45,15 @@
 size_t colamd_recommended(int nnz, int n_row, int n_col);
 
 #define colamd_set_defaults _glp_colamd_set_defaults
-void colamd_set_defaults(double knobs [COLAMD_KNOBS]);
+void colamd_set_defaults(glp_double knobs [COLAMD_KNOBS]);
 
 #define colamd _glp_colamd
 int colamd(int n_row, int n_col, int Alen, int A[], int p[],
-      double knobs[COLAMD_KNOBS], int stats[COLAMD_STATS]);
+      glp_double knobs[COLAMD_KNOBS], int stats[COLAMD_STATS]);
 
 #define symamd _glp_symamd
 int symamd(int n, int A[], int p[], int perm[],
-      double knobs[COLAMD_KNOBS], int stats[COLAMD_STATS],
+      glp_double knobs[COLAMD_KNOBS], int stats[COLAMD_STATS],
       void *(*allocate)(size_t, size_t), void(*release)(void *));
 
 #define colamd_report _glp_colamd_report
