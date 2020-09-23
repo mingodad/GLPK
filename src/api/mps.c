@@ -62,7 +62,7 @@ static void check_parm(const char *func, const glp_mpscp *parm)
          xerror("%s: obj_name = \"%.12s...\"; parameter too long\n",
             func, parm->obj_name);
       if (!(0.0 <= parm->tol_mps && parm->tol_mps < 1.0))
-         xerror("%s: tol_mps = %g; invalid parameter\n",
+         xerror("%s: tol_mps = %" GLP_DBL_FMT_G "; invalid parameter\n",
             func, parm->tol_mps);
       return;
 }

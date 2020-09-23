@@ -62,23 +62,23 @@ int glp_intfeas1(glp_prob *P, int use_bound, int obj_bound)
          temp = (int)col->lb;
          if ((glp_double)temp != col->lb)
          {  if (col->type == GLP_FX)
-               xprintf("glp_intfeas1: column %d: fixed value %g is non-"
+               xprintf("glp_intfeas1: column %d: fixed value %" GLP_DBL_FMT_G " is non-"
                   "integer or out of range\n", j, col->lb);
             else
-               xprintf("glp_intfeas1: column %d: lower bound %g is non-"
+               xprintf("glp_intfeas1: column %d: lower bound %" GLP_DBL_FMT_G " is non-"
                   "integer or out of range\n", j, col->lb);
             ret = GLP_EDATA;
             goto done;
          }
          temp = (int)col->ub;
          if ((glp_double)temp != col->ub)
-         {  xprintf("glp_intfeas1: column %d: upper bound %g is non-int"
+         {  xprintf("glp_intfeas1: column %d: upper bound %" GLP_DBL_FMT_G " is non-int"
                "eger or out of range\n", j, col->ub);
             ret = GLP_EDATA;
             goto done;
          }
          if (col->type == GLP_DB && col->lb > col->ub)
-         {  xprintf("glp_intfeas1: column %d: lower bound %g is greater"
+         {  xprintf("glp_intfeas1: column %d: lower bound %" GLP_DBL_FMT_G " is greater"
                " than upper bound %g\n", j, col->lb, col->ub);
             ret = GLP_EBOUND;
             goto done;
@@ -92,7 +92,7 @@ int glp_intfeas1(glp_prob *P, int use_bound, int obj_bound)
          {  temp = (int)aij->val;
             if ((glp_double)temp != aij->val)
             {  xprintf("glp_intfeas1: row = %d, column %d: constraint c"
-                  "oefficient %g is non-integer or out of range\n",
+                  "oefficient %" GLP_DBL_FMT_G " is non-integer or out of range\n",
                   i, aij->col->j, aij->val);
                ret = GLP_EDATA;
                goto done;
@@ -101,23 +101,23 @@ int glp_intfeas1(glp_prob *P, int use_bound, int obj_bound)
          temp = (int)row->lb;
          if ((glp_double)temp != row->lb)
          {  if (row->type == GLP_FX)
-               xprintf("glp_intfeas1: row = %d: fixed value %g is non-i"
+               xprintf("glp_intfeas1: row = %d: fixed value %" GLP_DBL_FMT_G " is non-i"
                   "nteger or out of range\n", i, row->lb);
             else
-               xprintf("glp_intfeas1: row = %d: lower bound %g is non-i"
+               xprintf("glp_intfeas1: row = %d: lower bound %" GLP_DBL_FMT_G " is non-i"
                   "nteger or out of range\n", i, row->lb);
             ret = GLP_EDATA;
             goto done;
          }
          temp = (int)row->ub;
          if ((glp_double)temp != row->ub)
-         {  xprintf("glp_intfeas1: row = %d: upper bound %g is non-inte"
+         {  xprintf("glp_intfeas1: row = %d: upper bound %" GLP_DBL_FMT_G " is non-inte"
                "ger or out of range\n", i, row->ub);
             ret = GLP_EDATA;
             goto done;
          }
          if (row->type == GLP_DB && row->lb > row->ub)
-         {  xprintf("glp_intfeas1: row %d: lower bound %g is greater th"
+         {  xprintf("glp_intfeas1: row %d: lower bound %" GLP_DBL_FMT_G " is greater th"
                "an upper bound %g\n", i, row->lb, row->ub);
             ret = GLP_EBOUND;
             goto done;
@@ -132,7 +132,7 @@ int glp_intfeas1(glp_prob *P, int use_bound, int obj_bound)
 #endif
       temp = (int)P->c0;
       if ((glp_double)temp != P->c0)
-      {  xprintf("glp_intfeas1: objective constant term %g is non-integ"
+      {  xprintf("glp_intfeas1: objective constant term %" GLP_DBL_FMT_G " is non-integ"
             "er or out of range\n", P->c0);
          ret = GLP_EDATA;
          goto done;
@@ -240,7 +240,7 @@ skip: ;
       P->mip_obj = obj_val[0];
       for (k = 1; k <= obj_len; k++)
          P->mip_obj += obj_val[k] * P->col[obj_ind[k]]->mipx;
-      xprintf("Objective value = %17.9e\n", P->mip_obj);
+      xprintf("Objective value = %17.9" GLP_DBL_FMT_e "\n", P->mip_obj);
 done: /* delete the transformed problem, if it exists */
       if (mip != NULL)
          glp_delete_prob(mip);

@@ -1394,7 +1394,7 @@ int sgf_factorize(SGF *sgf, int singl)
          if (na >= 5 && den >= 0.71)
          {
 #ifdef GLP_DEBUG
-            xprintf("na = %d; nnz = %d; den = %g\n", na, nnz, den);
+            xprintf("na = %d; nnz = %d; den = %" GLP_DBL_FMT_G "\n", na, nnz, den);
 #endif
             break;
          }

@@ -963,7 +963,7 @@ static glp_double generate(glp_mir *mir)
          xassert(x[j] >= -0.001);
 #else
          if (x[j] < -0.001)
-         {  xprintf("glp_mir_gen: warning: x[%d] = %g\n", j, x[j]);
+         {  xprintf("glp_mir_gen: warning: x[%d] = %" GLP_DBL_FMT_G "\n", j, x[j]);
             r_best = 0.0;
             goto skip;
          }
@@ -1000,7 +1000,7 @@ static glp_double generate(glp_mir *mir)
          xassert(x >= -0.001);
 #else
          if (x < -0.001)
-         {  xprintf("glp_mir_gen: warning: x = %g\n", x);
+         {  xprintf("glp_mir_gen: warning: x = %" GLP_DBL_FMT_G "\n", x);
             r_best = 0.0;
             goto skip;
          }

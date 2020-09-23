@@ -329,7 +329,7 @@ static int preprocess_and_solve_mip(glp_prob *P, const glp_iocp *parm)
       {  mip->mip_stat = GLP_OPT;
          mip->mip_obj = mip->c0;
          if (parm->msg_lev >= GLP_MSG_ALL)
-         {  xprintf("Objective value = %17.9e\n", mip->mip_obj);
+         {  xprintf("Objective value = %17.9" GLP_DBL_FMT_e "\n", mip->mip_obj);
             xprintf("INTEGER OPTIMAL SOLUTION FOUND BY MIP PREPROCESSOR"
                "\n");
          }
@@ -477,10 +477,10 @@ int glp_intopt(glp_prob *P, const glp_iocp *parm)
          xerror("glp_intopt: bt_tech = %d; invalid parameter\n",
             parm->bt_tech);
       if (!(0.0 < parm->tol_int && parm->tol_int < 1.0))
-         xerror("glp_intopt: tol_int = %g; invalid parameter\n",
+         xerror("glp_intopt: tol_int = %" GLP_DBL_FMT_G "; invalid parameter\n",
             parm->tol_int);
       if (!(0.0 < parm->tol_obj && parm->tol_obj < 1.0))
-         xerror("glp_intopt: tol_obj = %g; invalid parameter\n",
+         xerror("glp_intopt: tol_obj = %" GLP_DBL_FMT_G "; invalid parameter\n",
             parm->tol_obj);
       if (parm->tm_lim < 0)
          xerror("glp_intopt: tm_lim = %d; invalid parameter\n",
@@ -500,7 +500,7 @@ int glp_intopt(glp_prob *P, const glp_iocp *parm)
          xerror("glp_intopt: pp_tech = %d; invalid parameter\n",
             parm->pp_tech);
       if (parm->mip_gap < 0.0)
-         xerror("glp_intopt: mip_gap = %g; invalid parameter\n",
+         xerror("glp_intopt: mip_gap = %" GLP_DBL_FMT_G "; invalid parameter\n",
             parm->mip_gap);
       if (!(parm->mir_cuts == GLP_ON || parm->mir_cuts == GLP_OFF))
          xerror("glp_intopt: mir_cuts = %d; invalid parameter\n",
@@ -547,7 +547,7 @@ int glp_intopt(glp_prob *P, const glp_iocp *parm)
       {  GLPROW *row = P->row[i];
          if (row->type == GLP_DB && row->lb >= row->ub)
          {  if (parm->msg_lev >= GLP_MSG_ERR)
-               xprintf("glp_intopt: row %d: lb = %g, ub = %g; incorrect"
+               xprintf("glp_intopt: row %d: lb = %" GLP_DBL_FMT_G ", ub = %" GLP_DBL_FMT_G "; incorrect"
                   " bounds\n", i, row->lb, row->ub);
             ret = GLP_EBOUND;
             goto done;
@@ -557,7 +557,7 @@ int glp_intopt(glp_prob *P, const glp_iocp *parm)
       {  GLPCOL *col = P->col[j];
          if (col->type == GLP_DB && col->lb >= col->ub)
          {  if (parm->msg_lev >= GLP_MSG_ERR)
-               xprintf("glp_intopt: column %d: lb = %g, ub = %g; incorr"
+               xprintf("glp_intopt: column %d: lb = %" GLP_DBL_FMT_G ", ub = %" GLP_DBL_FMT_G "; incorr"
                   "ect bounds\n", j, col->lb, col->ub);
             ret = GLP_EBOUND;
             goto done;
@@ -571,7 +571,7 @@ int glp_intopt(glp_prob *P, const glp_iocp *parm)
          {  if (col->lb != floor(col->lb))
             {  if (parm->msg_lev >= GLP_MSG_ERR)
                   xprintf("glp_intopt: integer column %d has non-intege"
-                     "r lower bound %g\n", j, col->lb);
+                     "r lower bound %" GLP_DBL_FMT_G "\n", j, col->lb);
                ret = GLP_EBOUND;
                goto done;
             }
@@ -580,7 +580,7 @@ int glp_intopt(glp_prob *P, const glp_iocp *parm)
          {  if (col->ub != floor(col->ub))
             {  if (parm->msg_lev >= GLP_MSG_ERR)
                   xprintf("glp_intopt: integer column %d has non-intege"
-                     "r upper bound %g\n", j, col->ub);
+                     "r upper bound %" GLP_DBL_FMT_G "\n", j, col->ub);
                ret = GLP_EBOUND;
                goto done;
             }
@@ -589,7 +589,7 @@ int glp_intopt(glp_prob *P, const glp_iocp *parm)
          {  if (col->lb != floor(col->lb))
             {  if (parm->msg_lev >= GLP_MSG_ERR)
                   xprintf("glp_intopt: integer column %d has non-intege"
-                     "r fixed value %g\n", j, col->lb);
+                     "r fixed value %" GLP_DBL_FMT_G "\n", j, col->lb);
                ret = GLP_EBOUND;
                goto done;
             }

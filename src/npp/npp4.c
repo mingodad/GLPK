@@ -528,13 +528,13 @@ int npp_hidden_packing(NPP *npp, NPPROW *row)
             xprintf("Original constraint:\n");
             for (aij = row->ptr; aij != NULL; aij = aij->r_next)
                xprintf(" %+g x%d", aij->val, aij->col->j);
-            if (row->lb != -GLP_DBL_MAX) xprintf(", >= %g", row->lb);
-            if (row->ub != +GLP_DBL_MAX) xprintf(", <= %g", row->ub);
+            if (row->lb != -GLP_DBL_MAX) xprintf(", >= %" GLP_DBL_FMT_G, row->lb);
+            if (row->ub != +GLP_DBL_MAX) xprintf(", <= %" GLP_DBL_FMT_G, row->ub);
             xprintf("\n");
             xprintf("Equivalent packing inequality:\n");
             for (e = ptr; e != NULL; e = e->next)
                xprintf(" %sx%d", e->aj > 0.0 ? "+" : "-", e->xj->j);
-            xprintf(", <= %g\n", b);
+            xprintf(", <= %" GLP_DBL_FMT_G "\n", b);
 #endif
             if (row->lb == -GLP_DBL_MAX || row->ub == +GLP_DBL_MAX)
             {  /* the original row is single-sided inequality; no copy
@@ -929,14 +929,14 @@ int npp_is_covering(NPP *npp, NPPROW *row)
 *
 *  None needed. */
 
-static int hidden_covering(NPP *npp, struct elem *ptr, double *_b)
+static int hidden_covering(NPP *npp, struct elem *ptr, glp_double *_b)
 {     /* process inequality constraint: sum a[j] x[j] >= b;
          0 - specified row is NOT hidden covering inequality;
          1 - specified row is covering inequality;
          2 - specified row is hidden covering inequality. */
       struct elem *e;
       int neg;
-      double b = *_b, eps;
+      glp_double b = *_b, eps;
       xassert(npp == npp);
       /* a[j] must be non-zero, x[j] must be binary, for all j in J */
       for (e = ptr; e != NULL; e = e->next)
@@ -957,7 +957,7 @@ static int hidden_covering(NPP *npp, struct elem *ptr, double *_b)
       }
       if (e == NULL)
       {  /* all coefficients a[j] are +1 or -1; check rhs b */
-         if (b == (double)(1 - neg))
+         if (b == (glp_double)(1 - neg))
          {  /* it is covering inequality; no processing is needed */
             return 1;
          }
@@ -994,7 +994,7 @@ int npp_hidden_covering(NPP *npp, NPPROW *row)
       NPPAIJ *aij;
       struct elem *ptr, *e;
       int kase, ret, count = 0;
-      double b;
+      glp_double b;
       /* the row must be inequality constraint */
       xassert(row->lb < row->ub);
       for (kase = 0; kase <= 1; kase++)
@@ -1021,13 +1021,13 @@ int npp_hidden_covering(NPP *npp, NPPROW *row)
             xprintf("Original constraint:\n");
             for (aij = row->ptr; aij != NULL; aij = aij->r_next)
                xprintf(" %+g x%d", aij->val, aij->col->j);
-            if (row->lb != -GLP_DBL_MAX) xprintf(", >= %g", row->lb);
-            if (row->ub != +GLP_DBL_MAX) xprintf(", <= %g", row->ub);
+            if (row->lb != -GLP_DBL_MAX) xprintf(", >= %" GLP_DBL_FMT_G, row->lb);
+            if (row->ub != +GLP_DBL_MAX) xprintf(", <= %" GLP_DBL_FMT_G, row->ub);
             xprintf("\n");
             xprintf("Equivalent covering inequality:\n");
             for (e = ptr; e != NULL; e = e->next)
                xprintf(" %sx%d", e->aj > 0.0 ? "+" : "-", e->xj->j);
-            xprintf(", >= %g\n", b);
+            xprintf(", >= %" GLP_DBL_FMT_G "\n", b);
 #endif
             if (row->lb == -GLP_DBL_MAX || row->ub == +GLP_DBL_MAX)
             {  /* the original row is single-sided inequality; no copy
@@ -1126,7 +1126,7 @@ int npp_is_partitioning(NPP *npp, NPPROW *row)
          else
             return 0;
       }
-      if (row->lb != (double)b) return 0;
+      if (row->lb != (glp_double)b) return 0;
       return 1;
 }
 
@@ -1272,12 +1272,12 @@ int npp_is_partitioning(NPP *npp, NPPROW *row)
 *
 *  None needed. */
 
-static int reduce_ineq_coef(NPP *npp, struct elem *ptr, double *_b)
+static int reduce_ineq_coef(NPP *npp, struct elem *ptr, glp_double *_b)
 {     /* process inequality constraint: sum a[j] x[j] >= b */
       /* returns: the number of coefficients reduced */
       struct elem *e;
       int count = 0;
-      double h, inf_t, new_a, b = *_b;
+      glp_double h, inf_t, new_a, b = *_b;
       xassert(npp == npp);
       /* compute h; see (15) */
       h = 0.0;
@@ -1345,7 +1345,7 @@ int npp_reduce_ineq_coef(NPP *npp, NPPROW *row)
       NPPAIJ *aij;
       struct elem *ptr, *e;
       int kase, count[2];
-      double b;
+      glp_double b;
       /* the row must be inequality constraint */
       xassert(row->lb < row->ub);
       count[0] = count[1] = 0;

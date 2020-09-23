@@ -876,8 +876,8 @@ static int ipm_main(struct csa *csa)
             csa->phi_min[csa->iter] = csa->phi_min[csa->iter-1];
          /* display information at the current point */
          if (csa->parm->msg_lev >= GLP_MSG_ON)
-            xprintf("%3d: obj = %17.9e; rpi = %8.1e; rdi = %8.1e; gap ="
-               " %8.1e\n", csa->iter, csa->obj, csa->rpi, csa->rdi,
+            xprintf("%3d: obj = %17.9" GLP_DBL_FMT_e "; rpi = %8.1" GLP_DBL_FMT_e "; rdi = %8.1" GLP_DBL_FMT_e "; gap ="
+               " %8.1" GLP_DBL_FMT_e "\n", csa->iter, csa->obj, csa->rpi, csa->rdi,
                csa->gap);
          /* check if the current point is optimal */
          if (csa->rpi < 1e-8 && csa->rdi < 1e-8 && csa->gap < 1e-8)

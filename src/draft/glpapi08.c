@@ -147,7 +147,7 @@ int glp_interior(glp_prob *P, const glp_iptcp *parm)
       {  row = P->row[i];
          if (row->type == GLP_DB && row->lb >= row->ub)
          {  if (parm->msg_lev >= GLP_MSG_ERR)
-               xprintf("glp_interior: row %d: lb = %g, ub = %g; incorre"
+               xprintf("glp_interior: row %d: lb = %" GLP_DBL_FMT_G ", ub = %" GLP_DBL_FMT_G "; incorre"
                   "ct bounds\n", i, row->lb, row->ub);
             ret = GLP_EBOUND;
             goto done;
@@ -157,7 +157,7 @@ int glp_interior(glp_prob *P, const glp_iptcp *parm)
       {  col = P->col[j];
          if (col->type == GLP_DB && col->lb >= col->ub)
          {  if (parm->msg_lev >= GLP_MSG_ERR)
-               xprintf("glp_interior: column %d: lb = %g, ub = %g; inco"
+               xprintf("glp_interior: column %d: lb = %" GLP_DBL_FMT_G ", ub = %" GLP_DBL_FMT_G "; inco"
                   "rrect bounds\n", j, col->lb, col->ub);
             ret = GLP_EBOUND;
             goto done;

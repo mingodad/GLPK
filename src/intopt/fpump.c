@@ -267,7 +267,7 @@ skip: /* check if the time limit has been exhausted */
          goto done;
       }
       if (T->parm->msg_lev >= GLP_MSG_DBG)
-         xprintf("delta = %g\n", lp->obj_val);
+         xprintf("delta = %" GLP_DBL_FMT_G "\n", lp->obj_val);
       /* check if the basic solution is integer feasible; note that it
          may be so even if the minimial distance is positive */
       tol = 0.3 * T->parm->tol_int;

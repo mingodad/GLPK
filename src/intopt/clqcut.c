@@ -68,7 +68,7 @@ int glp_clq_cut(glp_prob *P, glp_cfg *G, int ind[], glp_double val[])
       /* find maximum weight clique in conflict graph */
       len = cfg_find_clique(P, G, ind, &sum);
 #ifdef GLP_DEBUG
-      xprintf("len = %d; sum = %g\n", len, sum);
+      xprintf("len = %d; sum = %" GLP_DBL_FMT_G "\n", len, sum);
       cfg_check_clique(G, len, ind);
 #endif
       /* check if clique inequality is violated */

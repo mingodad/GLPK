@@ -204,7 +204,7 @@ up:         col->stat = GLP_NU, col->prim = col->ub;
       }
       /* simulate the simplex solver output */
       if (parm->msg_lev >= GLP_MSG_ON && parm->out_dly == 0)
-      {  xprintf("~%6d: obj = %17.9e  infeas = %10.3e\n", P->it_cnt,
+      {  xprintf("~%6d: obj = %17.9" GLP_DBL_FMT_e "  infeas = %10.3" GLP_DBL_FMT_e "\n", P->it_cnt,
             P->obj_val, parm->meth == GLP_PRIMAL ? p_infeas : d_infeas);
       }
       if (parm->msg_lev >= GLP_MSG_ALL && parm->out_dly == 0)
@@ -294,7 +294,7 @@ static int preprocess_and_solve_lp(glp_prob *P, const glp_smcp *parm)
       {  lp->pbs_stat = lp->dbs_stat = GLP_FEAS;
          lp->obj_val = lp->c0;
          if (parm->msg_lev >= GLP_MSG_ON && parm->out_dly == 0)
-         {  xprintf("~%6d: obj = %17.9e  infeas = %10.3e\n", P->it_cnt,
+         {  xprintf("~%6d: obj = %17.9" GLP_DBL_FMT_e "  infeas = %10.3" GLP_DBL_FMT_e "\n", P->it_cnt,
                lp->obj_val, 0.0);
          }
          if (parm->msg_lev >= GLP_MSG_ALL)
@@ -402,13 +402,13 @@ int glp_simplex(glp_prob *P, const glp_smcp *parm)
          xerror("glp_simplex: r_test = %d; invalid parameter\n",
             parm->r_test);
       if (!(0.0 < parm->tol_bnd && parm->tol_bnd < 1.0))
-         xerror("glp_simplex: tol_bnd = %g; invalid parameter\n",
+         xerror("glp_simplex: tol_bnd = %" GLP_DBL_FMT_G "; invalid parameter\n",
             parm->tol_bnd);
       if (!(0.0 < parm->tol_dj && parm->tol_dj < 1.0))
-         xerror("glp_simplex: tol_dj = %g; invalid parameter\n",
+         xerror("glp_simplex: tol_dj = %" GLP_DBL_FMT_G "; invalid parameter\n",
             parm->tol_dj);
       if (!(0.0 < parm->tol_piv && parm->tol_piv < 1.0))
-         xerror("glp_simplex: tol_piv = %g; invalid parameter\n",
+         xerror("glp_simplex: tol_piv = %" GLP_DBL_FMT_G "; invalid parameter\n",
             parm->tol_piv);
       if (parm->it_lim < 0)
          xerror("glp_simplex: it_lim = %d; invalid parameter\n",
@@ -449,7 +449,7 @@ int glp_simplex(glp_prob *P, const glp_smcp *parm)
       {  GLPROW *row = P->row[i];
          if (row->type == GLP_DB && row->lb >= row->ub)
          {  if (parm->msg_lev >= GLP_MSG_ERR)
-               xprintf("glp_simplex: row %d: lb = %g, ub = %g; incorrec"
+               xprintf("glp_simplex: row %d: lb = %" GLP_DBL_FMT_G ", ub = %" GLP_DBL_FMT_G "; incorrec"
                   "t bounds\n", i, row->lb, row->ub);
             ret = GLP_EBOUND;
             goto done;
@@ -459,7 +459,7 @@ int glp_simplex(glp_prob *P, const glp_smcp *parm)
       {  GLPCOL *col = P->col[j];
          if (col->type == GLP_DB && col->lb >= col->ub)
          {  if (parm->msg_lev >= GLP_MSG_ERR)
-               xprintf("glp_simplex: column %d: lb = %g, ub = %g; incor"
+               xprintf("glp_simplex: column %d: lb = %" GLP_DBL_FMT_G ", ub = %" GLP_DBL_FMT_G "; incor"
                   "rect bounds\n", j, col->lb, col->ub);
             ret = GLP_EBOUND;
             goto done;

@@ -140,7 +140,7 @@ GLOBAL Int AMD_order
     /* --------------------------------------------------------------------- */
 
     nzaat = AMD_aat (n, Cp, Ci, Len, P, Info) ;
-    AMD_DEBUG1 (("nzaat: %g\n", (glp_double) nzaat)) ;
+    AMD_DEBUG1 (("nzaat: %" GLP_DBL_FMT_G "\n", (glp_double) nzaat)) ;
     ASSERT ((MAX (nz-n, 0) <= nzaat) && (nzaat <= 2 * (size_t) nz)) ;
 
     /* --------------------------------------------------------------------- */
@@ -163,7 +163,7 @@ GLOBAL Int AMD_order
     {
         S = amd_malloc (slen * sizeof (Int)) ;
     }
-    AMD_DEBUG1 (("slen %g\n", (glp_double) slen)) ;
+    AMD_DEBUG1 (("slen %" GLP_DBL_FMT_G "\n", (glp_double) slen)) ;
     if (!S)
     {
         /* :: out of memory :: (or problem too large) */

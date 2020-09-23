@@ -274,7 +274,7 @@ int bfd_factorize(BFD *bfd, int m, /*const int bh[],*/ int (*col1)
 #ifdef GLP_DEBUG
          cond = bfd_condest(bfd);
          if (cond > 1e9)
-            xprintf("bfd_factorize: warning: cond(B) = %g\n", cond);
+            xprintf("bfd_factorize: warning: cond(B) = %" GLP_DBL_FMT_G "\n", cond);
 #endif
       }
 #ifdef GLP_DEBUG
@@ -351,7 +351,7 @@ void bfd_ftran(BFD *bfd, glp_double x[])
             maxerr = relerr;
       }
       if (maxerr > 1e-8)
-         xprintf("bfd_ftran: maxerr = %g; relative error too large\n",
+         xprintf("bfd_ftran: maxerr = %" GLP_DBL_FMT_G "; relative error too large\n",
             maxerr);
       tfree(b);
 #endif
@@ -410,7 +410,7 @@ void bfd_btran(BFD *bfd, glp_double x[])
             maxerr = relerr;
       }
       if (maxerr > 1e-8)
-         xprintf("bfd_btran: maxerr = %g; relative error too large\n",
+         xprintf("bfd_btran: maxerr = %" GLP_DBL_FMT_G "; relative error too large\n",
             maxerr);
       tfree(b);
 #endif

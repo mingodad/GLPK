@@ -219,10 +219,10 @@ static void check_integrality(glp_tree *T)
             xprintf("There are no fractional columns\n");
          else if (ii_cnt == 1)
             xprintf("There is one fractional column, integer infeasibil"
-               "ity is %.3e\n", ii_sum);
+               "ity is %.3" GLP_DBL_FMT_e "\n", ii_sum);
          else
             xprintf("There are %d fractional columns, integer infeasibi"
-               "lity is %.3e\n", ii_cnt, ii_sum);
+               "lity is %.3" GLP_DBL_FMT_e "\n", ii_cnt, ii_sum);
       }
       return;
 }
@@ -457,7 +457,7 @@ static int branch_on(glp_tree *T, int j, int next)
       }
       /* both down- and up-branches seem to be hopeful */
       if (T->parm->msg_lev >= GLP_MSG_DBG)
-         xprintf("Branching on column %d, primal value is %.9e\n",
+         xprintf("Branching on column %d, primal value is %.9" GLP_DBL_FMT_e "\n",
             j, beta);
       /* determine the reference number of the current subproblem */
       xassert(T->curr != NULL);
@@ -1196,7 +1196,7 @@ more: /* minor loop starts here */
          else
             xassert(T->mip != T->mip);
          if (T->parm->msg_lev >= GLP_MSG_DBG)
-            xprintf("Local bound is %.9e\n", bound);
+            xprintf("Local bound is %.9" GLP_DBL_FMT_e "\n", bound);
       }
       /* if the local bound indicates that integer optimal solution of
          the current subproblem cannot be better than the global bound,

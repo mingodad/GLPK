@@ -81,7 +81,7 @@ int glp_write_mip(glp_prob *P, const char *fname)
          case GLP_MAX: s = "MAXimum"; break;
          default:      s = "???";     break;
       }
-      glp_format(fp, "c %-12s%s%s%.10g (%s)\n", "Objective:",
+      glp_format(fp, "c %-12s%s%s%.10" GLP_DBL_FMT_G " (%s)\n", "Objective:",
          P->obj == NULL ? "" : P->obj,
          P->obj == NULL ? "" : " = ", P->mip_obj, s), count++;
       glp_format(fp, "c\n"), count++;

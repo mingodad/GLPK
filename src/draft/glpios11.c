@@ -186,7 +186,7 @@ void ios_process_cuts(glp_tree *T)
          if (kk < k) continue;
          /* add this cut to the current subproblem */
 #if 0
-         xprintf("eff = %g; deg = %g\n", info[k].eff, info[k].deg);
+         xprintf("eff = %" GLP_DBL_FMT_G "; deg = %" GLP_DBL_FMT_G "\n", info[k].eff, info[k].deg);
 #endif
          cut = info[k].cut, info[k].flag = 1;
          i = glp_add_rows(T->mip, 1);
@@ -313,7 +313,7 @@ void ios_process_cuts(glp_tree *T)
          if (kk < k) continue;
          /* add this cut to the current subproblem */
 #if 0
-         xprintf("eff = %g; deg = %g\n", info[k].eff, info[k].deg);
+         xprintf("eff = %" GLP_DBL_FMT_G "; deg = %" GLP_DBL_FMT_G "\n", info[k].eff, info[k].deg);
 #endif
          cut = info[k].cut, info[k].flag = 1;
          i = glp_add_rows(T->mip, 1);

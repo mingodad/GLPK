@@ -52,7 +52,7 @@ int glp_print_mip(glp_prob *P, const char *fname)
          t == GLP_FEAS   ? "INTEGER NON-OPTIMAL" :
          t == GLP_NOFEAS ? "INTEGER EMPTY" :
          t == GLP_UNDEF  ? "INTEGER UNDEFINED" : "???");
-      xfprintf(fp, "%-12s%s%s%.10g (%s)\n", "Objective:",
+      xfprintf(fp, "%-12s%s%s%.10" GLP_DBL_FMT_G " (%s)\n", "Objective:",
          P->obj == NULL ? "" : P->obj,
          P->obj == NULL ? "" : " = ", P->mip_obj,
          P->dir == GLP_MIN ? "MINimum" :
@@ -70,15 +70,15 @@ int glp_print_mip(glp_prob *P, const char *fname)
          else
             xfprintf(fp, "%s\n%20s", row->name, "");
          xfprintf(fp, "%3s", "");
-         xfprintf(fp, "%13.6g ",
+         xfprintf(fp, "%13.6" GLP_DBL_FMT_G " ",
             fabs(row->mipx) <= GLP_LPX_RE_MAX_9 ? 0.0 : row->mipx);
          if (row->type == GLP_LO || row->type == GLP_DB ||
              row->type == GLP_FX)
-            xfprintf(fp, "%13.6g ", row->lb);
+            xfprintf(fp, "%13.6" GLP_DBL_FMT_G " ", row->lb);
          else
             xfprintf(fp, "%13s ", "");
          if (row->type == GLP_UP || row->type == GLP_DB)
-            xfprintf(fp, "%13.6g ", row->ub);
+            xfprintf(fp, "%13.6" GLP_DBL_FMT_G " ", row->ub);
          else
             xfprintf(fp, "%13s ", row->type == GLP_FX ? "=" : "");
          xfprintf(fp, "\n");
@@ -102,11 +102,11 @@ int glp_print_mip(glp_prob *P, const char *fname)
             fabs(col->mipx) <= GLP_LPX_RE_MAX_9 ? 0.0 : col->mipx);
          if (col->type == GLP_LO || col->type == GLP_DB ||
              col->type == GLP_FX)
-            xfprintf(fp, "%13.6g ", col->lb);
+            xfprintf(fp, "%13.6" GLP_DBL_FMT_G " ", col->lb);
          else
             xfprintf(fp, "%13s ", "");
          if (col->type == GLP_UP || col->type == GLP_DB)
-            xfprintf(fp, "%13.6g ", col->ub);
+            xfprintf(fp, "%13.6" GLP_DBL_FMT_G " ", col->ub);
          else
             xfprintf(fp, "%13s ", col->type == GLP_FX ? "=" : "");
          xfprintf(fp, "\n");
@@ -116,9 +116,9 @@ int glp_print_mip(glp_prob *P, const char *fname)
       xfprintf(fp, "\n");
       glp_check_kkt(P, GLP_MIP, GLP_KKT_PE, &ae_max, &ae_ind, &re_max,
          &re_ind);
-      xfprintf(fp, "KKT.PE: max.abs.err = %.2e on row %d\n",
+      xfprintf(fp, "KKT.PE: max.abs.err = %.2" GLP_DBL_FMT_e " on row %d\n",
          ae_max, ae_ind);
-      xfprintf(fp, "        max.rel.err = %.2e on row %d\n",
+      xfprintf(fp, "        max.rel.err = %.2" GLP_DBL_FMT_e " on row %d\n",
          re_max, re_ind);
       xfprintf(fp, "%8s%s\n", "",
          re_max <= GLP_LPX_RE_MAX_9 ? "High quality" :
@@ -127,10 +127,10 @@ int glp_print_mip(glp_prob *P, const char *fname)
       xfprintf(fp, "\n");
       glp_check_kkt(P, GLP_MIP, GLP_KKT_PB, &ae_max, &ae_ind, &re_max,
          &re_ind);
-      xfprintf(fp, "KKT.PB: max.abs.err = %.2e on %s %d\n",
+      xfprintf(fp, "KKT.PB: max.abs.err = %.2" GLP_DBL_FMT_e " on %s %d\n",
             ae_max, ae_ind <= P->m ? "row" : "column",
             ae_ind <= P->m ? ae_ind : ae_ind - P->m);
-      xfprintf(fp, "        max.rel.err = %.2e on %s %d\n",
+      xfprintf(fp, "        max.rel.err = %.2" GLP_DBL_FMT_e " on %s %d\n",
             re_max, re_ind <= P->m ? "row" : "column",
             re_ind <= P->m ? re_ind : re_ind - P->m);
       xfprintf(fp, "%8s%s\n", "",

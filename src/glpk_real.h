@@ -51,6 +51,8 @@ extern "C" {
         #define GLP_WARMUP_EPS  1e-6 + 1e-9
         #define GLP_MKEQ_EPS  1e-9 + 1e-12
         #define GLP_DBL_THOUSAND  1000.0
+        #define GLP_SCALE_RANGE_MIN  0.10
+        #define GLP_SCALE_RANGE_MAX  10.0
     #else
         #define glp_double double
         #define GLP_DBL_EPSILON DBL_EPSILON
@@ -83,6 +85,8 @@ extern "C" {
         #define GLP_WARMUP_EPS  1e-6 + 1e-9
         #define GLP_MKEQ_EPS  1e-9 + 1e-12
         #define GLP_DBL_THOUSAND  1000.0
+        #define GLP_SCALE_RANGE_MIN  0.10
+        #define GLP_SCALE_RANGE_MAX  10.0
     #endif
 #endif
 

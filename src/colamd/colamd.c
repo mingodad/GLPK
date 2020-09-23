@@ -1366,7 +1366,7 @@ PUBLIC Int SYMAMD_MAIN                  /* return TRUE if OK, FALSE otherwise */
     n_row = mnz / 2 ;
     Mlen = COLAMD_recommended (mnz, n_row, n) ;
     M = (Int *) ((*allocate) (Mlen, sizeof (Int))) ;
-    DEBUG0 (("symamd: M is %d-by-%d with %d entries, Mlen = %g\n",
+    DEBUG0 (("symamd: M is %d-by-%d with %d entries, Mlen = %" GLP_DBL_FMT_G "\n",
         n_row, n, mnz, (glp_double) Mlen)) ;
 
     if (!M)
@@ -1374,7 +1374,7 @@ PUBLIC Int SYMAMD_MAIN                  /* return TRUE if OK, FALSE otherwise */
         stats [COLAMD_STATUS] = COLAMD_ERROR_out_of_memory ;
         (*release) ((void *) count) ;
         (*release) ((void *) mark) ;
-        DEBUG0 (("symamd: allocate M (size %g) failed\n", (glp_double) Mlen)) ;
+        DEBUG0 (("symamd: allocate M (size %" GLP_DBL_FMT_G ") failed\n", (glp_double) Mlen)) ;
         return (FALSE) ;
     }
 

@@ -495,7 +495,7 @@ static glp_double err_in_r(struct csa *csa)
             r[i] = 0.0;
 
 if (fabs(r[i] - csa->r.vec[i]) > 1e-6)
-printf("i = %d; r = %g; csa->r = %g\n", i, r[i], csa->r.vec[i]);
+printf("i = %d; r = %" GLP_DBL_FMT_G "; csa->r = %" GLP_DBL_FMT_G "\n", i, r[i], csa->r.vec[i]);
 
 
       }
@@ -797,7 +797,7 @@ try:  /* choose basic variable xB[p] */
          csa->q = bp[t_best].j;
          best_ratio = fabs(trow[bp[t_best].j]) / big;
 #if 0
-         xprintf("num = %d; t_best = %d; dz = %g\n", num, t_best,
+         xprintf("num = %d; t_best = %d; dz = %" GLP_DBL_FMT_G "\n", num, t_best,
             bp[t_best].dz);
 #endif
          ret = 1;
@@ -1096,7 +1096,7 @@ static void display(struct csa *csa, int spec)
             /* compute number of primal infeasibilities */
             nnn = spy_chuzr_sel(lp, beta, csa->tol_bnd, csa->tol_bnd1,
                NULL);
-            xprintf("#%6d: obj = %17.9e inf = %11.3e (%d)",
+            xprintf("#%6d: obj = %17.9" GLP_DBL_FMT_e " inf = %11.3" GLP_DBL_FMT_e " (%d)",
 #if SCALE_Z
                csa->it_cnt,
                (glp_double)csa->dir * csa->fz * spx_eval_obj(lp, beta),

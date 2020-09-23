@@ -604,7 +604,7 @@ GLOBAL void AMD_2
     }
     dense = MAX (16, dense) ;
     dense = MIN (n,  dense) ;
-    AMD_DEBUG1 (("\n\nAMD (debug), alpha %g, aggr. "ID"\n",
+    AMD_DEBUG1 (("\n\nAMD (debug), alpha %" GLP_DBL_FMT_G ", aggr. "ID"\n",
         alpha, aggressive)) ;
 
     for (i = 0 ; i < n ; i++)

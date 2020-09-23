@@ -264,7 +264,7 @@ void glp_set_bfcp(glp_prob *P, const glp_bfcp *parm)
             xerror("glp_set_bfcp: type = 0x%02X; invalid parameter\n",
                parm->type);
          if (!(0.0 < parm->piv_tol && parm->piv_tol < 1.0))
-            xerror("glp_set_bfcp: piv_tol = %g; invalid parameter\n",
+            xerror("glp_set_bfcp: piv_tol = %" GLP_DBL_FMT_G "; invalid parameter\n",
                parm->piv_tol);
          if (parm->piv_lim < 1)
             xerror("glp_set_bfcp: piv_lim = %d; invalid parameter\n",
@@ -273,7 +273,7 @@ void glp_set_bfcp(glp_prob *P, const glp_bfcp *parm)
             xerror("glp_set_bfcp: suhl = %d; invalid parameter\n",
                parm->suhl);
          if (!(0.0 <= parm->eps_tol && parm->eps_tol <= 1e-6))
-            xerror("glp_set_bfcp: eps_tol = %g; invalid parameter\n",
+            xerror("glp_set_bfcp: eps_tol = %" GLP_DBL_FMT_G "; invalid parameter\n",
                parm->eps_tol);
          if (!(1 <= parm->nfs_max && parm->nfs_max <= 32767))
             xerror("glp_set_bfcp: nfs_max = %d; invalid parameter\n",
@@ -1295,7 +1295,7 @@ int glp_prim_rtest(glp_prob *P, int len, const int ind[],
       if (!(dir == +1 || dir == -1))
          xerror("glp_prim_rtest: dir = %d; invalid parameter\n", dir);
       if (!(0.0 < eps && eps < 1.0))
-         xerror("glp_prim_rtest: eps = %g; invalid parameter\n", eps);
+         xerror("glp_prim_rtest: eps = %" GLP_DBL_FMT_G "; invalid parameter\n", eps);
       m = glp_get_num_rows(P);
       n = glp_get_num_cols(P);
       /* initial settings */
@@ -1437,7 +1437,7 @@ int glp_dual_rtest(glp_prob *P, int len, const int ind[],
       if (!(dir == +1 || dir == -1))
          xerror("glp_dual_rtest: dir = %d; invalid parameter\n", dir);
       if (!(0.0 < eps && eps < 1.0))
-         xerror("glp_dual_rtest: eps = %g; invalid parameter\n", eps);
+         xerror("glp_dual_rtest: eps = %" GLP_DBL_FMT_G "; invalid parameter\n", eps);
       m = glp_get_num_rows(P);
       n = glp_get_num_cols(P);
       /* take into account optimization direction */
@@ -1714,7 +1714,7 @@ int main(void)
       y = 0.0;
       for (k = 1; k <= len; k++)
          y += val[k] * glp_get_col_prim(P, ind[k]);
-      glp_printf("y = %g\n", y);
+      glp_printf("y = %" GLP_DBL_FMT_G "\n", y);
       /* this prints y = 15.1372, so the constraint is violated, since
          we require that y <= rhs = 12 */
       /* now we transform the row to express it only through non-basic
@@ -1725,7 +1725,7 @@ int main(void)
       ret = _glp_analyze_row(P, len, ind, val, GLP_UP, rhs, GLP_MPL_MIN_9, &piv,
          &x, &dx, &y, &dy, &dz);
       glp_assert(ret == 0);
-      glp_printf("k = %d, x = %g; dx = %g; y = %g; dy = %g; dz = %g\n",
+      glp_printf("k = %d, x = %" GLP_DBL_FMT_G "; dx = %" GLP_DBL_FMT_G "; y = %" GLP_DBL_FMT_G "; dy = %" GLP_DBL_FMT_G "; dz = %" GLP_DBL_FMT_G "\n",
          ind[piv], x, dx, y, dy, dz);
       /* this prints dz = 5.64418 and means that in the adjacent basis
          the objective function would be 296.217 + 5.64418 = 301.861 */

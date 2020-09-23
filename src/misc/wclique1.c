@@ -309,7 +309,7 @@ int main(int argc, char *argv[])
       sum = 0.0;
       for (i = 1; i <= size; i++)
          sum += w[c[i]];
-      xprintf("size = %d; sum = %g\n", size, sum);
+      xprintf("size = %d; sum = %" GLP_DBL_FMT_G "\n", size, sum);
       return 0;
 }
 #endif

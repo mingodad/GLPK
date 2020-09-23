@@ -119,7 +119,7 @@ int glp_print_ranges(glp_prob *P, int len, const int list[],
             xfprintf(fp, "\n");
             xfprintf(fp, "%-12s%s\n", "Problem:",
                P->name == NULL ? "" : P->name);
-            xfprintf(fp, "%-12s%s%s%.10g (%s)\n", "Objective:",
+            xfprintf(fp, "%-12s%s%s%.10" GLP_DBL_FMT_G " (%s)\n", "Objective:",
                P->obj == NULL ? "" : P->obj,
                P->obj == NULL ? "" : " = ", P->obj_val,
                P->dir == GLP_MIN ? "MINimum" :

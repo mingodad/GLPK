@@ -89,7 +89,7 @@ glp_double glp_cpp(glp_graph *G, int v_t, int v_es, int v_ls)
          if (v_t >= 0)
          {  memcpy(&t[i], (char *)v->data + v_t, sizeof(glp_double));
             if (t[i] < 0.0)
-               xerror("glp_cpp: t[%d] = %g; invalid time\n", i, t[i]);
+               xerror("glp_cpp: t[%d] = %" GLP_DBL_FMT_G "; invalid time\n", i, t[i]);
          }
          else
             t[i] = 1.0;

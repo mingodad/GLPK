@@ -166,9 +166,9 @@ GLOBAL size_t AMD_aat   /* returns nz in A+A' */
         nzaat += Len [k] ;
     }
 
-    AMD_DEBUG1 (("AMD nz in A+A', excluding diagonal (nzaat) = %g\n",
+    AMD_DEBUG1 (("AMD nz in A+A', excluding diagonal (nzaat) = %" GLP_DBL_FMT_G "\n",
         (glp_double) nzaat)) ;
-    AMD_DEBUG1 (("   nzboth: "ID" nz: "ID" nzdiag: "ID" symmetry: %g\n",
+    AMD_DEBUG1 (("   nzboth: "ID" nz: "ID" nzdiag: "ID" symmetry: %" GLP_DBL_FMT_G "\n",
                 nzboth, nz, nzdiag, sym)) ;
 
     if (Info != (glp_double *) NULL)

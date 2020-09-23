@@ -667,7 +667,7 @@ int glp_ios_heur_sol(glp_tree *tree, const glp_double x[])
       }
       /* it is better; store it in the problem object */
       if (tree->parm->msg_lev >= GLP_MSG_ON)
-         xprintf("Solution found by heuristic: %.12g\n", obj);
+         xprintf("Solution found by heuristic: %.12" GLP_DBL_FMT_G "\n", obj);
       mip->mip_stat = GLP_FEAS;
       mip->mip_obj = obj;
       for (j = 1; j <= n; j++)

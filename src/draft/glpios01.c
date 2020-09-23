@@ -1030,7 +1030,7 @@ void ios_eval_degrad(glp_tree *tree, int j, glp_double *dn, glp_double *up)
          else
             *up = mip->obj_val + dz;
       }
-      /*xprintf("obj = %g; dn = %g; up = %g\n",
+      /*xprintf("obj = %" GLP_DBL_FMT_G "; dn = %" GLP_DBL_FMT_G "; up = %" GLP_DBL_FMT_G "\n",
          mip->obj_val, *dn, *up);*/
       return;
 }
@@ -1128,9 +1128,9 @@ glp_double ios_round_bound(glp_tree *tree, glp_double bound)
             if (h >= floor(h) + 0.001)
             {  /* round up */
                h = ceil(h);
-               /*xprintf("d = %d; old = %g; ", d, bound);*/
+               /*xprintf("d = %d; old = %" GLP_DBL_FMT_G "; ", d, bound);*/
                bound = (glp_double)d * h + s;
-               /*xprintf("new = %g\n", bound);*/
+               /*xprintf("new = %" GLP_DBL_FMT_G "\n", bound);*/
             }
          }
       }

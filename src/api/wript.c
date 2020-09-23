@@ -81,7 +81,7 @@ int glp_write_ipt(glp_prob *P, const char *fname)
          case GLP_MAX: s = "MAXimum"; break;
          default:      s = "???";     break;
       }
-      glp_format(fp, "c %-12s%s%s%.10g (%s)\n", "Objective:",
+      glp_format(fp, "c %-12s%s%s%.10" GLP_DBL_FMT_G " (%s)\n", "Objective:",
          P->obj == NULL ? "" : P->obj,
          P->obj == NULL ? "" : " = ", P->ipt_obj, s), count++;
       glp_format(fp, "c\n"), count++;
@@ -98,7 +98,7 @@ int glp_write_ipt(glp_prob *P, const char *fname)
       /* write row solution descriptor lines */
       for (i = 1; i <= P->m; i++)
       {  row = P->row[i];
-         glp_format(fp, "i %d %.*" GLP_DBL_FMT_G " %.*g\n", i, GLP_DBL_DIG, row->pval,
+         glp_format(fp, "i %d %.*" GLP_DBL_FMT_G " %.*" GLP_DBL_FMT_G "\n", i, GLP_DBL_DIG, row->pval,
             DBL_DIG, row->dval), count++;
       }
       /* write column solution descriptor lines */

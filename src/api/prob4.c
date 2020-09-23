@@ -42,7 +42,7 @@ void glp_set_rii(glp_prob *lp, int i, glp_double rii)
 {     if (!(1 <= i && i <= lp->m))
          xerror("glp_set_rii: i = %d; row number out of range\n", i);
       if (rii <= 0.0)
-         xerror("glp_set_rii: i = %d; rii = %g; invalid scale factor\n",
+         xerror("glp_set_rii: i = %d; rii = %" GLP_DBL_FMT_G "; invalid scale factor\n",
             i, rii);
       if (lp->valid && lp->row[i]->rii != rii)
       {  GLPAIJ *aij;
@@ -76,7 +76,7 @@ void glp_set_sjj(glp_prob *lp, int j, glp_double sjj)
 {     if (!(1 <= j && j <= lp->n))
          xerror("glp_set_sjj: j = %d; column number out of range\n", j);
       if (sjj <= 0.0)
-         xerror("glp_set_sjj: j = %d; sjj = %g; invalid scale factor\n",
+         xerror("glp_set_sjj: j = %d; sjj = %" GLP_DBL_FMT_G "; invalid scale factor\n",
             j, sjj);
       if (lp->valid && lp->col[j]->sjj != sjj && lp->col[j]->stat ==
          GLP_BS)

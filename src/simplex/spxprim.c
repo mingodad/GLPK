@@ -732,7 +732,7 @@ try:  /* choose non-basic variable xN[q] */
             best_ratio = fabs(tcol[csa->p]) / big;
          }
 #if 0
-         xprintf("num1 = %d; t_best = %d; dz = %g\n", num1, t_best,
+         xprintf("num1 = %d; t_best = %d; dz = %" GLP_DBL_FMT_G "\n", num1, t_best,
             bp[t_best].dz);
 #endif
          ret = 1;
@@ -1081,7 +1081,7 @@ static void display(struct csa *csa, int spec)
             xassert(csa != csa);
       }
       /* display search progress */
-      xprintf("%c%6d: obj = %17.9e inf = %11.3e (%d)",
+      xprintf("%c%6d: obj = %17.9" GLP_DBL_FMT_e " inf = %11.3" GLP_DBL_FMT_e " (%d)",
          csa->phase == 2 ? '*' : ' ', csa->it_cnt, obj, sum, nnn);
       if (csa->inv_cnt)
       {  /* number of basis factorizations performed */
@@ -1250,7 +1250,7 @@ loop: /* main loop starts here */
          if (cond > 0.001 / GLP_DBL_EPSILON)
          {  if (msg_lev >= GLP_MSG_ERR)
                xprintf("Warning: basis matrix is ill-conditioned (cond "
-                  "= %.3g)\n", cond);
+                  "= %.3" GLP_DBL_FMT_G ")\n", cond);
          }
          /* invalidate basic solution components */
          csa->beta_st = csa->d_st = 0;
@@ -1710,7 +1710,7 @@ int spx_primal(glp_prob *P, const glp_smcp *parm)
          csa->fz = 1.0;
       else
          csa->fz /= 1000.0;
-      /*xprintf("csa->fz = %g\n", csa->fz);*/
+      /*xprintf("csa->fz = %" GLP_DBL_FMT_G "\n", csa->fz);*/
       for (k = 0; k <= csa->lp->n; k++)
          csa->lp->c[k] /= csa->fz;
 #endif

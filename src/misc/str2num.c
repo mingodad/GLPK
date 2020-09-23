@@ -109,10 +109,22 @@ frac: /* scan optional fraction part */
 
 int str2double(const char *str, double *val_)
 {
+#ifdef WITH_LONG_DOUBLE
     glp_double gd;
     int rc = str2num(str, &gd);
-    *val_ = gd;
-    return rc;
+    if(rc) return rc;
+    /* check for overflow */
+    if (!(-DBL_MAX <= gd && gd <= +DBL_MAX))
+         return 1;
+    /* check for underflow */
+    if (-DBL_MIN < gd && gd < +DBL_MIN)
+         *val_ = 0.0;
+    else
+        *val_ = gd;
+    return 0;
+#else
+    return str2num(str, val_);
+#endif
 }
 
 /* eof */

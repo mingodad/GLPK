@@ -89,16 +89,16 @@ glp_double glp_time(void)
 
 #include <windows.h>
 
-double glp_time(void)
+glp_double glp_time(void)
 {     SYSTEMTIME st;
       int j;
-      double t;
+      glp_double t;
       GetSystemTime(&st);
       j = jday(st.wDay, st.wMonth, st.wYear);
       xassert(j >= 0);
-      t = ((((double)(j - EPOCH) * 24.0 + (double)st.wHour) * 60.0 +
-         (double)st.wMinute) * 60.0 + (double)st.wSecond) * 1000.0 +
-         (double)st.wMilliseconds;
+      t = ((((glp_double)(j - EPOCH) * 24.0 + (glp_double)st.wHour) * 60.0 +
+         (glp_double)st.wMinute) * 60.0 + (glp_double)st.wSecond) * 1000.0 +
+         (glp_double)st.wMilliseconds;
       return t;
 }
 
@@ -112,7 +112,7 @@ double glp_time(void)
 {     time_t timer;
       struct tm *tm;
       int j;
-      double t;
+      glp_double t;
       timer = time(NULL);
 #if 0 /* 29/I-2017 */
       tm = gmtime(&timer);
@@ -121,8 +121,8 @@ double glp_time(void)
 #endif
       j = jday(tm->tm_mday, tm->tm_mon + 1, 1900 + tm->tm_year);
       xassert(j >= 0);
-      t = ((((double)(j - EPOCH) * 24.0 + (double)tm->tm_hour) * 60.0 +
-         (double)tm->tm_min) * 60.0 + (double)tm->tm_sec) * 1000.0;
+      t = ((((glp_double)(j - EPOCH) * 24.0 + (glp_double)tm->tm_hour) * 60.0 +
+         (glp_double)tm->tm_min) * 60.0 + (glp_double)tm->tm_sec) * 1000.0;
       return t;
 }
 

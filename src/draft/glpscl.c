@@ -364,7 +364,7 @@ static void gm_iterate(glp_prob *lp, int it_max, glp_double tau)
          /* determine the current scaling "quality" */
          ratio = max_mat_aij(lp, 1) / min_mat_aij(lp, 1);
 #if 0
-         xprintf("k = %d; ratio = %g\n", k, ratio);
+         xprintf("k = %d; ratio = %" GLP_DBL_FMT_G "\n", k, ratio);
 #endif
          /* if improvement is not enough, terminate scaling */
          if (k > 1 && ratio > tau * r_old) break;
@@ -391,7 +391,7 @@ static void gm_iterate(glp_prob *lp, int it_max, glp_double tau)
 
 static void scale_prob(glp_prob *lp, int flags)
 {     static const char *fmt =
-         "%s: min|aij| = %10.3e  max|aij| = %10.3e  ratio = %10.3e\n";
+         "%s: min|aij| = %10.3" GLP_DBL_FMT_e "  max|aij| = %10.3" GLP_DBL_FMT_e "  ratio = %10.3" GLP_DBL_FMT_e "\n";
       glp_double min_aij, max_aij, ratio;
       xprintf("Scaling...\n");
       /* cancel the current scaling effect */
@@ -402,7 +402,7 @@ static void scale_prob(glp_prob *lp, int flags)
       ratio = max_aij / min_aij;
       xprintf(fmt, " A", min_aij, max_aij, ratio);
       /* check if the problem is well scaled */
-      if (min_aij >= 0.10 && max_aij <= 10.0)
+      if (min_aij >= GLP_SCALE_RANGE_MIN && max_aij <= GLP_SCALE_RANGE_MAX)
       {  xprintf("Problem data seem to be well scaled\n");
          /* skip scaling, if required */
          if (flags & GLP_SF_SKIP) goto done;
