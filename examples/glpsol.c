@@ -1651,19 +1651,19 @@ err2:    {  xprintf("MathProg model processing error\n");
          xassert(csa != csa);
       /*--------------------------------------------------------------*/
       /* display statistics */
-      xprintf("Time used:   %.1f secs\n", glp_difftime(glp_time(),
+      xprintf("Time used:   %.1" GLP_DBL_FMT_F " secs\n", glp_difftime(glp_time(),
          start));
 #if 0 /* 16/II-2012 */
       {  glp_long tpeak;
          char buf[50];
          glp_mem_usage(NULL, NULL, NULL, &tpeak);
-         xprintf("Memory used: %.1f Mb (%s bytes)\n",
+         xprintf("Memory used: %.1" GLP_DBL_FMT_F " Mb (%s bytes)\n",
             xltod(tpeak) / 1048576.0, xltoa(tpeak, buf));
       }
 #else
       {  size_t tpeak;
          glp_mem_usage(NULL, NULL, NULL, &tpeak);
-         xprintf("Memory used: %.1f Mb (%.0f bytes)\n",
+         xprintf("Memory used: %.1" GLP_DBL_FMT_F " Mb (%.0" GLP_DBL_FMT_F " bytes)\n",
             (glp_double)tpeak / 1048576.0, (glp_double)tpeak);
       }
 #endif
