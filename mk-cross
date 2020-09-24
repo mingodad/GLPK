@@ -16,13 +16,13 @@ make -f Makefile-cross CC="$FPCC" \
 
 ### windows
 
-FPCC="i686-w64-mingw32-gcc"
+FPCC="i686-w64-mingw32-gcc -D__USE_MINGW_ANSI_STDIO"
 make -f Makefile-cross CC="$FPCC" \
 	CXX="i686-w64-mingw32-g++" \
 	WIN32=1 LOCAL-ZLIB=1 \
 	build-type=$build-mingw-32 WITH-OLD-GCC=1 TARGET_BITS32=1 $*
 
-FPCC="x86_64-w64-mingw32-gcc "
+FPCC="x86_64-w64-mingw32-gcc -D__USE_MINGW_ANSI_STDIO"
 make -f Makefile-cross CC="$FPCC" \
 	CXX="x86_64-w64-mingw32-g++" \
 	WIN32=1 LOCAL-ZLIB=1 \
@@ -49,3 +49,21 @@ make -f Makefile-cross CC="powerpc64le-linux-gnu-gcc" \
 	CXX="powerpc64le-linux-gnu-g++" \
 	PPCLE=1 LOCAL-ZLIB=1 \
 	build-type=$build-ppc-64le TARGET_BITS64=1 $*
+
+### linux arm64
+
+FPCC="zig cc -target aarch64-linux-gnu"
+make -f Makefile-cross CC="$FPCC" \
+	CXX="$FPCC" \
+	ARM64=1 LOCAL-ZLIB=1 \
+	build-type=$build-arm64 TARGET_BITS64=1 $*
+
+### linux arm32
+
+FPCC="zig cc -target arm-linux-gnu"
+make -f Makefile-cross CC="$FPCC" \
+	CXX="$FPCC" \
+	ARM32=1 LOCAL-ZLIB=1 \
+	build-type=$build-arm32 TARGET_BITS32=1 $*
+
+
