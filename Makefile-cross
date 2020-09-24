@@ -38,7 +38,7 @@ endif
 
 ifeq ($(findstring release, $(build-type)), release)
 	#CFLAG_OPT := -O2 -DNDEBUG=1
-	CFLAG_OPT := -g -O3 -flto -DWITH_SPLAYTREE -DNDEBUG
+	CFLAG_OPT := -g -O2 -flto -DWITH_SPLAYTREE -DNDEBUG
 	LDFLAGS += -s
 	ifndef PPCLE
 	ifndef ARM64
