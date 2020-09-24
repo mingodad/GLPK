@@ -1,0 +1,69 @@
+build=${1:-release}
+
+####linux
+
+FPCC="gcc -DWITH_LONG_DOUBLE"
+make -f Makefile-cross CC="$FPCC" \
+	CXX="g++" \
+	build-type=$build-linux-64 \
+	NO-UUID=1 LOCAL-ZLIB=1 WITH-OLD-GCC=1 TARGET_BITS64=1 $*
+
+FPCC="i686-linux-gnu-gcc-8 -DWITH_LONG_DOUBLE"
+make -f Makefile-cross CC="$FPCC" \
+	CXX="i686-linux-gnu-g++-8" \
+	build-type=$build-linux-32 \
+	NO-UUID=1 LOCAL-ZLIB=1 WITH-OLD-GCC=1 TARGET_BITS32=1 $*
+
+### windows
+
+FPCC="i686-w64-mingw32-gcc -DWITH_LONG_DOUBLE -D__USE_MINGW_ANSI_STDIO"
+make -f Makefile-cross CC="$FPCC" \
+	CXX="i686-w64-mingw32-g++" \
+	WIN32=1 LOCAL-ZLIB=1 \
+	build-type=$build-mingw-32 WITH-OLD-GCC=1 TARGET_BITS32=1 $*
+
+FPCC="x86_64-w64-mingw32-gcc -DWITH_LONG_DOUBLE -D__USE_MINGW_ANSI_STDIO -g"
+make -f Makefile-cross CC="$FPCC" \
+	CXX="x86_64-w64-mingw32-g++" \
+	WIN32=1 LOCAL-ZLIB=1 \
+	build-type=$build-mingw-64 WITH-OLD-GCC=1 TARGET_BITS64=1 $*
+
+### osx
+
+FPCC="gcc -m32 -DWITH_LONG_DOUBLE"
+osxcross-env make -f Makefile-cross CC="i386-apple-darwin14-clang" \
+	CXX="i386-apple-darwin14-clang++" \
+	DARWIN=1 LOCAL-ZLIB=1 \
+	build-type=$build-darwin-32 WITH-OLD-GCC=1 TARGET_BITS32=1 $*
+
+FPCC="gcc -m64 -DWITH_LONG_DOUBLE"
+osxcross-env make -f Makefile-cross CC="x86_64-apple-darwin14-clang" \
+	CXX="x86_64-apple-darwin14-clang++" \
+	DARWIN=1 LOCAL-ZLIB=1 \
+	build-type=$build-darwin-64 WITH-OLD-GCC=1 TARGET_BITS64=1 $*
+
+### linux powerpc64le
+
+FPCC="powerpc64le-linux-gnu-gcc -DWITH_LONG_DOUBLE"
+make -f Makefile-cross CC="powerpc64le-linux-gnu-gcc" \
+	CXX="powerpc64le-linux-gnu-g++" \
+	PPCLE=1 LOCAL-ZLIB=1 \
+	build-type=$build-ppc-64le TARGET_BITS64=1 $*
+
+### linux arm64
+
+FPCC="zig cc -target aarch64-linux-gnu -DWITH_LONG_DOUBLE"
+make -f Makefile-cross CC="$FPCC" \
+	CXX="$FPCC" \
+	ARM64=1 LOCAL-ZLIB=1 \
+	build-type=$build-arm64 TARGET_BITS64=1 $*
+
+### linux arm32
+
+FPCC="zig cc -target arm-linux-gnu -DWITH_LONG_DOUBLE"
+make -f Makefile-cross CC="$FPCC" \
+	CXX="$FPCC" \
+	ARM32=1 LOCAL-ZLIB=1 \
+	build-type=$build-arm32 TARGET_BITS32=1 $*
+
+
