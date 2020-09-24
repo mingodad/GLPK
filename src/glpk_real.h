@@ -29,6 +29,16 @@ extern "C" {
         #define GLP_DBL_FMT_F "Lf"
         #define GLP_DBL_FMT_E "LE"
         #define GLP_DBL_FMT_e "Le"
+    #elif defined(WITH_FLOAT32)
+        #define glp_double float
+        #define GLP_DBL_EPSILON FLT_EPSILON
+        #define GLP_DBL_MAX FLT_MAX
+        #define GLP_DBL_MIN FLT_MIN
+        #define GLP_DBL_DIG FLT_DIG
+        #define GLP_DBL_FMT_G "g"
+        #define GLP_DBL_FMT_F "f"
+        #define GLP_DBL_FMT_E "E"
+        #define GLP_DBL_FMT_e "e"
     #else
         #define glp_double double
         #define GLP_DBL_EPSILON DBL_EPSILON
