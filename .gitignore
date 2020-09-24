@@ -1,0 +1,7 @@
+/build/
+/obj/
+/zig-cache/
+/src/.deps/
+/src/.libs/
+*.o
+*.lo
