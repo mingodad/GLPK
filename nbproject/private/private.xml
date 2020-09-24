@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project-private xmlns="http://www.netbeans.org/ns/project-private/1">
+    <code-assistance-data xmlns="http://www.netbeans.org/ns/make-project-private/1">
+        <code-model-enabled>true</code-model-enabled>
+    </code-assistance-data>
+    <data xmlns="http://www.netbeans.org/ns/make-project-private/1">
+        <activeConfTypeElem>0</activeConfTypeElem>
+        <activeConfIndexElem>5</activeConfIndexElem>
+    </data>
+    <editor-bookmarks xmlns="http://www.netbeans.org/ns/editor-bookmarks/2" lastBookmarkId="0"/>
+    <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
+        <group>
+            <file>file:/home/mingo/dev/lp/GLPK-dad-master-if/src/intopt/gmicut.c</file>
+            <file>file:/home/mingo/dev/lp/GLPK-dad-master-if/src/draft/glpios03.c</file>
+            <file>file:/home/mingo/dev/lp/GLPK-dad-master-if/src/draft/glpios01.c</file>
+            <file>file:/home/mingo/dev/lp/GLPK-dad-master-if/examples/glpsol.c</file>
+            <file>file:/home/mingo/dev/lp/GLPK-dad-master-if/src/draft/glpapi13.c</file>
+            <file>file:/home/mingo/dev/lp/GLPK-dad-master-if/src/draft/ios.h</file>
+        </group>
+    </open-files>
+</project-private>
