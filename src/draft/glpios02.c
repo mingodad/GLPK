@@ -345,7 +345,7 @@ static void col_implied_bounds(const struct f_info *f, int n,
          implied bounds; for example, 1e-15 * x1 >= x2 + x3, where
          x1 >= -10, x2, x3 >= 0, would lead to wrong conclusion that
          x1 >= 0 */
-      if (fabs(a[k]) < 1e-6)
+      if (fabs(a[k]) < GLP_COL_IMPL_BOUNDS_TOL)
          *ll = -GLP_DBL_MAX, *uu = +GLP_DBL_MAX; else
 #endif
       if (a[k] > 0.0)
@@ -390,7 +390,7 @@ static int check_row_bounds(const struct f_info *f, glp_double *L_,
       row_implied_bounds(f, &LL, &UU);
       /* check if the original lower bound is infeasible */
       if (L != -GLP_DBL_MAX)
-      {  glp_double eps = 1e-3 * (1.0 + fabs(L));
+      {  glp_double eps = GLP_CHK_ROW_COL_BOUNDS_TOL1 * (1.0 + fabs(L));
          if (UU < L - eps)
          {  ret = 1;
             goto done;
@@ -398,7 +398,7 @@ static int check_row_bounds(const struct f_info *f, glp_double *L_,
       }
       /* check if the original upper bound is infeasible */
       if (U != +GLP_DBL_MAX)
-      {  glp_double eps = 1e-3 * (1.0 + fabs(U));
+      {  glp_double eps = GLP_CHK_ROW_COL_BOUNDS_TOL1 * (1.0 + fabs(U));
          if (LL > U + eps)
          {  ret = 1;
             goto done;
@@ -406,7 +406,7 @@ static int check_row_bounds(const struct f_info *f, glp_double *L_,
       }
       /* check if the original lower bound is redundant */
       if (L != -GLP_DBL_MAX)
-      {  glp_double eps = 1e-12 * (1.0 + fabs(L));
+      {  glp_double eps = GLP_CHK_ROW_BOUNDS_TOL2 * (1.0 + fabs(L));
          if (LL > L - eps)
          {  /* it cannot be active, so remove it */
             *L_ = -GLP_DBL_MAX;
@@ -414,7 +414,7 @@ static int check_row_bounds(const struct f_info *f, glp_double *L_,
       }
       /* check if the original upper bound is redundant */
       if (U != +GLP_DBL_MAX)
-      {  glp_double eps = 1e-12 * (1.0 + fabs(U));
+      {  glp_double eps = GLP_CHK_ROW_BOUNDS_TOL2 * (1.0 + fabs(U));
          if (UU < U + eps)
          {  /* it cannot be active, so remove it */
             *U_ = +GLP_DBL_MAX;
@@ -465,13 +465,13 @@ static int check_col_bounds(const struct f_info *f, int n,
       /* if x[j] is integral, round its implied bounds */
       if (flag)
       {  if (ll != -GLP_DBL_MAX)
-            ll = (ll - floor(ll) < 1e-3 ? floor(ll) : ceil(ll));
+            ll = (ll - floor(ll) < GLP_CHK_ROW_COL_BOUNDS_TOL1 ? floor(ll) : ceil(ll));
          if (uu != +GLP_DBL_MAX)
-            uu = (ceil(uu) - uu < 1e-3 ? ceil(uu) : floor(uu));
+            uu = (ceil(uu) - uu < GLP_CHK_ROW_COL_BOUNDS_TOL1 ? ceil(uu) : floor(uu));
       }
       /* check if the original lower bound is infeasible */
       if (lj != -GLP_DBL_MAX)
-      {  glp_double eps = 1e-3 * (1.0 + fabs(lj));
+      {  glp_double eps = GLP_CHK_ROW_COL_BOUNDS_TOL1 * (1.0 + fabs(lj));
          if (uu < lj - eps)
          {  ret = 1;
             goto done;
@@ -479,7 +479,7 @@ static int check_col_bounds(const struct f_info *f, int n,
       }
       /* check if the original upper bound is infeasible */
       if (uj != +GLP_DBL_MAX)
-      {  glp_double eps = 1e-3 * (1.0 + fabs(uj));
+      {  glp_double eps = GLP_CHK_ROW_COL_BOUNDS_TOL1 * (1.0 + fabs(uj));
          if (ll > uj + eps)
          {  ret = 1;
             goto done;
@@ -487,7 +487,7 @@ static int check_col_bounds(const struct f_info *f, int n,
       }
       /* check if the original lower bound is redundant */
       if (ll != -GLP_DBL_MAX)
-      {  glp_double eps = 1e-3 * (1.0 + fabs(ll));
+      {  glp_double eps = GLP_CHK_ROW_COL_BOUNDS_TOL1 * (1.0 + fabs(ll));
          if (lj < ll - eps)
          {  /* it cannot be active, so tighten it */
             lj = ll;
@@ -495,7 +495,7 @@ static int check_col_bounds(const struct f_info *f, int n,
       }
       /* check if the original upper bound is redundant */
       if (uu != +GLP_DBL_MAX)
-      {  glp_double eps = 1e-3 * (1.0 + fabs(uu));
+      {  glp_double eps = GLP_CHK_ROW_COL_BOUNDS_TOL1 * (1.0 + fabs(uu));
          if (uj > uu + eps)
          {  /* it cannot be active, so tighten it */
             uj = uu;
@@ -506,7 +506,7 @@ static int check_col_bounds(const struct f_info *f, int n,
          adjuct the new actual bounds to provide lj <= uj */
       if (!(lj == -GLP_DBL_MAX || uj == +GLP_DBL_MAX))
       {  glp_double t1 = fabs(lj), t2 = fabs(uj);
-         glp_double eps = 1e-10 * (1.0 + (t1 <= t2 ? t1 : t2));
+         glp_double eps = GLP_CHK_COL_BOUNDS_TOL2 * (1.0 + (t1 <= t2 ? t1 : t2));
          if (lj > uj - eps)
          {  if (lj == l[j])
                uj = lj;

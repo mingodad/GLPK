@@ -136,7 +136,7 @@ static int best_node(glp_tree *T)
             for (node = T->head; node != NULL; node = node->next)
                if (bound > node->bound) bound = node->bound;
             xassert(bound != +GLP_DBL_MAX);
-            eps = 1e-10 * (1.0 + fabs(bound));
+            eps = GLP_BEST_NODE_TOL * (1.0 + fabs(bound));
             for (node = T->head; node != NULL; node = node->next)
             {  if (node->bound <= bound + eps)
                {  xassert(node->up != NULL);
@@ -154,7 +154,7 @@ static int best_node(glp_tree *T)
             for (node = T->head; node != NULL; node = node->next)
                if (bound < node->bound) bound = node->bound;
             xassert(bound != -GLP_DBL_MAX);
-            eps = 1e-10 * (1.0 + fabs(bound));
+            eps = GLP_BEST_NODE_TOL * (1.0 + fabs(bound));
             for (node = T->head; node != NULL; node = node->next)
             {  if (node->bound >= bound - eps)
                {  xassert(node->up != NULL);

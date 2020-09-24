@@ -274,7 +274,7 @@ static int branch_drtom(glp_tree *T, int *_next)
                the magnitude */
             if (k > m && glp_get_col_kind(mip, k-m) != GLP_CV)
             {  /* x[k] is structural integer variable */
-               if (fabs(delta_k - floor(delta_k + 0.5)) > 1e-3)
+               if (fabs(delta_k - floor(delta_k + 0.5)) > GLP_BRNCH_DRTOM_TOL)
                {  if (delta_k > 0.0)
                      delta_k = ceil(delta_k);  /* +3.14 -> +4 */
                   else
@@ -363,7 +363,7 @@ skip:       /* new Z is never better than old Z, therefore the change
       /* something must be chosen */
       xassert(1 <= jj && jj <= n);
 #if 1 /* 02/XI-2009 */
-      if (degrad < 1e-6 * (1.0 + 0.001 * fabs(mip->obj_val)))
+      if (degrad < GLP_BRNCH_DRTOM_TOL2 * (1.0 + 0.001 * fabs(mip->obj_val)))
       {  jj = branch_mostf(T, &next);
          goto done;
       }
@@ -464,7 +464,7 @@ static glp_double eval_degrad(glp_prob *P, int j, glp_double bnd)
             /* note that the lower bound to degradation may be close
                to zero even if its exact value is zero due to round-off
                errors on computing the objective value */
-            if (degrad < 1e-6 * (1.0 + 0.001 * fabs(P->obj_val)))
+            if (degrad < GLP_BRNCH_DRTOM_TOL2 * (1.0 + 0.001 * fabs(P->obj_val)))
                degrad = 0.0;
          }
          else

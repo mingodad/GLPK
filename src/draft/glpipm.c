@@ -358,7 +358,7 @@ static int solve_NE(struct csa *csa, glp_double y[])
       for (i = 1; i <= m; i++) r[i] -= h[i];
       /* check for numeric stability */
       for (i = 1; i <= m; i++)
-      {  if (fabs(r[i]) / (1.0 + fabs(h[i])) > 1e-4)
+      {  if (fabs(r[i]) / (1.0 + fabs(h[i])) > GLP_SOLVE_NE_TOL)
          {  ret = 1;
             break;
          }
@@ -880,15 +880,15 @@ static int ipm_main(struct csa *csa)
                " %8.1" GLP_DBL_FMT_e "\n", csa->iter, csa->obj, csa->rpi, csa->rdi,
                csa->gap);
          /* check if the current point is optimal */
-         if (csa->rpi < 1e-8 && csa->rdi < 1e-8 && csa->gap < 1e-8)
+         if (csa->rpi < GLP_IPM_MAIN_TOL && csa->rdi < GLP_IPM_MAIN_TOL && csa->gap < GLP_IPM_MAIN_TOL)
          {  if (csa->parm->msg_lev >= GLP_MSG_ALL)
                xprintf("OPTIMAL SOLUTION FOUND\n");
             status = 0;
             break;
          }
          /* check if the problem has no feasible solution */
-         temp = 1e5 * csa->phi_min[csa->iter];
-         if (temp < 1e-8) temp = 1e-8;
+         temp = GLP_IPM_MAIN_TOL2 * csa->phi_min[csa->iter];
+         if (temp < GLP_IPM_MAIN_TOL) temp = GLP_IPM_MAIN_TOL;
          if (csa->phi >= temp)
          {  if (csa->parm->msg_lev >= GLP_MSG_ALL)
                xprintf("PROBLEM HAS NO FEASIBLE PRIMAL/DUAL SOLUTION\n")
@@ -897,8 +897,8 @@ static int ipm_main(struct csa *csa)
             break;
          }
          /* check for very slow convergence or divergence */
-         if (((csa->rpi >= 1e-8 || csa->rdi >= 1e-8) && csa->rmu /
-               csa->rmu0 >= 1e6) ||
+         if (((csa->rpi >= GLP_IPM_MAIN_TOL || csa->rdi >= GLP_IPM_MAIN_TOL) && csa->rmu /
+               csa->rmu0 >= GLP_IPM_MAIN_TOL3) ||
                (csa->iter >= 30 && csa->phi_min[csa->iter] >= 0.5 *
                csa->phi_min[csa->iter - 30]))
          {  if (csa->parm->msg_lev >= GLP_MSG_ALL)

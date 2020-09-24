@@ -1364,7 +1364,7 @@ more: /* minor loop starts here */
 #if 1 /* 18/VII-2013 */
       if (T->curr->changed > 0)
       {  glp_double degrad = fabs(T->curr->lp_obj - old_obj);
-         if (degrad < 1e-4 * (1.0 + fabs(old_obj)))
+         if (degrad < GLP_CHK_IOS_BOUNDS_TOL * (1.0 + fabs(old_obj)))
             bad_cut++;
          else
             bad_cut = 0;

@@ -661,8 +661,8 @@ void glp_init_iocp(glp_iocp *parm)
 {     parm->msg_lev = GLP_MSG_ALL;
       parm->br_tech = GLP_BR_DTH;
       parm->bt_tech = GLP_BT_BLB;
-      parm->tol_int = 1e-5;
-      parm->tol_obj = 1e-7;
+      parm->tol_int = GLP_IOCP_TOL_INT;
+      parm->tol_obj = GLP_IOCP_TOL_OBJ;
       parm->tm_lim = INT_MAX;
       parm->out_frq = 5000;
       parm->out_dly = 10000;

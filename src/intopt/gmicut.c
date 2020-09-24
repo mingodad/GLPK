@@ -173,10 +173,10 @@ int glp_gmi_cut(glp_prob *P, int j,
          /* determine row coefficient ksi[i,j] at xN[j]; see (23) */
          ksi = val[j];
          /* if ksi[i,j] is too large in magnitude, report failure */
-         if (fabs(ksi) > 1e+05)
+         if (fabs(ksi) > GLP_GMI_CUT_TOL)
             return -7;
          /* if ksi[i,j] is too small in magnitude, skip it */
-         if (fabs(ksi) < 1e-10)
+         if (fabs(ksi) < GLP_GMI_CUT_TOL2)
             goto skip;
          /* compute row coefficient alfa[i,j] at y[j]; see (26) */
          switch (stat)
@@ -202,7 +202,7 @@ int glp_gmi_cut(glp_prob *P, int j,
          switch (kind)
          {  case GLP_IV:
                /* y[j] is integer */
-               if (fabs(alfa - floor(alfa + 0.5)) < 1e-10)
+               if (fabs(alfa - floor(alfa + 0.5)) < GLP_GMI_CUT_TOL2)
                {  /* alfa[i,j] is close to nearest integer; skip it */
                   goto skip;
                }
@@ -246,7 +246,7 @@ skip:    ;
       /* eliminate auxiliary variables in order to express the cut only
        * through structural variables; see (33) */
       for (i = 1; i <= m; i++)
-      {  if (fabs(phi[i]) < 1e-10)
+      {  if (fabs(phi[i]) < GLP_GMI_CUT_TOL2)
             continue;
          /* auxiliary variable x[i] has non-zero cut coefficient */
          row = P->row[i];
@@ -260,7 +260,7 @@ skip:    ;
        * (structural) variables */
       len = 0;
       for (j = 1; j <= n; j++)
-      {  if (fabs(phi[m+j]) < 1e-10)
+      {  if (fabs(phi[m+j]) < GLP_GMI_CUT_TOL2)
             continue;
          /* structural variable x[m+j] has non-zero cut coefficient */
          col = P->col[j];
@@ -274,7 +274,7 @@ skip:    ;
             val[len] = phi[m+j];
          }
       }
-      if (fabs(rhs) < 1e-12)
+      if (fabs(rhs) < GLP_GMI_CUT_TOL3)
          rhs = 0.0;
       ind[0] = 0, val[0] = rhs;
       /* the cut has been successfully generated */

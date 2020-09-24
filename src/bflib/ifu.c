@@ -124,7 +124,7 @@ int ifu_bg_update(IFU *ifu, glp_double c[/*1+n*/], glp_double r[/*1+n*/],
       glp_double *f_ = ifu->f;
       glp_double *u_ = ifu->u;
 #if 1 /* FIXME */
-      glp_double tol = 1e-5;
+      glp_double tol = GLP_IFU_TOL;
 #endif
       int j, k;
       glp_double t;
@@ -232,7 +232,7 @@ int ifu_gr_update(IFU *ifu, glp_double c[/*1+n*/], glp_double r[/*1+n*/],
       glp_double *f_ = ifu->f;
       glp_double *u_ = ifu->u;
 #if 1 /* FIXME */
-      glp_double tol = 1e-5;
+      glp_double tol = GLP_IFU_TOL;
 #endif
       int j, k;
       glp_double cs, sn;

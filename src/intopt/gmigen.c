@@ -116,9 +116,9 @@ int glp_gmi_gen(glp_prob *P, glp_prob *pool, int max_cuts)
          /* if the cut inequality seems to be badly scaled, reject it
           * to avoid numerical difficulties */
          for (k = 1; k <= len; k++)
-         {  if (fabs(val[k]) < 1e-03)
+         {  if (fabs(val[k]) < GLP_GMI_GEN_TOL)
                goto skip;
-            if (fabs(val[k]) > 1e+03)
+            if (fabs(val[k]) > GLP_GMI_GEN_TOL2)
                goto skip;
          }
          /* add the cut to the cut pool for further consideration */

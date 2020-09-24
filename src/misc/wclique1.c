@@ -76,7 +76,7 @@ int wclique1(int n, const glp_double w[],
 {     struct vertex *v_list;
       int deg, c_size, d_size, i, j, k, kk, l, *ind, *c_list, *d_list,
          size = 0;
-      glp_double c_wght, d_wght, *sw, best = 0.0;
+      glp_double c_wght, d_wght, *sw, cbest, best = 0.0;
       char *d_flag, *skip;
       /* perform sanity checks */
       xassert(n >= 0);
@@ -136,7 +136,8 @@ int wclique1(int n, const glp_double w[],
             d_wght += w[j];
          }
          /* check an upper bound to the final clique weight */
-         if (c_wght + d_wght < best + 1e-5 * (1.0 + fabs(best)))
+         cbest = best + GLP_WCLICK_TOL * (1.0 + fabs(best));
+         if (c_wght + d_wght < cbest)
          {  /* skip constructing the current clique */
             goto next;
          }
@@ -157,7 +158,7 @@ int wclique1(int n, const glp_double w[],
          /* grow the current clique by adding vertices from D */
          while (d_size > 0)
          {  /* check an upper bound to the final clique weight */
-            if (c_wght + d_wght < best + 1e-5 * (1.0 + fabs(best)))
+            if (c_wght + d_wght < cbest)
             {  /* skip constructing the current clique */
                goto next;
             }

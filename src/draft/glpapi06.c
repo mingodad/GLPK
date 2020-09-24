@@ -504,8 +504,8 @@ void glp_init_smcp(glp_smcp *parm)
       parm->meth = GLP_PRIMAL;
       parm->pricing = GLP_PT_PSE;
       parm->r_test = GLP_RT_HAR;
-      parm->tol_bnd = 1e-7;
-      parm->tol_dj = 1e-7;
+      parm->tol_bnd = GLP_SMCP_TOL_BND;
+      parm->tol_dj = GLP_SMCP_TOL_DJ;
 #if 0 /* 07/XI-2015 */
       parm->tol_piv = 1e-10;
 #else

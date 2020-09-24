@@ -1174,7 +1174,7 @@ int sgf_dense_phase(LUF *luf, int k, int updat)
       }
       /* compute dense factorization A~ = P~* L~* U~* Q~ */
 #if 1 /* FIXME: epsilon tolerance */
-      ka = sgf_dense_lu(na, &a(1, 1), &pp_inv[k], &qq_ind[k], 1e-20);
+      ka = sgf_dense_lu(na, &a(1, 1), &pp_inv[k], &qq_ind[k], GLP_SGF_TOL);
 #endif
       /* rows of U with numbers pp_inv[k, k+1, ..., n] were permuted
        * due to row permutations of A~; update matrix P using P~ */

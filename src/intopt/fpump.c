@@ -340,7 +340,7 @@ skip: /* check if the time limit has been exhausted */
       }
       /* the basic solution is fractional */
       if (dist == GLP_DBL_MAX ||
-          lp->obj_val <= dist - 1e-6 * (1.0 + dist))
+          lp->obj_val <= dist - GLP_FPUMP_TOL * (1.0 + dist))
       {  /* the distance is reducing */
          nfail = 0, dist = lp->obj_val;
       }

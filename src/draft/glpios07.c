@@ -266,7 +266,7 @@ static int cover(int n, glp_double a[], glp_double b, glp_double u, glp_double x
       for (j = 1; j <= n; j++) xassert(a[j] > 0.0);
 #endif
 #if 1 /* ??? */
-      xassert(b > -1e-5);
+      xassert(b > -GLP_CHK_COVER_TOL);
 #else
       xassert(b > 0.0);
 #endif
@@ -540,7 +540,7 @@ void ios_cov_gen(glp_tree *tree)
          /* at the current point the cut inequality is violated, i.e.
             sum{j in J} a[j] * x[j] - b > 0 */
          r = lpx_eval_row(prob, len, ind, val) - val[0];
-         if (r < 1e-3) continue;
+         if (r < GLP_CHK_COV_GEN_TOL) continue;
          /* add the cut to the cut pool */
          glp_ios_add_row(tree, NULL, GLP_RF_COV, 0, len, ind, val,
             GLP_UP, val[0]);

@@ -272,7 +272,7 @@ void glp_set_bfcp(glp_prob *P, const glp_bfcp *parm)
          if (!(parm->suhl == GLP_ON || parm->suhl == GLP_OFF))
             xerror("glp_set_bfcp: suhl = %d; invalid parameter\n",
                parm->suhl);
-         if (!(0.0 <= parm->eps_tol && parm->eps_tol <= 1e-6))
+         if (!(0.0 <= parm->eps_tol && parm->eps_tol <= GLP_BFCP_TOL_EPS))
             xerror("glp_set_bfcp: eps_tol = %" GLP_DBL_FMT_G "; invalid parameter\n",
                parm->eps_tol);
          if (!(1 <= parm->nfs_max && parm->nfs_max <= 32767))
@@ -667,14 +667,14 @@ int glp_warm_up(glp_prob *P)
 #if 0 /* 07/III-2013 */
          type = row->type;
          temp = (P->dir == GLP_MIN ? + row->dual : - row->dual);
-         if ((type == GLP_FR || type == GLP_LO) && temp < -1e-5 ||
-             (type == GLP_FR || type == GLP_UP) && temp > +1e-5)
+         if ((type == GLP_FR || type == GLP_LO) && temp < -GLP_BFCP_TOL_DUAL ||
+             (type == GLP_FR || type == GLP_UP) && temp > +GLP_BFCP_TOL_DUAL)
             P->dbs_stat = GLP_INFEAS;
 #else
          stat = row->stat;
          temp = (P->dir == GLP_MIN ? + row->dual : - row->dual);
-         if ((stat == GLP_NF || stat == GLP_NL) && temp < -1e-5 ||
-             (stat == GLP_NF || stat == GLP_NU) && temp > +1e-5)
+         if ((stat == GLP_NF || stat == GLP_NL) && temp < -GLP_BFCP_TOL_DUAL ||
+             (stat == GLP_NF || stat == GLP_NU) && temp > +GLP_BFCP_TOL_DUAL)
             P->dbs_stat = GLP_INFEAS;
 #endif
       }
@@ -691,14 +691,14 @@ int glp_warm_up(glp_prob *P)
 #if 0 /* 07/III-2013 */
          type = col->type;
          temp = (P->dir == GLP_MIN ? + col->dual : - col->dual);
-         if ((type == GLP_FR || type == GLP_LO) && temp < -1e-5 ||
-             (type == GLP_FR || type == GLP_UP) && temp > +1e-5)
+         if ((type == GLP_FR || type == GLP_LO) && temp < -GLP_BFCP_TOL_DUAL ||
+             (type == GLP_FR || type == GLP_UP) && temp > +GLP_BFCP_TOL_DUAL)
             P->dbs_stat = GLP_INFEAS;
 #else
          stat = col->stat;
          temp = (P->dir == GLP_MIN ? + col->dual : - col->dual);
-         if ((stat == GLP_NF || stat == GLP_NL) && temp < -1e-5 ||
-             (stat == GLP_NF || stat == GLP_NU) && temp > +1e-5)
+         if ((stat == GLP_NF || stat == GLP_NL) && temp < -GLP_BFCP_TOL_DUAL ||
+             (stat == GLP_NF || stat == GLP_NU) && temp > +GLP_BFCP_TOL_DUAL)
             P->dbs_stat = GLP_INFEAS;
 #endif
       }

@@ -44,8 +44,37 @@ extern "C" {
     #define GLP_PIVOT_TOL 0.10
     #define GLP_EPS_TOL GLP_DBL_EPSILON
     #define GLP_D_EPS 1e-9
+    #define GLP_IFU_TOL 1e-5
+    #define GLP_SGF_TOL 1e-20
     #define GLP_VPQ_TOL 1e-5
     #define GLP_ERR_TOL 1e-10
+    #define GLP_SMCP_TOL_BND  1e-7
+    #define GLP_SMCP_TOL_DJ   1e-7
+    #define GLP_IOCP_TOL_INT  1e-5
+    #define GLP_IOCP_TOL_OBJ   1e-7
+    #define GLP_BFCP_TOL_EPS  1e-6
+    #define GLP_BFCP_TOL_DUAL   1e-5
+    #define GLP_COL_IMPL_BOUNDS_TOL   1e-6
+    #define GLP_CHK_ROW_COL_BOUNDS_TOL1   1e-3
+    #define GLP_CHK_ROW_BOUNDS_TOL2   1e-12
+    #define GLP_CHK_COL_BOUNDS_TOL2   1e-10
+    #define GLP_CHK_IOS_BOUNDS_TOL   1e-4
+    #define GLP_CHK_COVER_TOL   1e-5
+    #define GLP_CHK_COV_GEN_TOL   1e-3
+    #define GLP_BRNCH_DRTOM_TOL   1e-3
+    #define GLP_BRNCH_DRTOM_TOL2   1e-6
+    #define GLP_BEST_NODE_TOL   1e-10
+    #define GLP_SOLVE_NE_TOL   1e-4
+    #define GLP_IPM_MAIN_TOL   1e-8
+    #define GLP_IPM_MAIN_TOL2   1e5
+    #define GLP_IPM_MAIN_TOL3   1e6
+    #define GLP_FPUMP_TOL   1e-6
+    #define GLP_GMI_CUT_TOL   1e+05
+    #define GLP_GMI_CUT_TOL2   1e-10
+    #define GLP_GMI_CUT_TOL3   1e-12
+    #define GLP_GMI_GEN_TOL   1e-03
+    #define GLP_GMI_GEN_TOL2   1e+03
+    #define GLP_WCLICK_TOL   1e-5
     #define GLP_CPS_RELAX    0.07
     #define GLP_CPS_TOL_BND  1e-7
     #define GLP_CPS_TOL_DJ   1e-7
