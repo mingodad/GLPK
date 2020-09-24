@@ -1,0 +1,33 @@
+#CFLAGS="-g -O2 -DWITH_SPLAYTREE" ./configure
+#CFLAGS="-g -O2 -march=native" ./configure
+#CFLAGS="-g -O2 -DWITH_SPLAYTREE -DNDEBUG" ./configure
+#CFLAGS="-g -O2 -DWITH_SPLAYTREE -DNDEBUG -flto" ./configure
+#CFLAGS="-g -O2 -march=native -DWITH_SPLAYTREE -DNDEBUG" ./configure
+#CFLAGS="-g -O3 -march=native -DWITH_SPLAYTREE -DNDEBUG" ./configure
+#CFLAGS="-g -O3 -march=native -DWITH_SPLAYTREE -flto" ./configure
+#CFLAGS="-g -O3 -DWITH_SPLAYTREE -DNDEBUG -flto" ./configure
+#CFLAGS="-g -pipe -O3 -march=native -ffp-contract=off -DNDEBUG -flto" ./configure
+#CFLAGS="-g -pipe -O3 -march=native -ffp-contract=off -DWITH_SPLAYTREE -DNDEBUG -flto" ./configure
+#CFLAGS="-g -pipe -O3 -march=native -ffp-contract=off -DWITH_KHASH -DNDEBUG -flto" ./configure
+#CFLAGS="-g -pipe -O3 -march=native -ffp-contract=off -DWITH_KBTREE -DNDEBUG -flto" ./configure
+#CFLAGS="-g -pipe -O3 -fomit-frame-pointer -ftree-vectorize -Ofast -march=native -ffp-contract=off -DWITH_SPLAYTREE -DNDEBUG -flto" ./configure
+#CFLAGS="-fprofile-generate -g -pipe -O2 -DWITH_SPLAYTREE -DNDEBUG" ./configure
+#CFLAGS="-fprofile-use -fprofile-correction -g -pipe -O2 -DWITH_SPLAYTREE -DNDEBUG" ./configure
+#CFLAGS="-g -O3 -march=native -ffp-contract=off -DWITH_KHASH -DNDEBUG -flto" ./configure
+#CFLAGS="-g -O3 -march=native -ffp-contract=off -DWITH_KBTREE -DNDEBUG -flto" ./configure
+#CFLAGS="-g -pg -DWITH_SPLAYTREE"  ./configure
+#CFLAGS="-g -DWITH_SPLAYTREE"  ./configure
+#CFLAGS="-g -DWITH_SPLAYTREE -DGLP_NO_MEMORY_POOL"  ./configure
+#CFLAGS="-g -DWITH_SPLAYTREE -DNDEBUG" ./configure
+#CFLAGS="-g -pg -DWITH_SPLAYTREE -DNDEBUG" ./configure
+
+#CFLAGS="-g \
+#CFLAGS="-DWITH_LONG_DOUBLE -g -O3 -DNDEBUG -flto -march=native -ffp-contract=off \
+CFLAGS=" -g -O3 -DNDEBUG -flto -march=native -ffp-contract=off \
+    -DWITH_SPLAYTREE \
+    -DWITH_LPSOLVE -DWITH_CBC2 \
+    -I$HOME/dev/lp/lp_solve_5.5 -I../src/mpl \
+    -I../src/misc -I../src/env \
+    -I$HOME/local/Cbc/include/coin" \
+    LDFLAGS="-L$HOME/dev/lp/lp_solve_5.5 -llp_solve -ldl -lm"  \
+    ./configure
