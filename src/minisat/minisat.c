@@ -299,7 +299,7 @@ static inline void act_var_bump(solver* s, int v) {
     if ((activity[v] += s->var_inc) > 1e100)
         act_var_rescale(s);
 
-    /* printf("bump %d %f\n", v-1, activity[v]); */
+    /* printf("bump %d %" GLP_DBL_FMT_F "\n", v-1, activity[v]); */
 
     if (s->orderpos[v] != -1)
         order_update(s,v);
@@ -1220,8 +1220,8 @@ bool   solver_solve(solver* s, lit* begin, lit* end)
             s->stats.learnts_literals / (glp_double)s->stats.learnts;
 
         if (s->verbosity >= 1){
-            printf("| %9.0f | %7.0f %8.0f | %7.0f %7.0f %8.0f %7.1f | %"
-                   "6.3f %% |\n",
+            printf("| %9.0" GLP_DBL_FMT_F " | %7.0" GLP_DBL_FMT_F " %8.0" GLP_DBL_FMT_F " | %7.0" GLP_DBL_FMT_F " %7.0" GLP_DBL_FMT_F " %8.0" GLP_DBL_FMT_F " %7.1" GLP_DBL_FMT_F " | %"
+                   "6.3" GLP_DBL_FMT_F " %% |\n",
                 (glp_double)s->stats.conflicts,
                 (glp_double)s->stats.clauses,
                 (glp_double)s->stats.clauses_literals,

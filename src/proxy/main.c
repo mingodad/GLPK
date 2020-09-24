@@ -73,11 +73,11 @@ int main(int argc, char **argv)
         status = proxy(lp, &zstar, xstar, NULL, 0.0, 0, 1);
     }
 
-    printf("Status = %d; ZSTAR = %f\n",status,zstar);
+    printf("Status = %d; ZSTAR = %" GLP_DBL_FMT_F "\n",status,zstar);
     /*
     int i;
     for (i=1; i< ncols+1; i++) {
-        printf("XSTAR[%d] = %f\n",i, xstar[i]);
+        printf("XSTAR[%d] = %" GLP_DBL_FMT_F "\n",i, xstar[i]);
     }
      */
 

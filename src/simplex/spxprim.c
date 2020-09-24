@@ -560,7 +560,7 @@ static void check_accuracy(struct csa *csa)
          e_gamma = 0.;
       else
          e_gamma = err_in_gamma(csa);
-      xprintf("e_beta = %10.3e; e_d = %10.3e; e_gamma = %10.3e\n",
+      xprintf("e_beta = %10.3" GLP_DBL_FMT_e "; e_d = %10.3" GLP_DBL_FMT_e "; e_gamma = %10.3" GLP_DBL_FMT_e "\n",
          e_beta, e_d, e_gamma);
       xassert(e_beta <= 1e-5 && e_d <= 1e-5 && e_gamma <= 1e-3);
       return;
@@ -1242,7 +1242,7 @@ loop: /* main loop starts here */
          if (cond > 1.0 / GLP_DBL_EPSILON)
          {  if (msg_lev >= GLP_MSG_ERR)
                xprintf("Error: basis matrix is singular to working prec"
-                  "ision (cond = %.3g)\n", cond);
+                  "ision (cond = %.3" GLP_DBL_FMT_G ")\n", cond);
             csa->p_stat = csa->d_stat = GLP_UNDEF;
             ret = GLP_EFAIL;
             goto fini;

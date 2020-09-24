@@ -304,7 +304,7 @@ int proxy(glp_prob *lp, glp_double *zfinal, glp_double *xfinal,
     if (verbose) {
         xprintf("Proxy's time limit set to %d seconds.\n",tlim/1000);
         xprintf("Proxy's relative improvement "
-                "set to %2.2lf %c.\n",rel_impr*100,37);
+                "set to %2.2" GLP_DBL_FMT_F " %c.\n",rel_impr*100,37);
     }
 
     parm_lp.tm_lim = tlim;
@@ -414,7 +414,7 @@ int proxy(glp_prob *lp, glp_double *zfinal, glp_double *xfinal,
     tpeak = 0;
     glp_mem_usage(NULL, NULL, NULL, &tpeak);
     if (verbose) {
-        xprintf("Time used: %3.1lf secs.  Memory used: %2.1lf Mb\n",
+        xprintf("Time used: %3.1" GLP_DBL_FMT_F " secs.  Memory used: %2.1" GLP_DBL_FMT_F " Mb\n",
                 tela,(glp_double)tpeak/1048576);
         xprintf("Starting proximity search...\n");
     }
@@ -452,9 +452,9 @@ int proxy(glp_prob *lp, glp_double *zfinal, glp_double *xfinal,
         cutoff = update_cutoff(csa, lp,zstar, cutoff_row, rel_impr);
 
 #ifdef PROXY_DEBUG
-        xprintf("TRUE_OBJ[0] = %f\n",csa->true_obj[0]);
-        xprintf("ZSTAR  = %f\n",zstar);
-        xprintf("CUTOFF = %f\n",cutoff);
+        xprintf("TRUE_OBJ[0] = %" GLP_DBL_FMT_F "\n",csa->true_obj[0]);
+        xprintf("ZSTAR  = %" GLP_DBL_FMT_F "\n",zstar);
+        xprintf("CUTOFF = %" GLP_DBL_FMT_F "\n",cutoff);
 #endif
 
         /********** SEARCHING FOR A BETTER SOLUTION **********/
@@ -468,8 +468,8 @@ int proxy(glp_prob *lp, glp_double *zfinal, glp_double *xfinal,
             goto done;
         }
 #ifdef PROXY_DEBUG
-        xprintf("TELA = %3.1lf\n",tela*1000);
-        xprintf("TLIM = %3.1lf\n",tlim - tela*1000);
+        xprintf("TELA = %3.1" GLP_DBL_FMT_F "\n",tela*1000);
+        xprintf("TLIM = %3.1" GLP_DBL_FMT_F "\n",tlim - tela*1000);
 #endif
         parm_lp.tm_lim = tlim -tela*1000;
 
@@ -482,7 +482,7 @@ int proxy(glp_prob *lp, glp_double *zfinal, glp_double *xfinal,
         if (status != GLP_OPT) {
             if (status == GLP_NOFEAS) {
                 if (verbose) {
-                    xprintf("Bound exceeded = %f. ",cutoff);
+                    xprintf("Bound exceeded = %" GLP_DBL_FMT_F ". ",cutoff);
                 }
             }
             if (verbose) {
@@ -522,7 +522,7 @@ int proxy(glp_prob *lp, glp_double *zfinal, glp_double *xfinal,
 
         if (status == GLP_NOFEAS) {
             if (verbose) {
-                xprintf("Bound exceeded = %f. Proxy heuristic "
+                xprintf("Bound exceeded = %" GLP_DBL_FMT_F ". Proxy heuristic "
                         "terminated.\n",cutoff);
             }
             goto done;
@@ -559,8 +559,8 @@ int proxy(glp_prob *lp, glp_double *zfinal, glp_double *xfinal,
             /* Comparing the incumbent solution with the current best
                one */
 #ifdef PROXY_DEBUG
-            xprintf("ZZ = %f\n",zz);
-            xprintf("ZSTAR = %f\n",zstar);
+            xprintf("ZZ = %" GLP_DBL_FMT_F "\n",zz);
+            xprintf("ZSTAR = %" GLP_DBL_FMT_F "\n",zstar);
             xprintf("REFINE = %d\n",refine);
 #endif
             if (((zz<zstar) && (csa->dir == GLP_MIN)) ||
@@ -590,7 +590,7 @@ int proxy(glp_prob *lp, glp_double *zfinal, glp_double *xfinal,
                 tela = elapsed_time(csa);
                 if (verbose) {
                     xprintf(">>>>> it: %3d:   mip = %e;   elapsed time "
-                            "%3.1lf sec.s\n", niter,zstar,tela);
+                            "%3.1" GLP_DBL_FMT_F " sec.s\n", niter,zstar,tela);
                 }
             }
         }
@@ -600,7 +600,7 @@ done:
     tela = elapsed_time(csa);
     glp_mem_usage(NULL, NULL, NULL, &tpeak);
     if (verbose) {
-        xprintf("Time used: %3.1lf.  Memory used: %2.1lf Mb\n",
+        xprintf("Time used: %3.1" GLP_DBL_FMT_F ".  Memory used: %2.1" GLP_DBL_FMT_F " Mb\n",
                 tela,(glp_double)tpeak/1048576);
     }
 
@@ -1049,7 +1049,7 @@ static int do_refine(struct csa *csa, glp_prob *lp_ref, int ncols,
     }
     tela = second() - refineStart;
 #ifdef PROXY_DEBUG
-    xprintf("REFINE TELA = %3.1lf\n",tela*1000);
+    xprintf("REFINE TELA = %3.1" GLP_DBL_FMT_F "\n",tela*1000);
 #endif
     return 0;
 }

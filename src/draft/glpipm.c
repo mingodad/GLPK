@@ -933,7 +933,7 @@ static int ipm_main(struct csa *csa)
          for (i = 1; i <= m; i++) csa->y[i] = csa->best_y[i];
          for (j = 1; j <= n; j++) csa->z[j] = csa->best_z[j];
          if (csa->parm->msg_lev >= GLP_MSG_ALL)
-            xprintf("Best point %17.9e was reached on iteration %d\n",
+            xprintf("Best point %17.9" GLP_DBL_FMT_e " was reached on iteration %d\n",
                csa->best_obj, csa->best_iter);
       }
       /* return to the calling program */

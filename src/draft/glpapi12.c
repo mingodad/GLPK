@@ -610,12 +610,12 @@ int glp_warm_up(glp_prob *P)
          row->prim = work[row->bind];
          type = row->type;
          if (type == GLP_LO || type == GLP_DB || type == GLP_FX)
-         {  eps = GLP_WARMUP_EPS * fabs(row->lb);
+         {  eps = GLP_WARMUP_EPS(row->lb);
             if (row->prim < row->lb - eps)
                P->pbs_stat = GLP_INFEAS;
          }
          if (type == GLP_UP || type == GLP_DB || type == GLP_FX)
-         {  eps = GLP_WARMUP_EPS * fabs(row->ub);
+         {  eps = GLP_WARMUP_EPS(row->ub);
             if (row->prim > row->ub + eps)
                P->pbs_stat = GLP_INFEAS;
          }
@@ -627,12 +627,12 @@ int glp_warm_up(glp_prob *P)
          col->prim = work[col->bind];
          type = col->type;
          if (type == GLP_LO || type == GLP_DB || type == GLP_FX)
-         {  eps = GLP_WARMUP_EPS * fabs(col->lb);
+         {  eps = GLP_WARMUP_EPS(col->lb);
             if (col->prim < col->lb - eps)
                P->pbs_stat = GLP_INFEAS;
          }
          if (type == GLP_UP || type == GLP_DB || type == GLP_FX)
-         {  eps = GLP_WARMUP_EPS * fabs(col->ub);
+         {  eps = GLP_WARMUP_EPS(col->ub);
             if (col->prim > col->ub + eps)
                P->pbs_stat = GLP_INFEAS;
          }

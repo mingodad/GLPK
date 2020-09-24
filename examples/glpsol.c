@@ -204,7 +204,7 @@ static int str2num(const char *s, glp_double *x)
          return 1;
       *x = t;
 #if 0
-      xprintf("str2num: x = %g\n", *x);
+      xprintf("str2num: x = %" GLP_DBL_FMT_G "\n", *x);
 #endif
       return 0;
 }

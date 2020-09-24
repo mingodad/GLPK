@@ -1232,7 +1232,7 @@ int npp_make_equality(NPP *npp, NPPROW *p)
       xassert(p->ub != +GLP_DBL_MAX);
       xassert(p->lb < p->ub);
       /* check row bounds */
-      eps = GLP_MKEQ_EPS * fabs(p->lb);
+      eps = GLP_MKEQ_EPS(p->lb);
       if (p->ub - p->lb > eps) return 0;
       /* row bounds are very close to each other */
       /* create transformation stack entry */
@@ -1374,7 +1374,7 @@ int npp_make_fixed(NPP *npp, NPPCOL *q)
       xassert(q->ub != +GLP_DBL_MAX);
       xassert(q->lb < q->ub);
       /* check column bounds */
-      eps = GLP_MKEQ_EPS * fabs(q->lb);
+      eps = GLP_MKEQ_EPS(q->lb);
       if (q->ub - q->lb > eps) return 0;
       /* column bounds are very close to each other */
       /* create transformation stack entry */

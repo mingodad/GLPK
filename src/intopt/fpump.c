@@ -153,7 +153,7 @@ more: /* copy the original problem object to keep it intact */
             xassert(P != P);
 #else
          bnd = 0.1 * P->obj_val + 0.9 * P->mip_obj;
-         /* xprintf("bnd = %f\n", bnd); */
+         /* xprintf("bnd = %" GLP_DBL_FMT_F "\n", bnd); */
          if (P->dir == GLP_MIN)
             glp_set_row_bnds(lp, lp->m, GLP_UP, 0.0, bnd - P->c0);
          else if (P->dir == GLP_MAX)

@@ -63,22 +63,22 @@ GLOBAL void AMD_info
     }
 
     /* statistics about the input matrix */
-    PRI ("    n, dimension of A:                                  %.20g\n", n);
-    PRI ("    nz, number of nonzeros in A:                        %.20g\n",
+    PRI ("    n, dimension of A:                                  %.20" GLP_DBL_FMT_G "\n", n);
+    PRI ("    nz, number of nonzeros in A:                        %.20" GLP_DBL_FMT_G "\n",
         Info [AMD_NZ]) ;
-    PRI ("    symmetry of A:                                      %.4f\n",
+    PRI ("    symmetry of A:                                      %.4" GLP_DBL_FMT_F "\n",
         Info [AMD_SYMMETRY]) ;
-    PRI ("    number of nonzeros on diagonal:                     %.20g\n",
+    PRI ("    number of nonzeros on diagonal:                     %.20" GLP_DBL_FMT_G "\n",
         Info [AMD_NZDIAG]) ;
-    PRI ("    nonzeros in pattern of A+A' (excl. diagonal):       %.20g\n",
+    PRI ("    nonzeros in pattern of A+A' (excl. diagonal):       %.20" GLP_DBL_FMT_G "\n",
         Info [AMD_NZ_A_PLUS_AT]) ;
-    PRI ("    # dense rows/columns of A+A':                       %.20g\n",
+    PRI ("    # dense rows/columns of A+A':                       %.20" GLP_DBL_FMT_G "\n",
         Info [AMD_NDENSE]) ;
 
     /* statistics about AMD's behavior  */
-    PRI ("    memory used, in bytes:                              %.20g\n",
+    PRI ("    memory used, in bytes:                              %.20" GLP_DBL_FMT_G "\n",
         Info [AMD_MEMORY]) ;
-    PRI ("    # of memory compactions:                            %.20g\n",
+    PRI ("    # of memory compactions:                            %.20" GLP_DBL_FMT_G "\n",
         Info [AMD_NCMPA]) ;
 
     /* statistics about the ordering quality */
@@ -88,17 +88,17 @@ GLOBAL void AMD_info
         "    bounds if there are no dense rows/columns in A+A', and become\n"
         "    looser if dense rows/columns exist.\n\n")) ;
 
-    PRI ("    nonzeros in L (excluding diagonal):                 %.20g\n",
+    PRI ("    nonzeros in L (excluding diagonal):                 %.20" GLP_DBL_FMT_G "\n",
         lnz) ;
-    PRI ("    nonzeros in L (including diagonal):                 %.20g\n",
+    PRI ("    nonzeros in L (including diagonal):                 %.20" GLP_DBL_FMT_G "\n",
         lnzd) ;
-    PRI ("    # divide operations for LDL' or LU:                 %.20g\n",
+    PRI ("    # divide operations for LDL' or LU:                 %.20" GLP_DBL_FMT_G "\n",
         ndiv) ;
-    PRI ("    # multiply-subtract operations for LDL':            %.20g\n",
+    PRI ("    # multiply-subtract operations for LDL':            %.20" GLP_DBL_FMT_G "\n",
         nmultsubs_ldl) ;
-    PRI ("    # multiply-subtract operations for LU:              %.20g\n",
+    PRI ("    # multiply-subtract operations for LU:              %.20" GLP_DBL_FMT_G "\n",
         nmultsubs_lu) ;
-    PRI ("    max nz. in any column of L (incl. diagonal):        %.20g\n",
+    PRI ("    max nz. in any column of L (incl. diagonal):        %.20" GLP_DBL_FMT_G "\n",
         Info [AMD_DMAX]) ;
 
     /* total flop counts for various factorizations */
@@ -106,11 +106,11 @@ GLOBAL void AMD_info
     if (n >= 0 && ndiv >= 0 && nmultsubs_ldl >= 0 && nmultsubs_lu >= 0)
     {
         PRINTF (("\n"
-        "    chol flop count for real A, sqrt counted as 1 flop: %.20g\n"
-        "    LDL' flop count for real A:                         %.20g\n"
-        "    LDL' flop count for complex A:                      %.20g\n"
-        "    LU flop count for real A (with no pivoting):        %.20g\n"
-        "    LU flop count for complex A (with no pivoting):     %.20g\n\n",
+        "    chol flop count for real A, sqrt counted as 1 flop: %.20" GLP_DBL_FMT_G "\n"
+        "    LDL' flop count for real A:                         %.20" GLP_DBL_FMT_G "\n"
+        "    LDL' flop count for complex A:                      %.20" GLP_DBL_FMT_G "\n"
+        "    LU flop count for real A (with no pivoting):        %.20" GLP_DBL_FMT_G "\n"
+        "    LU flop count for complex A (with no pivoting):     %.20" GLP_DBL_FMT_G "\n\n",
         n + ndiv + 2*nmultsubs_ldl,
             ndiv + 2*nmultsubs_ldl,
           9*ndiv + 8*nmultsubs_ldl,

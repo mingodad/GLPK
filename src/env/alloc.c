@@ -254,11 +254,11 @@ void glp_show_mem_usage()
     ENV *env = get_env_ptr();
     glp_double time_now = glp_time();
     glp_double mem_delta = env->mem_tpeak - env->last_mem_tpeak;
-    xprintf("Memory used(%d): %.1f Mb (%.0f bytes) : %d : %d : %lu\n",
+    xprintf("Memory used(%d): %.1" GLP_DBL_FMT_F " Mb (%.0f bytes) : %d : %d : %lu\n",
         ++env->show_mem_count,
         (glp_double)env->mem_tpeak / 1048576.0, (glp_double)env->mem_tpeak,
         env->mem_count, env->mem_cpeak, env->mem_total);
-    xprintf("Time used: Total %.1f secs : Delta %.1f secs : %.1f Mb (%.0f bytes)\n",
+    xprintf("Time used: Total %.1" GLP_DBL_FMT_F " secs : Delta %.1" GLP_DBL_FMT_F " secs : %.1" GLP_DBL_FMT_F " Mb (%.0f bytes)\n",
         glp_difftime(time_now, env->time_start),
         glp_difftime(time_now, env->last_time_start),
         mem_delta / 1048576.0, mem_delta);

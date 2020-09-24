@@ -1060,7 +1060,7 @@ more: /* minor loop starts here */
 #else
       {  size_t total;
          glp_mem_usage(NULL, NULL, &total, NULL);
-         xprintf("Time used: %.1f secs.  Memory used: %.1f Mb.\n",
+         xprintf("Time used: %.1" GLP_DBL_FMT_F " secs.  Memory used: %.1" GLP_DBL_FMT_F " Mb.\n",
             xdifftime(xtime(), T->tm_beg), (glp_double)total / 1048576.0);
          ttt = xtime();
       }

@@ -155,7 +155,7 @@ void glp_mpl_build_prob(glp_tran *tran, glp_prob *prob)
          glp_set_row_bnds(prob, i, type, lb, ub);
          /* warn about non-zero constant term */
          if (mpl_get_row_c0(tran, i) != 0.0)
-            xprintf("glp_mpl_build_prob: row %s; constant term %.12g ig"
+            xprintf("glp_mpl_build_prob: row %s; constant term %.12" GLP_DBL_FMT_G " ig"
                "nored\n",
                mpl_get_row_name(tran, i), mpl_get_row_c0(tran, i));
       }
@@ -411,7 +411,7 @@ lprec *glp_lpsolve_mpl_build_prob(glp_tran *tran)
 
       /* warn about non-zero constant term */
       if (mpl_get_row_c0(tran, i) != 0.0)
-         xprintf("glp_lpsolve_mpl_build_prob: row %s; constant term %.12g ig"
+         xprintf("glp_lpsolve_mpl_build_prob: row %s; constant term %.12" GLP_DBL_FMT_G " ig"
                "nored\n",
                mpl_get_row_name(tran, i), mpl_get_row_c0(tran, i));
       /* set constant term */
@@ -632,7 +632,7 @@ Cbc_Model *glp_cbc_mpl_build_prob(glp_tran *tran)
 
       /* warn about non-zero constant term */
       if (mpl_get_row_c0(tran, i) != 0.0)
-         xprintf("glp_cbc_mpl_build_prob: row %s; constant term %.12g ig"
+         xprintf("glp_cbc_mpl_build_prob: row %s; constant term %.12" GLP_DBL_FMT_G " ig"
                "nored\n",
                mpl_get_row_name(tran, i), mpl_get_row_c0(tran, i));
       /* set constant term */

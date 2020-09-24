@@ -575,8 +575,8 @@ static void check_accuracy(struct csa *csa)
          e_gamma = 0.;
       else
          e_gamma = err_in_gamma(csa);
-      xprintf("e_beta = %10.3e; e_r = %10.3e; e_d = %10.3e; e_gamma = %"
-         "10.3e\n", e_beta, e_r, e_d, e_gamma);
+      xprintf("e_beta = %10.3" GLP_DBL_FMT_e "; e_r = %10.3" GLP_DBL_FMT_e "; e_d = %10.3" GLP_DBL_FMT_e "; e_gamma = %"
+         "10.3" GLP_DBL_FMT_e "\n", e_beta, e_r, e_d, e_gamma);
       xassert(e_beta <= 1e-5 && e_d <= 1e-5 && e_gamma <= 1e-3);
       return;
 }
@@ -1069,10 +1069,10 @@ static void display(struct csa *csa, int spec)
              * meaningless for original LP, so corresponding objective
              * function value is also meaningless */
 #if 0 /* 27/III-2016 */
-            xprintf(" %6d: %23s inf = %11.3e (%d)",
+            xprintf(" %6d: %23s inf = %11.3" GLP_DBL_FMT_e " (%d)",
                csa->it_cnt, "", sum, nnn);
 #else
-            xprintf(" %6d: sum = %17.9e inf = %11.3e (%d)",
+            xprintf(" %6d: sum = %17.9" GLP_DBL_FMT_e " inf = %11.3" GLP_DBL_FMT_e " (%d)",
                csa->it_cnt, lp->c[0] - spx_eval_obj(lp, beta),
                sum, nnn);
 #endif
@@ -1345,7 +1345,7 @@ loop: /* main loop starts here */
          if (cond > 1.0 / GLP_DBL_EPSILON)
          {  if (msg_lev >= GLP_MSG_ERR)
                xprintf("Error: basis matrix is singular to working prec"
-                  "ision (cond = %.3g)\n", cond);
+                  "ision (cond = %.3" GLP_DBL_FMT_G ")\n", cond);
             csa->p_stat = csa->d_stat = GLP_UNDEF;
             ret = GLP_EFAIL;
             goto fini;
@@ -1353,7 +1353,7 @@ loop: /* main loop starts here */
          if (cond > 0.001 / GLP_DBL_EPSILON)
          {  if (msg_lev >= GLP_MSG_ERR)
                xprintf("Warning: basis matrix is ill-conditioned (cond "
-                  "= %.3g)\n", cond);
+                  "= %.3" GLP_DBL_FMT_G ")\n", cond);
          }
          /* invalidate basic solution components */
          csa->beta_st = csa->d_st = 0;
@@ -1876,15 +1876,15 @@ skip1:      ;
 fini:
 #ifdef TIMING
       t_total = timer() - t_total;
-      xprintf("Total time      = %10.3f\n", t_total);
-      xprintf("Factorization   = %10.3f\n", t_fact);
-      xprintf("Ratio test      = %10.3f\n", t_rtest);
-      xprintf("Pivot column    = %10.3f\n", t_pivcol);
-      xprintf("Updating beta   = %10.3f\n", t_upd1);
-      xprintf("Updating d      = %10.3f\n", t_upd2);
-      xprintf("Updating gamma  = %10.3f\n", t_upd3);
-      xprintf("Updating N      = %10.3f\n", t_upd4);
-      xprintf("Updating inv(B) = %10.3f\n", t_upd5);
+      xprintf("Total time      = %10.3" GLP_DBL_FMT_F "\n", t_total);
+      xprintf("Factorization   = %10.3" GLP_DBL_FMT_F "\n", t_fact);
+      xprintf("Ratio test      = %10.3" GLP_DBL_FMT_F "\n", t_rtest);
+      xprintf("Pivot column    = %10.3" GLP_DBL_FMT_F "\n", t_pivcol);
+      xprintf("Updating beta   = %10.3" GLP_DBL_FMT_F "\n", t_upd1);
+      xprintf("Updating d      = %10.3" GLP_DBL_FMT_F "\n", t_upd2);
+      xprintf("Updating gamma  = %10.3" GLP_DBL_FMT_F "\n", t_upd3);
+      xprintf("Updating N      = %10.3" GLP_DBL_FMT_F "\n", t_upd4);
+      xprintf("Updating inv(B) = %10.3" GLP_DBL_FMT_F "\n", t_upd5);
 #endif
       return ret;
 }
@@ -1932,7 +1932,7 @@ int spy_dual(glp_prob *P, const glp_smcp *parm)
          csa->fz = 1.0;
       else
          csa->fz /= 1000.0;
-      /*xprintf("csa->fz = %g\n", csa->fz);*/
+      /*xprintf("csa->fz = %" GLP_DBL_FMT_G "\n", csa->fz);*/
       for (k = 0; k <= csa->lp->n; k++)
          csa->lp->c[k] /= csa->fz;
 #endif

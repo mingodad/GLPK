@@ -113,7 +113,7 @@ int glp_print_sol(glp_prob *P, const char *fname)
             col->stat == GLP_NU ? "NU" :
             col->stat == GLP_NF ? "NF" :
             col->stat == GLP_NS ? "NS" : "??");
-         xfprintf(fp, "%13.6g ",
+         xfprintf(fp, "%13.6" GLP_DBL_FMT_G " ",
             fabs(col->prim) <= GLP_MPL_MIN_9 ? 0.0 : col->prim);
          if (col->type == GLP_LO || col->type == GLP_DB ||
              col->type == GLP_FX)

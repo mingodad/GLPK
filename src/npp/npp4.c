@@ -972,7 +972,7 @@ static int hidden_covering(NPP *npp, struct elem *ptr, glp_double *_b)
       /* now a[j] > 0 for all j in J, and b > 0 */
       /* the specified constraint is equivalent to covering inequality
          iff a[j] >= b for all j in J */
-      eps = GLP_MKEQ_EPS * fabs(b);
+      eps = GLP_MKEQ_EPS(b);
       for (e = ptr; e != NULL; e = e->next)
          if (fabs(e->aj) < b - eps) return 0;
       /* perform back substitution x~[j] = 1 - x[j] and construct the

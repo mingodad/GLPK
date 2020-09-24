@@ -98,7 +98,7 @@ int glp_print_mip(glp_prob *P, const char *fname)
          xfprintf(fp, "%s  ",
             col->kind == GLP_CV ? " " :
             col->kind == GLP_IV ? "*" : "?");
-         xfprintf(fp, "%13.6g ",
+         xfprintf(fp, "%13.6" GLP_DBL_FMT_G " ",
             fabs(col->mipx) <= GLP_LPX_RE_MAX_9 ? 0.0 : col->mipx);
          if (col->type == GLP_LO || col->type == GLP_DB ||
              col->type == GLP_FX)

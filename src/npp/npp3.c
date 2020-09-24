@@ -1554,12 +1554,12 @@ int npp_implied_free(NPP *npp, NPPCOL *q)
          u = (alfa == -GLP_DBL_MAX ? +GLP_DBL_MAX : alfa / apq->val);
       /* check if column lower bound l[q] can be active */
       if (q->lb != -GLP_DBL_MAX)
-      {  eps = GLP_MKEQ_EPS * fabs(q->lb);
+      {  eps = GLP_MKEQ_EPS(q->lb);
          if (l < q->lb - eps) return 1; /* yes, it can */
       }
       /* check if column upper bound u[q] can be active */
       if (q->ub != +GLP_DBL_MAX)
-      {  eps = GLP_MKEQ_EPS * fabs(q->ub);
+      {  eps = GLP_MKEQ_EPS(q->ub);
          if (u > q->ub + eps) return 1; /* yes, it can */
       }
       /* okay; make column q free (unbounded) */
@@ -2396,7 +2396,7 @@ int npp_analyze_row(NPP *npp, NPPROW *p)
       }
       /* check if row lower bound can be active/forcing */
       if (p->lb != -GLP_DBL_MAX)
-      {  eps = GLP_MKEQ_EPS * fabs(p->lb);
+      {  eps = GLP_MKEQ_EPS(p->lb);
          if (p->lb - eps > l)
          {  if (p->lb + eps <= u)
                ret |= 0x01;
@@ -2406,7 +2406,7 @@ int npp_analyze_row(NPP *npp, NPPROW *p)
       }
       /* check if row upper bound can be active/forcing */
       if (p->ub != +GLP_DBL_MAX)
-      {  eps = GLP_MKEQ_EPS * fabs(p->ub);
+      {  eps = GLP_MKEQ_EPS(p->ub);
          if (p->ub + eps < u)
          {  /* check if the upper bound is forcing */
             if (p->ub - eps >= l)

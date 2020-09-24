@@ -79,7 +79,7 @@ int glp_intfeas1(glp_prob *P, int use_bound, int obj_bound)
          }
          if (col->type == GLP_DB && col->lb > col->ub)
          {  xprintf("glp_intfeas1: column %d: lower bound %" GLP_DBL_FMT_G " is greater"
-               " than upper bound %g\n", j, col->lb, col->ub);
+               " than upper bound %" GLP_DBL_FMT_G "\n", j, col->lb, col->ub);
             ret = GLP_EBOUND;
             goto done;
          }
@@ -118,7 +118,7 @@ int glp_intfeas1(glp_prob *P, int use_bound, int obj_bound)
          }
          if (row->type == GLP_DB && row->lb > row->ub)
          {  xprintf("glp_intfeas1: row %d: lower bound %" GLP_DBL_FMT_G " is greater th"
-               "an upper bound %g\n", i, row->lb, row->ub);
+               "an upper bound %" GLP_DBL_FMT_G "\n", i, row->lb, row->ub);
             ret = GLP_EBOUND;
             goto done;
          }
