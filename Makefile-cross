@@ -41,7 +41,15 @@ ifeq ($(findstring release, $(build-type)), release)
 	CFLAG_OPT := -g -O3 -flto -DWITH_SPLAYTREE -DNDEBUG
 	LDFLAGS += -s
 	ifndef PPCLE
-		CFLAG_OPT +=  -march=native -ffp-contract=off
+	ifndef ARM64
+	ifndef ARM32
+	ifndef WASM32
+	ifndef WIN32
+		#CFLAG_OPT +=  -march=native -ffp-contract=off
+	endif
+	endif
+	endif
+	endif
 	endif
 endif
 
@@ -72,7 +80,7 @@ LIBDIR +=  -L$(BASE_FOLDER)/lib
 LIB +=  -lm
 
 ifdef WIN32
-EXE_EXT = ".exe"
+EXE_EXT = .exe
 LIB +=  -lws2_32 -lole32 -lrpcrt4
 else
 LIB +=  -ldl
@@ -109,7 +117,9 @@ endif
 
 ifeq ($(findstring emscripten, $(build-type)), emscripten)
 	xPLATFORM +=Emscripten
-	CFLAGS += -s FORCE_FILESYSTEM=1
+	#CFLAGS += -s FORCE_FILESYSTEM=1
+	#LDFLAGS +=   -lnodefs.js
+	#CFLAGS += -s STANDALONE_WASM
 endif
 
 ifeq ($(findstring darwin, $(build-type)), darwin)
@@ -364,7 +374,7 @@ ifndef DARWIN
 ifndef PPCLE
 LDFLAGS +=  -lrt
 ifndef NO-UUID
-LDFLAGS +=  -luuid
+#LDFLAGS +=  -luuid
 endif
 endif
 endif
@@ -393,3 +403,9 @@ $(OBJDIR_CXX)/%.o: $(BASE_FOLDER)/%.c
 $(exe_prg)$(EXE_EXT): $(OBJECTS_PROG)
 	$(CC) $(CFLAGS) -o $@ $(exe_prg_src) $(OBJECTS_PROG) $(LIBDIR) $(LDFLAGS)
 	#$(AR) rcs lib$(exe_prg).a $(OBJECTS)
+
+clean :
+	rm -f $(OBJECTS_C) $(OBJECTS_CXX) $(exe_prg)$(EXE_EXT)
+
+# list targets that do not create files (but not all makes understand .PHONY)
+.PHONY: clean
