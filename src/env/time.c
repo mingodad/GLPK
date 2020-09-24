@@ -108,7 +108,7 @@ glp_double glp_time(void)
 
 #include <time.h>
 
-double glp_time(void)
+glp_double glp_time(void)
 {     time_t timer;
       struct tm *tm;
       int j;
