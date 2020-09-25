@@ -51,6 +51,19 @@ extern "C" {
         #define GLP_DBL_FMT_e "e"
     #endif
     /*common definitions*/
+    #define GLP_DBL_EM3 1e-3
+    #define GLP_DBL_EP3 1e+3
+    #define GLP_DBL_EM4 1e-4
+    #define GLP_DBL_EM5 1e-5
+    #define GLP_DBL_EP5 1e+5
+    #define GLP_DBL_EM6 1e-6
+    #define GLP_DBL_EM7 1e-7
+    #define GLP_DBL_EM9 1e-9
+    #define GLP_DBL_EM10 1e-10
+    #define GLP_DBL_EM12 1e-12
+    #define GLP_DBL_EM20 1e-20
+
+    #define glp_double_t glp_double
     #define GLP_PIVOT_TOL 0.10
     #define GLP_EPS_TOL GLP_DBL_EPSILON
     #define GLP_D_EPS 1e-9
@@ -84,6 +97,7 @@ extern "C" {
     #define GLP_GMI_CUT_TOL3   1e-12
     #define GLP_GMI_GEN_TOL   1e-03
     #define GLP_GMI_GEN_TOL2   1e+03
+    #define GLP_MPS_TOL   1e-12
     #define GLP_WCLICK_TOL   1e-5
     #define GLP_CPS_RELAX    0.07
     #define GLP_CPS_TOL_BND  1e-7
@@ -99,11 +113,32 @@ extern "C" {
     #define GLP_LPX_RE_MAX_6  1e-6
     #define GLP_LPX_RE_MAX_3  1e-3
     #define GLP_MPL_MIN_9  1e-9
+    #define GLP_MPL_MIN_8  1e-8
+    #define GLP_MPL_MIN_5  1e-5
+    #define GLP_MPL_MIN_6  1e-6
+    #define GLP_MPL_MIN_7  1e-7
+    #define GLP_MPL_MIN_3  1e-3
     #define GLP_WARMUP_EPS(x)  (1e-6 + 1e-9 * fabs(x))
     #define GLP_MKEQ_EPS(x)  (1e-9 + 1e-12 * fabs(x))
     #define GLP_DBL_THOUSAND  1000.0
     #define GLP_SCALE_RANGE_MIN  0.10
     #define GLP_SCALE_RANGE_MAX  10.0
+    #define GLP_NPP_EPS  1e-3
+    #define GLP_NPP_EPS5  1e-5
+    #define GLP_NPP_EPS6  1e-6
+    #define GLP_NPP_EPS7  1e-7
+    #define GLP_NPP_EPS10  1e-10
+    #define GLP_NPP_EPS_3_6_fabs(x) (1e-3 + 1e-6 * fabs(x))
+    #define GLP_NPP_EPS_5_8_fabs(x) (1e-5 + 1e-8 * fabs(x))
+    #define GLP_NPP_EPS_3_6(x) (1e-3 + 1e-6 * (x))
+    #define GLP_PROXY_EPS  1e-6
+    #define GLP_PROXY_RINF  1e38
+    #define GLP_PROXY_MAXVAL  1e20
+    #define GLP_MIP_GAP  9999999.9
+    #define GLP_SPX_PENALTY  0.97
+    #define GLP_SPX_ADJ_PENALTY  0.99
+    #define GLP_SPY_ART_BOUND  1e3
+    #define GLP_SPY_FEASIBILITY  0.97
 #endif
 
 #ifdef __cplusplus

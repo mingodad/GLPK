@@ -146,7 +146,7 @@ int npp_binarize_prob(NPP *npp)
          /* skip binary variable */
          if (col->lb == 0.0 && col->ub == 1.0) continue;
          /* check if the transformation is applicable */
-         if (col->lb < -1e6 || col->ub > +1e6 ||
+         if (col->lb < -GLP_NPP_EPS6 || col->ub > +GLP_NPP_EPS6 ||
              col->ub - col->lb > 4095.0)
          {  /* unfortunately, not */
             nfails++;
@@ -480,7 +480,7 @@ static int hidden_packing(NPP *npp, struct elem *ptr, glp_double *_b)
       xassert(ek != NULL);
       /* the specified constraint is equivalent to packing inequality
          iff a[j] + a[k] > b + eps */
-      eps = 1e-3 + 1e-6 * fabs(b);
+      eps = GLP_NPP_EPS_3_6_fabs(b);
       if (fabs(ej->aj) + fabs(ek->aj) <= b + eps) return 0;
       /* perform back substitution x~[j] = 1 - x[j] and construct the
          final equivalent packing inequality in generalized format */
@@ -752,10 +752,10 @@ int npp_implied_packing(NPP *npp, NPPROW *row, int which,
       /* if beta is close to zero, the knapsack inequality is either
          infeasible or forcing inequality; this must never happen, so
          we skip further analysis */
-      if (b < 1e-3) goto done;
+      if (b < GLP_NPP_EPS) goto done;
       /* build set P as well as sets Jp and Jn, and determine x[k] as
          explained above in comments to the routine */
-      eps = 1e-3 + 1e-6 * b;
+      eps = GLP_NPP_EPS_3_6(b);
       i = k = NULL;
       for (e = ptr; e != NULL; e = e->next)
       {  /* note that alfa[j] = |a[j]| */
@@ -767,7 +767,7 @@ int npp_implied_packing(NPP *npp, NPPROW *row, int which,
             /* alfa[i] = min alfa[j] over all j included in set P */
             if (i == NULL || fabs(i->aj) > fabs(e->aj)) i = e;
          }
-         else if (fabs(e->aj) >= 1e-3)
+         else if (fabs(e->aj) >= GLP_NPP_EPS)
          {  /* alfa[k] = max alfa[j] over all j not included in set P;
                we skip coefficient a[j] if it is close to zero to avoid
                numerically unreliable results */
@@ -968,7 +968,7 @@ static int hidden_covering(NPP *npp, struct elem *ptr, glp_double *_b)
          if (e->aj < 0) b -= e->aj;
       /* now a[j] > 0 for all j in J (actually |a[j]| are used) */
       /* if b <= 0, skip processing--this case must not appear */
-      if (b < 1e-3) return 0;
+      if (b < GLP_NPP_EPS) return 0;
       /* now a[j] > 0 for all j in J, and b > 0 */
       /* the specified constraint is equivalent to covering inequality
          iff a[j] >= b for all j in J */
@@ -1302,7 +1302,7 @@ static int reduce_ineq_coef(NPP *npp, struct elem *ptr, glp_double *_b)
             if (b - e->aj < inf_t && inf_t < b)
             {  /* compute reduced coefficient a'[k]; see (7) */
                new_a = b - inf_t;
-               if (new_a >= +1e-3 &&
+               if (new_a >= +GLP_NPP_EPS &&
                    e->aj - new_a >= 0.01 * (1.0 + e->aj))
                {  /* accept a'[k] */
 #ifdef GLP_DEBUG
@@ -1319,7 +1319,7 @@ static int reduce_ineq_coef(NPP *npp, struct elem *ptr, glp_double *_b)
             if (b < inf_t && inf_t < b - e->aj)
             {  /* compute reduced coefficient a'[k]; see (11) */
                new_a = e->aj + (inf_t - b);
-               if (new_a <= -1e-3 &&
+               if (new_a <= -GLP_NPP_EPS &&
                    new_a - e->aj >= 0.01 * (1.0 - e->aj))
                {  /* accept a'[k] */
 #ifdef GLP_DEBUG

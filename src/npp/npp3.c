@@ -75,7 +75,7 @@
 
 int npp_empty_row(NPP *npp, NPPROW *p)
 {     /* process empty row */
-      glp_double eps = 1e-3;
+      glp_double eps = GLP_NPP_EPS;
       /* the row must be empty */
       xassert(p->ptr == NULL);
       /* check primal feasibility */
@@ -183,7 +183,7 @@ static int rcv_empty_col(NPP *npp, void *info);
 int npp_empty_col(NPP *npp, NPPCOL *q)
 {     /* process empty column */
       struct empty_col *info;
-      glp_double eps = 1e-3;
+      glp_double eps = GLP_NPP_EPS;
       /* the column must be empty */
       xassert(q->ptr == NULL);
       /* check dual feasibility */
@@ -296,29 +296,29 @@ int npp_implied_value(NPP *npp, NPPCOL *q, glp_double s)
       /* check integrality */
       if (q->is_int)
       {  nint = floor(s + 0.5);
-         if (fabs(s - nint) <= 1e-5)
+         if (fabs(s - nint) <= GLP_NPP_EPS5)
             s = nint;
          else
             return 2;
       }
       /* check current column lower bound */
       if (q->lb != -GLP_DBL_MAX)
-      {  eps = (q->is_int ? 1e-5 : 1e-5 + 1e-8 * fabs(q->lb));
+      {  eps = (q->is_int ? GLP_NPP_EPS5 : GLP_NPP_EPS_5_8_fabs(q->lb));
          if (s < q->lb - eps) return 1;
          /* if s[q] is close to l[q], fix column at its lower bound
             rather than at the implied value */
-         if (s < q->lb + 1e-3 * eps)
+         if (s < q->lb + GLP_NPP_EPS * eps)
          {  q->ub = q->lb;
             return 0;
          }
       }
       /* check current column upper bound */
       if (q->ub != +GLP_DBL_MAX)
-      {  eps = (q->is_int ? 1e-5 : 1e-5 + 1e-8 * fabs(q->ub));
+      {  eps = (q->is_int ? GLP_NPP_EPS5 : GLP_NPP_EPS_5_8_fabs(q->ub));
          if (s > q->ub + eps) return 1;
          /* if s[q] is close to u[q], fix column at its upper bound
             rather than at the implied value */
-         if (s > q->ub - 1e-3 * eps)
+         if (s > q->ub - GLP_NPP_EPS * eps)
          {  q->lb = q->ub;
             return 0;
          }
@@ -559,14 +559,14 @@ int npp_implied_lower(NPP *npp, NPPCOL *q, glp_double l)
       /* if column is integral, round up l'[q] */
       if (q->is_int)
       {  nint = floor(l + 0.5);
-         if (fabs(l - nint) <= 1e-5)
+         if (fabs(l - nint) <= GLP_NPP_EPS5)
             l = nint;
          else
             l = ceil(l);
       }
       /* check current column lower bound */
       if (q->lb != -GLP_DBL_MAX)
-      {  eps = (q->is_int ? 1e-3 : 1e-3 + 1e-6 * fabs(q->lb));
+      {  eps = (q->is_int ? GLP_NPP_EPS : GLP_NPP_EPS_3_6_fabs(q->lb));
          if (l < q->lb + eps)
          {  ret = 0; /* redundant */
             goto done;
@@ -574,13 +574,13 @@ int npp_implied_lower(NPP *npp, NPPCOL *q, glp_double l)
       }
       /* check current column upper bound */
       if (q->ub != +GLP_DBL_MAX)
-      {  eps = (q->is_int ? 1e-5 : 1e-5 + 1e-8 * fabs(q->ub));
+      {  eps = (q->is_int ? GLP_NPP_EPS5 : GLP_NPP_EPS_5_8_fabs(q->ub));
          if (l > q->ub + eps)
          {  ret = 4; /* infeasible */
             goto done;
          }
          /* if l'[q] is close to u[q], fix column at its upper bound */
-         if (l > q->ub - 1e-3 * eps)
+         if (l > q->ub - GLP_NPP_EPS * eps)
          {  q->lb = q->ub;
             ret = 3; /* fixed */
             goto done;
@@ -671,14 +671,14 @@ int npp_implied_upper(NPP *npp, NPPCOL *q, glp_double u)
       /* if column is integral, round down u'[q] */
       if (q->is_int)
       {  nint = floor(u + 0.5);
-         if (fabs(u - nint) <= 1e-5)
+         if (fabs(u - nint) <= GLP_NPP_EPS5)
             u = nint;
          else
             u = floor(u);
       }
       /* check current column upper bound */
       if (q->ub != +GLP_DBL_MAX)
-      {  eps = (q->is_int ? 1e-3 : 1e-3 + 1e-6 * fabs(q->ub));
+      {  eps = (q->is_int ? GLP_NPP_EPS : GLP_NPP_EPS_3_6_fabs(q->ub));
          if (u > q->ub - eps)
          {  ret = 0; /* redundant */
             goto done;
@@ -686,13 +686,13 @@ int npp_implied_upper(NPP *npp, NPPCOL *q, glp_double u)
       }
       /* check current column lower bound */
       if (q->lb != -GLP_DBL_MAX)
-      {  eps = (q->is_int ? 1e-5 : 1e-5 + 1e-8 * fabs(q->lb));
+      {  eps = (q->is_int ? GLP_NPP_EPS5 : GLP_NPP_EPS_5_8_fabs(q->lb));
          if (u < q->lb - eps)
          {  ret = 4; /* infeasible */
             goto done;
          }
          /* if u'[q] is close to l[q], fix column at its lower bound */
-         if (u < q->lb + 1e-3 * eps)
+         if (u < q->lb + GLP_NPP_EPS * eps)
          {  q->ub = q->lb;
             ret = 3; /* fixed */
             goto done;
@@ -1015,7 +1015,7 @@ nu:      {  /* column q is non-basic with upper bound active */
          else if (npp->c_stat[info->q] == GLP_NS)
          {  /* column q is non-basic and fixed; note, however, that in
                in the original problem it is non-fixed */
-            if (lambda > +1e-7)
+            if (lambda > +GLP_NPP_EPS7)
             {  if (info->apq > 0.0 && info->lb != -GLP_DBL_MAX ||
                    info->apq < 0.0 && info->ub != +GLP_DBL_MAX ||
                   !info->lb_changed)
@@ -1026,7 +1026,7 @@ nu:      {  /* column q is non-basic with upper bound active */
                   goto nl;
                }
             }
-            if (lambda < -1e-7)
+            if (lambda < -GLP_NPP_EPS7)
             {  if (info->apq > 0.0 && info->ub != +GLP_DBL_MAX ||
                    info->apq < 0.0 && info->lb != -GLP_DBL_MAX ||
                   !info->ub_changed)
@@ -1579,7 +1579,7 @@ nl:      {  info->stat = GLP_NL;
             p->ub = p->lb;
          }
          else
-         {  if (pi > +1e-5) return 2; /* dual infeasibility */
+         {  if (pi > +GLP_NPP_EPS5) return 2; /* dual infeasibility */
             /* take a chance on U[p] */
             xassert(p->ub != +GLP_DBL_MAX);
             goto nu;
@@ -1592,7 +1592,7 @@ nu:      {  info->stat = GLP_NU;
             p->lb = p->ub;
          }
          else
-         {  if (pi < -1e-5) return 2; /* dual infeasibility */
+         {  if (pi < -GLP_NPP_EPS5) return 2; /* dual infeasibility */
             /* take a chance on L[p] */
             xassert(p->lb != -GLP_DBL_MAX);
             goto nl;
@@ -1836,7 +1836,7 @@ NPPCOL *npp_eq_doublet(NPP *npp, NPPROW *p)
          air->val -= gamma * apr->val;
          /* if new a[i,r] is close to zero due to numeric cancelation,
             remove it from row i */
-         if (fabs(air->val) <= 1e-10)
+         if (fabs(air->val) <= GLP_NPP_EPS10)
             npp_del_aij(npp, air);
          /* compute new lower and upper bounds of row i */
          if (i->lb == i->ub)
@@ -2104,7 +2104,7 @@ int npp_forcing_row(NPP *npp, NPPROW *p, int at)
       /* if there are too small coefficients in the row, transformation
          should not be applied */
       for (apj = p->ptr; apj != NULL; apj = apj->r_next)
-         if (fabs(apj->val) < 1e-7 * big) return 1;
+         if (fabs(apj->val) < GLP_NPP_EPS7 * big) return 1;
       /* create transformation stack entry */
       info = npp_push_tse(npp,
          rcv_forcing_row, sizeof(struct forcing_row));
@@ -2380,7 +2380,7 @@ int npp_analyze_row(NPP *npp, NPPROW *p)
       /* column bounds are assumed correct, so L'[p] <= U'[p] */
       /* check if row lower bound is consistent */
       if (p->lb != -GLP_DBL_MAX)
-      {  eps = 1e-3 + 1e-6 * fabs(p->lb);
+      {  eps = GLP_NPP_EPS_3_6_fabs(p->lb);
          if (p->lb - eps > u)
          {  ret = 0x33;
             goto done;
@@ -2388,7 +2388,7 @@ int npp_analyze_row(NPP *npp, NPPROW *p)
       }
       /* check if row upper bound is consistent */
       if (p->ub != +GLP_DBL_MAX)
-      {  eps = 1e-3 + 1e-6 * fabs(p->ub);
+      {  eps = GLP_NPP_EPS_3_6_fabs(p->ub);
          if (p->ub + eps < l)
          {  ret = 0x33;
             goto done;
@@ -2756,7 +2756,7 @@ void npp_implied_bounds(NPP *npp, NPPROW *p)
       {  apj->col->ll.ll = -GLP_DBL_MAX, apj->col->uu.uu = +GLP_DBL_MAX;
          if (big < fabs(apj->val)) big = fabs(apj->val);
       }
-      eps = 1e-6 * big;
+      eps = GLP_NPP_EPS6 * big;
       /* process row lower bound (assuming that it can be active) */
       if (p->lb != -GLP_DBL_MAX)
       {  apk = NULL;

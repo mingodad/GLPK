@@ -69,10 +69,10 @@ void ios_proxy_heur(glp_tree *T)
          }
          glp_check_kkt(prob, GLP_MIP, GLP_KKT_PE, &ae_max, &ae_ind,
             &re_max, &re_ind);
-         feas1 = (re_max <= 1e-6);
+         feas1 = (re_max <= GLP_PROXY_EPS);
          glp_check_kkt(prob, GLP_MIP, GLP_KKT_PB, &ae_max, &ae_ind,
             &re_max, &re_ind);
-         feas2 = (re_max <= 1e-6);
+         feas2 = (re_max <= GLP_PROXY_EPS);
          if (feas1 && feas2)
             glp_ios_heur_sol(T, xstar);
          else

@@ -465,7 +465,7 @@ int spy_ls_eval_bp(SPXLP *lp, const glp_double d[/*1+n-m*/],
        * which teta[j] > teta_max */
       nbp = 0;
       for (t = 1; t <= nnn; t++)
-      {  if (bp[t].teta <= teta_max + 1e-6)
+      {  if (bp[t].teta <= teta_max + GLP_MPL_MIN_6)
          {  nbp++;
             bp[nbp].j = bp[t].j;
             bp[nbp].teta = bp[t].teta;

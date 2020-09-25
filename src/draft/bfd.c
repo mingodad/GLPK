@@ -269,9 +269,9 @@ int bfd_factorize(BFD *bfd, int m, /*const int bh[],*/ int (*col1)
 #endif
       if (ret == 0)
       {  /* factorization has been successfully computed */
-         glp_double cond;
          bfd->valid = 1;
 #ifdef GLP_DEBUG
+         glp_double cond;
          cond = bfd_condest(bfd);
          if (cond > 1e9)
             xprintf("bfd_factorize: warning: cond(B) = %" GLP_DBL_FMT_G "\n", cond);

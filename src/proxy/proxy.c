@@ -131,10 +131,10 @@
 #define TDAY            86400.0
 #define TRUE                1
 #define FALSE               0
-#define EPS              1e-6
-#define RINF             1e38
-#define MAXVAL           1e20
-#define MINVAL          -1e20
+#define EPS              GLP_PROXY_EPS
+#define RINF             GLP_PROXY_RINF
+#define MAXVAL           GLP_PROXY_MAXVAL
+#define MINVAL          -GLP_PROXY_MAXVAL
 #if 0 /* by gioker */
     #define PROXY_DEBUG
 #endif
@@ -309,7 +309,7 @@ int proxy(glp_prob *lp, glp_double *zfinal, glp_double *xfinal,
 
     parm_lp.tm_lim = tlim;
 
-    parm.mip_gap = 9999999.9; /* to stop the optimization at the first
+    parm.mip_gap = GLP_MIP_GAP; /* to stop the optimization at the first
                                  feasible solution found */
 
     /* finding the first solution */

@@ -395,7 +395,7 @@ static void check_current_point(glp_mir *mir)
          }
          /* check lower bound */
          if (lb != -GLP_DBL_MAX)
-         {  eps = 1e-6 * (1.0 + fabs(lb));
+         {  eps = GLP_MPL_MIN_6 * (1.0 + fabs(lb));
             xassert(mir->x[k] >= lb - eps);
          }
          /* determine upper bound */
@@ -409,7 +409,7 @@ static void check_current_point(glp_mir *mir)
          }
          /* check upper bound */
          if (ub != +GLP_DBL_MAX)
-         {  eps = 1e-6 * (1.0 + fabs(ub));
+         {  eps = GLP_MPL_MIN_6 * (1.0 + fabs(ub));
             xassert(mir->x[k] <= ub + eps);
          }
       }
@@ -462,7 +462,7 @@ static void check_agg_row(glp_mir *mir)
       if (big < fabs(mir->agg_rhs))
          big = fabs(mir->agg_rhs);
       /* the residual must be close to zero */
-      xassert(fabs(r) <= 1e-6 * big);
+      xassert(fabs(r) <= GLP_MPL_MIN_6 * big);
       return;
 }
 #endif
@@ -674,7 +674,7 @@ static void check_mod_row(glp_mir *mir)
       if (big < fabs(mir->mod_rhs))
          big = fabs(mir->mod_rhs);
       /* the residual must be close to zero */
-      xassert(fabs(r) <= 1e-6 * big);
+      xassert(fabs(r) <= GLP_MPL_MIN_6 * big);
       return;
 }
 #endif
@@ -1073,7 +1073,7 @@ static void check_raw_cut(glp_mir *mir, glp_double r_best)
       if (big < fabs(mir->cut_rhs))
          big = fabs(mir->cut_rhs);
       /* the residual must be close to r_best */
-      xassert(fabs(r - r_best) <= 1e-6 * big);
+      xassert(fabs(r - r_best) <= GLP_MPL_MIN_6 * big);
       return;
 }
 #endif
@@ -1189,7 +1189,7 @@ static void check_cut_row(glp_mir *mir, glp_double r_best)
       if (big < fabs(mir->cut_rhs))
          big = fabs(mir->cut_rhs);
       /* the residual must be close to r_best */
-      xassert(fabs(r - r_best) <= 1e-6 * big);
+      xassert(fabs(r - r_best) <= GLP_MPL_MIN_6 * big);
       return;
 }
 #endif

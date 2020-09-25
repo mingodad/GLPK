@@ -48,7 +48,7 @@
 void glp_init_mpscp(glp_mpscp *parm)
 {     parm->blank = '\0';
       parm->obj_name = NULL;
-      parm->tol_mps = 1e-12;
+      parm->tol_mps = GLP_MPS_TOL;
       return;
 }
 

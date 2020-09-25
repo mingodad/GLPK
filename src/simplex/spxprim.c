@@ -562,7 +562,7 @@ static void check_accuracy(struct csa *csa)
          e_gamma = err_in_gamma(csa);
       xprintf("e_beta = %10.3" GLP_DBL_FMT_e "; e_d = %10.3" GLP_DBL_FMT_e "; e_gamma = %10.3" GLP_DBL_FMT_e "\n",
          e_beta, e_d, e_gamma);
-      xassert(e_beta <= 1e-5 && e_d <= 1e-5 && e_gamma <= 1e-3);
+      xassert(e_beta <= GLP_MPL_MIN_5 && e_d <= GLP_MPL_MIN_5 && e_gamma <= GLP_MPL_MIN_3);
       return;
 }
 #endif
@@ -663,8 +663,8 @@ try:  /* choose non-basic variable xN[q] */
                teta_lim = bp[t].teta;
          }
          xassert(teta_lim >= 0.0);
-         if (teta_lim < 1e-3)
-            teta_lim = 1e-3;
+         if (teta_lim < GLP_MPL_MIN_3)
+            teta_lim = GLP_MPL_MIN_3;
          /* nothing has been chosen so far */
          t_best = 0, dz_best = 0.0, num = 0;
          /* choose appropriate break point */
@@ -1261,7 +1261,7 @@ loop: /* main loop starts here */
          csa->beta_st = 1; /* just computed */
          /* determine the search phase, if not determined yet */
          if (!csa->phase)
-         {  if (set_penalty(csa, 0.97 * tol_bnd, 0.97 * tol_bnd1))
+         {  if (set_penalty(csa, GLP_SPX_PENALTY * tol_bnd, GLP_SPX_PENALTY * tol_bnd1))
             {  /* current basic solution is primal infeasible */
                /* start to minimize the sum of infeasibilities */
                csa->phase = 1;
@@ -1303,7 +1303,7 @@ loop: /* main loop starts here */
                for (i = 1; i <= m; i++)
                   csa->tcol.ind[i] = i;
                cnt = adjust_penalty(csa, m, csa->tcol.ind,
-                  0.99 * tol_bnd, 0.99 * tol_bnd1);
+                  GLP_SPX_ADJ_PENALTY * tol_bnd, GLP_SPX_ADJ_PENALTY * tol_bnd1);
                if (cnt)
                {  /*xprintf("*** cnt = %d\n", cnt);*/
                   csa->d_st = 0;
@@ -1382,7 +1382,7 @@ loop: /* main loop starts here */
       /* select eligible non-basic variables */
       switch (csa->phase)
       {  case 1:
-            csa->num = spx_chuzc_sel(lp, d, 1e-8, 0.0, list);
+            csa->num = spx_chuzc_sel(lp, d, GLP_MPL_MIN_8, 0.0, list);
             break;
          case 2:
             csa->num = spx_chuzc_sel(lp, d, tol_dj, tol_dj1, list);
@@ -1501,7 +1501,7 @@ loop: /* main loop starts here */
          {  if (csa->p_flag)
             {  /* xB[p] goes to its upper bound */
                xassert(lp->u[k] != +GLP_DBL_MAX);
-               if (fabs(beta[csa->p] - lp->u[k]) >= 1e-6)
+               if (fabs(beta[csa->p] - lp->u[k]) >= GLP_MPL_MIN_6)
                {  csa->degen = 0;
                   goto skip1;
                }
@@ -1513,7 +1513,7 @@ loop: /* main loop starts here */
             else
             {  /* xB[p] goes to its lower bound */
                xassert(lp->l[k] != -GLP_DBL_MAX);
-               if (fabs(beta[csa->p] - lp->l[k]) >= 1e-6)
+               if (fabs(beta[csa->p] - lp->l[k]) >= GLP_MPL_MIN_6)
                {  csa->degen = 0;
                   goto skip1;
                }
@@ -1603,10 +1603,10 @@ skip1:      ;
       {  if (refct > 0)
 #if 0 /* 11/VI-2017 */
          {  if (spx_update_gamma(lp, se, csa->p, csa->q, trow, tcol)
-               <= 1e-3)
+               <= GLP_MPL_MIN_3)
 #else /* FIXME: spx_update_gamma_s */
          {  if (spx_update_gamma(lp, se, csa->p, csa->q, csa->trow.vec,
-               csa->tcol.vec) <= 1e-3)
+               csa->tcol.vec) <= GLP_MPL_MIN_3)
 #endif
             {  /* successful updating */
                refct--;

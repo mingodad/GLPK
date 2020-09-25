@@ -266,7 +266,7 @@ static void set_art_bounds(struct csa *csa)
       for (k = 1; k <= n; k++)
       {  if (csa->orig_l[k] == -GLP_DBL_MAX && csa->orig_u[k] == +GLP_DBL_MAX)
          {  /* force free variables to enter the basis */
-            l[k] = -1e3, u[k] = +1e3;
+            l[k] = -GLP_SPY_ART_BOUND, u[k] = +GLP_SPY_ART_BOUND;
          }
       else if (csa->orig_l[k] != -GLP_DBL_MAX && csa->orig_u[k] == +GLP_DBL_MAX)
             l[k] = 0.0, u[k] = +1.0;
@@ -494,7 +494,7 @@ static glp_double err_in_r(struct csa *csa)
          else
             r[i] = 0.0;
 
-if (fabs(r[i] - csa->r.vec[i]) > 1e-6)
+if (fabs(r[i] - csa->r.vec[i]) > GLP_MPL_MIN_6)
 printf("i = %d; r = %" GLP_DBL_FMT_G "; csa->r = %" GLP_DBL_FMT_G "\n", i, r[i], csa->r.vec[i]);
 
 
@@ -577,7 +577,7 @@ static void check_accuracy(struct csa *csa)
          e_gamma = err_in_gamma(csa);
       xprintf("e_beta = %10.3" GLP_DBL_FMT_e "; e_r = %10.3" GLP_DBL_FMT_e "; e_d = %10.3" GLP_DBL_FMT_e "; e_gamma = %"
          "10.3" GLP_DBL_FMT_e "\n", e_beta, e_r, e_d, e_gamma);
-      xassert(e_beta <= 1e-5 && e_d <= 1e-5 && e_gamma <= 1e-3);
+      xassert(e_beta <= GLP_MPL_MIN_5 && e_d <= GLP_MPL_MIN_5 && e_gamma <= GLP_MPL_MIN_3);
       return;
 }
 #endif
@@ -759,8 +759,8 @@ try:  /* choose basic variable xB[p] */
                teta_lim = bp[t].teta;
          }
          xassert(teta_lim >= 0.0);
-         if (teta_lim < 1e-6)
-            teta_lim = 1e-6;
+         if (teta_lim < GLP_MPL_MIN_6)
+            teta_lim = GLP_MPL_MIN_6;
          /* nothing has been chosen so far */
          t_best = 0, dz_best = 0.0, num = 0;
          /* choose appropriate break-point */
@@ -1052,7 +1052,7 @@ static void display(struct csa *csa, int spec)
                {  /* xN[j] should have lower bound */
                   if (l[k] == -GLP_DBL_MAX)
                   {  sum += d[j];
-                     if (d[j] > +1e-7)
+                     if (d[j] > +GLP_MPL_MIN_7)
                         nnn++;
                   }
                }
@@ -1060,7 +1060,7 @@ static void display(struct csa *csa, int spec)
                {  /* xN[j] should have upper bound */
                   if (u[k] == +GLP_DBL_MAX)
                   {  sum -= d[j];
-                     if (d[j] < -1e-7)
+                     if (d[j] < -GLP_MPL_MIN_7)
                         nnn++;
                   }
                }
@@ -1368,7 +1368,7 @@ loop: /* main loop starts here */
           * performed only once at the beginning of the search for the
           * original bounds) */
          if (!csa->phase)
-         {  j = check_feas(csa, 0.97 * tol_dj, 0.97 * tol_dj1, 1);
+         {  j = check_feas(csa, GLP_SPY_FEASIBILITY * tol_dj, GLP_SPY_FEASIBILITY * tol_dj1, 1);
             if (j > 0)
             {  /* initial basic solution is dual infeasible and cannot
                 * be recovered */
@@ -1410,7 +1410,7 @@ loop: /* main loop starts here */
                   goto fini;
                }
                /* try to recover dual feasibility */
-               j = check_feas(csa, 0.97 * tol_dj, 0.97 * tol_dj1, 1);
+               j = check_feas(csa, GLP_SPY_FEASIBILITY * tol_dj, GLP_SPY_FEASIBILITY * tol_dj1, 1);
                if (j > 0)
                {  /* dual feasibility cannot be recovered (this may
                    * happen only on phase II) */
@@ -1436,7 +1436,7 @@ loop: /* main loop starts here */
          /* also compute vector r of primal infeasibilities */
          switch (csa->phase)
          {  case 1:
-               spy_eval_r(lp, beta, 1e-8, 0.0, &csa->r);
+               spy_eval_r(lp, beta, GLP_MPL_MIN_8, 0.0, &csa->r);
                break;
             case 2:
                spy_eval_r(lp, beta, tol_bnd, tol_bnd1, &csa->r);
@@ -1569,9 +1569,9 @@ loop: /* main loop starts here */
       switch (csa->phase)
       {  case 1:
 #if 0 /* 30/III-2016 */
-            csa->num = spy_chuzr_sel(lp, beta, 1e-8, 0.0, list);
+            csa->num = spy_chuzr_sel(lp, beta, GLP_MPL_MIN_8, 0.0, list);
 #else
-            spy_eval_r(lp, beta, 1e-8, 0.0, &csa->r);
+            spy_eval_r(lp, beta, GLP_MPL_MIN_8, 0.0, &csa->r);
 #endif
             break;
          case 2:
@@ -1752,7 +1752,7 @@ loop: /* main loop starts here */
          switch (csa->phase)
          {  case 1:
                spy_update_r(lp, csa->p, csa->q, beta, &csa->tcol,
-                  1e-8, 0.0, &csa->r);
+                  GLP_MPL_MIN_8, 0.0, &csa->r);
                break;
             case 2:
                spy_update_r(lp, csa->p, csa->q, beta, &csa->tcol,
@@ -1777,7 +1777,7 @@ loop: /* main loop starts here */
          /* FIXME: recompute d[q]; see spx_update_d */
          k = head[m+csa->q]; /* x[k] = xN[q] */
          if (!(lp->l[k] == -GLP_DBL_MAX && lp->u[k] == +GLP_DBL_MAX))
-         {  if (fabs(d[csa->q]) >= 1e-6)
+         {  if (fabs(d[csa->q]) >= GLP_MPL_MIN_6)
             {  csa->degen = 0;
                goto skip1;
             }
@@ -1825,10 +1825,10 @@ skip1:      ;
       {  if (refct > 0)
 #if 0 /* 30/III-2016 */
          {  if (spy_update_gamma(lp, se, csa->p, csa->q, trow, tcol)
-               <= 1e-3)
+               <= GLP_MPL_MIN_3)
 #else
          {  if (spy_update_gamma_s(lp, se, csa->p, csa->q, &csa->trow,
-               &csa->tcol) <= 1e-3)
+               &csa->tcol) <= GLP_MPL_MIN_3)
 #endif
             {  /* successful updating */
                refct--;
