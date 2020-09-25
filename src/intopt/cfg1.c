@@ -468,7 +468,7 @@ static void build_subgraph(struct csa *csa)
       int *itov = csa->itov;
       glp_double *wgt = csa->wgt;
       int j, k, v, w, nn, len;
-      glp_double z, sum;
+      glp_long_double z, sum;
       /* initially induced subgraph is empty */
       nn = 0;
       /* walk thru vertices of original conflict graph */
@@ -644,7 +644,7 @@ int cfg_find_clique(void *P, CFG *G, int ind[], glp_double *sum_)
 {     int nv = G->nv;
       struct csa csa;
       int i, k, len;
-      glp_double sum;
+      glp_long_double sum;
       /* initialize common storage area */
       csa.P = P;
       csa.G = G;

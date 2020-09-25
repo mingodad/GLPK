@@ -513,7 +513,7 @@ GLOBAL void AMD_2
  * ----------------------------------------------------------------------------
  */
 
-    glp_double f, r, ndiv, s, nms_lu, nms_ldl, dmax, alpha, lnz, lnzme ;
+    glp_double alpha; glp_long_double f, r, ndiv, s, nms_lu, nms_ldl, dmax, lnz, lnzme ;
 
 /*
  * f:           nvpiv

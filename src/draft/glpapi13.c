@@ -637,7 +637,7 @@ int glp_ios_heur_sol(glp_tree *tree, const glp_double x[])
       int m = tree->orig_m;
       int n = tree->n;
       int i, j;
-      glp_double obj;
+      glp_long_double obj;
       xassert(mip->m >= m);
       xassert(mip->n == n);
       /* check values of integer variables and compute value of the
@@ -667,7 +667,7 @@ int glp_ios_heur_sol(glp_tree *tree, const glp_double x[])
       }
       /* it is better; store it in the problem object */
       if (tree->parm->msg_lev >= GLP_MSG_ON)
-         xprintf("Solution found by heuristic: %.12" GLP_DBL_FMT_G "\n", obj);
+         xprintf("Solution found by heuristic: %.12" GLP_LDBL_FMT_G "\n", obj);
       mip->mip_stat = GLP_FEAS;
       mip->mip_obj = obj;
       for (j = 1; j <= n; j++)

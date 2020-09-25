@@ -547,7 +547,7 @@ glp_double btf_estimate_norm(BTF *btf, glp_double w1[/*1+n*/], glp_double
       glp_double *y = w2;
       glp_double *z = w1;
       int i;
-      glp_double y_norm, z_norm;
+      glp_long_double y_norm, z_norm;
       /* compute y = inv(A') * e to cause growth in y */
       for (i = 1; i <= n; i++)
          e[i] = 0.0;

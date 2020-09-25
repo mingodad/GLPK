@@ -776,7 +776,7 @@ void spm_mul_num(SPM *C, const SPM *A, const SPM *B)
       /* compute matrix C = A * B */
       for (i = 1; i <= C->m; i++)
       {  SPME *e, *ee;
-         glp_double temp;
+         glp_long_double temp;
          /* work := (i-th row of A) */
          /* (note that A may have duplicate elements) */
          for (e = A->row[i]; e != NULL; e = e->r_next)

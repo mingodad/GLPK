@@ -32,7 +32,7 @@ int glp_mincost_okalg(glp_graph *G, int v_rhs, int a_low, int a_cap,
       glp_arc *a;
       int nv, na, i, k, s, t, *tail, *head, *low, *cap, *cost, *x, *pi,
          ret;
-      glp_double sum, temp;
+      glp_long_double sum; glp_double temp;
       if (v_rhs >= 0 && v_rhs > G->v_size - (int)sizeof(glp_double))
          xerror("glp_mincost_okalg: v_rhs = %d; invalid offset\n",
             v_rhs);

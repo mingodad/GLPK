@@ -157,7 +157,7 @@ glp_double spx_eval_obj(SPXLP *lp, const glp_double beta[/*1+m*/])
       int *head = lp->head;
       char *flag = lp->flag;
       int i, j, k;
-      glp_double fj, z;
+      glp_double fj; glp_long_double z;
       /* compute z = cB'* beta + cN'* f + c0 */
       /* z := c0 */
       z = c[0];
@@ -235,7 +235,7 @@ glp_double spx_eval_dj(SPXLP *lp, const glp_double pi[/*1+m*/], int j)
       int *A_ind = lp->A_ind;
       glp_double *A_val = lp->A_val;
       int k, ptr, end;
-      glp_double dj;
+      glp_long_double dj;
       xassert(1 <= j && j <= n-m);
       k = lp->head[m+j]; /* x[k] = xN[j] */
       /* dj := c[k] */
@@ -353,7 +353,7 @@ glp_double spx_eval_tij(SPXLP *lp, const glp_double rho[/*1+m*/], int j)
       int *A_ind = lp->A_ind;
       glp_double *A_val = lp->A_val;
       int k, ptr, end;
-      glp_double tij;
+      glp_long_double tij;
       xassert(1 <= j && j <= n-m);
       k = lp->head[m+j]; /* x[k] = xN[j] */
       /* compute t[i,j] = - N'[j] * pi */
@@ -676,7 +676,7 @@ glp_double spx_update_d(SPXLP *lp, glp_double d[/*1+n-m*/], int p, int q,
       glp_double *c = lp->c;
       int *head = lp->head;
       int i, j, k;
-      glp_double dq, e;
+      glp_long_double dq; glp_double e;
       xassert(1 <= p && p <= m);
       xassert(1 <= q && q <= n);
       /* compute d[q] in current basis more accurately */
@@ -712,7 +712,7 @@ glp_double spx_update_d_s(SPXLP *lp, glp_double d[/*1+n-m*/], int p, int q,
       int *tcol_ind = tcol->ind;
       glp_double *tcol_vec = tcol->vec;
       int i, j, k;
-      glp_double dq, e;
+      glp_long_double dq; glp_double e;
       xassert(1 <= p && p <= m);
       xassert(1 <= q && q <= n);
       xassert(trow->n == n-m);

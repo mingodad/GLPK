@@ -75,7 +75,7 @@ void ios_feas_pump(glp_tree *T)
       GLPCOL *col;
       glp_smcp parm;
       int j, k, new_x, nfail, npass, nv, ret, stalling;
-      glp_double dist, tol;
+      glp_long_double dist, tol;
       xassert(glp_get_status(P) == GLP_OPT);
       /* this heuristic is applied only once on the root level */
       if (!(T->curr->level == 0 && T->curr->solved == 1)) goto done;
@@ -122,7 +122,7 @@ more: /* copy the original problem object to keep it intact */
          is better than the best known one */
       if (P->mip_stat == GLP_FEAS)
       {  int *ind;
-         glp_double *val, bnd;
+         glp_double *val; glp_long_double bnd;
          /* add a row and make it identical to the objective row */
          glp_add_rows(lp, 1);
          ind = xcalloc(1+n, sizeof(int));

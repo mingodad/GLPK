@@ -197,8 +197,8 @@ static int branch_drtom(glp_tree *T, int *_next)
       int n = mip->n;
       unsigned char *non_int = T->non_int;
       int j, jj, k, t, next, kase, len, stat, *ind;
-      glp_double x, dk, alfa, delta_j, delta_k, delta_z, dz_dn, dz_up,
-         dd_dn, dd_up, degrad, *val;
+      glp_long_double x, dk, alfa, delta_j, delta_k, delta_z, dz_dn, dz_up,
+         dd_dn, dd_up, degrad; glp_double *val;
       /* basic solution of LP relaxation must be optimal */
       xassert(glp_get_status(mip) == GLP_OPT);
       /* allocate working arrays */

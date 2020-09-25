@@ -222,7 +222,7 @@ static int rcv_binarize_prob(NPP *npp, void *_info)
 {     /* recovery binarized variable */
       struct binarize *info = _info;
       int k, temp;
-      glp_double sum;
+      glp_long_double sum;
       /* compute value of x[q]; see formula (3) */
       sum = npp->c_value[info->q];
       for (k = 1, temp = 2; k < info->n; k++, temp += temp)
@@ -433,7 +433,7 @@ static int hidden_packing(NPP *npp, struct elem *ptr, glp_double *_b)
          2 - specified row is hidden packing inequality. */
       struct elem *e, *ej, *ek;
       int neg;
-      glp_double b = *_b, eps;
+      glp_long_double b = *_b; glp_double eps;
       xassert(npp == npp);
       /* a[j] must be non-zero, x[j] must be binary, for all j in J */
       for (e = ptr; e != NULL; e = e->next)
@@ -716,7 +716,7 @@ int npp_implied_packing(NPP *npp, NPPROW *row, int which,
       NPPCOL *var[], char set[])
 {     struct elem *ptr, *e, *i, *k;
       int len = 0;
-      glp_double b, eps;
+      glp_long_double b; glp_double eps;
       /* build inequality (3) */
       if (which == 0)
       {  ptr = copy_form(npp, row, -1.0);
@@ -936,7 +936,7 @@ static int hidden_covering(NPP *npp, struct elem *ptr, glp_double *_b)
          2 - specified row is hidden covering inequality. */
       struct elem *e;
       int neg;
-      glp_double b = *_b, eps;
+      glp_long_double b = *_b; glp_double eps;
       xassert(npp == npp);
       /* a[j] must be non-zero, x[j] must be binary, for all j in J */
       for (e = ptr; e != NULL; e = e->next)
@@ -1277,7 +1277,7 @@ static int reduce_ineq_coef(NPP *npp, struct elem *ptr, glp_double *_b)
       /* returns: the number of coefficients reduced */
       struct elem *e;
       int count = 0;
-      glp_double h, inf_t, new_a, b = *_b;
+      glp_long_double h, inf_t, new_a, b = *_b;
       xassert(npp == npp);
       /* compute h; see (15) */
       h = 0.0;

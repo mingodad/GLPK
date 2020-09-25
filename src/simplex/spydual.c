@@ -1016,7 +1016,7 @@ static void display(struct csa *csa, int spec)
       glp_double *beta = csa->beta;
       glp_double *d = csa->d;
       int j, k, nnn;
-      glp_double sum;
+      glp_long_double sum;
 #if 1 /* 15/VII-2017 */
       glp_double tm_cur;
 #endif

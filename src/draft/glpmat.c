@@ -360,7 +360,7 @@ void adat_numeric(int m, int n, int P_per[],
       int A_ptr[], int A_ind[], glp_double A_val[], glp_double D_diag[],
       int S_ptr[], int S_ind[], glp_double S_val[], glp_double S_diag[])
 {     int i, j, t, ii, jj, tt, beg, end, beg1, end1, k;
-      glp_double sum, *work;
+      glp_long_double sum; glp_double *work;
       work = xcalloc(1+n, sizeof(glp_double));
       for (j = 1; j <= n; j++) work[j] = 0.0;
       /* compute S = B*D*B', where B = P*A, B' is a matrix transposed
@@ -867,7 +867,7 @@ int chol_numeric(int n,
 void u_solve(int n, int U_ptr[], int U_ind[], glp_double U_val[],
       glp_double U_diag[], glp_double x[])
 {     int i, t, beg, end;
-      glp_double temp;
+      glp_long_double temp;
       for (i = n; i >= 1; i--)
       {  temp = x[i];
          beg = U_ptr[i], end = U_ptr[i+1];

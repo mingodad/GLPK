@@ -90,14 +90,14 @@ int glp_maxflow_ffalg(glp_graph *G, int s, int t, int a_cap,
       /* store solution components */
       /* (objective function = total flow through the network) */
       if (sol != NULL)
-      {  temp = 0.0;
+      {  glp_long_double stemp = 0.0;
          for (k = 1; k <= na; k++)
          {  if (tail[k] == s)
-               temp += (glp_double)x[k];
+               stemp += (glp_double)x[k];
             else if (head[k] == s)
-               temp -= (glp_double)x[k];
+               stemp -= (glp_double)x[k];
          }
-         *sol = temp;
+         *sol = stemp;
       }
       /* (arc flows) */
       if (a_x >= 0)

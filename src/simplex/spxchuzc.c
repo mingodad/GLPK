@@ -212,7 +212,7 @@ glp_double spx_eval_gamma_j(SPXLP *lp, SPXSE *se, int j)
       char *refsp = se->refsp;
       glp_double *tcol = se->work;
       int i, k;
-      glp_double gamma_j;
+      glp_long_double gamma_j;
       xassert(se->valid);
       xassert(1 <= j && j <= n-m);
       k = head[m+j]; /* x[k] = xN[j] */
@@ -316,7 +316,7 @@ glp_double spx_update_gamma(SPXLP *lp, SPXSE *se, int p, int q,
       glp_double *gamma = se->gamma;
       glp_double *u = se->work;
       int i, j, k, ptr, end;
-      glp_double gamma_q, delta_q, e, r, s, t1, t2;
+      glp_double gamma_q, delta_q, e, r, t1, t2; glp_long_double s;
       xassert(se->valid);
       xassert(1 <= p && p <= m);
       xassert(1 <= q && q <= n-m);

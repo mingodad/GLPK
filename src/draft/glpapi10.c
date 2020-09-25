@@ -34,7 +34,7 @@ void glp_check_kkt(glp_prob *P, int sol, int cond, glp_double *_ae_max,
       GLPCOL *col;
       GLPAIJ *aij;
       int i, j, ae_ind, re_ind;
-      glp_double e, sp, sn, t, ae_max, re_max;
+      glp_long_double e, sp, sn, t, ae_max, re_max;
       if (!(sol == GLP_SOL || sol == GLP_IPT || sol == GLP_MIP))
          xerror("glp_check_kkt: sol = %d; invalid solution indicator\n",
             sol);

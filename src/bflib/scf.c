@@ -118,7 +118,7 @@ void scf_r_prod(SCF *scf, glp_double y[/*1+nn*/], glp_double a, const glp_double
       int *rr_ptr = &sva->ptr[rr_ref-1];
       int *rr_len = &sva->len[rr_ref-1];
       int i, ptr, end;
-      glp_double t;
+      glp_long_double t;
       for (i = 1; i <= nn; i++)
       {  /* t := (i-th row of R) * x */
          t = 0.0;
@@ -225,7 +225,7 @@ void scf_st_prod(SCF *scf, glp_double y[/*1+nn*/], glp_double a, const glp_doubl
       int *ss_ptr = &sva->ptr[ss_ref-1];
       int *ss_len = &sva->len[ss_ref-1];
       int j, ptr, end;
-      glp_double t;
+      glp_long_double t;
       for (j = 1; j <= nn; j++)
       {  /* t := (j-th column of S) * x */
          t = 0.0;

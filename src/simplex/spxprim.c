@@ -649,7 +649,7 @@ try:  /* choose non-basic variable xN[q] */
       if (csa->phase == 1 && csa->r_test == GLP_RT_FLIP && try <= 2)
       {  /* long-step ratio test */
          int t, num, num1;
-         glp_double slope, teta_lim;
+         glp_double slope; glp_long_double teta_lim;
          /* determine penalty function break points */
          nbp = spx_ls_eval_bp(lp, beta, q, d[q], tcol, tol_piv, bp);
          if (nbp < 2)
@@ -990,7 +990,7 @@ static glp_double sum_infeas(SPXLP *lp, const glp_double beta[/*1+m*/])
       glp_double *u = lp->u;
       int *head = lp->head;
       int i, k;
-      glp_double sum = 0.0;
+      glp_long_double sum = 0.0;
       for (i = 1; i <= m; i++)
       {  k = head[i]; /* x[k] = xB[i] */
          if (l[k] != -GLP_DBL_MAX && beta[i] < l[k])

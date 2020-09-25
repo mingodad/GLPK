@@ -76,7 +76,7 @@ int wclique1(int n, const glp_double w[],
 {     struct vertex *v_list;
       int deg, c_size, d_size, i, j, k, kk, l, *ind, *c_list, *d_list,
          size = 0;
-      glp_double c_wght, d_wght, *sw, cbest, best = 0.0;
+      glp_long_double c_wght, d_wght; glp_double *sw, cbest, best = 0.0;
       char *d_flag, *skip;
       /* perform sanity checks */
       xassert(n >= 0);

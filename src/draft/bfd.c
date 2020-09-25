@@ -121,7 +121,7 @@ struct bfd_info
 static int bfd_col(void *info_, int j, int ind[], glp_double val[])
 {     struct bfd_info *info = info_;
       int t, len;
-      glp_double sum;
+      glp_long_double sum;
       len = info->col(info->info, j, ind, val);
       sum = 0.0;
       for (t = 1; t <= len; t++)

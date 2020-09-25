@@ -809,7 +809,7 @@ static glp_double cmir_sep(const int n, const glp_double a[], const glp_double b
       const glp_double u[], const glp_double x[], const glp_double s,
       glp_double alpha[], glp_double *beta, glp_double *gamma)
 {     int fail, j, k, nv, v;
-      glp_double delta, eps, d_try[1+3], r, r_best;
+      glp_double delta, eps, d_try[1+3]; glp_long_double r, r_best;
       char *cset;
       struct vset *vset;
       /* allocate working arrays */

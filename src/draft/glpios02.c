@@ -103,7 +103,7 @@ struct f_info
 static void prepare_row_info(int n, const glp_double a[], const glp_double l[],
       const glp_double u[], struct f_info *f)
 {     int j, j_min, j_max;
-      glp_double f_min, f_max;
+      glp_long_double f_min, f_max;
       xassert(n >= 0);
       /* determine f_min and j_min */
       f_min = 0.0, j_min = 0;

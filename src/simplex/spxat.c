@@ -228,7 +228,7 @@ void spx_eval_trow1(SPXLP *lp, SPXAT *at, const glp_double rho[/*1+m*/],
          glp_double *A_val = lp->A_val;
          int *head = lp->head;
          int k, ptr, end;
-         glp_double tij;
+         glp_long_double tij;
          for (j = 1; j <= n-m; j++)
          {  k = head[m+j]; /* x[k] = xN[j] */
             /* compute t[i,j] = - N'[j] * pi */

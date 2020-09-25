@@ -740,7 +740,7 @@ int sgf_eliminate(SGF *sgf, int p, int q)
       glp_double eps_tol = sgf->eps_tol;
       int nnz_diff = 0;
       int fill, i, i_ptr, i_end, j, j_ptr, j_end, ptr, len, loc, loc1;
-      glp_double vpq, fip, vij;
+      glp_double vpq, fip; glp_long_double vij;
       xassert(1 <= p && p <= n);
       xassert(1 <= q && q <= n);
       /* remove p-th row from the active set; this row will never

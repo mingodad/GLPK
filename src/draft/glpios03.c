@@ -155,7 +155,7 @@ static int is_branch_hopeful(glp_tree *T, int p)
 static void check_integrality(glp_tree *T)
 {     glp_prob *mip = T->mip;
       int j, type, ii_cnt = 0;
-      glp_double lb, ub, x, temp1, temp2, ii_sum = 0.0;
+      glp_long_double lb, ub, x, temp1, temp2, ii_sum = 0.0;
       /* walk through the set of columns (structural variables) */
       for (j = 1; j <= mip->n; j++)
       {  GLPCOL *col = mip->col[j];
@@ -219,10 +219,10 @@ static void check_integrality(glp_tree *T)
             xprintf("There are no fractional columns\n");
          else if (ii_cnt == 1)
             xprintf("There is one fractional column, integer infeasibil"
-               "ity is %.3" GLP_DBL_FMT_e "\n", ii_sum);
+               "ity is %.3" GLP_LDBL_FMT_e "\n", ii_sum);
          else
             xprintf("There are %d fractional columns, integer infeasibi"
-               "lity is %.3" GLP_DBL_FMT_e "\n", ii_cnt, ii_sum);
+               "lity is %.3" GLP_LDBL_FMT_e "\n", ii_cnt, ii_sum);
       }
       return;
 }
@@ -599,7 +599,7 @@ static int round_heur(glp_tree *T)
       for (i = 1; i <= T->orig_m; i++)
       {  int type = T->orig_type[i];
          GLPAIJ *aij;
-         glp_double sum;
+         glp_long_double sum;
          if (type == GLP_FR)
             continue;
          /* compute value of linear form */

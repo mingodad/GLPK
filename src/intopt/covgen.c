@@ -381,7 +381,7 @@ skip: /* restore zero content of v */
 
 static int can_be_active(int n, const glp_double a[], glp_double b)
 {     int j;
-      glp_double s;
+      glp_long_double s;
       s = 0;
       for (j = 1; j <= n; j++)
       {  if (a[j] > 0)

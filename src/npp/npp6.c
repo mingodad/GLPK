@@ -838,7 +838,7 @@ int npp_sat_encode_sum_ax(NPP *npp, NPPROW *row, NPPLIT y[])
       NPPLSE *set[1+NBIT_MAX], *lse;
       NPPSED sed;
       int k, n, temp;
-      glp_double sum;
+      glp_long_double sum;
       /* compute the sum (sum |a[j]|) */
       sum = 0.0;
       for (aij = row->ptr; aij != NULL; aij = aij->r_next)
@@ -1324,7 +1324,7 @@ int npp_sat_encode_row(NPP *npp, NPPROW *row)
 {     NPPAIJ *aij;
       NPPLIT y[1+NBIT_MAX];
       int n, rhs;
-      glp_double lb, ub;
+      glp_long_double lb, ub;
       /* the row should not be free */
       xassert(!(row->lb == -GLP_DBL_MAX && row->ub == +GLP_DBL_MAX));
       /* compute new bounds L' and U' (3) */

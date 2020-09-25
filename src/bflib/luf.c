@@ -687,7 +687,7 @@ glp_double luf_estimate_norm(LUF *luf, glp_double w1[/*1+n*/], glp_double
       glp_double *y = w2;
       glp_double *z = w1;
       int i;
-      glp_double y_norm, z_norm;
+      glp_long_double y_norm, z_norm;
       /* y = inv(A') * e = inv(F') * inv(V') * e */
       /* compute y' = inv(V') * e to cause growth in y' */
       for (i = 1; i <= n; i++)

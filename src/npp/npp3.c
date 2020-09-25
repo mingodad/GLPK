@@ -467,7 +467,7 @@ static int rcv_eq_singlet(NPP *npp, void *_info)
 {     /* recover row singleton (equality constraint) */
       struct eq_singlet *info = _info;
       NPPLFE *lfe;
-      glp_double temp;
+      glp_long_double temp;
       if (npp->sol == GLP_SOL)
       {  /* column q must be already recovered as GLP_NS */
          if (npp->c_stat[info->q] != GLP_NS)
@@ -966,7 +966,7 @@ static int rcv_ineq_singlet(NPP *npp, void *_info)
 {     /* recover row singleton (inequality constraint) */
       struct ineq_singlet *info = _info;
       NPPLFE *lfe;
-      glp_double lambda;
+      glp_long_double lambda;
       if (npp->sol == GLP_MIP) goto done;
       /* compute lambda~[q] in solution to the transformed problem
          with formula (8) */
@@ -1293,7 +1293,7 @@ static int rcv_implied_slack(NPP *npp, void *_info)
 {     /* recover column singleton (implied slack variable) */
       struct implied_slack *info = _info;
       NPPLFE *lfe;
-      glp_double temp;
+      glp_long_double temp;
       if (npp->sol == GLP_SOL)
       {  /* assign statuses to row p and column q */
          if (npp->r_stat[info->p] == GLP_BS ||
@@ -1491,7 +1491,7 @@ int npp_implied_free(NPP *npp, NPPCOL *q)
       struct implied_free *info;
       NPPROW *p;
       NPPAIJ *apq, *aij;
-      glp_double alfa, beta, l, u, pi, eps;
+      glp_long_double alfa, beta, l, u, pi, eps;
       /* the column must be non-fixed singleton */
       xassert(q->lb < q->ub);
       xassert(q->ptr != NULL && q->ptr->c_next == NULL);
@@ -1767,7 +1767,7 @@ NPPCOL *npp_eq_doublet(NPP *npp, NPPROW *p)
       NPPCOL *q, *r;
       NPPAIJ *apq, *apr, *aiq, *air, *next;
       NPPLFE *lfe;
-      glp_double gamma;
+      glp_long_double gamma;
       /* the row must be doubleton equality constraint */
       xassert(p->lb == p->ub);
       xassert(p->ptr != NULL && p->ptr->r_next != NULL &&
@@ -1855,7 +1855,7 @@ static int rcv_eq_doublet(NPP *npp, void *_info)
 {     /* recover row doubleton (equality constraint) */
       struct eq_doublet *info = _info;
       NPPLFE *lfe;
-      glp_double gamma, temp;
+      glp_long_double gamma, temp;
       /* we assume that processing row p is followed by processing
          column q as singleton of type "implied slack variable", in
          which case row p must always be active equality constraint */
@@ -2179,7 +2179,7 @@ static int rcv_forcing_row(NPP *npp, void *_info)
       struct forcing_row *info = _info;
       struct forcing_col *col, *piv;
       NPPLFE *lfe;
-      glp_double d, big, temp;
+      glp_long_double d; glp_double big, temp;
       if (npp->sol == GLP_MIP) goto done;
       /* initially solution to the original problem is the same as
          to the transformed problem, where row p is inactive constraint
@@ -2339,7 +2339,7 @@ int npp_analyze_row(NPP *npp, NPPROW *p)
 {     /* perform general row analysis */
       NPPAIJ *aij;
       int ret = 0x00;
-      glp_double l, u, eps;
+      glp_long_double l, u; glp_double eps;
       xassert(npp == npp);
       /* compute implied lower bound L'[p]; see (3) */
       l = 0.0;
@@ -2747,7 +2747,7 @@ static int rcv_inactive_bound(NPP *npp, void *_info)
 
 void npp_implied_bounds(NPP *npp, NPPROW *p)
 {     NPPAIJ *apj, *apk;
-      glp_double big, eps, temp;
+      glp_double big, eps; glp_long_double temp;
       xassert(npp == npp);
       /* initialize implied bounds for all variables and determine
          maximal magnitude of row coefficients a[p,j] */

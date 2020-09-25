@@ -625,7 +625,7 @@ void spx_store_sol(SPXLP *lp, glp_prob *P, int shift,
          if (k == 0)
          {  /* non-basic fixed structural variable was excluded */
             GLPAIJ *aij;
-            glp_double dk;
+            glp_long_double dk;
             xassert(col->type == GLP_FX);
             col->prim = col->lb;
             /* compute reduced cost d[k] = c[k] - A'[k] * pi as if x[k]

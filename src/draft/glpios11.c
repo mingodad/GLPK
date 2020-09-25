@@ -360,7 +360,7 @@ void ios_process_cuts(glp_tree *T)
 static glp_double efficacy(glp_tree *T, IOSCUT *cut)
 {     glp_prob *mip = T->mip;
       IOSAIJ *aij;
-      glp_double s = 0.0, t = 0.0, temp;
+      glp_long_double s = 0.0, t = 0.0, temp;
       for (aij = cut->ptr; aij != NULL; aij = aij->next)
       {  xassert(1 <= aij->j && aij->j <= mip->n);
          s += aij->val * mip->col[aij->j]->prim;
@@ -397,7 +397,7 @@ static glp_double efficacy(glp_tree *T, IOSCUT *cut)
 #ifdef NEW_LOCAL /* 02/II-2018 */
 static glp_double parallel(IOSCUT *a, IOSCUT *b, glp_double work[])
 {     GLPAIJ *aij;
-      glp_double s = 0.0, sa = 0.0, sb = 0.0, temp;
+      glp_long_double s = 0.0, sa = 0.0, sb = 0.0, temp;
       for (aij = a->ptr; aij != NULL; aij = aij->r_next)
       {  work[aij->col->j] = aij->val;
          sa += aij->val * aij->val;
@@ -415,7 +415,7 @@ static glp_double parallel(IOSCUT *a, IOSCUT *b, glp_double work[])
 #else
 static glp_double parallel(IOSCUT *a, IOSCUT *b, glp_double work[])
 {     IOSAIJ *aij;
-      glp_double s = 0.0, sa = 0.0, sb = 0.0, temp;
+      glp_long_double s = 0.0, sa = 0.0, sb = 0.0, temp;
       for (aij = a->ptr; aij != NULL; aij = aij->next)
       {  work[aij->j] = aij->val;
          sa += aij->val * aij->val;

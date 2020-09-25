@@ -223,7 +223,7 @@ skip: ;
       for (i = 1; i <= P->m; i++)
       {  GLPROW *row;
          GLPAIJ *aij;
-         glp_double sum;
+         glp_long_double sum;
          row = P->row[i];
          sum = 0.0;
          for (aij = row->ptr; aij != NULL; aij = aij->r_next)

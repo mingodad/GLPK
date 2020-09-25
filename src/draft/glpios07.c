@@ -143,7 +143,7 @@ static int cover2(int n, glp_double a[], glp_double b, glp_double u, glp_double 
       glp_double y, int cov[], glp_double *_alfa, glp_double *_beta)
 {     /* try to generate mixed cover cut using two-element cover */
       int i, j, try = 0, ret = 0;
-      glp_double eps, alfa, beta, temp, rmax = 0.001;
+      glp_long_double eps, alfa, beta, temp, rmax = 0.001;
       eps = 0.001 * (1.0 + fabs(b));
       for (i = 0+1; i <= n; i++)
       for (j = i+1; j <= n; j++)
@@ -176,7 +176,7 @@ static int cover3(int n, glp_double a[], glp_double b, glp_double u, glp_double 
       glp_double y, int cov[], glp_double *_alfa, glp_double *_beta)
 {     /* try to generate mixed cover cut using three-element cover */
       int i, j, k, try = 0, ret = 0;
-      glp_double eps, alfa, beta, temp, rmax = 0.001;
+      glp_long_double eps, alfa, beta, temp, rmax = 0.001;
       eps = 0.001 * (1.0 + fabs(b));
       for (i = 0+1; i <= n; i++)
       for (j = i+1; j <= n; j++)
@@ -211,7 +211,7 @@ static int cover4(int n, glp_double a[], glp_double b, glp_double u, glp_double 
       glp_double y, int cov[], glp_double *_alfa, glp_double *_beta)
 {     /* try to generate mixed cover cut using four-element cover */
       int i, j, k, l, try = 0, ret = 0;
-      glp_double eps, alfa, beta, temp, rmax = 0.001;
+      glp_long_double eps, alfa, beta, temp, rmax = 0.001;
       eps = 0.001 * (1.0 + fabs(b));
       for (i = 0+1; i <= n; i++)
       for (j = i+1; j <= n; j++)
@@ -322,7 +322,7 @@ static int cover(int n, glp_double a[], glp_double b, glp_double u, glp_double x
 static int lpx_cover_cut(glp_prob *lp, int len, int ind[],
       glp_double val[], glp_double work[])
 {     int cov[1+4], j, k, nb, newlen, r;
-      glp_double f_min, f_max, alfa, beta, u, *x = work, y;
+      glp_long_double f_min, f_max; glp_double *x = work, alfa, beta, u, y;
       /* substitute and remove fixed variables */
       newlen = 0;
       for (k = 1; k <= len; k++)
@@ -477,7 +477,7 @@ static glp_double lpx_eval_row(glp_prob *lp, int len, int ind[],
       glp_double val[])
 {     int n = glp_get_num_cols(lp);
       int j, k;
-      glp_double sum = 0.0;
+      glp_long_double sum = 0.0;
       if (len < 0)
          xerror("lpx_eval_row: len = %d; invalid row length\n", len);
       for (k = 1; k <= len; k++)

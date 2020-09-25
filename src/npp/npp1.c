@@ -795,7 +795,7 @@ void npp_unload_sol(NPP *npp, glp_prob *orig)
          {  row = orig->row[i];
             if (row->stat == GLP_BS)
             {  GLPAIJ *aij;
-               glp_double temp;
+               glp_long_double temp;
                temp = 0.0;
                for (aij = row->ptr; aij != NULL; aij = aij->r_next)
                   temp += aij->val * aij->col->prim;
@@ -807,7 +807,7 @@ void npp_unload_sol(NPP *npp, glp_prob *orig)
          {  col = orig->col[j];
             if (col->stat != GLP_BS)
             {  GLPAIJ *aij;
-               glp_double temp;
+               glp_long_double temp;
                temp = col->coef;
                for (aij = col->ptr; aij != NULL; aij = aij->c_next)
                   temp -= aij->val * aij->row->dual;
@@ -848,7 +848,7 @@ void npp_unload_sol(NPP *npp, glp_prob *orig)
          for (i = 1; i <= orig->m; i++)
          {  row = orig->row[i];
             {  GLPAIJ *aij;
-               glp_double temp;
+               glp_long_double temp;
                temp = 0.0;
                for (aij = row->ptr; aij != NULL; aij = aij->r_next)
                   temp += aij->val * aij->col->pval;
@@ -859,7 +859,7 @@ void npp_unload_sol(NPP *npp, glp_prob *orig)
          for (j = 1; j <= orig->n; j++)
          {  col = orig->col[j];
             {  GLPAIJ *aij;
-               glp_double temp;
+               glp_long_double temp;
                temp = col->coef;
                for (aij = col->ptr; aij != NULL; aij = aij->c_next)
                   temp -= aij->val * aij->row->dval;
@@ -891,7 +891,7 @@ void npp_unload_sol(NPP *npp, glp_prob *orig)
          for (i = 1; i <= orig->m; i++)
          {  row = orig->row[i];
             {  GLPAIJ *aij;
-               glp_double temp;
+               glp_long_double temp;
                temp = 0.0;
                for (aij = row->ptr; aij != NULL; aij = aij->r_next)
                   temp += aij->val * aij->col->mipx;

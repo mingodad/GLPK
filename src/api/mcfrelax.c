@@ -40,7 +40,7 @@ int glp_mincost_relax4(glp_graph *G, int v_rhs, int a_low, int a_cap,
       glp_arc *a;
       struct relax4_csa csa;
       int i, k, large, n, na, ret;
-      glp_double cap, cost, low, rc, rhs, sum, x;
+      glp_double cap, cost, low, rc, rhs, x; glp_long_double sum;
       if (v_rhs >= 0 && v_rhs > G->v_size - (int)sizeof(glp_double))
          xerror("glp_mincost_relax4: v_rhs = %d; invalid offset\n",
             v_rhs);

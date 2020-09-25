@@ -39,7 +39,7 @@ int glp_wclique_exact(glp_graph *G, int v_wgt, glp_double *sol, int v_set)
       glp_arc *e;
       int i, j, k, len, x, *w, *ind, ret = 0;
       unsigned char *a;
-      glp_double s, t;
+      glp_long_double s; glp_double t;
       if (v_wgt >= 0 && v_wgt > G->v_size - (int)sizeof(glp_double))
          xerror("glp_wclique_exact: v_wgt = %d; invalid parameter\n",
             v_wgt);

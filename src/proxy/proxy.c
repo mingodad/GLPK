@@ -920,7 +920,7 @@ static glp_double objval(int ncols, glp_double *x, glp_double *true_obj)
     /* Computing the true cost of x (using the original obj coeff.s) */
 
     int j;
-    glp_double z = 0.0;
+    glp_long_double z = 0.0;
     for ( j = 1; j < (ncols +1); j++ ) {
         z += x[j] * true_obj[j];
     }

@@ -39,7 +39,7 @@
 
 static glp_double min_row_aij(glp_prob *lp, int i, int scaled)
 {     GLPAIJ *aij;
-      glp_double min_aij, temp;
+      glp_long_double min_aij, temp;
       xassert(1 <= i && i <= lp->m);
       min_aij = 1.0;
       for (aij = lp->row[i]->ptr; aij != NULL; aij = aij->r_next)
@@ -64,7 +64,7 @@ static glp_double min_row_aij(glp_prob *lp, int i, int scaled)
 
 static glp_double max_row_aij(glp_prob *lp, int i, int scaled)
 {     GLPAIJ *aij;
-      glp_double max_aij, temp;
+      glp_long_double max_aij, temp;
       xassert(1 <= i && i <= lp->m);
       max_aij = 1.0;
       for (aij = lp->row[i]->ptr; aij != NULL; aij = aij->r_next)
@@ -89,7 +89,7 @@ static glp_double max_row_aij(glp_prob *lp, int i, int scaled)
 
 static glp_double min_col_aij(glp_prob *lp, int j, int scaled)
 {     GLPAIJ *aij;
-      glp_double min_aij, temp;
+      glp_long_double min_aij, temp;
       xassert(1 <= j && j <= lp->n);
       min_aij = 1.0;
       for (aij = lp->col[j]->ptr; aij != NULL; aij = aij->c_next)
@@ -114,7 +114,7 @@ static glp_double min_col_aij(glp_prob *lp, int j, int scaled)
 
 static glp_double max_col_aij(glp_prob *lp, int j, int scaled)
 {     GLPAIJ *aij;
-      glp_double max_aij, temp;
+      glp_long_double max_aij, temp;
       xassert(1 <= j && j <= lp->n);
       max_aij = 1.0;
       for (aij = lp->col[j]->ptr; aij != NULL; aij = aij->c_next)
@@ -296,7 +296,7 @@ static void gm_scaling(glp_prob *lp, int flag)
 
 static glp_double max_row_ratio(glp_prob *lp)
 {     int i;
-      glp_double ratio, temp;
+      glp_long_double ratio, temp;
       ratio = 1.0;
       for (i = 1; i <= lp->m; i++)
       {  temp = max_row_aij(lp, i, 1) / min_row_aij(lp, i, 1);
@@ -323,7 +323,7 @@ static glp_double max_row_ratio(glp_prob *lp)
 
 static glp_double max_col_ratio(glp_prob *lp)
 {     int j;
-      glp_double ratio, temp;
+      glp_long_double ratio, temp;
       ratio = 1.0;
       for (j = 1; j <= lp->n; j++)
       {  temp = max_col_aij(lp, j, 1) / min_col_aij(lp, j, 1);

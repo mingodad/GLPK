@@ -1407,7 +1407,7 @@ static int rcv_make_fixed(NPP *npp, void *_info)
 {     /* recover column with almost identical bounds */
       struct make_fixed *info = _info;
       NPPLFE *lfe;
-      glp_double lambda;
+      glp_long_double lambda;
       if (npp->sol == GLP_SOL)
       {  if (npp->c_stat[info->q] == GLP_BS)
             npp->c_stat[info->q] = GLP_BS;
