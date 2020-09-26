@@ -433,7 +433,7 @@ static int hidden_packing(NPP *npp, struct elem *ptr, glp_double *_b)
          2 - specified row is hidden packing inequality. */
       struct elem *e, *ej, *ek;
       int neg;
-      glp_long_double b = *_b; glp_double eps;
+      glp_double b = *_b, eps;
       xassert(npp == npp);
       /* a[j] must be non-zero, x[j] must be binary, for all j in J */
       for (e = ptr; e != NULL; e = e->next)
@@ -1277,7 +1277,7 @@ static int reduce_ineq_coef(NPP *npp, struct elem *ptr, glp_double *_b)
       /* returns: the number of coefficients reduced */
       struct elem *e;
       int count = 0;
-      glp_long_double h, inf_t, new_a, b = *_b;
+      glp_long_double h; glp_double inf_t, new_a, b = *_b;
       xassert(npp == npp);
       /* compute h; see (15) */
       h = 0.0;

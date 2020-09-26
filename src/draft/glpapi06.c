@@ -115,7 +115,7 @@ static void trivial_lp(glp_prob *P, const glp_smcp *parm)
       GLPROW *row;
       GLPCOL *col;
       int i, j;
-      glp_long_double p_infeas, d_infeas, zeta;
+      glp_double p_infeas, d_infeas, zeta;
       P->valid = 0;
       P->pbs_stat = P->dbs_stat = GLP_FEAS;
       P->obj_val = P->c0;

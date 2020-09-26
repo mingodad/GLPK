@@ -115,7 +115,7 @@
 
 int fp2rat(glp_double x, glp_double eps, glp_double *p, glp_double *q)
 {     int k;
-      glp_long_double xk, Akm1, Ak, Bkm1, Bk, ak, bk, fk, temp;
+      glp_double xk, Akm1, Ak, Bkm1, Bk, ak, bk, fk, temp;
       xassert(0.0 <= x && x < 1.0);
       for (k = 0; ; k++)
       {  xassert(k <= 100);

@@ -649,7 +649,7 @@ try:  /* choose non-basic variable xN[q] */
       if (csa->phase == 1 && csa->r_test == GLP_RT_FLIP && try <= 2)
       {  /* long-step ratio test */
          int t, num, num1;
-         glp_double slope; glp_long_double teta_lim;
+         glp_double slope, teta_lim;
          /* determine penalty function break points */
          nbp = spx_ls_eval_bp(lp, beta, q, d[q], tcol, tol_piv, bp);
          if (nbp < 2)

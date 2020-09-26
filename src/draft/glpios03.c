@@ -155,7 +155,7 @@ static int is_branch_hopeful(glp_tree *T, int p)
 static void check_integrality(glp_tree *T)
 {     glp_prob *mip = T->mip;
       int j, type, ii_cnt = 0;
-      glp_long_double lb, ub, x, temp1, temp2, ii_sum = 0.0;
+      glp_double lb, ub, x, temp1, temp2; glp_long_double ii_sum = 0.0;
       /* walk through the set of columns (structural variables) */
       for (j = 1; j <= mip->n; j++)
       {  GLPCOL *col = mip->col[j];

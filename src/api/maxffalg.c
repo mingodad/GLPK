@@ -93,9 +93,9 @@ int glp_maxflow_ffalg(glp_graph *G, int s, int t, int a_cap,
       {  glp_long_double stemp = 0.0;
          for (k = 1; k <= na; k++)
          {  if (tail[k] == s)
-               stemp += (glp_double)x[k];
+               stemp += x[k];
             else if (head[k] == s)
-               stemp -= (glp_double)x[k];
+               stemp -= x[k];
          }
          *sol = stemp;
       }

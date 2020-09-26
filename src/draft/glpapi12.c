@@ -806,7 +806,7 @@ int glp_eval_tab_row(glp_prob *lp, int k, int ind[], glp_double val[])
 {     int m = lp->m;
       int n = lp->n;
       int i, t, len, lll, *iii;
-      glp_long_double alfa; glp_double *rho, *vvv;
+      glp_double alfa, *rho, *vvv;
       if (!(m == 0 || lp->valid))
          xerror("glp_eval_tab_row: basis factorization does not exist\n"
             );
@@ -1048,7 +1048,7 @@ int glp_eval_tab_col(glp_prob *lp, int k, int ind[], glp_double val[])
 
 int glp_transform_row(glp_prob *P, int len, int ind[], glp_double val[])
 {     int i, j, k, m, n, t, lll, *iii;
-      glp_long_double alfa; glp_double *a, *aB, *rho, *vvv;
+      glp_double alfa, *a, *aB, *rho, *vvv;
       if (!glp_bf_exists(P))
          xerror("glp_transform_row: basis factorization does not exist "
             "\n");
@@ -1587,7 +1587,7 @@ int _glp_analyze_row(glp_prob *P, int len, const int ind[],
       const glp_double val[], int type, glp_double rhs, glp_double eps, int *_piv,
       glp_double *_x, glp_double *_dx, glp_double *_y, glp_double *_dy, glp_double *_dz)
 {     int t, k, dir, piv, ret = 0;
-      glp_long_double x, dx, y, dy, dz;
+      glp_long_double y; glp_double x, dx, dy, dz;
       if (P->pbs_stat == GLP_UNDEF)
          xerror("glp_analyze_row: primal basic solution components are "
             "undefined\n");
@@ -1798,7 +1798,7 @@ void glp_analyze_bound(glp_prob *P, int k, glp_double *value1, int *var1,
 {     GLPROW *row;
       GLPCOL *col;
       int m, n, stat, kase, p, len, piv, *ind;
-      glp_long_double x, new_x, ll, uu, xx, delta; glp_double *val;
+      glp_double x, new_x, ll, uu, xx, delta, *val;
 #if 0 /* 04/IV-2016 */
       /* sanity checks */
       if (P == NULL || P->magic != GLP_PROB_MAGIC)
@@ -1964,8 +1964,8 @@ void glp_analyze_coef(glp_prob *P, int k, glp_double *coef1, int *var1,
 {     GLPROW *row; GLPCOL *col;
       int m, n, type, stat, kase, p, q, dir, clen, cpiv, rlen, rpiv,
          *cind, *rind;
-      glp_long_double lb, ub, coef, x, lim_coef, new_x, d, delta, ll, uu, xx;
-      glp_double *rval, *cval;
+      glp_double lb, ub, coef, x, lim_coef, new_x, d, delta, ll, uu, xx,
+            *rval, *cval;
 #if 0 /* 04/IV-2016 */
       /* sanity checks */
       if (P == NULL || P->magic != GLP_PROB_MAGIC)

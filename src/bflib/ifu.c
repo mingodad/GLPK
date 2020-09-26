@@ -363,7 +363,6 @@ void ifu_at_solve(IFU *ifu, glp_double x[/*1+n*/], glp_double w[/*1+n*/])
       glp_double *f_ = ifu->f;
       glp_double *u_ = ifu->u;
       int i, j;
-      glp_long_double t;
 #     define f(i,j) f_[(i)*n_max+(j)]
 #     define u(i,j) u_[(i)*n_max+(j)]
       xassert(0 <= n && n <= n_max);
@@ -371,14 +370,14 @@ void ifu_at_solve(IFU *ifu, glp_double x[/*1+n*/], glp_double w[/*1+n*/])
       x++, w++;
       /* y := inv(U') * b */
       for (i = 0; i < n; i++)
-      {  t = (x[i] /= u(i,i));
+      {  glp_double t = (x[i] /= u(i,i));
          for (j = i+1; j < n; j++)
             x[j] -= u(i,j) * t;
       }
       /* x := F'* y */
       for (j = 0; j < n; j++)
       {  /* x[j] := (j-th column of F) * y */
-         t = 0.0;
+         glp_long_double t = 0.0;
          for (i = 0; i < n; i++)
             t += f(i,j) * x[i];
          w[j] = t;

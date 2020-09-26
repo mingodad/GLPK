@@ -358,7 +358,7 @@ glp_double spy_update_gamma(SPXLP *lp, SPYSE *se, int p, int q,
       glp_double *gamma = se->gamma;
       glp_double *u = se->work;
       int i, j, k, ptr, end;
-      glp_long_double gamma_p; glp_double delta_p, e, r, t1, t2;
+      glp_double gamma_p, delta_p, e, r, t1, t2;
       xassert(se->valid);
       xassert(1 <= p && p <= m);
       xassert(1 <= q && q <= n-m);
@@ -417,7 +417,7 @@ glp_double spy_update_gamma_s(SPXLP *lp, SPYSE *se, int p, int q,
       int *tcol_ind = tcol->ind;
       glp_double *tcol_vec = tcol->vec;
       int i, j, k, t, ptr, end;
-      glp_long_double gamma_p; glp_double delta_p, e, r, t1, t2;
+      glp_double gamma_p, delta_p, e, r, t1, t2;
       xassert(se->valid);
       xassert(1 <= p && p <= m);
       xassert(1 <= q && q <= n-m);

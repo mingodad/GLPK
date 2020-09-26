@@ -66,7 +66,7 @@ glp_double glp_cpp(glp_graph *G, int v_t, int v_es, int v_ls)
 {     glp_vertex *v;
       glp_arc *a;
       int i, j, k, nv, *list;
-      glp_long_double temp, total; glp_double *t, *es, *ls;
+      glp_long_double total; glp_double temp, *t, *es, *ls;
       if (v_t >= 0 && v_t > G->v_size - (int)sizeof(glp_double))
          xerror("glp_cpp: v_t = %d; invalid offset\n", v_t);
       if (v_es >= 0 && v_es > G->v_size - (int)sizeof(glp_double))

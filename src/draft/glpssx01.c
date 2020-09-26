@@ -462,7 +462,7 @@ void ssx_chuzc(SSX *ssx)
       char *stat = ssx->stat;
       mpq_t *cbar = ssx->cbar;
       int j, k, s, q, q_dir;
-      glp_long_double best, temp;
+      glp_double best, temp;
       mpq_t abs_best; mpq_init(abs_best);
       mpq_t abs_cur; mpq_init(abs_cur);
       /* nothing is chosen so far */

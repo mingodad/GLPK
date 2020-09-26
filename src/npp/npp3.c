@@ -1491,7 +1491,7 @@ int npp_implied_free(NPP *npp, NPPCOL *q)
       struct implied_free *info;
       NPPROW *p;
       NPPAIJ *apq, *aij;
-      glp_long_double alfa, beta, l, u, pi, eps;
+      glp_long_double alfa, beta; glp_double l, u, pi, eps;
       /* the column must be non-fixed singleton */
       xassert(q->lb < q->ub);
       xassert(q->ptr != NULL && q->ptr->c_next == NULL);
@@ -1767,7 +1767,7 @@ NPPCOL *npp_eq_doublet(NPP *npp, NPPROW *p)
       NPPCOL *q, *r;
       NPPAIJ *apq, *apr, *aiq, *air, *next;
       NPPLFE *lfe;
-      glp_long_double gamma;
+      glp_double gamma;
       /* the row must be doubleton equality constraint */
       xassert(p->lb == p->ub);
       xassert(p->ptr != NULL && p->ptr->r_next != NULL &&
@@ -1855,7 +1855,7 @@ static int rcv_eq_doublet(NPP *npp, void *_info)
 {     /* recover row doubleton (equality constraint) */
       struct eq_doublet *info = _info;
       NPPLFE *lfe;
-      glp_long_double gamma, temp;
+      glp_double gamma; glp_long_double temp;
       /* we assume that processing row p is followed by processing
          column q as singleton of type "implied slack variable", in
          which case row p must always be active equality constraint */

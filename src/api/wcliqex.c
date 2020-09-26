@@ -64,7 +64,7 @@ int glp_wclique_exact(glp_graph *G, int v_wgt, glp_double *sol, int v_set)
       for (i = 1; i <= G->nv; i++)
       {  if (v_wgt >= 0)
          {  memcpy(&t, (char *)G->v[i]->data + v_wgt, sizeof(glp_double));
-            if (!(0.0 <= t && t <= (glp_double)INT_MAX && t == floor(t)))
+            if (!(0.0 <= t && t <= INT_MAX && t == floor(t)))
             {  ret = GLP_EDATA;
                goto done;
             }
@@ -72,9 +72,9 @@ int glp_wclique_exact(glp_graph *G, int v_wgt, glp_double *sol, int v_set)
          }
          else
             w[i] = 1;
-         s += (glp_double)w[i];
+         s += w[i];
       }
-      if (s > (glp_double)INT_MAX)
+      if (s > INT_MAX)
       {  ret = GLP_EDATA;
          goto done;
       }

@@ -106,7 +106,7 @@ void ios_process_cuts(glp_tree *T)
          info[k].cut = pool->row[k], info[k].flag = 0;
       /* estimate efficiency of all cuts in the cut pool */
       for (k = 1; k <= pool->m; k++)
-      {  glp_double temp, dy, dz;
+      {  glp_long_double temp; glp_double dy, dz;
          cut = info[k].cut;
          /* build the vector of cut coefficients and compute its
             Euclidean norm */
@@ -397,7 +397,7 @@ static glp_double efficacy(glp_tree *T, IOSCUT *cut)
 #ifdef NEW_LOCAL /* 02/II-2018 */
 static glp_double parallel(IOSCUT *a, IOSCUT *b, glp_double work[])
 {     GLPAIJ *aij;
-      glp_long_double s = 0.0, sa = 0.0, sb = 0.0, temp;
+      glp_long_double s = 0.0, sa = 0.0, sb = 0.0; glp_double temp;
       for (aij = a->ptr; aij != NULL; aij = aij->r_next)
       {  work[aij->col->j] = aij->val;
          sa += aij->val * aij->val;
@@ -415,7 +415,7 @@ static glp_double parallel(IOSCUT *a, IOSCUT *b, glp_double work[])
 #else
 static glp_double parallel(IOSCUT *a, IOSCUT *b, glp_double work[])
 {     IOSAIJ *aij;
-      glp_long_double s = 0.0, sa = 0.0, sb = 0.0, temp;
+      glp_long_double s = 0.0, sa = 0.0, sb = 0.0; glp_double temp;
       for (aij = a->ptr; aij != NULL; aij = aij->next)
       {  work[aij->j] = aij->val;
          sa += aij->val * aij->val;

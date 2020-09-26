@@ -143,7 +143,7 @@ static int cover2(int n, glp_double a[], glp_double b, glp_double u, glp_double 
       glp_double y, int cov[], glp_double *_alfa, glp_double *_beta)
 {     /* try to generate mixed cover cut using two-element cover */
       int i, j, try = 0, ret = 0;
-      glp_long_double eps, alfa, beta, temp, rmax = 0.001;
+      glp_double eps, alfa, beta, temp, rmax = 0.001;
       eps = 0.001 * (1.0 + fabs(b));
       for (i = 0+1; i <= n; i++)
       for (j = i+1; j <= n; j++)
@@ -176,7 +176,7 @@ static int cover3(int n, glp_double a[], glp_double b, glp_double u, glp_double 
       glp_double y, int cov[], glp_double *_alfa, glp_double *_beta)
 {     /* try to generate mixed cover cut using three-element cover */
       int i, j, k, try = 0, ret = 0;
-      glp_long_double eps, alfa, beta, temp, rmax = 0.001;
+      glp_double eps, alfa, beta, temp, rmax = 0.001;
       eps = 0.001 * (1.0 + fabs(b));
       for (i = 0+1; i <= n; i++)
       for (j = i+1; j <= n; j++)
@@ -211,7 +211,7 @@ static int cover4(int n, glp_double a[], glp_double b, glp_double u, glp_double 
       glp_double y, int cov[], glp_double *_alfa, glp_double *_beta)
 {     /* try to generate mixed cover cut using four-element cover */
       int i, j, k, l, try = 0, ret = 0;
-      glp_long_double eps, alfa, beta, temp, rmax = 0.001;
+      glp_double eps, alfa, beta, temp, rmax = 0.001;
       eps = 0.001 * (1.0 + fabs(b));
       for (i = 0+1; i <= n; i++)
       for (j = i+1; j <= n; j++)

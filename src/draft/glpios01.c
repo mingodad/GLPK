@@ -923,7 +923,7 @@ void ios_eval_degrad(glp_tree *tree, int j, glp_double *dn, glp_double *up)
 {     glp_prob *mip = tree->mip;
       int m = mip->m, n = mip->n;
       int len, kase, k, t, stat;
-      glp_long_double alfa, beta, gamma, delta, dz;
+      glp_double alfa, beta, gamma, delta, dz;
       int *ind = tree->iwrk;
       glp_double *val = tree->dwrk;
       /* current basis must be optimal */
@@ -1095,7 +1095,7 @@ glp_double ios_round_bound(glp_tree *tree, glp_double bound)
 {     glp_prob *mip = tree->mip;
       int n = mip->n;
       int d, j, nn, *c = tree->iwrk;
-      glp_long_double s, h;
+      glp_long_double s; glp_double h;
       /* determine c[j] and compute s */
       nn = 0, s = mip->c0, d = 0;
       for (j = 1; j <= n; j++)
@@ -1174,7 +1174,7 @@ skip: return bound;
 int ios_is_hopeful(glp_tree *tree, glp_double bound)
 {     glp_prob *mip = tree->mip;
       int ret = 1;
-      glp_long_double eps;
+      glp_double eps;
       if (mip->mip_stat == GLP_FEAS)
       {  eps = tree->parm->tol_obj * (1.0 + fabs(mip->mip_obj));
          switch (mip->dir)
