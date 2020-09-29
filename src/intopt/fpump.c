@@ -220,7 +220,7 @@ loop: /* innermost loop begins here */
             var[k].d = fabs(col->prim - (glp_double)var[k].x);
          }
          /* sort the list of binary variables by descending d[j] */
-         qsort(&var[1], nv, sizeof(struct VAR), fcmp);
+         glp_qsort(&var[1], nv, sizeof(struct VAR), fcmp);
          /* choose and flip some rounded components */
          for (k = 1; k <= nv; k++)
          {  if (k >= 5 && var[k].d < 0.35 || k >= 10) break;

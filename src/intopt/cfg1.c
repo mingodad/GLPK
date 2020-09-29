@@ -315,7 +315,7 @@ static void analyze_ineq(glp_prob *P, CFG *G, int len, int ind[],
       {  t[k].ind = ind[k];
          t[k].val = val[k];
       }
-      qsort(&t[1], len, sizeof(struct term), fcmp);
+      glp_qsort(&t[1], len, sizeof(struct term), fcmp);
       for (k = 1; k <= len; k++)
       {  ind[k] = t[k].ind;
          val[k] = t[k].val;

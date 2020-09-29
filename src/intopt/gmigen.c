@@ -105,7 +105,7 @@ int glp_gmi_gen(glp_prob *P, glp_prob *pool, int max_cuts)
          nv++, var[nv].j = j, var[nv].f = frac;
       }
       /* sort the list by descending fractionality */
-      qsort(&var[1], nv, sizeof(struct var), fcmp);
+      glp_qsort(&var[1], nv, sizeof(struct var), fcmp);
       /* try to generate cuts by one for each variable in the list, but
        * not more than max_cuts cuts */
       nnn = 0;
@@ -126,6 +126,7 @@ int glp_gmi_gen(glp_prob *P, glp_prob *pool, int max_cuts)
          glp_set_row_bnds(pool, i, GLP_LO, val[0], 0);
          glp_set_mat_row(pool, i, len, ind, val);
          /* one cut has been generated */
+         /*printf("nnn %d : %d : %d : %d : %g : %g : %g\n", i, len, t, var[t].j, var[t].f, val[k], fabs(val[k]));*/
          nnn++;
          if (nnn == max_cuts)
             break;

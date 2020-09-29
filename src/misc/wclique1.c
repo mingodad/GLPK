@@ -108,7 +108,7 @@ int wclique1(int n, const glp_double w[],
       }
       /* sort the vertex list to access vertices in descending order of
        * cumulative weights */
-      qsort(&v_list[1], n, sizeof(struct vertex), fcmp);
+      glp_qsort(&v_list[1], n, sizeof(struct vertex), fcmp);
       /* initially all vertices are unmarked */
       memset(&skip[1], 0, sizeof(char) * n);
       /* clear flags of all vertices */

@@ -48,7 +48,7 @@
 #include "mt1.h"
 
 typedef int integer;
-typedef float real;
+typedef glp_float real;
 #endif
 
 #line 1 ""

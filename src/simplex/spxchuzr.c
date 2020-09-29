@@ -568,7 +568,7 @@ int spx_ls_select_bp(SPXLP *lp, const glp_double tcol[/*1+m*/],
       /* sort new break points bp[num+1], ..., bp[num1] by ascending
        * the ray parameter teta */
       if (num1 - num > 1)
-         qsort(&bp[num+1], num1 - num, sizeof(SPXBP), fcmp);
+         glp_qsort(&bp[num+1], num1 - num, sizeof(SPXBP), fcmp);
       /* calculate the penalty function change at the new break points
        * selected */
       for (t = num+1; t <= num1; t++)

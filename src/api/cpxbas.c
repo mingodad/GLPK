@@ -150,15 +150,15 @@ static void cpx_basis(glp_prob *lp)
       }
       /* sort structural variables within C2, C3, and C4 in ascending
          order of penalty value */
-      qsort(C2+1, n2, sizeof(struct var), fcmp);
+      glp_qsort(C2+1, n2, sizeof(struct var), fcmp);
 #ifndef XASSERT_DISABLED
       for (k = 1; k < n2; k++) xassert(C2[k].q <= C2[k+1].q);
 #endif
-      qsort(C3+1, n3, sizeof(struct var), fcmp);
+      glp_qsort(C3+1, n3, sizeof(struct var), fcmp);
 #ifndef XASSERT_DISABLED
       for (k = 1; k < n3; k++) xassert(C3[k].q <= C3[k+1].q);
 #endif
-      qsort(C4+1, n4, sizeof(struct var), fcmp);
+      glp_qsort(C4+1, n4, sizeof(struct var), fcmp);
 #ifndef XASSERT_DISABLED
       for (k = 1; k < n4; k++) xassert(C4[k].q <= C4[k+1].q);
 #endif

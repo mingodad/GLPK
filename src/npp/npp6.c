@@ -229,7 +229,7 @@ int npp_sat_is_cover_ineq(NPP *npp, NPPROW *row)
          {  /* row is a binary combination */
             if (row->lb == 1.0 - npp_sat_num_neg_coef(npp, row))
             {  /* row has the form (2) */
-               return 1;
+               return NPP_ROW_IS_COV_INEQ2;
             }
          }
       }
@@ -239,12 +239,12 @@ int npp_sat_is_cover_ineq(NPP *npp, NPPROW *row)
          {  /* row is a binary combination */
             if (row->ub == npp_sat_num_pos_coef(npp, row) - 1.0)
             {  /* row has the form (3) */
-               return 2;
+               return NPP_ROW_ISCOV_INEQ3;
             }
          }
       }
       /* row is not a covering inequality */
-      return 0;
+      return NPP_ROW_IS_NOT_COV_INEQ;
 }
 
 /***********************************************************************
@@ -512,7 +512,7 @@ void npp_sat_encode_pack(NPP *npp, NPPROW *row)
                rrr->ub -= 1.0;
             /* and transform it to covering inequality (3) */
             npp_sat_reverse_row(npp, rrr);
-            xassert(npp_sat_is_cover_ineq(npp, rrr) == 1);
+            xassert(npp_sat_is_cover_ineq(npp, rrr) == NPP_ROW_IS_COV_INEQ2);
          }
       }
       /* remove the original row from the problem */
@@ -639,7 +639,7 @@ void npp_sat_encode_sum2(NPP *npp, NPPLSE *set, NPPSED *sed)
 
 void npp_sat_encode_sum3(NPP *npp, NPPLSE *set, NPPSED *sed)
 {     NPPROW *row;
-      int x, y, z, s, c;
+      int x, y, z, s, c, t;
       /* the set should contain at least three literals */
       xassert(set != NULL);
       xassert(set->next != NULL);
@@ -656,8 +656,9 @@ void npp_sat_encode_sum3(NPP *npp, NPPLSE *set, NPPSED *sed)
       for (x = 0; x <= 1; x++)
       {  for (y = 0; y <= 1; y++)
          {  for (z = 0; z <= 1; z++)
-            {  for (s = 0; s <= 1; s++)
-               {  if ((x + y + z) % 2 != s)
+            {  t = (x + y + z) % 2;
+               for (s = 0; s <= 1; s++)
+               {  if (t != s)
                   {  /* generate CNF clause to disable infeasible
                         combination */
                      row = npp_add_row(npp);
@@ -697,8 +698,9 @@ void npp_sat_encode_sum3(NPP *npp, NPPLSE *set, NPPSED *sed)
       for (x = 0; x <= 1; x++)
       {  for (y = 0; y <= 1; y++)
          {  for (z = 0; z <= 1; z++)
-            {  for (c = 0; c <= 1; c++)
-               {  if ((x + y + z) / 2 != c)
+            {  t = (x + y + z) / 2;
+               for (c = 0; c <= 1; c++)
+               {  if (t != c)
                   {  /* generate CNF clause to disable infeasible
                         combination */
                      row = npp_add_row(npp);
@@ -1404,12 +1406,12 @@ int npp_sat_encode_prob(NPP *npp)
       {  prev_row = row->prev;
          /* process special cases */
          ret = npp_sat_is_cover_ineq(npp, row);
-         if (ret != 0)
+         if (ret != NPP_ROW_IS_NOT_COV_INEQ)
          {  /* row is covering inequality */
             cover++;
             /* since it already encodes a clause, just transform it to
                canonical form */
-            if (ret == 2)
+            if (ret == NPP_ROW_ISCOV_INEQ3)
             {  ret = npp_sat_reverse_row(npp, row);
                xassert(ret == 0);
                ret = npp_sat_is_cover_ineq(npp, row);

@@ -158,6 +158,7 @@ add_library(glpk
 	misc/mygmp.c
 	misc/okalg.c
 	misc/qmd.c
+	misc/qsort.c
 	misc/relax4.c
 	misc/rng.c
 	misc/rng1.c

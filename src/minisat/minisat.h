@@ -156,8 +156,8 @@ typedef struct /* solver_t */
     glp_double   var_inc;       /* Amount to bump next variable with. */
     glp_double   var_decay;     /* INVERSE decay factor for variable
                                activity: stores 1/decay. */
-    float    cla_inc;       /* Amount to bump next clause with. */
-    float    cla_decay;     /* INVERSE decay factor for clause
+    glp_float    cla_inc;       /* Amount to bump next clause with. */
+    glp_float    cla_decay;     /* INVERSE decay factor for clause
                                activity: stores 1/decay. */
 
     vecp*    wlists;

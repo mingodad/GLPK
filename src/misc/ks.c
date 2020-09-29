@@ -301,7 +301,7 @@ static void free_ks(struct ks *ks)
 
 struct mt
 {     int j;
-      float r; /* r[j] = c[j] / a[j] */
+      glp_float r; /* r[j] = c[j] / a[j] */
 };
 
 static int CDECL fcmp(const void *p1, const void *p2)
@@ -331,9 +331,9 @@ static int mt1a(int n, const int a[], int b, const int c[], char x[])
       /* reorder items to provide c[j] / a[j] >= a[j+1] / a[j+1] */
       for (j = 1; j <= n; j++)
       {  mt[j].j = j;
-         mt[j].r = (float)c[j] / (float)a[j];
+         mt[j].r = (glp_float)c[j] / (glp_float)a[j];
       }
-      qsort(&mt[1], n, sizeof(struct mt), fcmp);
+      glp_qsort(&mt[1], n, sizeof(struct mt), fcmp);
       /* load instance parameters */
       for (j = 1; j <= n; j++)
       {  p[j] = c[mt[j].j];
@@ -413,9 +413,9 @@ static int greedy(int n, const int a[], int b, const int c[], char x[])
       mt = talloc(1+n, struct mt);
       for (j = 1; j <= n; j++)
       {  mt[j].j = j;
-         mt[j].r = (float)c[j] / (float)a[j];
+         mt[j].r = (glp_float)c[j] / (glp_float)a[j];
       }
-      qsort(&mt[1], n, sizeof(struct mt), fcmp);
+      glp_qsort(&mt[1], n, sizeof(struct mt), fcmp);
       /* take items starting from most valuable ones until the knapsack
        * is full */
       s = z = 0;

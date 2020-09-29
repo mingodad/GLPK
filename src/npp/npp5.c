@@ -186,7 +186,7 @@ int npp_process_row(NPP *npp, NPPROW *row, int hard)
 #endif
             return 0;
          }
-         else if (ret == 1)
+         else if (ret == NPP_NO_PRIMAL_FEASIBILITY)
          {  /* primal infeasibility */
             return GLP_ENOPFS;
          }
@@ -212,7 +212,7 @@ int npp_process_row(NPP *npp, NPPROW *row, int hard)
                /* column was deleted */
                return 0;
             }
-            else if (ret == 1 || ret == 2)
+            else if (ret == NPP_IV_VIOLATES_BOUND || ret == NPP_IV_VIOLATES_INTEGRALITY)
             {  /* primal/integer infeasibility */
                return GLP_ENOPFS;
             }
@@ -222,7 +222,7 @@ int npp_process_row(NPP *npp, NPPROW *row, int hard)
          else
          {  /* inequality constraint */
             ret = npp_ineq_singlet(npp, row);
-            if (0 <= ret && ret <= 3)
+            if (NPP_CURCOL_BOUNDS_NO_CHG <= ret && ret <= NPP_CURCOL_BOUNDS_FIXED)
             {  /* row was deleted */
 #ifdef GLP_DEBUG
                xprintf("C");
@@ -230,14 +230,14 @@ int npp_process_row(NPP *npp, NPPROW *row, int hard)
                /* activate column, since its length was changed due to
                   row deletion */
                npp_activate_col(npp, col);
-               if (ret >= 2)
+               if (ret >= NPP_CURCOL_BOUNDS_SIG_CHG)
                {  /* column bounds changed significantly or column was
                      fixed */
                   /* activate rows affected by column */
                   for (aij = col->ptr; aij != NULL; aij = aij->c_next)
                      npp_activate_row(npp, aij->row);
                }
-               if (ret == 3)
+               if (ret == NPP_CURCOL_BOUNDS_FIXED)
                {  /* column was fixed; process it */
 #ifdef GLP_DEBUG
                   xprintf("D");
@@ -247,7 +247,7 @@ int npp_process_row(NPP *npp, NPPROW *row, int hard)
                }
                return 0;
             }
-            else if (ret == 4)
+            else if (ret == NPP_NO_PRIMAL_FEASIBILITY)
             {  /* primal infeasibility */
                return GLP_ENOPFS;
             }
@@ -289,11 +289,11 @@ int npp_process_row(NPP *npp, NPPROW *row, int hard)
       /* general row analysis */
       ret = npp_analyze_row(npp, row);
       xassert(0x00 <= ret && ret <= 0xFF);
-      if (ret == 0x33)
+      if (ret == NPP_BOUND_INCONSISTENT)
       {  /* row bounds are inconsistent with column bounds */
          return GLP_ENOPFS;
       }
-      if ((ret & 0x0F) == 0x00)
+      if ((ret & 0x0F) == NPP_CURCOL_BOUNDS_NO_CHG)
       {  /* row lower bound does not exist or redundant */
          if (row->lb != -GLP_DBL_MAX)
          {  /* remove redundant row lower bound */
@@ -303,11 +303,11 @@ int npp_process_row(NPP *npp, NPPROW *row, int hard)
             npp_inactive_bound(npp, row, 0);
          }
       }
-      else if ((ret & 0x0F) == 0x01)
+      else if ((ret & 0x0F) == NPP_LOWER_BOUND_ACTIVE)
       {  /* row lower bound can be active */
          /* see below */
       }
-      else if ((ret & 0x0F) == 0x02)
+      else if ((ret & 0x0F) == NPP_LOWER_BOUND_FORCING)
       {  /* row lower bound is a forcing bound */
 #ifdef GLP_DEBUG
          xprintf("G");
@@ -338,7 +338,7 @@ fixup:   {  /* columns were fixed, row was made free */
       }
       else
          xassert(ret != ret);
-      if ((ret & 0xF0) == 0x00)
+      if ((ret & 0xF0) == NPP_CURCOL_BOUNDS_NO_CHG)
       {  /* row upper bound does not exist or redundant */
          if (row->ub != +GLP_DBL_MAX)
          {  /* remove redundant row upper bound */
@@ -348,11 +348,11 @@ fixup:   {  /* columns were fixed, row was made free */
             npp_inactive_bound(npp, row, 1);
          }
       }
-      else if ((ret & 0xF0) == 0x10)
+      else if ((ret & 0xF0) == NPP_UPPER_BOUND_ACTIVE)
       {  /* row upper bound can be active */
          /* see below */
       }
-      else if ((ret & 0xF0) == 0x20)
+      else if ((ret & 0xF0) == NPP_UPPER_BOUND_FORCING)
       {  /* row upper bound is a forcing bound */
 #ifdef GLP_DEBUG
          xprintf("J");
@@ -445,12 +445,12 @@ int npp_improve_bounds(NPP *npp, NPPROW *row, int flag)
                if (col->uu.uu == +GLP_DBL_MAX) continue;
                ret = npp_implied_upper(npp, col, col->uu.uu);
             }
-            if (ret == 0 || ret == 1)
+            if (ret == NPP_CURCOL_BOUNDS_NO_CHG || ret == NPP_CURCOL_BOUNDS_CHG)
             {  /* current column bounds did not change or changed, but
                   not significantly; restore current column bounds */
                col->lb = lb, col->ub = ub;
             }
-            else if (ret == 2 || ret == 3)
+            else if (ret == NPP_CURCOL_BOUNDS_SIG_CHG || ret == NPP_CURCOL_BOUNDS_FIXED)
             {  /* current column bounds changed significantly or column
                   was fixed */
 #ifdef GLP_DEBUG
@@ -464,7 +464,7 @@ int npp_improve_bounds(NPP *npp, NPPROW *row, int flag)
                         npp_activate_row(npp, aaa->row);
                   }
                }
-               if (ret == 3)
+               if (ret == NPP_CURCOL_BOUNDS_FIXED)
                {  /* process fixed column */
 #ifdef GLP_DEBUG
                   xprintf("M");
@@ -474,7 +474,7 @@ int npp_improve_bounds(NPP *npp, NPPROW *row, int flag)
                   break; /* for kase */
                }
             }
-            else if (ret == 4)
+            else if (ret == NPP_NO_PRIMAL_FEASIBILITY)
             {  /* primal/integer infeasibility */
                return -1;
             }
@@ -537,7 +537,7 @@ int npp_process_col(NPP *npp, NPPCOL *col)
 #endif
             return 0;
          }
-         else if (ret == 1)
+         else if (ret == NPP_NO_DUAL_FEASIBILITY)
          {  /* dual infeasibility */
             return GLP_ENODFS;
          }
@@ -589,11 +589,11 @@ slack:      {  /* implied slack variable */
                      equality constraint */
                   goto slack;
                }
-               else if (ret == 1)
+               else if (ret == NPP_BOUND_ACTIVE)
                {  /* column is not implied free variable, because its
                      lower and/or upper bounds can be active */
                }
-               else if (ret == 2)
+               else if (ret == NPP_NO_DUAL_FEASIBILITY)
                {  /* dual infeasibility */
                   return GLP_ENODFS;
                }

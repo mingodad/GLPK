@@ -364,7 +364,7 @@ int spy_eval_bp(SPXLP *lp, const glp_double d[/*1+n-m*/],
       }
       num = nnn;
       /* sort break-points by ascending teta[j] */
-      qsort(&bp[1], num, sizeof(SPYBP), fcmp);
+      glp_qsort(&bp[1], num, sizeof(SPYBP), fcmp);
       /* add lambdaN[j_max] to the end of the list */
       if (j_max != 0)
       {  xassert(num < n-m);
@@ -532,7 +532,7 @@ int spy_ls_select_bp(SPXLP *lp, const glp_double trow[/*1+n-m*/],
       /* sort new break-points bp[num+1], ..., bp[num1] by ascending
        * the ray parameter teta */
       if (num1 - num > 1)
-         qsort(&bp[num+1], num1 - num, sizeof(SPYBP), fcmp);
+         glp_qsort(&bp[num+1], num1 - num, sizeof(SPYBP), fcmp);
       /* calculate the dual objective change at the new break-points */
       for (t = num+1; t <= num1; t++)
       {  /* calculate the dual objective change relative to its value

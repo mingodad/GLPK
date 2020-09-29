@@ -541,13 +541,35 @@ void fhv_h_solve(FHV *fhv, glp_double x[/*1+n*/])
       int *hh_ptr = &sva->ptr[hh_ref-1];
       int *hh_len = &sva->len[hh_ref-1];
       int i, k, end, ptr;
-      glp_long_double x_i;
+#if 0
+      glp_double st, s1, s2, xip;
+      for (k = 1; k <= nfs; k++)
+      {  s1 = s2 = 0.0;
+         for (i=0, end = (ptr = hh_ptr[k]) + hh_len[k]; ptr < end; ++ptr, ++i)
+         {
+             if((xip = x[sv_ind[ptr]]) == 0.0)
+                 continue;
+             st = sv_val[ptr] * xip;
+             //printf("%g : %g : %g\n", st, sv_val[ptr], xip);
+             if(st > 1e-6 || st < -1e-6) s1 += st;
+             else s2 += st;
+         }
+         x[hh_ind[k]] -= s1 + s2;
+      }
+#else
+      glp_long_double2 x_i, xip;
       for (k = 1; k <= nfs; k++)
       {  x_i = x[i = hh_ind[k]];
          for (end = (ptr = hh_ptr[k]) + hh_len[k]; ptr < end; ptr++)
-            x_i -= sv_val[ptr] * x[sv_ind[ptr]];
+         {
+             if((xip = x[sv_ind[ptr]]) == 0.0)
+                 continue;
+            //printf("%g : %g\n", xip, sv_val[ptr]);
+            x_i -= sv_val[ptr] * xip;
+         }
          x[i] = x_i;
       }
+#endif
       return;
 }
 
@@ -573,7 +595,7 @@ void fhv_ht_solve(FHV *fhv, glp_double x[/*1+n*/])
       int *hh_ptr = &sva->ptr[hh_ref-1];
       int *hh_len = &sva->len[hh_ref-1];
       int k, end, ptr;
-      glp_long_double x_j;
+      glp_double x_j;
       for (k = nfs; k >= 1; k--)
       {  if ((x_j = x[hh_ind[k]]) == 0.0)
             continue;

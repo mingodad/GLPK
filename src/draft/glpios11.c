@@ -162,7 +162,7 @@ void ios_process_cuts(glp_tree *T)
       }
       /* sort the list of cuts by decreasing objective degradation and
          then by decreasing efficacy */
-      qsort(&info[1], pool->m, sizeof(struct info), fcmp);
+      glp_qsort(&info[1], pool->m, sizeof(struct info), fcmp);
       /* only first (most efficient) max_cuts in the list are qualified
          as candidates to be added to the current subproblem */
       max_cuts = (T->curr->level == 0 ? 90 : 10);
@@ -289,7 +289,7 @@ void ios_process_cuts(glp_tree *T)
       }
       /* sort the list of cuts by decreasing objective degradation and
          then by decreasing efficacy */
-      qsort(&info[1], pool->size, sizeof(struct info), fcmp);
+      glp_qsort(&info[1], pool->size, sizeof(struct info), fcmp);
       /* only first (most efficient) max_cuts in the list are qualified
          as candidates to be added to the current subproblem */
       max_cuts = (T->curr->level == 0 ? 90 : 10);

@@ -104,6 +104,7 @@ extern "C" {
     #define GLP_DBL_EMINUS_12 1e-12
     #define GLP_DBL_EMINUS_20 1e-20
 
+    #define glp_float double
     #define glp_double_t glp_double
     #define GLP_PIVOT_TOL 0.10
     #define GLP_EPS_TOL GLP_DBL_EPSILON

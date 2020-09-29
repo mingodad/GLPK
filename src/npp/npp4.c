@@ -456,7 +456,7 @@ static int hidden_packing(NPP *npp, struct elem *ptr, glp_double *_b)
       {  /* all coefficients a[j] are +1 or -1; check rhs b */
          if (b == (glp_double)(1 - neg))
          {  /* it is packing inequality; no processing is needed */
-            return 1;
+            return NPP_PACK_INEQ;
          }
       }
       /* substitute x[j] = 1 - x~[j] for all j in Jn to make all a[j]
@@ -466,7 +466,7 @@ static int hidden_packing(NPP *npp, struct elem *ptr, glp_double *_b)
       /* now a[j] > 0 for all j in J (actually |a[j]| are used) */
       /* if a[j] > b, skip processing--this case must not appear */
       for (e = ptr; e != NULL; e = e->next)
-         if (fabs(e->aj) > b) return 0;
+         if (fabs(e->aj) > b) return NPP_NO_HIDDEN_PACK_INEQ;
       /* now 0 < a[j] <= b for all j in J */
       /* find two minimal coefficients a[j] and a[k], j != k */
       ej = NULL;
@@ -481,7 +481,7 @@ static int hidden_packing(NPP *npp, struct elem *ptr, glp_double *_b)
       /* the specified constraint is equivalent to packing inequality
          iff a[j] + a[k] > b + eps */
       eps = GLP_NPP_EPS_3_6_fabs(b);
-      if (fabs(ej->aj) + fabs(ek->aj) <= b + eps) return 0;
+      if (fabs(ej->aj) + fabs(ek->aj) <= b + eps) return NPP_NO_HIDDEN_PACK_INEQ;
       /* perform back substitution x~[j] = 1 - x[j] and construct the
          final equivalent packing inequality in generalized format */
       b = 1.0;
@@ -492,7 +492,7 @@ static int hidden_packing(NPP *npp, struct elem *ptr, glp_double *_b)
             e->aj = -1.0, b -= 1.0;
       }
       *_b = b;
-      return 2;
+      return NPP_HIDDEN_PACK_INEQ;
 }
 
 int npp_hidden_packing(NPP *npp, NPPROW *row)
@@ -519,8 +519,8 @@ int npp_hidden_packing(NPP *npp, NPPROW *row)
          }
          /* now the inequality has the form "sum a[j] x[j] <= b" */
          ret = hidden_packing(npp, ptr, &b);
-         xassert(0 <= ret && ret <= 2);
-         if (kase == 1 && ret == 1 || ret == 2)
+         xassert(NPP_NO_HIDDEN_PACK_INEQ <= ret && ret <= NPP_HIDDEN_PACK_INEQ);
+         if (kase == 1 && ret == NPP_PACK_INEQ || ret == NPP_HIDDEN_PACK_INEQ)
          {  /* the original inequality has been identified as hidden
                packing inequality */
             count++;
@@ -718,12 +718,12 @@ int npp_implied_packing(NPP *npp, NPPROW *row, int which,
       int len = 0;
       glp_long_double b; glp_double eps;
       /* build inequality (3) */
-      if (which == 0)
+      if (which == NPP_IMPLIED_PACK_LOWER)
       {  ptr = copy_form(npp, row, -1.0);
          xassert(row->lb != -GLP_DBL_MAX);
          b = - row->lb;
       }
-      else if (which == 1)
+      else if (which == NPP_IMPLIED_PACK_UPPER)
       {  ptr = copy_form(npp, row, +1.0);
          xassert(row->ub != +GLP_DBL_MAX);
          b = + row->ub;

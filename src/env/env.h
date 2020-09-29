@@ -31,6 +31,10 @@ typedef struct MBD MBD;
 
 #include "glpk_real.h"
 
+typedef int (*glp_cmpfun)(const void *, const void *);
+extern void glp_qsort(void *base, size_t nel, size_t width, glp_cmpfun cmp);
+//#define glp_qsort qsort
+
 #define SIZE_T_MAX (~(size_t)0)
 /* largest value of size_t type */
 

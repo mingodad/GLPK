@@ -864,7 +864,7 @@ static glp_double cmir_sep(const int n, const glp_double a[], const glp_double b
          vset[nv].j = j;
          vset[nv].v = fabs(x[j] - 0.5 * u[j]);
       }
-      qsort(&vset[1], nv, sizeof(struct vset), cmir_cmp);
+      glp_qsort(&vset[1], nv, sizeof(struct vset), cmir_cmp);
       /* try to increase violation by successively complementing each
          variable in the subset */
       for (v = 1; v <= nv; v++)

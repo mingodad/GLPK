@@ -37,6 +37,41 @@ typedef struct NPPAIJ NPPAIJ;
 typedef struct NPPTSE NPPTSE;
 typedef struct NPPLFE NPPLFE;
 
+#define NPP_BOUND_INCONSISTENT 0x33
+#define NPP_LOWER_BOUND_ACTIVE 0x01
+#define NPP_LOWER_BOUND_FORCING 0x02
+#define NPP_UPPER_BOUND_ACTIVE 0x10
+#define NPP_UPPER_BOUND_FORCING 0x20
+
+#define NPP_BOUND_ACTIVE 1
+#define NPP_NO_DUAL_FEASIBILITY 2
+
+#define NPP_IV_VIOLATES_BOUND 1
+#define NPP_IV_VIOLATES_INTEGRALITY 2
+
+enum {
+    NPP_CURCOL_BOUNDS_NO_CHG, /*  0 - current column bounds have not changed*/
+    NPP_CURCOL_BOUNDS_CHG, /*  1 - current column bounds have changed, but not significantly*/
+    NPP_CURCOL_BOUNDS_SIG_CHG, /*  2 - current column bounds have significantly changed*/
+    NPP_CURCOL_BOUNDS_FIXED, /*  3 - column has been fixed on its lower or upper bound*/
+    NPP_NO_PRIMAL_FEASIBILITY /*  4 - problem has no primal feasible solution*/
+};
+
+#define NPP_IMPLIED_PACK_LOWER 0
+#define NPP_IMPLIED_PACK_UPPER 1
+
+enum {
+    NPP_NO_HIDDEN_PACK_INEQ, /*0 - specified row is NOT hidden packing inequality*/
+    NPP_PACK_INEQ, /*1 - specified row is packing inequality*/
+    NPP_HIDDEN_PACK_INEQ, /*2 - specified row is hidden packing inequality. */
+};
+
+enum {
+    NPP_ROW_IS_NOT_COV_INEQ, /*  0, if the specified row is not a covering inequality */
+    NPP_ROW_IS_COV_INEQ2, /*  1, if the specified row has the form (2)*/
+    NPP_ROW_ISCOV_INEQ3, /*  2, if the specified row has the form (3). */
+};
+
 #if 0 /* 20/XI-2017 */
 struct NPP
 #else

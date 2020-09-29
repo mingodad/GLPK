@@ -712,7 +712,7 @@ glp_double spx_update_d_s(SPXLP *lp, glp_double d[/*1+n-m*/], int p, int q,
       int *tcol_ind = tcol->ind;
       glp_double *tcol_vec = tcol->vec;
       int i, j, k;
-      glp_long_double dq; glp_double e;
+      glp_double dq, e, chi; /*degrade performance*/
       xassert(1 <= p && p <= m);
       xassert(1 <= q && q <= n);
       xassert(trow->n == n-m);
@@ -722,7 +722,10 @@ glp_double spx_update_d_s(SPXLP *lp, glp_double d[/*1+n-m*/], int p, int q,
       dq = c[k];
       for (k = 1; k <= tcol_nnz; k++)
       {  i = tcol_ind[k];
-         dq += tcol_vec[i] * c[head[i]];
+         if((chi = c[head[i]]) == 0.0)
+                 continue;
+         /*printf("@ %g : %g\n", tcol_vec[i], chi);*/
+         dq += tcol_vec[i] * chi;
       }
       /* compute relative error in d[q] */
       e = fabs(dq - d[q]) / (1.0 + fabs(dq));

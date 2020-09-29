@@ -3,7 +3,8 @@ project(Glpk C)
 enable_testing()
 if (NOT CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE Release CACHE STRING "CMake build type." FORCE)
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DWITH_SPLAYTREE -DNDEBUG -flto")
+  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -O3 -DWITH_SPLAYTREE -DNDEBUG -flto")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3 -DWITH_SPLAYTREE -DNDEBUG -flto")
 endif ()
 
 set(C_MATH_LIBRARY "m")
@@ -19,6 +20,10 @@ if (EMSCRIPTEN)
 	add_definitions("-DEMSCRIPTEN=1")
 
 	set(EMSCRIPTEN_FEATURES "")
+	# We want only web.
+	#set(EMSCRIPTEN_FEATURES "${EMSCRIPTEN_FEATURES} -s ENVIRONMENT=web,worker") # -s AUTO_JS_LIBRARIES=0")
+	# We want atexit.
+	set(EMSCRIPTEN_FEATURES "${EMSCRIPTEN_FEATURES} -s EXIT_RUNTIME=1")
 	# We want exceptions.
 	set(EMSCRIPTEN_FEATURES "${EMSCRIPTEN_FEATURES} -s DISABLE_EXCEPTION_CATCHING=0")
 	# We want Webassembly.
@@ -30,6 +35,10 @@ if (EMSCRIPTEN)
 	if (NOT CMAKE_BUILD_TYPE STREQUAL "Debug")
 		# Do not remove whitespace etc. in the JS parts (easier debugging).
 		set(EMSCRIPTEN_FEATURES "${EMSCRIPTEN_FEATURES} -g1")
+	endif()
+	if (CMAKE_BUILD_TYPE STREQUAL "Debug")
+		# Do not remove whitespace etc. in the JS parts (easier debugging).
+		#set(EMSCRIPTEN_FEATURES "${EMSCRIPTEN_FEATURES} --source-map-base /myglpk-ext-dbg/ ")
 	endif()
 	# We don't want the page to hang while executing.
 	# There will be some effort to make this work; e.g. creating files.

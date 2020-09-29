@@ -136,10 +136,10 @@ struct clause_t
 #define clause_learnt(c) ((c)->size_learnt & 1)
 
 #define clause_activity(c) \
-    (*((float*)&(c)->lits[(c)->size_learnt>>1]))
+    (*((glp_float*)&(c)->lits[(c)->size_learnt>>1]))
 
 #define clause_setactivity(c, a) \
-    (void)(*((float*)&(c)->lits[(c)->size_learnt>>1]) = (a))
+    (void)(*((glp_float*)&(c)->lits[(c)->size_learnt>>1]) = (a))
 
 /*====================================================================*/
 /* Encode literals in clause pointers: */
@@ -220,7 +220,7 @@ static inline void order_unassigned(solver* s, int v)
     }
 }
 
-static int order_select(solver* s, float random_var_freq)
+static int order_select(solver* s, glp_float random_var_freq)
 {   /* selectvar */
     int*    heap;
     glp_double* activity;
@@ -313,14 +313,14 @@ static inline void act_clause_rescale(solver* s) {
     clause** cs = (clause**)vecp_begin(&s->learnts);
     int i;
     for (i = 0; i < vecp_size(&s->learnts); i++){
-        float a = clause_activity(cs[i]);
-        clause_setactivity(cs[i], a * (float)1e-20);
+        glp_float a = clause_activity(cs[i]);
+        clause_setactivity(cs[i], a * (glp_float)1e-20);
     }
-    s->cla_inc *= (float)1e-20;
+    s->cla_inc *= (glp_float)1e-20;
 }
 
 static inline void act_clause_bump(solver* s, clause *c) {
-    float a = clause_activity(c) + s->cla_inc;
+    glp_float a = clause_activity(c) + s->cla_inc;
     clause_setactivity(c,a);
     if (a > 1e20) act_clause_rescale(s);
 }
@@ -343,7 +343,7 @@ static clause* clause_new(solver* s, lit* begin, lit* end, int learnt)
     assert(learnt >= 0 && learnt < 2);
     size           = end - begin;
     c              = (clause*)malloc(sizeof(clause)
-                     + sizeof(lit) * size + learnt * sizeof(float));
+                     + sizeof(lit) * size + learnt * sizeof(glp_float));
     c->size_learnt = (size << 1) | learnt;
 #if 1 /* by mao & cmatraki; non-portable check that is a fundamental  \
        * assumption of minisat code: bit 0 is used as a flag (zero    \
@@ -356,7 +356,7 @@ static clause* clause_new(solver* s, lit* begin, lit* end, int learnt)
         c->lits[i] = begin[i];
 
     if (learnt)
-        *((float*)&c->lits[size]) = 0.0;
+        *((glp_float*)&c->lits[size]) = 0.0;
 
     assert(begin[0] >= 0);
     assert(begin[0] < s->size*2);
@@ -902,8 +902,8 @@ static lbool solver_search(solver* s, int nof_conflicts,
     assert(s->root_level == solver_dlevel(s));
 
     s->stats.starts++;
-    s->var_decay = (float)(1 / var_decay   );
-    s->cla_decay = (float)(1 / clause_decay);
+    s->var_decay = (glp_float)(1 / var_decay   );
+    s->cla_decay = (glp_float)(1 / clause_decay);
     veci_resize(&s->model,0);
     veci_new(&learnt_clause);
 
@@ -955,7 +955,7 @@ static lbool solver_search(solver* s, int nof_conflicts,
 
             /* New variable decision: */
             s->stats.decisions++;
-            next = order_select(s,(float)random_var_freq);
+            next = order_select(s,(glp_float)random_var_freq);
 
             if (next == var_Undef){
                 /* Model found: */
