@@ -292,6 +292,7 @@ SOURCES_C += \
 	$(SRC_FOLDER)/misc/mygmp.c \
 	$(SRC_FOLDER)/misc/okalg.c \
 	$(SRC_FOLDER)/misc/qmd.c \
+	$(SRC_FOLDER)/misc/qsort.c \
 	$(SRC_FOLDER)/misc/relax4.c \
 	$(SRC_FOLDER)/misc/rng.c \
 	$(SRC_FOLDER)/misc/rng1.c \
