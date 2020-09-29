@@ -557,7 +557,7 @@ void fhv_h_solve(FHV *fhv, glp_double x[/*1+n*/])
          x[hh_ind[k]] -= s1 + s2;
       }
 #else
-      glp_long_double2 x_i, xip;
+      glp_long_double x_i, xip;
       for (k = 1; k <= nfs; k++)
       {  x_i = x[i = hh_ind[k]];
          for (end = (ptr = hh_ptr[k]) + hh_len[k]; ptr < end; ptr++)
