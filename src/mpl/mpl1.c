@@ -3091,6 +3091,54 @@ PROBLEM *problem_statement(MPL *mpl)
 }
 
 /*----------------------------------------------------------------------
+-- option_statement - parse option statement.
+--
+-- This routine parses option statement using the syntax:
+--
+-- <option statement> ::= option <name option_name> <value>;
+-- <value> ::= <string literal>
+-- <value> ::= <number literal>
+--
+ */
+
+OPT_STMT *option_statement(MPL *mpl)
+{
+      OPT_STMT *opt;
+      xassert(is_keyword(mpl, "option"));
+      warning(mpl, "option ignored");
+      get_token(mpl /* option */);
+      /* create an option */
+      opt = alloc(OPT_STMT);
+      /* parse option name */
+      if (mpl->scan_input->token != T_NAME)
+         error(mpl, "name missing where expected");
+      opt->key = dmp_get_atomv(mpl->pool, strlen(mpl->scan_input->image)+1);
+      strcpy(opt->key, mpl->scan_input->image);
+      get_token(mpl /* name */);
+      /* parse option value */
+      switch(mpl->scan_input->token)
+      {
+          case T_NAME:
+          case T_STRING:
+          case T_NUMBER:
+            opt->value = dmp_get_atomv(mpl->pool, strlen(mpl->scan_input->image)+1);
+            strcpy(opt->value, mpl->scan_input->image);
+            get_token(mpl /* option value */);
+            break;
+          default:
+              error(mpl, "option value as literal string or number expected");
+      }
+
+      /* the option statement has been completely parsed */
+      if (mpl->scan_input->token != T_SEMICOLON)
+         error(mpl, "semicolon missing where expected");
+      get_token(mpl /* ; */);
+      opt->next = mpl->options;
+      mpl->options = opt;
+      return opt;
+}
+
+/*----------------------------------------------------------------------
 -- model_statement - parse model statement.
 --
 -- This routine parses model statement using the syntax:
@@ -5221,6 +5269,10 @@ STATEMENT *simple_statement(MPL *mpl, int spec)
       else if (is_keyword(mpl, "let"))
       {  stmt->type = A_LET;
          stmt->u.let = let_statement(mpl);
+      }
+      else if (is_keyword(mpl, "option"))
+      {  stmt->type = A_OPTION;
+         stmt->u.opt = option_statement(mpl);
       }
       else if (mpl->scan_input->token == T_NAME)
       {  if (spec)

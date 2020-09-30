@@ -88,6 +88,7 @@ typedef struct SOLVE SOLVE;
 typedef struct LET_STMT LET_STMT;
 typedef struct DATA_STMT DATA_STMT;
 typedef struct MODEL_STMT MODEL_STMT;
+typedef struct OPT_STMT OPT_STMT;
 
 /**********************************************************************/
 /* * *                    TRANSLATOR DATABASE                     * * */
@@ -128,8 +129,9 @@ typedef struct MODEL_STMT MODEL_STMT;
 #define A_REPEAT        133   /* repeat statement */
 #define A_MODEL         134   /* model statement */
 #define A_DATA          135   /* data statement */
-#define A_NODE          136   /* node statement */
-#define A_ARC           137   /* arc statement */
+#define A_OPTION        136   /* option statement */
+#define A_NODE          137   /* node statement */
+#define A_ARC           138   /* arc statement */
 
 #define MAX_LENGTH 100
 /* maximal length of any symbolic value (this includes symbolic names,
@@ -288,6 +290,8 @@ struct glp_tran
          node.type = A_CONSTRANT => node.link -> CONSTRAINT */
       STATEMENT *model;
       /* linked list of model statements in the original order */
+      OPT_STMT *options;
+      /* linked list of model options in the reverse order */
       int flag_x;
       /* if this flag is set, the current token being left parenthesis
          begins a slice that allows recognizing any undeclared symbolic
@@ -639,6 +643,10 @@ CODE *expression_13(MPL *mpl);
 #define problem_statement _glp_mpl_problem_statement
 PROBLEM *problem_statement(MPL *mpl);
 /* parse problem statement */
+
+#define option_statement _glp_mpl_option_statement
+OPT_STMT *option_statement(MPL *mpl);
+/* parse option statement */
 
 #define set_statement _glp_mpl_set_statement
 SET *set_statement(MPL *mpl);
@@ -2484,6 +2492,20 @@ void clean_code(MPL *mpl, CODE *code);
 /* * *                      MODEL STATEMENTS                      * * */
 /**********************************************************************/
 
+struct OPT_STMT
+{     /* option statement */
+      OPT_STMT *next;
+      /* link to the next option */
+      char *key;
+      /* option key to assign a value */
+      char *value;
+      /* option value */
+};
+
+#define clean_option _glp_mpl_clean_option
+void clean_option(MPL *mpl, OPT_STMT *opt);
+/* clean model option */
+
 struct LET_STMT
 {     /* let statement */
       DOMAIN *domain;
@@ -2616,6 +2638,7 @@ struct STATEMENT
          IF_STMT *if_stmt;
          PROBLEM *prob;
          LET_STMT *let;
+         OPT_STMT *opt;
       } u;
       /* specific part of statement */
       STATEMENT *next;

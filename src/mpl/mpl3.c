@@ -2623,6 +2623,17 @@ void clean_problem(MPL *mpl, PROBLEM *prob)
 }
 
 /*----------------------------------------------------------------------
+-- clean option - clean model option.
+--
+-- This routine cleans specified model option that assumes deleting all
+-- stuff dynamically allocated during the generation phase. */
+
+void clean_option(MPL *mpl, OPT_STMT *opt)
+{
+      return;
+}
+
+/*----------------------------------------------------------------------
 -- clean solve - clean model solve.
 --
 -- This routine cleans specified model problem that assumes deleting all
@@ -6878,6 +6889,8 @@ void clean_statement(MPL *mpl, STATEMENT *stmt)
 #endif
          case A_PROBLEM:
             clean_problem(mpl, stmt->u.prob); break;
+         case A_OPTION:
+            clean_option(mpl, stmt->u.opt); break;
          case A_SOLVE:
             clean_solve(mpl, stmt->u.slv); break;
             break;

@@ -660,6 +660,7 @@ MPL *mpl_initialize(void)
       mpl->pool = dmp_create_poolx(0);
       mpl->tree = avl_create_tree(avl_strcmp, NULL);
       mpl->model = NULL;
+      mpl->options = NULL;
       mpl->flag_x = 0;
       mpl->as_within = 0;
       mpl->as_in = 0;
