@@ -118,6 +118,8 @@ struct ENV
       /* handle to ODBC shared library */
       void *h_mysql;
       /* handle to MySQL shared library */
+      void *h_sqlite;
+      /* handle to SQLite shared library */
       glp_double time_start;
       /* start time to compute time spent */
       glp_double last_time_start;

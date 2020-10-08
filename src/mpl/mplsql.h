@@ -58,6 +58,22 @@ int db_mysql_write(TABDCA *dca, void *link);
 int db_mysql_close(TABDCA *dca, void *link);
 /* close MySQL database connection */
 
+#define db_sqlite_open _glp_db_sqlite_open
+void *db_sqlite_open(TABDCA *dca, int mode);
+/* open SQLite database connection */
+
+#define db_sqlite_read _glp_db_sqlite_read
+int db_sqlite_read(TABDCA *dca, void *link);
+/* read data from SQLite */
+
+#define db_sqlite_write _glp_db_sqlite_write
+int db_sqlite_write(TABDCA *dca, void *link);
+/* write data to SQLite */
+
+#define db_sqlite_close _glp_db_sqlite_close
+int db_sqlite_close(TABDCA *dca, void *link);
+/* close SQLite database connection */
+
 #endif
 
 /* eof */

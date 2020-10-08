@@ -21,6 +21,7 @@ Here is a brief of changes made to GLPK 4.65 distribution:
 	this change alone made the momory usage drop from 1.7GB to  26MB
 * Add the if/then/else statements
 * Add the break/continue statements
+* Add sqlite3 driver for tables
 
 You can test it online here https://meimporta.eu/myglpk-ext
 

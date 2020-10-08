@@ -48,6 +48,15 @@ AC_HELP_STRING([--enable-mysql],
       esac],
    [enable_mysql=no])
 
+AC_ARG_ENABLE(sqlite,
+AC_HELP_STRING([--enable-sqlite],
+   [enable MathProg SQLite support [[default=no]]]),
+   [case $enableval in
+      yes | no) ;;
+      *) AC_MSG_ERROR([invalid value `$enableval' for --enable-sqlite]);;
+      esac],
+   [enable_sqlite=no])
+
 AC_ARG_ENABLE(reentrant,
 AC_HELP_STRING([--enable-reentrant],
    [enable reentrancy support [[default=yes]]]),
@@ -115,11 +124,13 @@ case $host_os in
       LIBIODBC="libiodbc.dylib"
       LIBODBC="libodbc.dylib"
       LIBMYSQL="libmysqlclient.dylib"
+      LIBSQLITE="libsqilte3.dylib"
       ;;
    *)
       LIBIODBC="libiodbc.so"
       LIBODBC="libodbc.so"
       LIBMYSQL="libmysqlclient.so"
+      LIBSQLITE="libsqlite3.so"
       ;;
 esac
 
@@ -149,6 +160,18 @@ if test "$enable_mysql" = "yes"; then
    AC_MSG_RESULT([yes])
    CPPFLAGS="-I/usr/include/mysql $CPPFLAGS"
    AC_DEFINE_UNQUOTED([MYSQL_DLNAME], ["$LIBMYSQL"], [N/A])
+else
+   AC_MSG_RESULT([no])
+fi
+
+AC_MSG_CHECKING([whether to enable MathProg SQLite support])
+if test "$enable_sqlite" = "yes"; then
+   if test "$enable_dl" = "no"; then
+      AC_MSG_ERROR([--enable-sqlite requires --enable-dl])
+   fi
+   AC_MSG_RESULT([yes])
+   CPPFLAGS="-I/usr/include $CPPFLAGS"
+   AC_DEFINE_UNQUOTED([SQLITE_DLNAME], ["$LIBSQLITE"], [N/A])
 else
    AC_MSG_RESULT([no])
 fi

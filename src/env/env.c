@@ -106,7 +106,7 @@ int glp_init_env(void)
       env->gmp_size = 0;
       env->gmp_work = NULL;
 #endif
-      env->h_odbc = env->h_mysql = NULL;
+      env->h_odbc = env->h_mysql = env->h_sqlite = NULL;
       /* save pointer to the environment block */
       tls_set_ptr(env);
       env->time_start = env->last_time_start = glp_time();
@@ -218,7 +218,11 @@ const char *glp_version(void)
 *  shared library if this option was enabled, or NULL otherwise.
 *
 *  For option = "MYSQL_DLNAME" the routine returns the name of MySQL
-*  shared library if this option was enabled, or NULL otherwise. */
+*  shared library if this option was enabled, or NULL otherwise.
+*
+*  For option = "SQLITE_DLNAME" the routine returns the name of SQLite
+*  shared library if this option was enabled, or NULL otherwise.
+*/
 
 const char *glp_config(const char *option)
 {     const char *s;
@@ -239,6 +243,12 @@ const char *glp_config(const char *option)
          s = NULL;
 #else
          s = MYSQL_DLNAME;
+#endif
+      else if (strcmp(option, "SQLITE_DLNAME") == 0)
+#ifndef SQLITE_DLNAME
+         s = NULL;
+#else
+         s = SQLITE_DLNAME;
 #endif
       else
       {  /* invalid option is always disabled */
@@ -293,6 +303,8 @@ int glp_free_env(void)
          xdlclose(env->h_odbc);
       if (env->h_mysql != NULL)
          xdlclose(env->h_mysql);
+      if (env->h_sqlite != NULL)
+         xdlclose(env->h_sqlite);
       /* free memory blocks which are still allocated */
       while (env->mem_ptr != NULL)
       {  desc = env->mem_ptr;
