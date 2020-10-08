@@ -827,7 +827,7 @@ done: return ret;
 static int dbf_write_record(TABDCA *dca, struct dbf *dbf)
 {     /* write next record to xBASE data file */
       int j, k, ret = 0;
-      char buf[255+1];
+      char buf[MAX_STR_BUF_LENGTH+1];
       xassert(dbf->mode == 'W');
       if (setjmp(dbf->jump))
       {  ret = 1;
@@ -930,6 +930,7 @@ skip:    ;
 #define TAB_XBASE 2
 #define TAB_ODBC  3
 #define TAB_MYSQL 4
+#define TAB_SQLITE 5
 
 void mpl_tab_drv_open(MPL *mpl, int mode)
 {     TABDCA *dca = mpl->dca;
@@ -952,6 +953,10 @@ void mpl_tab_drv_open(MPL *mpl, int mode)
       else if (strcmp(dca->arg[1], "MySQL") == 0)
       {  dca->id = TAB_MYSQL;
          dca->link = db_mysql_open(dca, mode);
+      }
+      else if (strcmp(dca->arg[1], "SQLite") == 0)
+      {  dca->id = TAB_SQLITE;
+         dca->link = db_sqlite_open(dca, mode);
       }
       else
          xprintf("Invalid table driver '%s'\n", dca->arg[1]);
@@ -976,6 +981,9 @@ int mpl_tab_drv_read(MPL *mpl)
             break;
          case TAB_MYSQL:
             ret = db_mysql_read(dca, dca->link);
+            break;
+         case TAB_SQLITE:
+            ret = db_sqlite_read(dca, dca->link);
             break;
          default:
             xassert(dca != dca);
@@ -1002,6 +1010,9 @@ void mpl_tab_drv_write(MPL *mpl)
          case TAB_MYSQL:
             ret = db_mysql_write(dca, dca->link);
             break;
+         case TAB_SQLITE:
+            ret = db_sqlite_write(dca, dca->link);
+            break;
          default:
             xassert(dca != dca);
       }
@@ -1026,6 +1037,9 @@ void mpl_tab_drv_close(MPL *mpl)
             break;
          case TAB_MYSQL:
             ret = db_mysql_close(dca, dca->link);
+            break;
+         case TAB_SQLITE:
+            ret = db_sqlite_close(dca, dca->link);
             break;
          default:
             xassert(dca != dca);

@@ -138,6 +138,8 @@ typedef struct OPT_STMT OPT_STMT;
    numeric and string literals, and all symbolic values that may appear
    during the evaluation phase) */
 
+#define MAX_STR_BUF_LENGTH 255
+
 #define MAX_TUPLE_DIM 20
 
 #define CONTEXT_SIZE 60
@@ -339,9 +341,9 @@ struct glp_tran
       /* memory pool to allocate ELEMCON data structures */
       ARRAY *a_list;
       /* linked list of all arrays in the database */
-      char *sym_buf; /* char sym_buf[255+1]; */
+      char *sym_buf; /* char sym_buf[MAX_STR_BUF_LENGTH+1]; */
       /* working buffer used by the routine format_symbol */
-      char *tup_buf; /* char tup_buf[255+1]; */
+      char *tup_buf; /* char tup_buf[MAX_STR_BUF_LENGTH+1]; */
       /* working buffer used by the routine format_tuple */
       /*--------------------------------------------------------------*/
       /* generating/postsolving segment */
@@ -392,7 +394,7 @@ struct glp_tran
       /* phase of processing */
       char *mod_file;
       /* name of the input text file, which contains model section */
-      char *mpl_buf; /* char mpl_buf[255+1]; */
+      char *mpl_buf; /* char mpl_buf[MAX_STR_BUF_LENGTH+1]; */
       /* working buffer used by some interface routines */
       int gen_all;
       /* flag to pre generate all entities in the model */

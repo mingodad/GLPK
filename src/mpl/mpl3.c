@@ -670,7 +670,7 @@ void delete_symbol_not_used
 -- This routine converts specified symbol to a charater string, which
 -- is suitable for displaying or printing.
 --
--- The resultant string is never longer than 255 characters. If it gets
+-- The resultant string is never longer than MAX_STR_BUF_LENGTH characters. If it gets
 -- longer, it is truncated from the right and appended by dots. */
 
 char *format_symbol
@@ -698,7 +698,7 @@ char *format_symbol
             }
          }
 #        define safe_append(c) \
-            (void)(len < 255 ? (buf[len++] = (char)(c)) : 0)
+            (void)(len < MAX_STR_BUF_LENGTH ? (buf[len++] = (char)(c)) : 0)
          buf[0] = '\0', len = 0;
          if (quoted) safe_append('\'');
          for (j = 0; str[j] != '\0'; j++)
@@ -708,9 +708,9 @@ char *format_symbol
          if (quoted) safe_append('\'');
 #        undef safe_append
          buf[len] = '\0';
-         if (len == 255) strcpy(buf+252, "...");
+         if (len == MAX_STR_BUF_LENGTH) strcpy(buf+MAX_STR_BUF_LENGTH-3, "...");
       }
-      xassert(strlen(buf) <= 255);
+      xassert(strlen(buf) <= MAX_STR_BUF_LENGTH);
       return buf;
 }
 
@@ -737,7 +737,7 @@ SYMBOL concat_symbols
       else
          fetch_string(mpl, nanbox_to_pointer(sym2.sym), str2);
       if (strlen(str1) + strlen(str2) > MAX_LENGTH)
-      {  char buf[255+1];
+      {  char buf[MAX_STR_BUF_LENGTH+1];
          strcpy(buf, format_symbol(mpl, sym1));
          xassert(strlen(buf) < sizeof(buf));
          error(mpl, "%s & %s; resultant symbol exceeds %d characters",
@@ -918,7 +918,7 @@ void delete_tuple
 -- This routine converts specified n-tuple to a character string, which
 -- is suitable for displaying or printing.
 --
--- The resultant string is never longer than 255 characters. If it gets
+-- The resultant string is never longer than MAX_STR_BUF_LENGTH characters. If it gets
 -- longer, it is truncated from the right and appended by dots. */
 
 char *format_tuple
@@ -928,9 +928,9 @@ char *format_tuple
 )
 {     const TUPLE *temp;
       int dim, j, len;
-      char *buf = mpl->tup_buf, str[255+1], *save;
+      char *buf = mpl->tup_buf, str[MAX_STR_BUF_LENGTH+1], *save;
 #     define safe_append(c) \
-         (void)(len < 255 ? (buf[len++] = (char)(c)) : 0)
+         (void)(len < MAX_STR_BUF_LENGTH ? (buf[len++] = (char)(c)) : 0)
       buf[0] = '\0', len = 0;
       dim = tuple_dimen(mpl, tuple);
       if (c == '[' && dim > 0) safe_append('[');
@@ -949,8 +949,8 @@ char *format_tuple
       if (c == '(' && dim > 1) safe_append(')');
 #     undef safe_append
       buf[len] = '\0';
-      if (len == 255) strcpy(buf+252, "...");
-      xassert(strlen(buf) <= 255);
+      if (len == MAX_STR_BUF_LENGTH) strcpy(buf+MAX_STR_BUF_LENGTH-3, "...");
+      xassert(strlen(buf) <= MAX_STR_BUF_LENGTH);
       return buf;
 }
 
@@ -2671,7 +2671,7 @@ void check_elem_set
       {  xassert(within->code != NULL);
          for (memb = refer->head; memb != NULL; memb = memb->next)
          {  if (!is_member(mpl, within->code, memb->tuple))
-            {  char buf[255+1];
+            {  char buf[MAX_STR_BUF_LENGTH+1];
                strcpy(buf, format_tuple(mpl, '(', memb->tuple));
                xassert(strlen(buf) < sizeof(buf));
                error(mpl, "%s%s contains %s which not within specified "
@@ -3196,7 +3196,7 @@ void check_value_sym
       for (cond = par->cond, eqno = 1; cond != NULL; cond = cond->next,
          eqno++)
       {  SYMBOL bound;
-         char buf[255+1];
+         char buf[MAX_STR_BUF_LENGTH+1];
          int rc_cmp;
          xassert(cond->code != NULL);
          bound = eval_symbolic(mpl, cond->code);

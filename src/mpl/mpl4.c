@@ -683,9 +683,9 @@ MPL *mpl_initialize(void)
       mpl->formulae = dmp_create_poolx(sizeof(FORMULA));
       mpl->elemcons = dmp_create_poolx(sizeof(ELEMCON));
       mpl->a_list = NULL;
-      mpl->sym_buf = xcalloc(255+1, sizeof(char));
+      mpl->sym_buf = xcalloc(MAX_STR_BUF_LENGTH+1, sizeof(char));
       mpl->sym_buf[0] = '\0';
-      mpl->tup_buf = xcalloc(255+1, sizeof(char));
+      mpl->tup_buf = xcalloc(MAX_STR_BUF_LENGTH+1, sizeof(char));
       mpl->tup_buf[0] = '\0';
       /* generating/postsolving segment */
       mpl->rand = rng_create_rand();
@@ -707,7 +707,7 @@ MPL *mpl_initialize(void)
       if (setjmp(mpl->jump)) xassert(mpl != mpl);
       mpl->phase = GLP_TRAN_PHASE_INITIAL;
       mpl->mod_file = NULL;
-      mpl->mpl_buf = xcalloc(255+1, sizeof(char));
+      mpl->mpl_buf = xcalloc(MAX_STR_BUF_LENGTH+1, sizeof(char));
       mpl->mpl_buf[0] = '\0';
       mpl->gen_all = 0;
       mpl->show_delta = 0;
@@ -975,7 +975,7 @@ char *mpl_get_prob_name(MPL *mpl)
             break;
       }
       for (k = 0; ; k++)
-      {  if (k == 255) break;
+      {  if (k == MAX_STR_BUF_LENGTH) break;
          if (!(isalnum((unsigned char)*file) || *file == '_')) break;
          name[k] = *file++;
       }
@@ -983,7 +983,7 @@ char *mpl_get_prob_name(MPL *mpl)
          strcpy(name, "Unknown");
       else
          name[k] = '\0';
-      xassert(strlen(name) <= 255);
+      xassert(strlen(name) <= MAX_STR_BUF_LENGTH);
       return name;
 }
 
@@ -1048,15 +1048,15 @@ char *mpl_get_row_name(MPL *mpl, int i)
             i);
       strcpy(name, mpl->row[i]->con->name);
       len = strlen(name);
-      xassert(len <= 255);
+      xassert(len <= MAX_STR_BUF_LENGTH);
       t = format_tuple(mpl, '[', mpl->row[i]->memb->tuple);
       while (*t)
-      {  if (len == 255) break;
+      {  if (len == MAX_STR_BUF_LENGTH) break;
          name[len++] = *t++;
       }
       name[len] = '\0';
-      if (len == 255) strcpy(name+252, "...");
-      xassert(strlen(name) <= 255);
+      if (len == MAX_STR_BUF_LENGTH) strcpy(name+MAX_STR_BUF_LENGTH-3, "...");
+      xassert(strlen(name) <= MAX_STR_BUF_LENGTH);
       return name;
 }
 
@@ -1305,15 +1305,15 @@ char *mpl_get_col_name(MPL *mpl, int j)
             , j);
       strcpy(name, mpl->col[j]->var->name);
       len = strlen(name);
-      xassert(len <= 255);
+      xassert(len <= MAX_STR_BUF_LENGTH);
       t = format_tuple(mpl, '[', mpl->col[j]->memb->tuple);
       while (*t)
-      {  if (len == 255) break;
+      {  if (len == MAX_STR_BUF_LENGTH) break;
          name[len++] = *t++;
       }
       name[len] = '\0';
-      if (len == 255) strcpy(name+252, "...");
-      xassert(strlen(name) <= 255);
+      if (len == MAX_STR_BUF_LENGTH) strcpy(name+MAX_STR_BUF_LENGTH-3, "...");
+      xassert(strlen(name) <= MAX_STR_BUF_LENGTH);
       return name;
 }
 
