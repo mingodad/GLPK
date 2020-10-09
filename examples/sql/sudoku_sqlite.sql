@@ -1,5 +1,5 @@
 BEGIN;
-DROP TABLE sudoku;
+DROP TABLE IF EXISTS sudoku;
 CREATE TABLE sudoku (
   ID   integer not null,
   COL  integer not null,
@@ -7,7 +7,7 @@ CREATE TABLE sudoku (
   VAL  integer,
   PRIMARY KEY ( ID, COL, LIN )
   );
-DROP TABLE sudoku_solution;
+DROP TABLE IF EXISTS sudoku_solution;
 CREATE TABLE sudoku_solution (
   ID   integer not null ,
   COL  integer not null ,
