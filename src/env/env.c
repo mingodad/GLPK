@@ -187,7 +187,7 @@ const char *glp_version(void)
 }
 #else /* suggested by Heinrich */
 {     return
-         xstr(GLP_MAJOR_VERSION) "." xstr(GLP_MINOR_VERSION);
+         xstr(GLP_MAJOR_VERSION) "." xstr(GLP_MINOR_VERSION) "-ex";
 }
 #endif
 
