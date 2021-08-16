@@ -2,7 +2,7 @@ This is a personal repository made with the tarbals available at:
 
 https://ftp.gnu.org/gnu/glpk/
 
-Here is a brief of changes made to GLPK 4.65 distribution:
+Here is a brief of changes made to GLPK 4.65 distribution on this branch https://github.com/mingodad/GLPK/tree/local-set-param:
 
 * Added the fixes proposed on http://lists.gnu.org/archive/html/bug-glpk
 * Add a reference count to ARRAY to minimize unnecessary copies
@@ -21,6 +21,8 @@ Here is a brief of changes made to GLPK 4.65 distribution:
 	this change alone made the momory usage drop from 1.7GB to  26MB
 * Add the if/then/else statements
 * Add the break/continue statements
+* Change the **mod** operator to behave like AMPL/GAMS
+* Fix segfault when trying to reference a paramter while declaring it **param b := a + b;**
 
 You can test it online here https://meimporta.eu/myglpk-ext
 
