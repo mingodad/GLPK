@@ -149,8 +149,8 @@ am_libglpk_la_OBJECTS = libglpk_la-amd_1.lo libglpk_la-amd_2.lo \
 	libglpk_la-jd.lo libglpk_la-keller.lo libglpk_la-ks.lo \
 	libglpk_la-mc13d.lo libglpk_la-mc21a.lo libglpk_la-mt1.lo \
 	libglpk_la-mygmp.lo libglpk_la-okalg.lo libglpk_la-qmd.lo \
-	libglpk_la-relax4.lo libglpk_la-rng.lo libglpk_la-rng1.lo \
-	libglpk_la-round2n.lo libglpk_la-str2int.lo \
+	libglpk_la-qsort.lo libglpk_la-relax4.lo libglpk_la-rng.lo \
+	libglpk_la-rng1.lo libglpk_la-round2n.lo libglpk_la-str2int.lo \
 	libglpk_la-str2num.lo libglpk_la-strspx.lo \
 	libglpk_la-strtrim.lo libglpk_la-triang.lo \
 	libglpk_la-wclique.lo libglpk_la-wclique1.lo \
@@ -478,6 +478,7 @@ misc/mt1.c \
 misc/mygmp.c \
 misc/okalg.c \
 misc/qmd.c \
+misc/qsort.c \
 misc/relax4.c \
 misc/rng.c \
 misc/rng1.c \
@@ -740,6 +741,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libglpk_la-prrngs.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libglpk_la-prsol.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libglpk_la-qmd.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libglpk_la-qsort.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libglpk_la-rdasn.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libglpk_la-rdcc.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libglpk_la-rdcnf.Plo@am__quote@
@@ -1807,6 +1809,14 @@ libglpk_la-qmd.lo: misc/qmd.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	source='misc/qmd.c' object='libglpk_la-qmd.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(LIBTOOL)  --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libglpk_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libglpk_la-qmd.lo `test -f 'misc/qmd.c' || echo '$(srcdir)/'`misc/qmd.c
+
+libglpk_la-qsort.lo: misc/qsort.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libglpk_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libglpk_la-qsort.lo -MD -MP -MF $(DEPDIR)/libglpk_la-qsort.Tpo -c -o libglpk_la-qsort.lo `test -f 'misc/qsort.c' || echo '$(srcdir)/'`misc/qsort.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libglpk_la-qsort.Tpo $(DEPDIR)/libglpk_la-qsort.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='misc/qsort.c' object='libglpk_la-qsort.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libglpk_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libglpk_la-qsort.lo `test -f 'misc/qsort.c' || echo '$(srcdir)/'`misc/qsort.c
+
 
 libglpk_la-relax4.lo: misc/relax4.c
 @am__fastdepCC_TRUE@	$(LIBTOOL)  --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libglpk_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libglpk_la-relax4.lo -MD -MP -MF $(DEPDIR)/libglpk_la-relax4.Tpo -c -o libglpk_la-relax4.lo `test -f 'misc/relax4.c' || echo '$(srcdir)/'`misc/relax4.c
