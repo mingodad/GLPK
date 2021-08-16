@@ -121,7 +121,9 @@ double fp_idiv(MPL *mpl, double x, double y)
 --
 -- This routine computes the remainder of exact division x mod y.
 --
--- NOTE: By definition x mod y = x - y * floor(x / y). */
+-- NOTE: By definition x mod y = x - y * floor(x / y). 
+--
+-- DAD NOTE: modified to match the result from AMPL/GAMS */
 
 double fp_mod(MPL *mpl, double x, double y)
 {     double r;
@@ -131,11 +133,13 @@ double fp_mod(MPL *mpl, double x, double y)
       else if (y == 0.0)
          r = x;
       else
-      {  r = fmod(fabs(x), fabs(y));
-         if (r != 0.0)
+      {  r = fmod(x, y);
+         /*
+         r = fmod(fabs(x), fabs(y));
+           if (r != 0.0)
          {  if (x < 0.0) r = - r;
             if (x > 0.0 && y < 0.0 || x < 0.0 && y > 0.0) r += y;
-         }
+         }*/
       }
       return r;
 }
