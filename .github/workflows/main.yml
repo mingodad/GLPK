@@ -17,7 +17,6 @@ jobs:
     # build project amd64
     - name: build amd64
       run: |
-        git checkout -f local-set-param
         CFLAGS="-pipe -O3 -march=native -ffp-contract=off -DWITH_SPLAYTREE -DNDEBUG -flto" ./configure --disable-shared
         make
         cp examples/glpsol ../glpsol-linux-amd64
@@ -64,7 +63,6 @@ jobs:
     # build project amd64
     - name: build amd64
       run: |
-        git checkout -f local-set-param
         CFLAGS="-pipe -O3 -march=native -ffp-contract=off -DWITH_SPLAYTREE -DNDEBUG -flto" ./configure --disable-shared
         make
         cp examples/glpsol ../glpsol-osx-amd64
@@ -97,7 +95,6 @@ jobs:
     # build project amd64
     - name: build amd64
       run: |
-        git checkout -f local-set-param
         CFLAGS="-pipe -O3 -march=native -ffp-contract=off -DWITH_SPLAYTREE -DNDEBUG -flto -D__WOE__" ./configure --disable-shared --host=x86_64-w64-mingw32
         make
         cp examples/glpsol.exe ../glpsol-windows-amd64.exe
