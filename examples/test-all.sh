@@ -1,10 +1,11 @@
 #!/bin/sh
-glpsol_cmd=./glpsol
+glpsol_cmd=${GLPSOL_CMD:-./glpsol}
 diff_cmd=diff
 
 solve() {
 	echo $1
-	/usr/bin/time timeout 10s $glpsol_cmd -m $1.mod  -o $1.sol > $1.out
+	/usr/bin/time timeout 60s $glpsol_cmd -m $1.mod $2 -o $1.sol > $1.out
+	#/usr/bin/time $glpsol_cmd -m $1.mod $2  -o $1.sol > $1.out
 }
 
 
@@ -30,7 +31,6 @@ solve graph
 solve hashi
 solve huge
 solve jssp
-solve life_goe
 solve magic
 solve maxcut
 solve maxflow
@@ -41,7 +41,8 @@ solve misp
 solve money
 solve mvcp
 solve numbrix
-solve osemosys
+solve osemosys "-d atlantis.dat"
+solve osemosys_short "-d atlantis.dat"
 solve pentomino
 solve planarity
 solve plan
@@ -63,9 +64,19 @@ solve todd
 solve toto
 solve train
 solve transp
-solve trick
 solve tsp
 solve wolfra6d
 solve xyacfs
 solve yacfs
 solve zebra
+
+if [ ! -z $1 ] && [ "$1" -eq "all" ]
+then
+    solve life_goe
+    solve mem-default "-d mem-default.dat"
+    solve trick
+fi
+
+#for fn in *.sol; do echo $fn; $diff_cmd $fn ../../GLPK-4.65/examples/$fn;done > test-all-sol-diff.log 2>&1
+#for fn in *.out; do echo $fn; $diff_cmd $fn ../../GLPK-4.65/examples/$fn;done > test-all-out-diff.log 2>&1
+
