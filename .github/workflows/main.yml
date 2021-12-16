@@ -80,7 +80,7 @@ jobs:
         path: glpsol-osx-amd64
 
   build-release-windows-i686-amd64:
-    name: picat master windows/amd64
+    name: GLPK master windows/amd64
     runs-on: ubuntu-18.04
     steps:
     - uses: actions/checkout@v2
@@ -104,7 +104,7 @@ jobs:
         cd examples
         GLPSOL_CMD='wine ./glpsol.exe' ./test-all.sh
         cd ..
-    # upload artifact, picat binary
+    # upload artifact, glpsol binary
     - name: Upload glpsol-windows-amd64 binary
       uses: actions/upload-artifact@v1
       with:
@@ -117,7 +117,7 @@ jobs:
         CFLAGS="-m32 -pipe -O3 -march=native -ffp-contract=off -DWITH_SPLAYTREE -DNDEBUG -flto -D__WOE__" ./configure --disable-shared --host=x86_64-w64-mingw32
         make
         cp examples/glpsol.exe glpsol-windows-i686.exe
-    # upload artifact, picat binary
+    # upload artifact, glpsol binary
     - name: Upload glpsol-windows-i686 binary
       uses: actions/upload-artifact@v1
       with:
