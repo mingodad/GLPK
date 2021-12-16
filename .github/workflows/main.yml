@@ -17,7 +17,7 @@ jobs:
     # build project amd64
     - name: build amd64
       run: |
-        CFLAGS="-pipe -O3 -march=native -ffp-contract=off -DWITH_SPLAYTREE -DNDEBUG -flto" ./configure --disable-shared
+        CFLAGS="-pipe -O3 -DWITH_SPLAYTREE -DNDEBUG -flto" ./configure --disable-shared
         make
         cp examples/glpsol glpsol-linux-amd64
     # run tests
@@ -36,7 +36,7 @@ jobs:
     - name: build i686
       run: |
         make clean
-        CC=i686-linux-gnu-gcc-8 CFLAGS="-pipe -O3 -march=native -ffp-contract=off -DWITH_SPLAYTREE -DNDEBUG -flto" ./configure --disable-shared
+        CC=i686-linux-gnu-gcc-8 CFLAGS="-pipe -O3 -DWITH_SPLAYTREE -DNDEBUG -flto" ./configure --disable-shared
         make
         cp examples/glpsol glpsol-linux-i686
     # run tests
@@ -63,7 +63,7 @@ jobs:
     # build project amd64
     - name: build amd64
       run: |
-        CFLAGS="-pipe -O3 -march=native -ffp-contract=off -DWITH_SPLAYTREE -DNDEBUG" ./configure --disable-shared
+        CFLAGS="-pipe -O3 -DWITH_SPLAYTREE -DNDEBUG" ./configure --disable-shared
         make
         cp examples/glpsol glpsol-osx-amd64
     # run tests
@@ -95,7 +95,7 @@ jobs:
     # build project amd64
     - name: build amd64
       run: |
-        CFLAGS="-pipe -O3 -march=native -ffp-contract=off -DWITH_SPLAYTREE -DNDEBUG -flto -D__WOE__" ./configure --disable-shared --host=x86_64-w64-mingw32
+        CFLAGS="-pipe -O3 -DWITH_SPLAYTREE -DNDEBUG -flto -D__WOE__" ./configure --disable-shared --host=x86_64-w64-mingw32
         make
         cp examples/glpsol.exe glpsol-windows-amd64.exe
     # run tests
@@ -114,7 +114,7 @@ jobs:
     - name: build i686
       run: |
         make clean
-        CFLAGS="-m32 -pipe -O3 -march=native -ffp-contract=off -DWITH_SPLAYTREE -DNDEBUG -flto -D__WOE__" ./configure --disable-shared --host=i686-w64-mingw32
+        CFLAGS="-m32 -pipe -O3 -DWITH_SPLAYTREE -DNDEBUG -flto -D__WOE__" ./configure --disable-shared --host=i686-w64-mingw32
         make
         cp examples/glpsol.exe glpsol-windows-i686.exe
     # upload artifact, glpsol binary
