@@ -4,7 +4,7 @@ on:
 jobs:
   build-release-linux-i686-amd64:
     name: GLPK master linux/amd64
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-18.04
     steps:
     - uses: actions/checkout@v2
     - name: Install depedencies
