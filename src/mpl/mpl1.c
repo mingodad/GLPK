@@ -3060,6 +3060,12 @@ PROBLEM *problem_statement(MPL *mpl)
          strcpy(prob->alias, mpl->scan_input->image);
          get_token(mpl /* <string literal> */);
       }
+      /* include the problem name in the symbolic names table */
+      {  AVLNODE *node;
+         node = avl_insert_node(mpl->tree, prob->name);
+         avl_set_node_type(node, A_PROBLEM);
+         avl_set_node_link(node, (void *)prob);
+      }
       mpl->current_problem = prob;
       /* the colon must precede the first element */
       if (mpl->scan_input->token == T_COLON) {
@@ -3077,12 +3083,6 @@ PROBLEM *problem_statement(MPL *mpl)
               if(mpl->scan_input->token != T_COMMA) break;
               get_token(mpl /* , */);
           }
-      }
-      /* include the problem name in the symbolic names table */
-      {  AVLNODE *node;
-         node = avl_insert_node(mpl->tree, prob->name);
-         avl_set_node_type(node, A_PROBLEM);
-         avl_set_node_link(node, (void *)prob);
       }
       /* the problem statement has been completely parsed */
       xassert(mpl->scan_input->token == T_SEMICOLON);
@@ -3326,6 +3326,12 @@ SET *set_statement(MPL *mpl)
       {  set->domain = indexing_expression(mpl);
          set->dim = domain_arity(mpl, set->domain);
       }
+      /* include the set name in the symbolic names table */
+      {  AVLNODE *node;
+         node = avl_insert_node(mpl->tree, set->name);
+         avl_set_node_type(node, A_SET);
+         avl_set_node_link(node, (void *)set);
+      }
       /* parse the list of optional attributes */
       for (;;)
       {  if (mpl->scan_input->token == T_COMMA)
@@ -3495,12 +3501,6 @@ err3:             error(mpl, "component number must be integer between "
          else
             error(mpl, "syntax error in set statement");
       }
-      /* include the set name in the symbolic names table */
-      {  AVLNODE *node;
-         node = avl_insert_node(mpl->tree, set->name);
-         avl_set_node_type(node, A_SET);
-         avl_set_node_link(node, (void *)set);
-      }
       /* close the domain scope */
       if (set->domain != NULL) close_scope(mpl, set->domain);
       /* if dimension of set members is still unknown, set it to 1 */
@@ -3577,6 +3577,12 @@ PARAMETER *parameter_statement(MPL *mpl)
       if (mpl->scan_input->token == T_LBRACE)
       {  par->domain = indexing_expression(mpl);
          par->dim = domain_arity(mpl, par->domain);
+      }
+      /* include the parameter name in the symbolic names table */
+      {  AVLNODE *node;
+         node = avl_insert_node(mpl->tree, par->name);
+         avl_set_node_type(node, A_PARAMETER);
+         avl_set_node_link(node, (void *)par);
       }
       /* parse the list of optional attributes */
       for (;;)
@@ -3759,12 +3765,6 @@ err:           error(mpl, "at most one := or default allowed");
          else
             error(mpl, "syntax error in parameter statement");
       }
-      /* include the parameter name in the symbolic names table */
-      {  AVLNODE *node;
-         node = avl_insert_node(mpl->tree, par->name);
-         avl_set_node_type(node, A_PARAMETER);
-         avl_set_node_link(node, (void *)par);
-      }
       /* close the domain scope */
       if (par->domain != NULL) close_scope(mpl, par->domain);
       /* the parameter statement has been completely parsed */
@@ -3832,6 +3832,12 @@ VARIABLE *variable_statement(MPL *mpl)
       if (mpl->scan_input->token == T_LBRACE)
       {  var->domain = indexing_expression(mpl);
          var->dim = domain_arity(mpl, var->domain);
+      }
+      /* include the variable name in the symbolic names table */
+      {  AVLNODE *node;
+         node = avl_insert_node(mpl->tree, var->name);
+         avl_set_node_type(node, A_VARIABLE);
+         avl_set_node_link(node, (void *)var);
       }
       /* parse the list of optional attributes */
       for (;;)
@@ -3934,12 +3940,6 @@ bin:     {  if (binary_used)
          else
             error(mpl, "syntax error in variable statement");
       }
-      /* include the variable name in the symbolic names table */
-      {  AVLNODE *node;
-         node = avl_insert_node(mpl->tree, var->name);
-         avl_set_node_type(node, A_VARIABLE);
-         avl_set_node_link(node, (void *)var);
-      }
       /* close the domain scope */
       if (var->domain != NULL) close_scope(mpl, var->domain);
       /* the variable statement has been completely parsed */
@@ -4029,6 +4029,12 @@ CONSTRAINT *constraint_statement(MPL *mpl)
       {  con->domain = indexing_expression(mpl);
          con->dim = domain_arity(mpl, con->domain);
       }
+      /* include the constraint name in the symbolic names table */
+      {  AVLNODE *node;
+         node = avl_insert_node(mpl->tree, con->name);
+         avl_set_node_type(node, A_CONSTRAINT);
+         avl_set_node_link(node, (void *)con);
+      }
       /* the colon must precede the first expression */
       if (mpl->scan_input->token != T_COLON)
          error(mpl, "colon missing where expected");
@@ -4101,12 +4107,6 @@ CONSTRAINT *constraint_statement(MPL *mpl)
       else
       {  /* the constraint is equality or single inequality */
          third = NULL;
-      }
-      /* include the constraint name in the symbolic names table */
-      {  AVLNODE *node;
-         node = avl_insert_node(mpl->tree, con->name);
-         avl_set_node_type(node, A_CONSTRAINT);
-         avl_set_node_link(node, (void *)con);
       }
       /* close the domain scope */
       if (con->domain != NULL) close_scope(mpl, con->domain);
@@ -4231,6 +4231,12 @@ CONSTRAINT *objective_statement(MPL *mpl)
       {  obj->domain = indexing_expression(mpl);
          obj->dim = domain_arity(mpl, obj->domain);
       }
+      /* include the constraint name in the symbolic names table */
+      {  AVLNODE *node;
+         node = avl_insert_node(mpl->tree, obj->name);
+         avl_set_node_type(node, A_CONSTRAINT);
+         avl_set_node_link(node, (void *)obj);
+      }
       /* the colon must precede the objective expression */
       if (mpl->scan_input->token != T_COLON)
          error(mpl, "colon missing where expected");
@@ -4244,12 +4250,6 @@ CONSTRAINT *objective_statement(MPL *mpl)
       if (obj->code->type != A_FORMULA)
          error(mpl, "expression following colon has invalid type");
       xassert(obj->code->dim == 0);
-      /* include the constraint name in the symbolic names table */
-      {  AVLNODE *node;
-         node = avl_insert_node(mpl->tree, obj->name);
-         avl_set_node_type(node, A_CONSTRAINT);
-         avl_set_node_link(node, (void *)obj);
-      }
       /* close the domain scope */
       if (obj->domain != NULL) close_scope(mpl, obj->domain);
       /* the objective statement has been completely parsed */
