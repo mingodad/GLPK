@@ -4,7 +4,7 @@ on:
 jobs:
   build-release-linux-i686-amd64:
     name: GLPK master linux/amd64
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
     - name: Install depedencies
@@ -17,7 +17,7 @@ jobs:
     # build project amd64
     - name: build amd64
       run: |
-        CFLAGS="-pipe -O3 -march=native -ffp-contract=off -DWITH_SPLAYTREE -DNDEBUG -flto" ./configure --disable-shared
+        CFLAGS="-pipe -O3 -DWITH_SPLAYTREE -DNDEBUG -flto" ./configure --disable-shared
         make
         cp examples/glpsol glpsol-linux-amd64
     # run tests
@@ -36,7 +36,7 @@ jobs:
     - name: build i686
       run: |
         make clean
-        CFLAGS="-m32 -pipe -O3 -march=native -ffp-contract=off -DWITH_SPLAYTREE -DNDEBUG -flto" ./configure --disable-shared
+        CC=i686-linux-gnu-gcc-8 CFLAGS="-pipe -O3 -DWITH_SPLAYTREE -DNDEBUG -flto" ./configure --disable-shared
         make
         cp examples/glpsol glpsol-linux-i686
     # run tests
@@ -49,8 +49,8 @@ jobs:
     - name: Upload glpk-linux-i686 binary
       uses: actions/upload-artifact@v1
       with:
-        name: download glpk-linux-i686
-        path: glpk-linux-i686
+        name: download glpsol-linux-i686
+        path: glpsol-linux-i686
 
   build-release-osx-amd64:
     name: GLPK master osx/amd64
@@ -63,7 +63,7 @@ jobs:
     # build project amd64
     - name: build amd64
       run: |
-        CFLAGS="-pipe -O3 -march=native -ffp-contract=off -DWITH_SPLAYTREE -DNDEBUG -flto" ./configure --disable-shared
+        CFLAGS="-pipe -O3 -DWITH_SPLAYTREE -DNDEBUG" ./configure --disable-shared
         make
         cp examples/glpsol glpsol-osx-amd64
     # run tests
@@ -81,7 +81,7 @@ jobs:
 
   build-release-windows-i686-amd64:
     name: GLPK master windows/amd64
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
     - name: Install depedencies
@@ -95,14 +95,14 @@ jobs:
     # build project amd64
     - name: build amd64
       run: |
-        CFLAGS="-pipe -O3 -march=native -ffp-contract=off -DWITH_SPLAYTREE -DNDEBUG -flto -D__WOE__" ./configure --disable-shared --host=x86_64-w64-mingw32
+        CFLAGS="-pipe -O3 -DWITH_SPLAYTREE -DNDEBUG -flto -D__WOE__" ./configure --disable-shared --host=x86_64-w64-mingw32
         make
         cp examples/glpsol.exe glpsol-windows-amd64.exe
     # run tests
     - name: run test_exs amd64
       run: |
         cd examples
-        GLPSOL_CMD='wine ./glpsol.exe' ./test-all.sh
+        GLPSOL_CMD='wine64 ./glpsol.exe' ./test-all.sh
         cd ..
     # upload artifact, glpsol binary
     - name: Upload glpsol-windows-amd64 binary
@@ -114,7 +114,7 @@ jobs:
     - name: build i686
       run: |
         make clean
-        CFLAGS="-m32 -pipe -O3 -march=native -ffp-contract=off -DWITH_SPLAYTREE -DNDEBUG -flto -D__WOE__" ./configure --disable-shared --host=x86_64-w64-mingw32
+        CFLAGS="-m32 -pipe -O3 -DWITH_SPLAYTREE -DNDEBUG -flto -D__WOE__" ./configure --disable-shared --host=i686-w64-mingw32
         make
         cp examples/glpsol.exe glpsol-windows-i686.exe
     # upload artifact, glpsol binary
