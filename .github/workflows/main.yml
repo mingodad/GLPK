@@ -19,7 +19,7 @@ jobs:
       run: |
         CFLAGS="-pipe -O3 -march=native -ffp-contract=off -DWITH_SPLAYTREE -DNDEBUG -flto" ./configure --disable-shared
         make
-        cp examples/glpsol ../glpsol-linux-amd64
+        cp examples/glpsol glpsol-linux-amd64
     # run tests
     - name: run examples amd64
       run: |
@@ -38,7 +38,7 @@ jobs:
         make clean
         CFLAGS="-m32 -pipe -O3 -march=native -ffp-contract=off -DWITH_SPLAYTREE -DNDEBUG -flto" ./configure --disable-shared
         make
-        cp examples/glpsol ../glpsol-linux-i686
+        cp examples/glpsol glpsol-linux-i686
     # run tests
     - name: run examples i686
       run: |
@@ -65,7 +65,7 @@ jobs:
       run: |
         CFLAGS="-pipe -O3 -march=native -ffp-contract=off -DWITH_SPLAYTREE -DNDEBUG -flto" ./configure --disable-shared
         make
-        cp examples/glpsol ../glpsol-osx-amd64
+        cp examples/glpsol glpsol-osx-amd64
     # run tests
     - name: run examples amd64
       run: |
@@ -97,7 +97,7 @@ jobs:
       run: |
         CFLAGS="-pipe -O3 -march=native -ffp-contract=off -DWITH_SPLAYTREE -DNDEBUG -flto -D__WOE__" ./configure --disable-shared --host=x86_64-w64-mingw32
         make
-        cp examples/glpsol.exe ../glpsol-windows-amd64.exe
+        cp examples/glpsol.exe glpsol-windows-amd64.exe
     # run tests
     - name: run test_exs amd64
       run: |
@@ -116,7 +116,7 @@ jobs:
         make clean
         CFLAGS="-m32 -pipe -O3 -march=native -ffp-contract=off -DWITH_SPLAYTREE -DNDEBUG -flto -D__WOE__" ./configure --disable-shared --host=x86_64-w64-mingw32
         make
-        cp examples/glpsol.exe ../glpsol-windows-i686.exe
+        cp examples/glpsol.exe glpsol-windows-i686.exe
     # upload artifact, picat binary
     - name: Upload glpsol-windows-i686 binary
       uses: actions/upload-artifact@v1
