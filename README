@@ -22,7 +22,7 @@ Here is a brief of changes made to GLPK 4.65 distribution on this branch https:/
 * Add the if/then/else statements
 * Add the break/continue statements
 * Change the `mod` operator to behave like AMPL/GAMS
-* Fix segfault when trying to reference a paramter while declaring it `param b := a + b;`
+* Pending fix segfault when trying to reference a paramter while declaring it `param b := a + b;`
 
 You can test it online here https://meimporta.eu/myglpk-ext
 
