@@ -2,7 +2,7 @@ This is a personal repository made with the tarbals available at:
 
 https://ftp.gnu.org/gnu/glpk/
 
-Here is a brief of changes made to GLPK 4.65 distribution on this branch https://github.com/mingodad/GLPK/tree/local-set-param:
+Here is a brief of changes made to GLPK 4.65 distribution on this branch https://github.com/mingodad/GLPK/tree/local-set-param (binaries are availlable here https://github.com/mingodad/GLPK/actions/runs/1587674516):
 
 * Added the fixes proposed on http://lists.gnu.org/archive/html/bug-glpk
 * Add a reference count to ARRAY to minimize unnecessary copies
