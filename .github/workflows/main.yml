@@ -1,9 +1,6 @@
 name: build and run tests
 on:
-  push:
-    branches: [ local-set-param ]
-  pull_request:
-    branches: [ local-set-param ]
+  workflow_dispatch
 jobs:
   build-release-linux-i686-amd64:
     name: GLPK master linux/amd64
