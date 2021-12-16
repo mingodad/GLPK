@@ -49,8 +49,8 @@ jobs:
     - name: Upload glpk-linux-i686 binary
       uses: actions/upload-artifact@v1
       with:
-        name: download glpk-linux-i686
-        path: glpk-linux-i686
+        name: download glpsol-linux-i686
+        path: glpsol-linux-i686
 
   build-release-osx-amd64:
     name: GLPK master osx/amd64
@@ -63,7 +63,7 @@ jobs:
     # build project amd64
     - name: build amd64
       run: |
-        CFLAGS="-pipe -O3 -march=native -ffp-contract=off -DWITH_SPLAYTREE -DNDEBUG -flto" ./configure --disable-shared
+        CFLAGS="-pipe -O3 -march=native -ffp-contract=off -DWITH_SPLAYTREE -DNDEBUG" ./configure --disable-shared
         make
         cp examples/glpsol glpsol-osx-amd64
     # run tests
