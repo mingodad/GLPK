@@ -1336,7 +1336,8 @@ err1:    {  xprintf("MPS file processing error\n");
             glp_mpl_set_msg_lev(csa->tran, GLP_MSG_ERR);
          glp_mpl_set_genall(csa->tran, csa->gen_all);
          glp_mpl_set_show_delta(csa->tran, csa->show_delta);
-         glp_mpl_set_solve_callback(csa->tran, solve_callback, csa);
+         if(!csa->check)
+             glp_mpl_set_solve_callback(csa->tran, solve_callback, csa);
          /* set seed value */
          if (csa->seed == 0x80000000)
 #if 0 /* 10/VI-2013 */
