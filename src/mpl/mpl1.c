@@ -3578,8 +3578,9 @@ PARAMETER *parameter_statement(MPL *mpl)
       {  par->domain = indexing_expression(mpl);
          par->dim = domain_arity(mpl, par->domain);
       }
-      /* include the parameter name in the symbolic names table */
-      {  AVLNODE *node;
+      if(par->dim != 0) { /* To prevent endless recursion delay insertion */
+         /* include the parameter name in the symbolic names table */
+         AVLNODE *node;
          node = avl_insert_node(mpl->tree, par->name);
          avl_set_node_type(node, A_PARAMETER);
          avl_set_node_link(node, (void *)par);
@@ -3764,6 +3765,13 @@ err:           error(mpl, "at most one := or default allowed");
          }
          else
             error(mpl, "syntax error in parameter statement");
+      }
+      if(par->dim == 0) { /* Delayed insertion to prevent endless recursion */
+         /* include the parameter name in the symbolic names table */
+         AVLNODE *node;
+         node = avl_insert_node(mpl->tree, par->name);
+         avl_set_node_type(node, A_PARAMETER);
+         avl_set_node_link(node, (void *)par);
       }
       /* close the domain scope */
       if (par->domain != NULL) close_scope(mpl, par->domain);
