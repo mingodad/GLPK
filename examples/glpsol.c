@@ -170,6 +170,7 @@ struct csa
       int show_delta;
       int gen_all;
       int solve_callback_used;
+      int solve_callback_used_has_solution;
       int quiet;
 #ifdef WITH_LPSOLVE
       int with_lpsolve;
@@ -1005,6 +1006,7 @@ static int solve_callback(glp_tran *tran, int sol_type, void *udata)
     struct csa *csa = (struct csa *)udata;
     if(!csa->quiet)
         xprintf("Solve callback called\n");
+    csa->solve_callback_used_has_solution = 0;
     if(!csa->solve_callback_used)
         csa->solve_callback_used = 1;
 
@@ -1021,7 +1023,7 @@ static int solve_callback(glp_tran *tran, int sol_type, void *udata)
         }
         if(csa->quiet)
             set_verbose(lp, IMPORTANT);
-        //set_presolve(lp, PRESOLVE_ROWS | PRESOLVE_COLS, get_presolveloops(lp));         
+        //set_presolve(lp, PRESOLVE_ROWS | PRESOLVE_COLS, get_presolveloops(lp));
         //set_scaling(lp, SCALE_CURTISREID); //65);
         //set_mip_gap(lp, TRUE, 0.05);
         switch(sol_type)
@@ -1103,6 +1105,7 @@ static int solve_callback(glp_tran *tran, int sol_type, void *udata)
     else
 #endif
     {
+        csa->solve_callback_used_has_solution = 1;
         /* build the problem instance from the model */
         glp_mpl_build_prob(csa->tran, csa->prob);
         glp_sort_matrix(csa->prob);
@@ -1227,6 +1230,7 @@ int __cdecl main(int argc, char *argv[])
       csa->show_delta = 0;
       csa->gen_all = 0;
       csa->solve_callback_used = 0;
+      csa->solve_callback_used_has_solution = 0;
       csa->quiet = 0;
 #ifdef WITH_LPSOLVE
       csa->with_lpsolve = 0;
@@ -1361,7 +1365,8 @@ err2:    {  xprintf("MathProg model processing error\n");
          }
          /* generate the model */
          if (glp_mpl_generate(csa->tran, csa->out_dpy)) goto err2;
-         if (csa->genonly || csa->solve_callback_used) goto done;
+         if (csa->genonly || (csa->solve_callback_used &&
+                 csa->solve_callback_used_has_solution == 0)) goto done;
          /* build the problem instance from the model */
          glp_mpl_build_prob(csa->tran, csa->prob);
       }
@@ -1525,6 +1530,12 @@ err2:    {  xprintf("MathProg model processing error\n");
          ret = EXIT_SUCCESS;
          goto done;
       }
+
+      if(csa->solve_callback_used_has_solution) {
+         ret = EXIT_SUCCESS;
+         goto done;
+      }
+
       /*--------------------------------------------------------------*/
       /* determine the solution type */
       if (!csa->nomip &&
