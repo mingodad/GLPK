@@ -24,13 +24,7 @@
 #include "env.h"
 #include "glpk.h"
 #include "relax4.h"
-
-static int overflow(int u, int v)
-{     /* check for integer overflow on computing u + v */
-      if (u > 0 && v > 0 && u + v < 0) return 1;
-      if (u < 0 && v < 0 && u + v > 0) return 1;
-      return 0;
-}
+#include <limits.h>
 
 int glp_mincost_relax4(glp_graph *G, int v_rhs, int a_low, int a_cap,
       int a_cost, int crash, glp_double *sol, int a_x, int a_rc)
@@ -157,7 +151,7 @@ int glp_mincost_relax4(glp_graph *G, int v_rhs, int a_low, int a_cap,
             /* substitute x = x' + low, where 0 <= x' <= cap - low */
             csa.u[k] = (int)(cap - low);
             /* correct demands at endpoints of k-th arc */
-            if (overflow(csa.dfct[a->tail->i], +low))
+            if (glp_int_addition_overflows(csa.dfct[a->tail->i], +low))
             {  ret = GLP_ERANGE;
                goto done;
             }
@@ -166,7 +160,7 @@ int glp_mincost_relax4(glp_graph *G, int v_rhs, int a_low, int a_cap,
 #else
             csa.dfct[a->tail->i] += (int)low;
 #endif
-            if (overflow(csa.dfct[a->head->i], -low))
+            if (glp_int_addition_overflows(csa.dfct[a->head->i], -low))
             {  ret = GLP_ERANGE;
                goto done;
             }

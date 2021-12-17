@@ -23,6 +23,7 @@
 
 #include "env.h"
 #include "okalg.h"
+#include <limits.h>
 
 /***********************************************************************
 *  NAME
@@ -89,13 +90,6 @@
 *  Corp., Report R-375-PR (August 1962), Chap. III "Minimal Cost Flow
 *  Problems," pp.113-26. */
 
-static int overflow(int u, int v)
-{     /* check for integer overflow on computing u + v */
-      if (u > 0 && v > 0 && u + v < 0) return 1;
-      if (u < 0 && v < 0 && u + v > 0) return 1;
-      return 0;
-}
-
 int okalg(int nv, int na, const int tail[], const int head[],
       const int low[], const int cap[], const int cost[], int x[],
       int pi[])
@@ -147,7 +141,7 @@ loop: /* main loop starts here */
       aok = 0;
       for (a = 1; a <= na; a++)
       {  i = tail[a], j = head[a];
-         if (overflow(cost[a], pi[i] - pi[j]))
+         if (glp_int_addition_overflows(cost[a], pi[i] - pi[j]))
          {  ret = 2;
             goto done;
          }
@@ -232,7 +226,7 @@ loop: /* main loop starts here */
                /* if the arc does not allow increasing the flow through
                 * it, skip the arc */
                if (x[a] >= cap[a]) continue;
-               if (overflow(cost[a], pi[i] - pi[j]))
+               if (glp_int_addition_overflows(cost[a], pi[i] - pi[j]))
                {  ret = 2;
                   goto done;
                }
@@ -247,7 +241,7 @@ loop: /* main loop starts here */
                /* if the arc does not allow decreasing the flow through
                 * it, skip the arc */
                if (x[a] <= low[a]) continue;
-               if (overflow(cost[a], pi[j] - pi[i]))
+               if (glp_int_addition_overflows(cost[a], pi[j] - pi[i]))
                {  ret = 2;
                   goto done;
                }
@@ -270,7 +264,7 @@ loop: /* main loop starts here */
       {  i = tail[a], j = head[a];
          if (link[i] != 0 && link[j] == 0)
          {  /* a = i->j, where node i is labelled, node j is not */
-            if (overflow(cost[a], pi[i] - pi[j]))
+            if (glp_int_addition_overflows(cost[a], pi[i] - pi[j]))
             {  ret = 2;
                goto done;
             }
@@ -280,7 +274,7 @@ loop: /* main loop starts here */
          }
          else if (link[i] == 0 && link[j] != 0)
          {  /* a = j<-i, where node j is labelled, node i is not */
-            if (overflow(cost[a], pi[i] - pi[j]))
+            if (glp_int_addition_overflows(cost[a], pi[i] - pi[j]))
             {  ret = 2;
                goto done;
             }
@@ -297,7 +291,7 @@ loop: /* main loop starts here */
       /* increase potentials of all unlabelled nodes */
       for (i = 1; i <= nv; i++)
       {  if (link[i] == 0)
-         {  if (overflow(pi[i], delta))
+         {  if (glp_int_addition_overflows(pi[i], delta))
             {  ret = 2;
                goto done;
             }

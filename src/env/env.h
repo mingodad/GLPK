@@ -327,6 +327,10 @@ void *xdlsym(void *h, const char *symbol);
 void xdlclose(void *h);
 /* close dynamically linked library */
 
+/* check for integer overflow on computing u + v */
+#define glp_int_addition_overflows(u, v) \
+    ((u > 0 && v > INT_MAX - u)  || (u < 0 && v < INT_MIN - u))
+
 #endif
 
 /* eof */
