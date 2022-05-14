@@ -230,6 +230,7 @@ loop: /* read the very first character of the next record */
          }
          csa->field[len] = '\0';
          if (!(strcmp(csa->field, "NAME")    == 0 ||
+               strcmp(csa->field, "OBJSENSE")== 0 ||
                strcmp(csa->field, "ROWS")    == 0 ||
                strcmp(csa->field, "COLUMNS") == 0 ||
                strcmp(csa->field, "RHS")     == 0 ||
@@ -402,6 +403,25 @@ static void read_name(struct csa *csa)
          warning(csa, "missing model name in field 3\n");
       else
          glp_set_prob_name(csa->P, csa->field);
+      /* skip anything following field 3 */
+      while (csa->c != '\n')
+         read_char(csa);
+      return;
+}
+
+static void read_objsense(struct csa *csa)
+{     /* read optional OBJSENSE indicator record */
+      if (!(indicator(csa, 1) && strcmp(csa->field, "OBJSENSE") == 0))
+         return;
+      /* this indicator record looks like a data record; simulate that
+         fields 1 and 2 were read */
+      csa->fldno = 2;
+      /* field 3: OBJSENSE MIN/MAX */
+      read_field(csa), patch_name(csa, csa->field);
+      if (csa->field[0] == '\0')
+         warning(csa, "missing OBJSENSE type in field 3\n");
+      else
+         glp_set_obj_dir(csa->P, (strcmp(csa->field, "MIN") == 0) ? GLP_MIN : GLP_MAX);
       /* skip anything following field 3 */
       while (csa->c != '\n')
          read_char(csa);
@@ -930,6 +950,7 @@ int glp_read_mps(glp_prob *P, int fmt, const glp_mpscp *parm,
       }
       /* read NAME indicator record */
       read_name(csa);
+      read_objsense(csa);
       if (P->name != NULL)
          xprintf("Problem: %s\n", P->name);
       /* read ROWS section */
@@ -1216,6 +1237,8 @@ int glp_write_mps(glp_prob *P, int fmt, const glp_mpscp *parm,
       xfprintf(fp, "NAME%*s%s\n",
          P->name == NULL ? 0 : csa->deck ? 10 : 1, "", mps_name(csa)),
          recno++;
+      if(!csa->deck)
+          xfprintf(fp, "OBJSENSE %s\n", P->dir == GLP_MIN ? "MIN" : "MAX");
 #if 1
       /* determine whether to write the objective row */
       out_obj = 1;
