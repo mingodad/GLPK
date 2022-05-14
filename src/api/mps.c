@@ -411,18 +411,17 @@ static void read_name(struct csa *csa)
 
 static void read_objsense(struct csa *csa)
 {     /* read optional OBJSENSE indicator record */
-      if (!(indicator(csa, 1) && strcmp(csa->field, "OBJSENSE") == 0))
+      if (strcmp(csa->field, "OBJSENSE"))
          return;
-      /* this indicator record looks like a data record; simulate that
-         fields 1 and 2 were read */
-      csa->fldno = 2;
-      /* field 3: OBJSENSE MIN/MAX */
-      read_field(csa), patch_name(csa, csa->field);
+      read_char(csa);
+      csa->fldno = 1;
+      /* field 2: MIN/MAX */
+      read_field(csa);
       if (csa->field[0] == '\0')
-         warning(csa, "missing OBJSENSE type in field 3\n");
+         warning(csa, "missing OBJSENSE type in field 2\n");
       else
          glp_set_obj_dir(csa->P, (strcmp(csa->field, "MIN") == 0) ? GLP_MIN : GLP_MAX);
-      /* skip anything following field 3 */
+      /* skip anything following field 2 */
       while (csa->c != '\n')
          read_char(csa);
       return;
@@ -950,11 +949,16 @@ int glp_read_mps(glp_prob *P, int fmt, const glp_mpscp *parm,
       }
       /* read NAME indicator record */
       read_name(csa);
-      read_objsense(csa);
       if (P->name != NULL)
          xprintf("Problem: %s\n", P->name);
+      ret = indicator(csa, 0);
+      if (ret && strcmp(csa->field, "OBJSENSE") == 0)
+      {
+          read_objsense(csa);
+          ret = indicator(csa, 0);
+      }
       /* read ROWS section */
-      if (!(indicator(csa, 0) && strcmp(csa->field, "ROWS") == 0))
+      if (!(ret && strcmp(csa->field, "ROWS") == 0))
          error(csa, "missing ROWS indicator record\n");
       read_rows(csa);
       /* determine objective row */
@@ -1238,7 +1242,7 @@ int glp_write_mps(glp_prob *P, int fmt, const glp_mpscp *parm,
          P->name == NULL ? 0 : csa->deck ? 10 : 1, "", mps_name(csa)),
          recno++;
       if(!csa->deck)
-          xfprintf(fp, "OBJSENSE %s\n", P->dir == GLP_MIN ? "MIN" : "MAX");
+          xfprintf(fp, "OBJSENSE\n %s\n", P->dir == GLP_MIN ? "MIN" : "MAX");
 #if 1
       /* determine whether to write the objective row */
       out_obj = 1;
