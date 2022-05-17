@@ -169,6 +169,7 @@ struct csa
 #endif
       int show_delta;
       int gen_all;
+      int solve_callback_skip;
       int solve_callback_used;
       int solve_callback_used_has_solution;
       int quiet;
@@ -559,6 +560,7 @@ static int parse_cmdline(struct csa *csa, int argc, char *argv[])
                return 1;
             }
             csa->in_res = argv[k];
+            csa->solve_callback_skip = 1;
          }
          else if (p("--min"))
             csa->dir = GLP_MIN;
@@ -579,6 +581,7 @@ static int parse_cmdline(struct csa *csa, int argc, char *argv[])
                return 1;
             }
             csa->out_sol = argv[k];
+            csa->solve_callback_skip = 1;
          }
          else if (p("-w") || p("--write"))
          {  k++;
@@ -591,6 +594,7 @@ static int parse_cmdline(struct csa *csa, int argc, char *argv[])
                return 1;
             }
             csa->out_res = argv[k];
+            csa->solve_callback_skip = 1;
          }
          else if (p("--ranges") || p("--bounds"))
          {  k++;
@@ -635,8 +639,10 @@ static int parse_cmdline(struct csa *csa, int argc, char *argv[])
             }
             glp_mem_limit(mem_lim);
          }
-         else if (p("--check"))
+         else if (p("--check")) {
             csa->check = 1;
+            csa->solve_callback_skip = 1;
+         }
          else if (p("--genall"))
             csa->gen_all = 1;
          else if (p("--quiet"))
@@ -681,6 +687,7 @@ static int parse_cmdline(struct csa *csa, int argc, char *argv[])
                return 1;
             }
             csa->out_mps = argv[k];
+            csa->solve_callback_skip = 1;
          }
          else if (p("--wfreemps"))
          {  k++;
@@ -693,6 +700,7 @@ static int parse_cmdline(struct csa *csa, int argc, char *argv[])
                return 1;
             }
             csa->out_freemps = argv[k];
+            csa->solve_callback_skip = 1;
          }
          else if (p("--wlp") || p("--wcpxlp") || p("--wlpt"))
          {  k++;
@@ -705,6 +713,7 @@ static int parse_cmdline(struct csa *csa, int argc, char *argv[])
                return 1;
             }
             csa->out_cpxlp = argv[k];
+            csa->solve_callback_skip = 1;
          }
          else if (p("--wglp"))
          {  k++;
@@ -717,6 +726,7 @@ static int parse_cmdline(struct csa *csa, int argc, char *argv[])
                return 1;
             }
             csa->out_glp = argv[k];
+            csa->solve_callback_skip = 1;
          }
 #if 0
          else if (p("--wpb"))
@@ -1229,6 +1239,7 @@ int __cdecl main(int argc, char *argv[])
 #endif
       csa->show_delta = 0;
       csa->gen_all = 0;
+      csa->solve_callback_skip = 0;
       csa->solve_callback_used = 0;
       csa->solve_callback_used_has_solution = 0;
       csa->quiet = 0;
@@ -1340,7 +1351,7 @@ err1:    {  xprintf("MPS file processing error\n");
             glp_mpl_set_msg_lev(csa->tran, GLP_MSG_ERR);
          glp_mpl_set_genall(csa->tran, csa->gen_all);
          glp_mpl_set_show_delta(csa->tran, csa->show_delta);
-         if(!csa->check)
+         if(!csa->check && !csa->solve_callback_skip)
              glp_mpl_set_solve_callback(csa->tran, solve_callback, csa);
          /* set seed value */
          if (csa->seed == 0x80000000)
