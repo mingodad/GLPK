@@ -1,0 +1,6 @@
+#wasm is buit with cmake in the buid/folder
+mkdir build
+cd build
+emsdk-env emcmake mycmake -DPROTOC=/usr/bin/protoc-c ..
+make
+

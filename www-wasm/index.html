@@ -113,13 +113,18 @@
     <div id="terminal" class="output"></div>
 
     <div class="container">
-    <script>
+    <script type="text/javascript">
         var term = new Terminal({cursorBlink: true, scrollback: 10000});
         term.open(document.getElementById('terminal'));
         term.fit();
         term.textarea.onkeydown = function (e) {
           console.log('User pressed key with keyCode: ', e.keyCode);
         }
+	  if ("orientation" in screen) {
+		screen.orientation.addEventListener("change", function(e) {
+			term.fit();
+		}, false);
+	  }
     </script>
     </p>
    <p>This page is based on <a href="https://www.strandmark.net/wasm/glpk.html">Glpk in Your Browser</a>, and the compilation to wasm was based on this repository <a href="https://github.com/PetterS/monolith">github.com/PetterS/monolith</a></p>

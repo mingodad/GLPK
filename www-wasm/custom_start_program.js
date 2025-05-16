@@ -41,7 +41,7 @@ function remove_backspaces(str) {
   return str;
 }
 
-print_function = 
+print_function =
   (function() {
     var element = document.getElementById('output');
     if (element) element.value = ''; // clear browser cache
@@ -55,7 +55,7 @@ print_function =
       console.log(text);  // Log the raw text received.
       if (term) {
         term.writeln(text);
-      } 
+      }
       if (element) {
         text = remove_terminal_codes(text);
         text = remove_backspaces(text);
@@ -74,6 +74,9 @@ Module['onCustomMessage'] =
     if (data.command == "callMainComplete") {
       postCustomMessage({command: "FS_sync"}, {preMain: false});
       Module['setStatus']('');
+    }
+    else if (data.command == "file_name" || data.command == "cat") {
+	console.log(data.name, data.content);
     }
   };
 
@@ -105,8 +108,10 @@ var start_program = function() {
 
   console.warn("Start program with " + command_line_content);
 
+  //postCustomMessage({command: "ls"}, {preMain: true});
   if (input_file_content) {
     if (created_file) {
+      //postCustomMessage({command: "cat", name: "./input_file"}, {preMain: true});
       postCustomMessage({command: "FS_unlink", filename: "./input_file"}, {preMain: true});
     }
     postCustomMessage({command: "FS_createDataFile", dir: ".", filename: "input_file", content: input_file_content}, {preMain: true});
