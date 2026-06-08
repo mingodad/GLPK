@@ -3411,7 +3411,9 @@ static int whole_par_func(MPL *mpl, void *info)
             eval_member_num(mpl, par, tuple);
             break;
          case A_SYMBOLIC:
-            delete_symbol(mpl, eval_member_sym(mpl, par, tuple));
+            {  SYMBOL sym = eval_member_sym(mpl, par, tuple);
+               delete_symbol(mpl, sym);
+            }
             break;
          default:
             xassert(par != par);
@@ -6172,8 +6174,10 @@ static void eval_whole_param_statemtnt(MPL *mpl, PARAMETER *par)
        {  if (par->type != A_SYMBOLIC)
              eval_member_num(mpl, par, par->array->head->tuple);
           else
-             delete_symbol(mpl, eval_member_sym(mpl, par,
-                par->array->head->tuple));
+          {  SYMBOL sym = eval_member_sym(mpl, par,
+                par->array->head->tuple);
+             delete_symbol(mpl, sym);
+          }
        }
     }
     if (par->array->head == NULL) {
