@@ -5287,6 +5287,7 @@ STATEMENT *simple_statement(MPL *mpl, int spec)
             error(mpl, "constraint statement not allowed here");
          stmt->type = A_CONSTRAINT;
          stmt->u.con = constraint_statement(mpl);
+         add_problem_element(mpl, stmt);
       }
       else if (is_reserved(mpl))
          error(mpl, "invalid use of reserved keyword %s", mpl->scan_input->image);
