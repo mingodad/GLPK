@@ -6869,6 +6869,8 @@ void execute_statement(MPL *mpl, STATEMENT *stmt)
          case A_IF: /* if then else */
             execute_if(mpl, stmt->u.if_stmt);
             break;
+         case A_OPTION: /* option is ignored for now */
+            break;
          default:
             xassert(stmt != stmt);
       }

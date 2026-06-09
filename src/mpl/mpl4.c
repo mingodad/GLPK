@@ -135,6 +135,7 @@ void alloc_content_for_stmt(MPL *mpl, STATEMENT *stmt)
             case A_IF:
             case A_BREAK:
             case A_CONTINUE:
+            case A_OPTION:
                /* functional statements have no content array */
                break;
             default:
